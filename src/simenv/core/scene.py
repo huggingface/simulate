@@ -1,5 +1,5 @@
-class Scene():
-    def __init__(self, start_frame = 0, end_frame = 500, frame_rate = 24):
+class Scene:
+    def __init__(self, start_frame=0, end_frame=500, frame_rate=24):
         self.start_frame = start_frame
         self.end_frame = end_frame
         self.frame_rate = frame_rate

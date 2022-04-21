@@ -1,5 +1,6 @@
 import abc
 
+
 class View(abc.ABC):
     def __init__(self, scene):
         self.nodes = []

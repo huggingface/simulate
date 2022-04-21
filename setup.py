@@ -1,5 +1,5 @@
 # Lint as: python3
-""" HuggingFace/simenvs is an open library of simulation and synthetic environments.
+""" HuggingFace/simenv is an open library of simulation and synthetic environments.
 
 Note:
 
@@ -67,21 +67,32 @@ REQUIRED_PKGS = [
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
+TESTS_REQUIRE = [
+    # test dependencies
+]
+
+EXTRAS_REQUIRE = {
+    "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
+    "tests": TESTS_REQUIRE,
+    "quality": QUALITY_REQUIRE,
+}
+
 
 setup(
-    name="simenvs",
+    name="simenv",
     version="0.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of simulation environments",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",
-    url="https://github.com/huggingface/simulation-environments",
-    download_url="https://github.com/huggingface/simulation-environments/tags",
+    url="https://github.com/huggingface/simenv",
+    download_url="https://github.com/huggingface/simenv/tags",
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),
     install_requires=REQUIRED_PKGS,
+    extras_require=EXTRAS_REQUIRE,
     classifiers=[
         "Development Status :: 5 - Production/Stable",
         "Intended Audience :: Developers",
