@@ -6,14 +6,14 @@ Note:
    VERSION needs to be formatted following the MAJOR.MINOR.PATCH convention
    (we need to follow this convention to be able to retrieve versioned scripts)
 
-Simple check list for release from AllenNLP repo: https://github.com/allenai/allennlp/blob/master/setup.py
+Simple check list for release from AllenNLP repo: https://github.com/allenai/allennlp/blob/main/setup.py
 
 To create the package for pypi.
 
 0. Prerequisites:
    - Dependencies:
      - twine: "pip install twine"
-   - Create an account in (and join the 'datasets' project):
+   - Create an account in (and join the 'simenv' project):
      - PyPI: https://pypi.org/
      - Test PyPI: https://test.pypi.org/
 
@@ -24,7 +24,7 @@ To create the package for pypi.
 2. Commit these changes: "git commit -m 'Release: VERSION'"
 
 3. Add a tag in git to mark the release: "git tag VERSION -m 'Add tag VERSION for pypi'"
-   Push the tag to remote: git push --tags origin master
+   Push the tag to remote: git push --tags origin main
 
 4. Build both the sources and the wheel. Do not change anything in setup.py between
    creating the wheel and the source distribution (obviously).
@@ -42,9 +42,7 @@ To create the package for pypi.
    twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
 
    Check that you can install it in a virtualenv/notebook by running:
-   pip install huggingface_hub fsspec aiohttp
-   pip install -U tqdm
-   pip install -i https://testpypi.python.org/pypi datasets
+   pip install -i https://testpypi.python.org/pypi simenv
 
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi

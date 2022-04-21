@@ -41,7 +41,7 @@ If you would like to work on any of the open Issues:
 	git checkout -b a-descriptive-name-for-my-changes
 	```
 
-	**do not** work on the `master` branch.
+	**do not** work on the `main` branch.
 
 4. Set up a development environment by running the following command in a virtual environment:
 
@@ -73,7 +73,7 @@ If you would like to work on any of the open Issues:
 
 	```bash
 	git fetch upstream
-	git rebase upstream/master
+	git rebase upstream/main
     ```
 
    Push the changes to your account using:
