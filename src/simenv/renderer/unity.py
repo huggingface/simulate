@@ -12,9 +12,13 @@ PRIMITIVE_TYPE_MAPPING = {
     "Quad": 5,
 }
 
+
 class Unity:
-    def __init__(self, scene):
-        self.scene = scene
+    def __init__(self, start_frame=0, end_frame=500, frame_rate=24):
+        self.start_frame = start_frame
+        self.end_frame = end_frame
+        self.frame_rate = frame_rate
+
         self.host = "127.0.0.1"
         self.port = 55000
         self.initialize_server()
@@ -30,9 +34,9 @@ class Unity:
             "type": "Initialize",
             "contents": json.dumps(
                 {
-                    "startFrame": self.scene.start_frame,
-                    "endFrame": self.scene.end_frame,
-                    "frameRate": self.scene.frame_rate,
+                    "startFrame": self.start_frame,
+                    "endFrame": self.end_frame,
+                    "frameRate": self.frame_rate,
                 }
             ),
         }
@@ -52,34 +56,40 @@ class Unity:
 
     def add(self, node):
         contents_dict = {
-                "name": node.name,
-                "id": str(uuid.uuid4()),
-                "pos": node.translation,
-                "rot": node.rotation,
-                "scale": node.scale,
-            }
+            "name": node.name,
+            "id": str(uuid.uuid4()),
+            "pos": node.translation,
+            "rot": node.rotation,
+            "scale": node.scale,
+        }
         node_class = node.__class__.__name__
 
         if node_class == "Camera":
             command_type = "CreateCamera"
-            contents_dict.update({
-                        "width": node.width,
-                        "height": node.height,
-                    })
+            contents_dict.update(
+                {
+                    "width": node.width,
+                    "height": node.height,
+                }
+            )
         elif node_class == "Light":
             command_type = "CreateLight"
-            contents_dict.update({
-                        "type": node.type,
-                        "intensity": node.intensity,
-                    })
+            contents_dict.update(
+                {
+                    "type": node.type,
+                    "intensity": node.intensity,
+                }
+            )
         elif node_class == "Agent":
             command_type = "CreateAgent"
         elif node_class in PRIMITIVE_TYPE_MAPPING:
             command_type = "CreatePrimitive"
-            contents_dict.update({
-                        "primitiveType": PRIMITIVE_TYPE_MAPPING[node.__class__.__name__],
-                        "dynamic": node.dynamic,
-                    })
+            contents_dict.update(
+                {
+                    "primitiveType": PRIMITIVE_TYPE_MAPPING[node.__class__.__name__],
+                    "dynamic": node.dynamic,
+                }
+            )
         else:
             raise "node type not implemented"
 

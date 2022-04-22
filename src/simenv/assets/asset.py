@@ -14,8 +14,9 @@
 
 # Lint as: python3
 """ A simenv Asset - Objects in the scene (mesh, primitives, camera, lights)."""
-import uuid
 import math
+import uuid
+
 import numpy as np
 
 from .anytree import NodeMixin
@@ -44,9 +45,9 @@ class Asset(NodeMixin, object):
         if children:
             self.children = children
 
-        self.translation=translation
-        self.rotation=rotation
-        self.scale=scale
+        self.translation = translation
+        self.rotation = rotation
+        self.scale = scale
 
     @property
     def translation(self):

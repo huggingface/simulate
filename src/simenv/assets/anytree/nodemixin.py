@@ -2,17 +2,15 @@
 
 import warnings
 
+from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
-
-from .exceptions import LoopError
-from .exceptions import TreeError
 
 
 class NodeMixin(object):
 
     separator = "/"
 
-    u"""
+    """
     The :any:`NodeMixin` class extends any Python class to a tree node.
 
     The only tree relevant information is the `parent` attribute.
@@ -81,7 +79,7 @@ class NodeMixin(object):
 
     @property
     def parent(self):
-        u"""
+        """
         Parent Node.
 
         On set, the node is detached from any previous parent node and attached

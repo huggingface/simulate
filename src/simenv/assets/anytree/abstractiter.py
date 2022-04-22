@@ -2,7 +2,6 @@ import six
 
 
 class AbstractIter(six.Iterator):
-
     def __init__(self, node, filter_=None, stop=None, maxlevel=None):
         """
         Iterate over tree starting at `node`.
