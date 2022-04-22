@@ -1,7 +1,8 @@
-from simenv.core import Node
+from .asset import Asset
 
 
-class Light(Node):
+class Light(Asset):
+    dimensionality = 3
     def __init__(self, name, type, intensity=1, translation=[0, 0, 0], rotation=[0, 0, 0, 1]):
         super().__init__(name, translation, rotation)
         self.type = type
