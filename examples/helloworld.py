@@ -1,27 +1,15 @@
 import simenv as sm
-import simenv.utils.rotation as rotation
-import os
 
 scene = sm.Scene()
-view = sm.Unity(scene)
 
-camera = sm.Camera('cam1')
-light = sm.DirectionalLight('sun', rotation=rotation.quat_from_degrees(60, -30, 0))
-floor = sm.Plane('ground')
-obj1 = sm.Sphere('obj1', translation=[0, 5, 0])
-obj2 = sm.Cube('obj2', translation=[2, 5, 0], scale=[2, 2, 2])
+sphere = sm.Sphere('sphere')
+light = sm.DirectionalLight('light')
+agent = sm.Agent('agent')
+camera = sm.Camera('cam')
 
-scene += camera
+scene += sphere
 scene += light
-scene += floor
-scene += obj1
-scene += obj2
+scene += agent
+scene += camera
 
-view.run()
-
-render_dir = os.getcwd() + '/output/helloworld/'
-if not os.path.exists(render_dir):
-    os.makedirs(render_dir)
-view.render(render_dir)
-
-view.close()
+scene.initialize_unity_backend()
