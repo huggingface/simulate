@@ -1,5 +1,6 @@
 import simenv as sm
 
+
 scene = sm.Scene()
 
 sphere = sm.Sphere('sphere')
