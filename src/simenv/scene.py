@@ -14,8 +14,7 @@
 
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
-from multiprocessing.sharedctypes import Value
-from typing import Optional
+from typing import Optional, Sequence, Union
 
 from anytree import RenderTree
 from gltflib import GLTF
@@ -25,7 +24,7 @@ from .renderer.unity import Unity
 
 
 class Scene:
-    def __init__(self, renderer: Optional[str] = None, dimensionality=3, start_frame=0, end_frame=500, frame_rate=24):
+    def __init__(self, renderer: Optional[str] = None, dimensionality=3, start_frame=0, end_frame=500, frame_rate=24, assets=None):
 
         self.renderer = None
         if renderer == "Unity":
@@ -41,38 +40,49 @@ class Scene:
         self.root = World3D("Scene")
         self.assets = set([self.root])
 
+        if assets is not None:
+            self.add(assets)
+
     @classmethod
     def load_from_file(cls, file_path):
         scene = cls()
         return scene
 
-    def add(self, asset: Asset, exists_not_ok=False):
-        """Add an Asset to the Scene together with all its descendants.
+    def add(self, assets: Union[Asset, Sequence[Asset]], exists_not_ok=False):
+        """ Add an Asset or a list of Assets to the Scene together with all its descendants.
         If the parent of the Asset is not set (None), the Asset will be set to be a child of the Scene root node
         """
-        if asset.parent is None:
-            asset.parent = self.root
-        elif asset.parent not in self.assets:
-            raise ValueError("The parent of the asset to add must be either None or an asset in the Scene")
+        if isinstance(assets, Asset):
+            assets = [assets]
+        
+        for asset in assets:
+            if asset.parent is None:
+                asset.parent = self.root
+            elif asset.parent not in self.assets:
+                raise ValueError("The parent of the asset to add must be either None or an asset in the Scene")
 
-        if exists_not_ok and asset in self.assets:
-            raise ValueError("Asset is already in the Scene and exists_not_ok is True")
+            if exists_not_ok and asset in self.assets:
+                raise ValueError("Asset is already in the Scene and exists_not_ok is True")
 
-        self.assets.add(asset)
-        for child in asset.descendants:
-            # Add all the descendants
-            self.assets.add(child)
+            self.assets.add(asset)
+            for child in asset.descendants:
+                # Add all the descendants
+                self.assets.add(child)
 
-    def remove(self, asset: Asset, not_exist_ok=False):
-        """Remove an Asset to the Scene together with all its descendants."""
-        if not not_exist_ok and asset not in self.assets:
-            raise ValueError("Asset is not in the scene")
+    def remove(self, assets: Union[Asset, Sequence[Asset]], not_exist_ok=False):
+        """ Remove an Asset or a list of Assets to the Scene together with all its descendants."""
+        if isinstance(assets, Asset):
+            assets = [assets]
+        
+        for asset in assets:
+            if not not_exist_ok and asset not in self.assets:
+                raise ValueError("Asset is not in the scene")
 
-        asset.parent = None
-        self.assets.discard(asset)
-        for child in asset.descendants:
-            # Remove all the descendants
-            self.assets.discard(child)
+            asset.parent = None
+            self.assets.discard(asset)
+            for child in asset.descendants:
+                # Remove all the descendants
+                self.assets.discard(child)
 
     def __iadd__(self, asset: Asset):
         self.add(asset)

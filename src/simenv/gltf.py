@@ -14,370 +14,291 @@
 
 # Lint as: python3
 """ Load a GLTF file in a Scene."""
+from typing import Set, List, ByteString
+
 import numpy as np
+from trimesh import Trimesh
+from trimesh.path.entities import Line
+from trimesh.visual.material import PBRMaterial
+from trimesh.visual.texture import TextureVisuals
+import PIL.Image
 
-from .gltflib import GLTF
+from simenv.gltflib.models import material
+
+from .gltflib import GLTF, GLTFModel, Material
+from .gltflib.enums import PrimitiveMode, ComponentType, AccessorType
+from .gltflib.models.extensions.khr_lights_ponctual import LightPunctual
+from .scene import Scene
+from .assets import Camera, DirectionalLight, PointLight, SpotLight, Asset, Object
 
 
-def load_gltf(file_path):
-    gltf = GLTF.load(file_path, load_file_resources=True)
+
+# Conversion of gltf dtype and shapes in Numpy equivalents 
+gltf_to_numpy_dtypes_mapping = {
+           ComponentType.BYTE: np.dtype("<i1"),
+           ComponentType.UNSIGNED_BYTE: np.dtype("<u1"),
+           ComponentType.SHORT: np.dtype("<i2"),
+           ComponentType.UNSIGNED_SHORT: np.dtype("<u2"),
+           ComponentType.UNSIGNED_INT: np.dtype("<u4"),
+           ComponentType.FLOAT: np.dtype("<f4"),
+           }
+
+gltf_to_numpy_shapes_mapping = {
+    AccessorType.SCALAR: 1,
+    AccessorType.VEC2: (2,),
+    AccessorType.VEC3: (3,),
+    AccessorType.VEC4: (4,),
+    AccessorType.MAT2: (2, 2),
+    AccessorType.MAT3: (3, 3),
+    AccessorType.MAT4: (4, 4),
+    }
 
 
-def _read_buffers(header, buffers, mesh_kwargs, ignore_broken=False, merge_primitives=False, resolver=None):
+# A couple of data extraction methods
+def get_buffer_as_bytes(gltf_scene: GLTF, buffer_view_id: int) -> ByteString:
+    """ Get a ByteString of the data stored in a GLTF buffer view
     """
-    Given binary data and a layout return the
-    kwargs to create a scene object.
+    gltf_model = gltf_scene.model
 
-    Parameters
-    -----------
-    header : dict
-      With GLTF keys
-    buffers : list of bytes
-      Stored data
-    mesh_kwargs : dict
-      To be passed to the mesh constructor.
-    ignore_broken : bool
-      If there is a mesh we can't load and this
-      is True don't raise an exception but return
-      a partial result
-    merge_primitives : bool
-      If true, combine primitives into a single mesh.
-    resolver : trimesh.resolvers.Resolver
-      Resolver to load referenced assets
+    buffer_view = gltf_model.bufferViews[buffer_view_id]
+    buffer = gltf_model.buffers[buffer_view.buffer]
+    ressource = gltf_scene.get_resource(buffer.uri)
+    if not ressource.loaded:
+        ressource.load()
 
-    Returns
-    -----------
-    kwargs : dict
-      Can be passed to load_kwargs for a trimesh.Scene
+    byte_offset = buffer_view.byteOffset
+    length = buffer_view.byteLength
+
+    data = ressource.data[byte_offset:byte_offset + length]
+
+    return data
+
+
+def get_image_as_bytes(gltf_scene: GLTF, image_id: int) -> ByteString:
+    """ Get a ByteString of the data stored in a GLTF image
     """
+    gltf_model = gltf_scene.model
 
-    if "bufferViews" in gltf.model:
-        # split buffer data into buffer views
-        views = [None] * len(header["bufferViews"])
-        for i, view in enumerate(header["bufferViews"]):
-            if "byteOffset" in view:
-                start = view["byteOffset"]
-            else:
-                start = 0
-            end = start + view["byteLength"]
-            views[i] = buffers[view["buffer"]][start:end]
+    image = gltf_model.images[image_id]
+    if image.bufferView is not None:
+        return get_buffer_as_bytes(gltf_scene=gltf_scene, buffer_view_id=image.bufferView)
+    
+    ressource = gltf_scene.get_resource(image.uri)
+    if not ressource.loaded:
+        ressource.load()
 
-            assert len(views[i]) == view["byteLength"]
+    return ressource.data
 
-        # load data from buffers into numpy arrays
-        # using the layout described by accessors
-        access = [None] * len(header["accessors"])
-        for index, a in enumerate(header["accessors"]):
-            # number of items
-            count = a["count"]
-            # what is the datatype
-            dtype = _dtypes[a["componentType"]]
-            # basically how many columns
-            per_item = _shapes[a["type"]]
-            # use reported count to generate shape
-            shape = np.append(count, per_item)
-            # number of items when flattened
-            # i.e. a (4, 4) MAT4 has 16
-            per_count = np.abs(np.product(per_item))
-            if "bufferView" in a:
-                # data was stored in a buffer view so get raw bytes
-                data = views[a["bufferView"]]
-                # is the accessor offset in a buffer
-                if "byteOffset" in a:
-                    start = a["byteOffset"]
-                else:
-                    # otherwise assume we start at first byte
-                    start = 0
-                # length is the number of bytes per item times total
-                length = np.dtype(dtype).itemsize * count * per_count
-                # load the bytes data into correct dtype and shape
 
-                access[index] = np.frombuffer(data[start : start + length], dtype=dtype).reshape(shape)
+def get_accessor_as_numpy(gltf_scene: GLTF, accessor_id: int) -> np.ndarray:
+    """ Get a numpy array of the data stored in a GLTF accessor
+    """
+    gltf_model = gltf_scene.model
+    accessor = gltf_model.accessors[accessor_id]
 
-            else:
-                # a "sparse" accessor should be initialized as zeros
-                access[index] = np.zeros(count * per_count, dtype=dtype).reshape(shape)
+    dtype: np.dtype = gltf_to_numpy_dtypes_mapping[accessor.componentType]
+    item_shape = gltf_to_numpy_shapes_mapping[accessor.type]
+    total_shape = np.append(accessor.count, item_shape)
+    total_size = np.abs(np.product(total_shape))
 
-        # load images and textures into material objects
-        materials = _parse_materials(header, views=views, resolver=resolver)
-
-    mesh_prim = collections.defaultdict(list)
-    # load data from accessors into Trimesh objects
-    meshes = collections.OrderedDict()
-
-    names_original = collections.defaultdict(list)
-
-    for index, m in enumerate(header.get("meshes", [])):
-
-        try:
-            # GLTF spec indicates implicit units are meters
-            metadata = {"units": "meters"}
-            # try to load all mesh metadata
-            if isinstance(m.get("extras"), dict):
-                metadata.update(m["extras"])
-
-            for j, p in enumerate(m["primitives"]):
-                # if we don't have a triangular mesh continue
-                # if not specified assume it is a mesh
-                kwargs = {"metadata": {}, "process": False}
-                kwargs.update(mesh_kwargs)
-                kwargs["metadata"].update(metadata)
-
-                # i.e. GL_LINES, GL_TRIANGLES, etc
-                mode = p.get("mode")
-                # colors, normals, etc
-                attr = p["attributes"]
-                # create a unique mesh name per- primitive
-                name = m.get("name", "GLTF")
-                names_original[index].append(name)
-                # make name unique across multiple meshes
-                if name in meshes:
-                    name += "_" + util.unique_id(length=5)
-                    assert name not in meshes
-                if mode == _GL_LINES:
-                    # load GL_LINES into a Path object
-                    from ..path.entities import Line
-
-                    kwargs["vertices"] = access[attr["POSITION"]]
-                    kwargs["entities"] = [Line(points=np.arange(len(kwargs["vertices"])))]
-                elif mode == _GL_POINTS:
-                    kwargs["vertices"] = access[attr["POSITION"]]
-                elif mode is None or mode in (_GL_TRIANGLES, _GL_STRIP):
-                    if mode is None:
-                        # some people skip mode since GL_TRIANGLES
-                        # is apparently the de-facto default
-                        log.warning("primitive has no mode! trying GL_TRIANGLES?")
-                        # get vertices from accessors
-                    kwargs["vertices"] = access[attr["POSITION"]]
-                    # get faces from accessors
-                    if "indices" in p:
-                        if mode == _GL_STRIP:
-                            # this is triangle strips
-                            flat = access[p["indices"]].reshape(-1)
-                            kwargs["faces"] = util.triangle_strips_to_faces([flat])
-                        else:
-                            kwargs["faces"] = access[p["indices"]].reshape((-1, 3))
-
-                    else:
-                        # indices are apparently optional and we are supposed to
-                        # do the same thing as webGL drawArrays?
-                        kwargs["faces"] = np.arange(len(kwargs["vertices"]), dtype=np.int64).reshape((-1, 3))
-                    if "NORMAL" in attr:
-                        # vertex normals are specified
-                        kwargs["vertex_normals"] = access[attr["NORMAL"]]
-                        # do we have UV coordinates
-                    visuals = None
-                    if "material" in p:
-                        if materials is None:
-                            log.warning("no materials! `pip install pillow`")
-                        else:
-                            uv = None
-                            if "TEXCOORD_0" in attr:
-                                # flip UV's top- bottom to move origin to lower-left:
-                                # https://github.com/KhronosGroup/glTF/issues/1021
-                                uv = access[attr["TEXCOORD_0"]].copy()
-                                uv[:, 1] = 1.0 - uv[:, 1]
-                                # create a texture visual
-                            visuals = visual.texture.TextureVisuals(uv=uv, material=materials[p["material"]])
-
-                    if "COLOR_0" in attr:
-                        try:
-                            # try to load vertex colors from the accessors
-                            colors = access[attr["COLOR_0"]]
-                            if len(colors) == len(kwargs["vertices"]):
-                                if visuals is None:
-                                    # just pass to mesh as vertex color
-                                    kwargs["vertex_colors"] = colors
-                                else:
-                                    # we ALSO have texture so save as vertex attribute
-                                    visuals.vertex_attributes["color"] = colors
-                        except BaseException:
-                            # survive failed colors
-                            log.debug("failed to load colors", exc_info=True)
-                    if visuals is not None:
-                        kwargs["visual"] = visuals
-
-                    # By default the created mesh is not from primitive,
-                    # in case it is the value will be updated
-                    # each primitive gets it's own Trimesh object
-                    if len(m["primitives"]) > 1:
-                        kwargs["metadata"]["from_gltf_primitive"] = True
-                        name += "_{}".format(j)
-                    else:
-                        kwargs["metadata"]["from_gltf_primitive"] = False
-
-                    # custom attributes starting with a `_`
-                    custom = {a: access[attr[a]] for a in attr.keys() if a.startswith("_")}
-                    if len(custom) > 0:
-                        kwargs["vertex_attributes"] = custom
-                else:
-                    log.warning("skipping primitive with mode %s!", mode)
-                    continue
-                meshes[name] = kwargs
-                mesh_prim[index].append(name)
-        except BaseException as E:
-            if ignore_broken:
-                log.debug("failed to load mesh", exc_info=True),
-            else:
-                raise E
-    # sometimes GLTF "meshes" come with multiple "primitives"
-    # by default we return one Trimesh object per "primitive"
-    # but if merge_primitives is True we combine the primitives
-    # for the "mesh" into a single Trimesh object
-    if merge_primitives:
-        # if we are only returning one Trimesh object
-        # replace `mesh_prim` with updated values
-        mesh_prim_replace = dict()
-        mesh_pop = []
-        for mesh_index, names in mesh_prim.items():
-            if len(names) <= 1:
-                mesh_prim_replace[mesh_index] = names
-                continue
-            name = names_original[mesh_index][0]
-            if name in meshes:
-                name = name + "_" + str(np.random.random())[2:12]
-            # remove the other meshes after we're done looping
-            mesh_pop.extend(names[:])
-            # collect the meshes
-            # TODO : use mesh concatenation with texture support
-            current = [meshes[n] for n in names]
-            v_seq = [p["vertices"] for p in current]
-            f_seq = [p["faces"] for p in current]
-            v, f = util.append_faces(v_seq, f_seq)
-            materials = [p["visual"].material for p in current]
-            face_materials = []
-            for i, p in enumerate(current):
-                face_materials += [i] * len(p["faces"])
-            visuals = visual.texture.TextureVisuals(
-                material=visual.material.MultiMaterial(materials=materials), face_materials=face_materials
-            )
-            if "metadata" in meshes[names[0]]:
-                metadata = meshes[names[0]]["metadata"]
-            else:
-                metadata = {}
-            meshes[name] = {"vertices": v, "faces": f, "visual": visuals, "metadata": metadata, "process": False}
-            mesh_prim_replace[mesh_index] = [name]
-        # avoid altering inside loop
-        mesh_prim = mesh_prim_replace
-        # remove outdated meshes
-        [meshes.pop(p, None) for p in mesh_pop]
-
-    # make it easier to reference nodes
-    nodes = header["nodes"]
-    # nodes are referenced by index
-    # save their string names if they have one
-    # node index (int) : name (str)
-    names = {}
-    for i, n in enumerate(nodes):
-        if "name" in n:
-            if n["name"] in names.values():
-                names[i] = n["name"] + "_{}".format(util.unique_id())
-            else:
-                names[i] = n["name"]
-        else:
-            names[i] = str(i)
-
-    # make sure we have a unique base frame name
-    base_frame = "world"
-    if base_frame in names:
-        base_frame = str(int(np.random.random() * 1e10))
-    names[base_frame] = base_frame
-
-    # visited, kwargs for scene.graph.update
-    graph = collections.deque()
-    # unvisited, pairs of node indexes
-    queue = collections.deque()
-
-    if "scene" in header:
-        # specify the index of scenes if specified
-        scene_index = header["scene"]
+    if accessor.sparse is not None:
+        raise NotImplementedError
     else:
-        # otherwise just use the first index
-        scene_index = 0
+        data = get_buffer_as_bytes(gltf_scene=gltf_scene, buffer_view_id=accessor.bufferView)
+        array = np.frombuffer(buffer=data, offset=accessor.byteOffset, count=total_size, dtype=dtype)
+        array.reshape(total_shape)
 
-    # start the traversal from the base frame to the roots
-    for root in header["scenes"][scene_index]["nodes"]:
-        # add transform from base frame to these root nodes
-        queue.append([base_frame, root])
+    return array
 
-    # go through the nodes tree to populate
-    # kwargs for scene graph loader
-    while len(queue) > 0:
-        # (int, int) pair of node indexes
-        a, b = queue.pop()
 
-        # dict of child node
-        # parent = nodes[a]
-        child = nodes[b]
-        # add edges of children to be processed
-        if "children" in child:
-            queue.extend([[b, i] for i in child["children"]])
+def get_texture_as_pillow(gltf_scene: GLTF, texture_id: int) -> PIL.Image:
+    gltf_textures = gltf_scene.model.textures
+    gltf_images = gltf_scene.model.images
+    gltf_samplers = gltf_scene.model.samplers
 
-        # kwargs to be passed to scene.graph.update
-        kwargs = {"frame_from": names[a], "frame_to": names[b]}
+    gltf_texture = gltf_textures[texture_id]
+    gltf_image = gltf_images[gltf_texture.source]
 
-        # grab matrix from child
-        # parent -> child relationships have matrix stored in child
-        # for the transform from parent to child
-        if "matrix" in child:
-            kwargs["matrix"] = np.array(child["matrix"], dtype=np.float64).reshape((4, 4)).T
+    if gltf_image.bufferView is not None:
+        data = get_buffer_as_bytes(gltf_scene=gltf_scene, buffer_view_id=gltf_image.bufferView)
+    else:
+        ressource = gltf_scene.get_resource(gltf_image.uri)
+        if not ressource.loaded:
+            ressource.load()
+        data = ressource.data
+
+    image = PIL.Image.open(data)  # TODO checkk all this image stuff
+
+    return image
+
+
+def get_material_as_trimesh(gltf_scene: GLTF, material_id: int) -> PBRMaterial:
+    """ Get a trimesh material of the material stored in a GLTF scene
+    """
+    gltf_materials = gltf_scene.model.materials
+    gltf_material = gltf_materials[material_id]
+
+    pbrMetallicRoughness = gltf_material.pbrMetallicRoughness.__dict__
+    del pbrMetallicRoughness['extensions']
+    del pbrMetallicRoughness['extras']
+
+    other_keys = gltf_material.__dict__
+    del other_keys['pbrMetallicRoughness']
+    del other_keys['extensions']
+    del other_keys['extras']
+
+    # Load images if needed
+    full_dict = dict(**pbrMetallicRoughness, **other_keys)
+    for key in full_dict:
+        if isinstance(full_dict[key], dict) and "index" in full_dict[key]:
+            texture_id = full_dict[key]['index']
+            full_dict[key] = get_texture_as_pillow(gltf_scene=gltf_scene, texture_id=texture_id)
+
+    material = PBRMaterial(**full_dict)  # TODO maybe loss of precision when converting to trimesh (uint8 for baseColor for instance - to check)
+
+    return material
+
+
+# Build a tree of simenv nodes from a GLTF object
+def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
+    """ Build the node tree of simenv objects from the GLTF scene
+    """
+    gltf_model = gltf_scene.model
+    gltf_node = gltf_model.nodes[gltf_node_id]
+    common_kwargs = {'name': gltf_camera.name,
+                              'translation': gltf_node.translation,
+                              'rotation': gltf_node.rotation,
+                              'parent': parent,
+                              }
+
+    scene_nodes_list = []
+
+    if gltf_node.camera is not None:
+        # Let's add a Camera
+        gltf_camera = gltf_model.cameras[gltf_node.camera]
+        camera_type = gltf_camera.type
+        scene_node = Camera(aspect_ratio=gltf_camera.perspective.aspectRatio,
+                              yfov=gltf_camera.perspective.yfov,
+                              zfar=gltf_camera.perspective.zfar if camera_type == "perspective" else gltf_camera.orthographic.zfar,
+                              znear=gltf_camera.perspective.znear if camera_type == "perspective" else gltf_camera.orthographic.znear,
+                              camera_type=camera_type,
+                              xmag=gltf_camera.orthographic.xmag,
+                              ymag=gltf_camera.orthographic.ymag,
+                              **common_kwargs
+                              )
+
+    elif gltf_node.extensions.KHR_lights_punctual is not None:
+        # Let's add a light
+        gltf_light_id = gltf_node.extensions.KHR_lights_punctual.light
+        gltf_light = gltf_model.extensions.KHR_lights_punctual.lights[gltf_light_id]
+        if gltf_light.type == 'directional':
+            scene_node = DirectionalLight(intensity=gltf_light.intensity,
+                                        color=gltf_light.color,
+                                        range=gltf_light.range,
+                                        **common_kwargs
+                                        )
+        elif gltf_light.type == 'point':
+            scene_node = PointLight(intensity=gltf_light.intensity,
+                                        color=gltf_light.color,
+                                        range=gltf_light.range,
+                                        **common_kwargs
+                                        )
+        elif gltf_light.type == 'spot':
+            scene_node = SpotLight(intensity=gltf_light.intensity,
+                                        color=gltf_light.color,
+                                        range=gltf_light.range,
+                                        **common_kwargs
+                                        )
         else:
-            # if no matrix set identity
-            kwargs["matrix"] = np.eye(4)
+            raise ValueError(f"Unrecognized GLTF file light type: {gltf_light.type}, please check that the file is conform with the KHR_lights_punctual specifications")
 
-        # Now apply keyword translations
-        # GLTF applies these in order: T * R * S
-        if "translation" in child:
-            kwargs["matrix"] = np.dot(kwargs["matrix"], transformations.translation_matrix(child["translation"]))
-        if "rotation" in child:
-            # GLTF rotations are stored as (4,) XYZW unit quaternions
-            # we need to re- order to our quaternion style, WXYZ
-            quat = np.reshape(child["rotation"], 4)[[3, 0, 1, 2]]
-            # add the rotation to the matrix
-            kwargs["matrix"] = np.dot(kwargs["matrix"], transformations.quaternion_matrix(quat))
-        if "scale" in child:
-            # add scale to the matrix
-            kwargs["matrix"] = np.dot(kwargs["matrix"], np.diag(np.concatenate((child["scale"], [1.0]))))
+    elif gltf_node.mesh is not None:
+        # Let's add a mesh
+        gltf_mesh = gltf_model.meshes[gltf_node.mesh]
+        primitives = gltf_mesh.primitives
+        for primitive in primitives:
+            attributes = primitive.attributes
+            vertices = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.POSITION)
+            if primitive.mode == PrimitiveMode.POINTS:
+                trimesh_primitive = Trimesh(vertices=vertices)
+            elif primitive.mode == PrimitiveMode.LINES:
+                trimesh_primitive = Trimesh(vertices=vertices, entities=[Line(points=np.arange(len(vertices)))])
+            elif primitive.mode in [PrimitiveMode.TRIANGLES, PrimitiveMode.TRIANGLE_STRIP]:
+                # Faces
+                faces = None
+                if primitive.indices is None:
+                    faces = np.arange(len(vertices),
+                            dtype=np.int64).reshape((-1, 3))
+                else:
+                    faces = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=primitive.indices)
+                if primitive.mode == PrimitiveMode.TRIANGLE_STRIP:
+                    raise NotImplementedError()
+                
+                # Vertex normals
+                vertex_normals = None
+                if attributes.NORMAL is not None:
+                    vertex_normals = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.NORMAL)
 
-        if "extras" in child:
-            kwargs["metadata"] = child["extras"]
+                # TODO we are not handling "tangent" at the moment
 
-        if "mesh" in child:
-            geometries = mesh_prim[child["mesh"]]
+                # Visuals/vertex colors
+                visual = None
+                vertex_colors = None
+                if primitive.material:
+                    material = get_material_as_trimesh(gltf_scene=gltf_scene, material_id=primitive.material)
+                    uv = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.TEXCOORD_0)
+                    
+                    # From trimesh - trimesh.exchange.gltf.py
+                    # flip UV's top- bottom to move origin to lower-left:
+                    # https://github.com/KhronosGroup/glTF/issues/1021
+                    uv[:, 1] = 1.0 - uv[:, 1]
+                    # create a texture visual
+                    visual = TextureVisuals(uv=uv, material=material)
 
-            # if the node has a mesh associated with it
-            if len(geometries) > 1:
-                # append root node
-                graph.append(kwargs.copy())
-                # put primitives as children
-                for i, geom_name in enumerate(geometries):
-                    # save the name of the geometry
-                    kwargs["geometry"] = geom_name
-                    # no transformations
-                    kwargs["matrix"] = np.eye(4)
-                    kwargs["frame_from"] = names[b]
-                    # if we have more than one primitive assign a new UUID
-                    # frame name for the primitives after the first one
-                    frame_to = "{}_{}".format(names[b], util.unique_id(length=6))
-                    kwargs["frame_to"] = frame_to
-                    # append the edge with the mesh frame
-                    graph.append(kwargs.copy())
-            elif len(geometries) == 1:
-                kwargs["geometry"] = geometries[0]
-                if "name" in child:
-                    kwargs["frame_to"] = names[b]
-                graph.append(kwargs.copy())
-        else:
-            # if the node doesn't have any geometry just add
-            graph.append(kwargs)
+                    if attributes.COLOR_0:
+                        colors = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.COLOR_0)
+                        if len(colors) == len(vertices):
+                            visual.vertex_attributes['color'] = colors
+                            vertex_colors = colors
+                
+                # TODO metadata are not included at the moment
+                
+                trimesh_primitive = Trimesh(vertices=vertices, faces=faces, vertex_normals=vertex_normals, vertex_colors=vertex_colors, visual=visual)
 
-    # kwargs for load_kwargs
-    result = {"class": "Scene", "geometry": meshes, "graph": graph, "base_frame": base_frame}
-    try:
-        # load any scene extras into scene.metadata
-        # use a try except to avoid nested key checks
-        result["metadata"] = header["scenes"][header["scene"]]["extras"]
-    except BaseException:
-        pass
+            else:
+                raise NotImplementedError()
 
-    return result
+            scene_node = Object(**common_kwargs, mesh=trimesh_primitive)  # we create an object and link it
+            scene_nodes_list.append(scene_node)
+
+    else:
+        # We just have an empty node with a transform
+        scene_node = Asset(**common_kwargs)
+
+    if not scene_nodes_list:
+        scene_nodes_list = [scene_node]  # for the meshes primitives we've built the list already, for the other we build it here
+    
+    # Recursively build the node tree
+    if gltf_node.children:
+        for child_id in gltf_node.children:
+            scene_child_nodes = build_node_tree(gltf_scene=gltf_scene, gltf_node_id=child_id, parent=scene_node)
+            scene_nodes_list += scene_child_nodes
+
+    return scene_nodes_list
+
+
+def load_gltf(file_path) -> Scene:
+    gltf_scene = GLTF.load(file_path)
+    gltf_model = gltf_scene.model
+
+    main_scene = gltf_model.scenes[gltf_model.scene if gltf_model.scene else 0]
+    main_nodes = main_scene.nodes
+
+    scene = Scene()
+
+    for main_node in main_nodes:
+        node_id = gltf_model.nodes[main_node]
+        assets = build_node_tree(gltf_scene=gltf_scene, gltf_node_id=node_id, parent=None)
+        scene.add(assets)
+
+    return scene

@@ -1,7 +1,19 @@
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 from dataclasses_json import dataclass_json
+
+from .extensions.khr_lights_ponctual import KHRLightsPunctual
+
+
+@dataclass_json
+@dataclass
+class Extensions:
+    """
+    Base model for all extensions
+    """
+
+    KHR_lights_punctual: Optional[KHRLightsPunctual] = None
 
 
 @dataclass_json
@@ -15,5 +27,5 @@ class BaseModel:
     extras (any) Application-specific data. (Optional)
     """
 
-    extensions: Optional[Any] = None
+    extensions: Optional[Extensions] = None
     extras: Optional[Any] = None

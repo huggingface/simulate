@@ -1,3 +1,22 @@
+# Copyright 2022 The HuggingFace Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lint as: python3
+""" A simenv Camera."""
+
+from typing import Optional
+
 from .asset import Asset
 
 
@@ -11,6 +30,13 @@ class Camera(Asset):
         rotation=[0, 0, 0, 1],
         width=256,
         height=256,
+        aspect_ratio: Optional[float] = None,
+        yfov: Optional[float] = None,
+        zfar: Optional[float] = None,
+        znear: float = None,
+        camera_type: Optional[str] = "perspective",
+        xmag: Optional[float] = None,
+        ymag: Optional[float] = None,
         parent=None,
         children=None,
     ):
@@ -19,3 +45,11 @@ class Camera(Asset):
         )
         self.width = width
         self.height = height
+
+        self.aspect_ratio = aspect_ratio
+        self.yfov = yfov
+        self.zfar = zfar
+        self.znear = znear
+        self.camera_type = camera_type
+        self.xmag = xmag
+        self.ymag = ymag
