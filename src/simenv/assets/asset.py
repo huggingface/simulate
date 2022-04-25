@@ -15,6 +15,7 @@
 # Lint as: python3
 """ A simenv Asset - Objects in the scene (mesh, primitives, camera, lights)."""
 import math
+from typing import Optional
 import uuid
 
 import numpy as np
@@ -35,9 +36,9 @@ def quat_from_degrees(x, y, z):
 
 
 class Asset(NodeMixin, object):
-    dimensionality = None  # 2 for bi-dimensional assets and 3 for tri-dimensional assets
+    dimensionality = 3  # 2 for bi-dimensional assets and 3 for tri-dimensional assets (default is 3)
 
-    def __init__(self, name=None, translation=None, rotation=None, scale=None, parent=None, children=None):
+    def __init__(self, name:Optional[str]=None, translation=None, rotation=None, scale=None, parent=None, children=None):
         self.name = name or self.__class__.__name__
         self.id = uuid.uuid4()
 
@@ -57,7 +58,7 @@ class Asset(NodeMixin, object):
     def translation(self, value):
         if self.dimensionality == 3:
             if value is None:
-                value = [0, 0, 0]
+                value = [0.0, 0.0, 0.0]
             elif len(value) != 3:
                 raise ValueError("Translation should be of size 3 (X, Y, Z)")
         elif self.dimensionality == 2:
@@ -72,7 +73,7 @@ class Asset(NodeMixin, object):
     def rotation(self, value):
         if self.dimensionality == 3:
             if value is None:
-                value = [0, 0, 0, 0]
+                value = [0.0, 0.0, 0.0, 0.0]
             elif len(value) == 3:
                 value = quat_from_euler(*value)
             elif len(value) != 4:
@@ -89,7 +90,7 @@ class Asset(NodeMixin, object):
     def scale(self, value):
         if self.dimensionality == 3:
             if value is None:
-                value = [1, 1, 1]
+                value = [1.0, 1.0, 1.0]
             elif len(value) == 1:
                 value = [value, value, value]
             elif len(value) != 3:

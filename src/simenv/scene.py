@@ -37,11 +37,23 @@ class Scene:
             raise ValueError("renderer should be selected ()")
 
         self.dimensionality = dimensionality
-        self.root = World3D("Scene")
-        self.assets = set([self.root])
+
+        self.root = None
+        self.assets = set()
 
         if assets is not None:
-            self.add(assets)
+            if isinstance(assets, Asset):
+                self.root = assets
+                self.add(assets)
+            elif isinstance(assets, list) and len(assets) and isinstance(assets[0], Asset):
+                self.root = assets[0]
+                self.add(assets)
+            else:
+                raise ValueError("Provided assets should be an Asset or a list of Assets")
+        else:
+            self.root = World3D("Scene")
+            self.assets = set([self.root])
+
 
     @classmethod
     def load_from_file(cls, file_path):
@@ -57,7 +69,7 @@ class Scene:
         
         for asset in assets:
             if asset.parent is None:
-                asset.parent = self.root
+                asset.parent = self.root if asset != self.root else None
             elif asset.parent not in self.assets:
                 raise ValueError("The parent of the asset to add must be either None or an asset in the Scene")
 
@@ -93,4 +105,4 @@ class Scene:
         return self
 
     def __repr__(self):
-        return RenderTree(self.root).by_attr(lambda n: str(n))
+        return f"Scene(dimensionality={self.dimensionality}, renderer='{self.renderer}, root={self.root}')\n{RenderTree(self.root).print_tree()}"

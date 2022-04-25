@@ -1,3 +1,5 @@
+from typing import Optional, List
+from trimesh import Trimesh
 from .asset import Asset
 
 
@@ -6,11 +8,20 @@ class Object(Asset):
     dynamic = False
 
     def __init__(
-        self, name, translation=[0, 0, 0], rotation=[0, 0, 0, 1], scale=[1, 1, 1], parent=None, children=None
+        self, name: Optional[str]=None, translation:Optional[List[float]]=[0.0, 0.0, 0.0],
+        rotation:Optional[List[float]]=[0.0, 0.0, 0.0, 1.0],
+        scale:Optional[List[float]]=[1.0, 1.0, 1.0],
+        mesh: Optional[Trimesh]=None,
+        parent:Optional[Asset]=None,
+        children:Optional[List[Asset]]=None
     ):
         super().__init__(
-            name, translation=translation, rotation=rotation, scale=scale, parent=parent, children=children
+            name=name, translation=translation, rotation=rotation, scale=scale, parent=parent, children=children
         )
+        self.mesh = mesh
+
+    def __repr__(self):
+        return f"{self.name} ({self.__class__.__name__} - Mesh={self.mesh})"
 
 
 class Primitive(Object):

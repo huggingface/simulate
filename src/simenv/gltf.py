@@ -15,10 +15,11 @@
 # Lint as: python3
 """ Load a GLTF file in a Scene."""
 from typing import Set, List, ByteString
+from copy import deepcopy
 
 import numpy as np
 from trimesh import Trimesh
-from trimesh.path.entities import Line
+# from trimesh.path.entities import Line  # Line need scipy
 from trimesh.visual.material import PBRMaterial
 from trimesh.visual.texture import TextureVisuals
 import PIL.Image
@@ -27,7 +28,6 @@ from simenv.gltflib.models import material
 
 from .gltflib import GLTF, GLTFModel, Material
 from .gltflib.enums import PrimitiveMode, ComponentType, AccessorType
-from .gltflib.models.extensions.khr_lights_ponctual import LightPunctual
 from .scene import Scene
 from .assets import Camera, DirectionalLight, PointLight, SpotLight, Asset, Object
 
@@ -106,7 +106,7 @@ def get_accessor_as_numpy(gltf_scene: GLTF, accessor_id: int) -> np.ndarray:
     else:
         data = get_buffer_as_bytes(gltf_scene=gltf_scene, buffer_view_id=accessor.bufferView)
         array = np.frombuffer(buffer=data, offset=accessor.byteOffset, count=total_size, dtype=dtype)
-        array.reshape(total_shape)
+        array = array.reshape(total_shape)
 
     return array
 
@@ -138,11 +138,13 @@ def get_material_as_trimesh(gltf_scene: GLTF, material_id: int) -> PBRMaterial:
     gltf_materials = gltf_scene.model.materials
     gltf_material = gltf_materials[material_id]
 
-    pbrMetallicRoughness = gltf_material.pbrMetallicRoughness.__dict__
-    del pbrMetallicRoughness['extensions']
-    del pbrMetallicRoughness['extras']
+    pbrMetallicRoughness = {}
+    if isinstance(gltf_material.pbrMetallicRoughness.__dict__, dict):
+        pbrMetallicRoughness = deepcopy(gltf_material.pbrMetallicRoughness.__dict__)
+        del pbrMetallicRoughness['extensions']
+        del pbrMetallicRoughness['extras']
 
-    other_keys = gltf_material.__dict__
+    other_keys = deepcopy(gltf_material.__dict__)
     del other_keys['pbrMetallicRoughness']
     del other_keys['extensions']
     del other_keys['extras']
@@ -165,11 +167,11 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
     """
     gltf_model = gltf_scene.model
     gltf_node = gltf_model.nodes[gltf_node_id]
-    common_kwargs = {'name': gltf_camera.name,
-                              'translation': gltf_node.translation,
-                              'rotation': gltf_node.rotation,
-                              'parent': parent,
-                              }
+    common_kwargs = {'name': gltf_node.name,
+                     'translation': gltf_node.translation,
+                     'rotation': gltf_node.rotation,
+                     'parent': parent,
+                    }
 
     scene_nodes_list = []
 
@@ -182,8 +184,8 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                               zfar=gltf_camera.perspective.zfar if camera_type == "perspective" else gltf_camera.orthographic.zfar,
                               znear=gltf_camera.perspective.znear if camera_type == "perspective" else gltf_camera.orthographic.znear,
                               camera_type=camera_type,
-                              xmag=gltf_camera.orthographic.xmag,
-                              ymag=gltf_camera.orthographic.ymag,
+                              xmag=gltf_camera.orthographic.xmag if camera_type == "orthographic" else None,
+                              ymag=gltf_camera.orthographic.ymag if camera_type == "orthographic" else None,
                               **common_kwargs
                               )
 
@@ -222,7 +224,8 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
             if primitive.mode == PrimitiveMode.POINTS:
                 trimesh_primitive = Trimesh(vertices=vertices)
             elif primitive.mode == PrimitiveMode.LINES:
-                trimesh_primitive = Trimesh(vertices=vertices, entities=[Line(points=np.arange(len(vertices)))])
+                raise NotImplementedError()  # Using Line in trimesh reauires scipy
+                # trimesh_primitive = Trimesh(vertices=vertices, entities=[Line(points=np.arange(len(vertices)))])
             elif primitive.mode in [PrimitiveMode.TRIANGLES, PrimitiveMode.TRIANGLE_STRIP]:
                 # Faces
                 faces = None
@@ -244,9 +247,9 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                 # Visuals/vertex colors
                 visual = None
                 vertex_colors = None
-                if primitive.material:
+                if primitive.material is not None:
                     material = get_material_as_trimesh(gltf_scene=gltf_scene, material_id=primitive.material)
-                    uv = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.TEXCOORD_0)
+                    uv = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.TEXCOORD_0).copy()
                     
                     # From trimesh - trimesh.exchange.gltf.py
                     # flip UV's top- bottom to move origin to lower-left:
@@ -255,7 +258,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                     # create a texture visual
                     visual = TextureVisuals(uv=uv, material=material)
 
-                    if attributes.COLOR_0:
+                    if attributes.COLOR_0 is not None:
                         colors = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.COLOR_0)
                         if len(colors) == len(vertices):
                             visual.vertex_attributes['color'] = colors
@@ -288,17 +291,21 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
 
 
 def load_gltf(file_path) -> Scene:
+    """ Loading function to create a Scene from a GLTF file
+    """
     gltf_scene = GLTF.load(file_path)
     gltf_model = gltf_scene.model
 
     main_scene = gltf_model.scenes[gltf_model.scene if gltf_model.scene else 0]
     main_nodes = main_scene.nodes
 
-    scene = Scene()
+    scene = None
 
-    for main_node in main_nodes:
-        node_id = gltf_model.nodes[main_node]
-        assets = build_node_tree(gltf_scene=gltf_scene, gltf_node_id=node_id, parent=None)
-        scene.add(assets)
+    for main_node_id in main_nodes:
+        assets = build_node_tree(gltf_scene=gltf_scene, gltf_node_id=main_node_id, parent=None)
+        if scene is None:
+            scene = Scene(assets=assets)
+        else:
+            scene.add(assets)
 
     return scene
