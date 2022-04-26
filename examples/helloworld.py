@@ -1,12 +1,12 @@
 import simenv as sm
-import simenv.utils.rotation as rotation
+import simenv.utils as utils
 import os
 
 scene = sm.Scene()
 view = sm.Unity(scene)
 
 camera = sm.Camera('cam1')
-light = sm.DirectionalLight('sun', rotation=rotation.quat_from_degrees(60, -30, 0))
+light = sm.DirectionalLight('sun', rotation=utils.quat_from_degrees(60, -30, 0))
 floor = sm.Plane('ground')
 obj1 = sm.Sphere('obj1', translation=[0, 5, 0])
 obj2 = sm.Cube('obj2', translation=[2, 5, 0], scale=[2, 2, 2])

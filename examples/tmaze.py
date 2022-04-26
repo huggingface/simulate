@@ -1,12 +1,12 @@
 import simenv as sm
-import simenv.utils.rotation as rotation
+import simenv.utils as utils
 import os
 
 scene = sm.Scene(start_frame=0, end_frame=300, frame_rate=60)
 view = sm.Unity(scene)
 
-camera = sm.Camera('cam1', translation=[5, 6.5, -3.75], rotation=rotation.quat_from_degrees(45, -45, 0), width=1024, height=1024)
-light = sm.DirectionalLight('sun', rotation=rotation.quat_from_degrees(60, -30, 0), intensity=3.5)
+camera = sm.Camera('cam1', translation=[5, 6.5, -3.75], rotation=utils.quat_from_degrees(45, -45, 0), width=1024, height=1024)
+light = sm.DirectionalLight('sun', rotation=utils.quat_from_degrees(60, -30, 0), intensity=3.5)
 agent = sm.Agent('agent', translation=[0, 0, -1.5])
 floor = sm.Plane('floor', dynamic=False, scale=[3, 3, 3])
 wall1 = sm.Cube('wall1', dynamic=False, translation=[-1, .5, 0], scale=[.1, 1, 5.1])
