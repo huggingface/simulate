@@ -14,7 +14,7 @@ PRIMITIVE_TYPE_MAPPING = {
 
 
 class Unity:
-    def __init__(self, start_frame=0, end_frame=500, frame_rate=24):
+    def __init__(self, scene, start_frame=0, end_frame=500, frame_rate=24):
         self.start_frame = start_frame
         self.end_frame = end_frame
         self.frame_rate = frame_rate
@@ -30,82 +30,9 @@ class Unity:
         self.socket.listen()
         self.client, self.client_address = self.socket.accept()
         print(f"Connection from {self.client_address}")
-        command = {
-            "type": "Initialize",
-            "contents": json.dumps(
-                {
-                    "startFrame": self.start_frame,
-                    "endFrame": self.end_frame,
-                    "frameRate": self.frame_rate,
-                }
-            ),
-        }
-        self.run_command(command)
 
-    def step(self):
-        command = {"type": "Step", "contents": "{}"}
-        self.run_command(command)
-
-    def run(self):
-        command = {"type": "Run", "contents": "{}"}
-        self.run_command(command)
-
-    def render(self, dirpath):
-        command = {"type": "Render", "contents": json.dumps({"dirpath": dirpath})}
-        self.run_command(command)
-
-    def add(self, node):
-        contents_dict = {
-            "name": node.name,
-            "id": str(uuid.uuid4()),
-            "pos": node.translation,
-            "rot": node.rotation,
-            "scale": node.scale,
-        }
-        node_class = node.__class__.__name__
-
-        if node_class == "Camera":
-            command_type = "CreateCamera"
-            contents_dict.update(
-                {
-                    "width": node.width,
-                    "height": node.height,
-                }
-            )
-        elif node_class == "Light":
-            command_type = "CreateLight"
-            contents_dict.update(
-                {
-                    "type": node.type,
-                    "intensity": node.intensity,
-                }
-            )
-        elif node_class == "Agent":
-            command_type = "CreateAgent"
-        elif node_class in PRIMITIVE_TYPE_MAPPING:
-            command_type = "CreatePrimitive"
-            contents_dict.update(
-                {
-                    "primitiveType": PRIMITIVE_TYPE_MAPPING[node.__class__.__name__],
-                    "dynamic": node.dynamic,
-                }
-            )
-        else:
-            raise "node type not implemented"
-
-        command = {
-            "type": command_type,
-            "contents": json.dumps(contents_dict),
-        }
-        self.run_command(command)
-
-    def run_command(self, command):
-        message = json.dumps(command)
-        return self.send_message(message)
-
-    def send_message(self, message):
-        print(f"Sending message: {message}")
-        self.client.sendall(message.encode())
+    def send_bytes(self, bytes):
+        self.client.sendall(bytes)
         while True:
             data = self.client.recv(65535)
             if data:
@@ -113,8 +40,26 @@ class Unity:
                 print(f"Received response: {response}")
                 return response
 
-    def remove(self, node):
-        super().remove(node)
+    def send_buffer(self, name, bytes):
+        print(f"Sending buffer {name} with length: {len(bytes)}")
+        command = {"type": "BeginTransferBuffer", "contents": json.dumps({"name": name, "length": len(bytes)})}
+        self.run_command(command)
+        print(f"Sending bytes with length {len(bytes)}")
+        self.send_bytes(bytes)
+
+    def send_gltf(self, files: dict):
+        for key in files.keys():
+            if key == "model.gltf":
+                continue
+            self.send_buffer(key, files[key])
+        gltf = files["model.gltf"]
+        command = {"type": "ConstructScene", "contents": json.dumps({"json": gltf.decode()})}
+        self.run_command(command)
+
+    def run_command(self, command):
+        message = json.dumps(command)
+        print("Sending command: " + message)
+        self.send_bytes(message.encode())
 
     def close(self):
         self.client.close()

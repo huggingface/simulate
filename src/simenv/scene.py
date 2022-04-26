@@ -17,14 +17,27 @@
 from typing import Optional, Sequence, Union
 
 from anytree import RenderTree
-from gltflib import GLTF
 
 from .assets import Asset, World3D
+from .gltf_export import export_assets_to_gltf
+from .gltf_import import load_gltf_in_assets
 from .renderer.unity import Unity
 
 
+class UnsetRendererError(Exception):
+    pass
+
+
 class Scene:
-    def __init__(self, renderer: Optional[str] = None, dimensionality=3, start_frame=0, end_frame=500, frame_rate=24, assets=None):
+    def __init__(
+        self,
+        renderer: Optional[str] = None,
+        dimensionality=3,
+        start_frame=0,
+        end_frame=500,
+        frame_rate=24,
+        assets=None,
+    ):
 
         self.renderer = None
         if renderer == "Unity":
@@ -54,19 +67,18 @@ class Scene:
             self.root = World3D("Scene")
             self.assets = set([self.root])
 
-
     @classmethod
-    def load_from_file(cls, file_path):
-        scene = cls()
-        return scene
+    def from_gltf(cls, file_path, **kwargs):
+        assets = load_gltf_in_assets(file_path)
+        return cls(assets=assets, **kwargs)
 
     def add(self, assets: Union[Asset, Sequence[Asset]], exists_not_ok=False):
-        """ Add an Asset or a list of Assets to the Scene together with all its descendants.
+        """Add an Asset or a list of Assets to the Scene together with all its descendants.
         If the parent of the Asset is not set (None), the Asset will be set to be a child of the Scene root node
         """
         if isinstance(assets, Asset):
             assets = [assets]
-        
+
         for asset in assets:
             if asset.parent is None:
                 asset.parent = self.root if asset != self.root else None
@@ -82,10 +94,10 @@ class Scene:
                 self.assets.add(child)
 
     def remove(self, assets: Union[Asset, Sequence[Asset]], not_exist_ok=False):
-        """ Remove an Asset or a list of Assets to the Scene together with all its descendants."""
+        """Remove an Asset or a list of Assets to the Scene together with all its descendants."""
         if isinstance(assets, Asset):
             assets = [assets]
-        
+
         for asset in assets:
             if not not_exist_ok and asset not in self.assets:
                 raise ValueError("Asset is not in the scene")
@@ -95,6 +107,13 @@ class Scene:
             for child in asset.descendants:
                 # Remove all the descendants
                 self.assets.discard(child)
+
+    def render(self):
+        gltf_file_path = export_assets_to_gltf(self.root)
+        if self.renderer is not None:
+            self.renderer.send_gltf(gltf_file_path)
+        else:
+            raise UnsetRendererError()
 
     def __iadd__(self, asset: Asset):
         self.add(asset)

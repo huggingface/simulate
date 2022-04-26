@@ -1,5 +1,7 @@
-from typing import Optional, List
+from typing import List, Optional
+
 from trimesh import Trimesh
+
 from .asset import Asset
 
 
@@ -8,12 +10,14 @@ class Object(Asset):
     dynamic = False
 
     def __init__(
-        self, name: Optional[str]=None, translation:Optional[List[float]]=[0.0, 0.0, 0.0],
-        rotation:Optional[List[float]]=[0.0, 0.0, 0.0, 1.0],
-        scale:Optional[List[float]]=[1.0, 1.0, 1.0],
-        mesh: Optional[Trimesh]=None,
-        parent:Optional[Asset]=None,
-        children:Optional[List[Asset]]=None
+        self,
+        name: Optional[str] = None,
+        translation: Optional[List[float]] = [0.0, 0.0, 0.0],
+        rotation: Optional[List[float]] = [0.0, 0.0, 0.0, 1.0],
+        scale: Optional[List[float]] = [1.0, 1.0, 1.0],
+        mesh: Optional[Trimesh] = None,
+        parent: Optional[Asset] = None,
+        children: Optional[List[Asset]] = None,
     ):
         super().__init__(
             name=name, translation=translation, rotation=rotation, scale=scale, parent=parent, children=children

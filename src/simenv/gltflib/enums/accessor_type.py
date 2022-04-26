@@ -1,7 +1,9 @@
 from enum import Enum
 
 
-class AccessorType(str, Enum):  # This is an equivalent StrEnum class (see https://docs.python.org/3/library/enum.html#others0)
+class AccessorType(
+    str, Enum
+):  # This is an equivalent StrEnum class (see https://docs.python.org/3/library/enum.html#others0)
     SCALAR = "SCALAR"
     VEC2 = "VEC2"
     VEC3 = "VEC3"

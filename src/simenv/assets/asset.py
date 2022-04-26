@@ -15,8 +15,8 @@
 # Lint as: python3
 """ A simenv Asset - Objects in the scene (mesh, primitives, camera, lights)."""
 import math
-from typing import Optional
 import uuid
+from typing import Optional
 
 import numpy as np
 
@@ -38,7 +38,9 @@ def quat_from_degrees(x, y, z):
 class Asset(NodeMixin, object):
     dimensionality = 3  # 2 for bi-dimensional assets and 3 for tri-dimensional assets (default is 3)
 
-    def __init__(self, name:Optional[str]=None, translation=None, rotation=None, scale=None, parent=None, children=None):
+    def __init__(
+        self, name: Optional[str] = None, translation=None, rotation=None, scale=None, parent=None, children=None
+    ):
         self.name = name or self.__class__.__name__
         self.id = uuid.uuid4()
 

@@ -14,34 +14,33 @@
 
 # Lint as: python3
 """ Load a GLTF file in a Scene."""
-from typing import Set, List, ByteString
 from copy import deepcopy
+from typing import ByteString, List, Set, Union
 
 import numpy as np
+import PIL.Image
 from trimesh import Trimesh
+
 # from trimesh.path.entities import Line  # Line need scipy
 from trimesh.visual.material import PBRMaterial
 from trimesh.visual.texture import TextureVisuals
-import PIL.Image
 
 from simenv.gltflib.models import material
 
+from .assets import Asset, Camera, DirectionalLight, Object, PointLight, SpotLight
 from .gltflib import GLTF, GLTFModel, Material
-from .gltflib.enums import PrimitiveMode, ComponentType, AccessorType
-from .scene import Scene
-from .assets import Camera, DirectionalLight, PointLight, SpotLight, Asset, Object
+from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
 
 
-
-# Conversion of gltf dtype and shapes in Numpy equivalents 
+# Conversion of gltf dtype and shapes in Numpy equivalents
 gltf_to_numpy_dtypes_mapping = {
-           ComponentType.BYTE: np.dtype("<i1"),
-           ComponentType.UNSIGNED_BYTE: np.dtype("<u1"),
-           ComponentType.SHORT: np.dtype("<i2"),
-           ComponentType.UNSIGNED_SHORT: np.dtype("<u2"),
-           ComponentType.UNSIGNED_INT: np.dtype("<u4"),
-           ComponentType.FLOAT: np.dtype("<f4"),
-           }
+    ComponentType.BYTE: np.dtype("<i1"),
+    ComponentType.UNSIGNED_BYTE: np.dtype("<u1"),
+    ComponentType.SHORT: np.dtype("<i2"),
+    ComponentType.UNSIGNED_SHORT: np.dtype("<u2"),
+    ComponentType.UNSIGNED_INT: np.dtype("<u4"),
+    ComponentType.FLOAT: np.dtype("<f4"),
+}
 
 gltf_to_numpy_shapes_mapping = {
     AccessorType.SCALAR: 1,
@@ -51,13 +50,12 @@ gltf_to_numpy_shapes_mapping = {
     AccessorType.MAT2: (2, 2),
     AccessorType.MAT3: (3, 3),
     AccessorType.MAT4: (4, 4),
-    }
+}
 
 
 # A couple of data extraction methods
 def get_buffer_as_bytes(gltf_scene: GLTF, buffer_view_id: int) -> ByteString:
-    """ Get a ByteString of the data stored in a GLTF buffer view
-    """
+    """Get a ByteString of the data stored in a GLTF buffer view"""
     gltf_model = gltf_scene.model
 
     buffer_view = gltf_model.bufferViews[buffer_view_id]
@@ -69,20 +67,19 @@ def get_buffer_as_bytes(gltf_scene: GLTF, buffer_view_id: int) -> ByteString:
     byte_offset = buffer_view.byteOffset
     length = buffer_view.byteLength
 
-    data = ressource.data[byte_offset:byte_offset + length]
+    data = ressource.data[byte_offset : byte_offset + length]
 
     return data
 
 
 def get_image_as_bytes(gltf_scene: GLTF, image_id: int) -> ByteString:
-    """ Get a ByteString of the data stored in a GLTF image
-    """
+    """Get a ByteString of the data stored in a GLTF image"""
     gltf_model = gltf_scene.model
 
     image = gltf_model.images[image_id]
     if image.bufferView is not None:
         return get_buffer_as_bytes(gltf_scene=gltf_scene, buffer_view_id=image.bufferView)
-    
+
     ressource = gltf_scene.get_resource(image.uri)
     if not ressource.loaded:
         ressource.load()
@@ -91,8 +88,7 @@ def get_image_as_bytes(gltf_scene: GLTF, image_id: int) -> ByteString:
 
 
 def get_accessor_as_numpy(gltf_scene: GLTF, accessor_id: int) -> np.ndarray:
-    """ Get a numpy array of the data stored in a GLTF accessor
-    """
+    """Get a numpy array of the data stored in a GLTF accessor"""
     gltf_model = gltf_scene.model
     accessor = gltf_model.accessors[accessor_id]
 
@@ -133,45 +129,46 @@ def get_texture_as_pillow(gltf_scene: GLTF, texture_id: int) -> PIL.Image:
 
 
 def get_material_as_trimesh(gltf_scene: GLTF, material_id: int) -> PBRMaterial:
-    """ Get a trimesh material of the material stored in a GLTF scene
-    """
+    """Get a trimesh material of the material stored in a GLTF scene"""
     gltf_materials = gltf_scene.model.materials
     gltf_material = gltf_materials[material_id]
 
     pbrMetallicRoughness = {}
     if isinstance(gltf_material.pbrMetallicRoughness.__dict__, dict):
         pbrMetallicRoughness = deepcopy(gltf_material.pbrMetallicRoughness.__dict__)
-        del pbrMetallicRoughness['extensions']
-        del pbrMetallicRoughness['extras']
+        del pbrMetallicRoughness["extensions"]
+        del pbrMetallicRoughness["extras"]
 
     other_keys = deepcopy(gltf_material.__dict__)
-    del other_keys['pbrMetallicRoughness']
-    del other_keys['extensions']
-    del other_keys['extras']
+    del other_keys["pbrMetallicRoughness"]
+    del other_keys["extensions"]
+    del other_keys["extras"]
 
     # Load images if needed
     full_dict = dict(**pbrMetallicRoughness, **other_keys)
     for key in full_dict:
         if isinstance(full_dict[key], dict) and "index" in full_dict[key]:
-            texture_id = full_dict[key]['index']
+            texture_id = full_dict[key]["index"]
             full_dict[key] = get_texture_as_pillow(gltf_scene=gltf_scene, texture_id=texture_id)
 
-    material = PBRMaterial(**full_dict)  # TODO maybe loss of precision when converting to trimesh (uint8 for baseColor for instance - to check)
+    material = PBRMaterial(
+        **full_dict
+    )  # TODO maybe loss of precision when converting to trimesh (uint8 for baseColor for instance - to check)
 
     return material
 
 
 # Build a tree of simenv nodes from a GLTF object
 def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
-    """ Build the node tree of simenv objects from the GLTF scene
-    """
+    """Build the node tree of simenv objects from the GLTF scene"""
     gltf_model = gltf_scene.model
     gltf_node = gltf_model.nodes[gltf_node_id]
-    common_kwargs = {'name': gltf_node.name,
-                     'translation': gltf_node.translation,
-                     'rotation': gltf_node.rotation,
-                     'parent': parent,
-                    }
+    common_kwargs = {
+        "name": gltf_node.name,
+        "translation": gltf_node.translation,
+        "rotation": gltf_node.rotation,
+        "parent": parent,
+    }
 
     scene_nodes_list = []
 
@@ -179,40 +176,37 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
         # Let's add a Camera
         gltf_camera = gltf_model.cameras[gltf_node.camera]
         camera_type = gltf_camera.type
-        scene_node = Camera(aspect_ratio=gltf_camera.perspective.aspectRatio,
-                              yfov=gltf_camera.perspective.yfov,
-                              zfar=gltf_camera.perspective.zfar if camera_type == "perspective" else gltf_camera.orthographic.zfar,
-                              znear=gltf_camera.perspective.znear if camera_type == "perspective" else gltf_camera.orthographic.znear,
-                              camera_type=camera_type,
-                              xmag=gltf_camera.orthographic.xmag if camera_type == "orthographic" else None,
-                              ymag=gltf_camera.orthographic.ymag if camera_type == "orthographic" else None,
-                              **common_kwargs
-                              )
+        scene_node = Camera(
+            aspect_ratio=gltf_camera.perspective.aspectRatio,
+            yfov=gltf_camera.perspective.yfov,
+            zfar=gltf_camera.perspective.zfar if camera_type == "perspective" else gltf_camera.orthographic.zfar,
+            znear=gltf_camera.perspective.znear if camera_type == "perspective" else gltf_camera.orthographic.znear,
+            camera_type=camera_type,
+            xmag=gltf_camera.orthographic.xmag if camera_type == "orthographic" else None,
+            ymag=gltf_camera.orthographic.ymag if camera_type == "orthographic" else None,
+            **common_kwargs,
+        )
 
     elif gltf_node.extensions.KHR_lights_punctual is not None:
         # Let's add a light
         gltf_light_id = gltf_node.extensions.KHR_lights_punctual.light
         gltf_light = gltf_model.extensions.KHR_lights_punctual.lights[gltf_light_id]
-        if gltf_light.type == 'directional':
-            scene_node = DirectionalLight(intensity=gltf_light.intensity,
-                                        color=gltf_light.color,
-                                        range=gltf_light.range,
-                                        **common_kwargs
-                                        )
-        elif gltf_light.type == 'point':
-            scene_node = PointLight(intensity=gltf_light.intensity,
-                                        color=gltf_light.color,
-                                        range=gltf_light.range,
-                                        **common_kwargs
-                                        )
-        elif gltf_light.type == 'spot':
-            scene_node = SpotLight(intensity=gltf_light.intensity,
-                                        color=gltf_light.color,
-                                        range=gltf_light.range,
-                                        **common_kwargs
-                                        )
+        if gltf_light.type == "directional":
+            scene_node = DirectionalLight(
+                intensity=gltf_light.intensity, color=gltf_light.color, range=gltf_light.range, **common_kwargs
+            )
+        elif gltf_light.type == "point":
+            scene_node = PointLight(
+                intensity=gltf_light.intensity, color=gltf_light.color, range=gltf_light.range, **common_kwargs
+            )
+        elif gltf_light.type == "spot":
+            scene_node = SpotLight(
+                intensity=gltf_light.intensity, color=gltf_light.color, range=gltf_light.range, **common_kwargs
+            )
         else:
-            raise ValueError(f"Unrecognized GLTF file light type: {gltf_light.type}, please check that the file is conform with the KHR_lights_punctual specifications")
+            raise ValueError(
+                f"Unrecognized GLTF file light type: {gltf_light.type}, please check that the file is conform with the KHR_lights_punctual specifications"
+            )
 
     elif gltf_node.mesh is not None:
         # Let's add a mesh
@@ -230,13 +224,12 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                 # Faces
                 faces = None
                 if primitive.indices is None:
-                    faces = np.arange(len(vertices),
-                            dtype=np.int64).reshape((-1, 3))
+                    faces = np.arange(len(vertices), dtype=np.int64).reshape((-1, 3))
                 else:
                     faces = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=primitive.indices)
                 if primitive.mode == PrimitiveMode.TRIANGLE_STRIP:
                     raise NotImplementedError()
-                
+
                 # Vertex normals
                 vertex_normals = None
                 if attributes.NORMAL is not None:
@@ -250,7 +243,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                 if primitive.material is not None:
                     material = get_material_as_trimesh(gltf_scene=gltf_scene, material_id=primitive.material)
                     uv = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.TEXCOORD_0).copy()
-                    
+
                     # From trimesh - trimesh.exchange.gltf.py
                     # flip UV's top- bottom to move origin to lower-left:
                     # https://github.com/KhronosGroup/glTF/issues/1021
@@ -261,12 +254,18 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                     if attributes.COLOR_0 is not None:
                         colors = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.COLOR_0)
                         if len(colors) == len(vertices):
-                            visual.vertex_attributes['color'] = colors
+                            visual.vertex_attributes["color"] = colors
                             vertex_colors = colors
-                
+
                 # TODO metadata are not included at the moment
-                
-                trimesh_primitive = Trimesh(vertices=vertices, faces=faces, vertex_normals=vertex_normals, vertex_colors=vertex_colors, visual=visual)
+
+                trimesh_primitive = Trimesh(
+                    vertices=vertices,
+                    faces=faces,
+                    vertex_normals=vertex_normals,
+                    vertex_colors=vertex_colors,
+                    visual=visual,
+                )
 
             else:
                 raise NotImplementedError()
@@ -279,8 +278,10 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
         scene_node = Asset(**common_kwargs)
 
     if not scene_nodes_list:
-        scene_nodes_list = [scene_node]  # for the meshes primitives we've built the list already, for the other we build it here
-    
+        scene_nodes_list = [
+            scene_node
+        ]  # for the meshes primitives we've built the list already, for the other we build it here
+
     # Recursively build the node tree
     if gltf_node.children:
         for child_id in gltf_node.children:
@@ -290,22 +291,17 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
     return scene_nodes_list
 
 
-def load_gltf(file_path) -> Scene:
-    """ Loading function to create a Scene from a GLTF file
-    """
+def load_gltf_in_assets(file_path) -> List[Asset]:
+    """Loading function to create a Scene from a GLTF file"""
     gltf_scene = GLTF.load(file_path)
     gltf_model = gltf_scene.model
 
     main_scene = gltf_model.scenes[gltf_model.scene if gltf_model.scene else 0]
     main_nodes = main_scene.nodes
 
-    scene = None
+    assets = []
 
     for main_node_id in main_nodes:
-        assets = build_node_tree(gltf_scene=gltf_scene, gltf_node_id=main_node_id, parent=None)
-        if scene is None:
-            scene = Scene(assets=assets)
-        else:
-            scene.add(assets)
+        assets += build_node_tree(gltf_scene=gltf_scene, gltf_node_id=main_node_id, parent=None)
 
-    return scene
+    return assets
