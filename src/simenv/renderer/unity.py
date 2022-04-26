@@ -1,6 +1,6 @@
 import json
 import socket
-import uuid
+import base64
 
 
 PRIMITIVE_TYPE_MAPPING = {
@@ -40,20 +40,9 @@ class Unity:
                 print(f"Received response: {response}")
                 return response
 
-    def send_buffer(self, name, bytes):
-        print(f"Sending buffer {name} with length: {len(bytes)}")
-        command = {"type": "BeginTransferBuffer", "contents": json.dumps({"name": name, "length": len(bytes)})}
-        self.run_command(command)
-        print(f"Sending bytes with length {len(bytes)}")
-        self.send_bytes(bytes)
-
-    def send_gltf(self, files: dict):
-        for key in files.keys():
-            if key == "model.gltf":
-                continue
-            self.send_buffer(key, files[key])
-        gltf = files["model.gltf"]
-        command = {"type": "ConstructScene", "contents": json.dumps({"json": gltf.decode()})}
+    def send_gltf(self, bytes):
+        b64_bytes = base64.b64encode(bytes).decode('ascii')
+        command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
         self.run_command(command)
 
     def run_command(self, command):

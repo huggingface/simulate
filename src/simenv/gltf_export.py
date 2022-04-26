@@ -20,7 +20,7 @@ from typing import ByteString, List, Set
 import numpy as np
 import PIL.Image
 import trimesh
-from trimesh.exchange.gltf import export_gltf
+from trimesh.exchange.gltf import export_glb
 
 # from trimesh.path.entities import Line  # Line need scipy
 from trimesh.visual.material import PBRMaterial
@@ -77,4 +77,4 @@ def add_node_tree_to_scene(node: Asset, trimesh_scene: trimesh.Scene, parent_nod
 def export_assets_to_gltf(root_node: Asset) -> dict:
     trimesh_scene = trimesh.Scene()
     trimesh_scene = add_node_tree_to_scene(root_node, trimesh_scene=trimesh_scene)
-    return export_gltf(trimesh_scene)
+    return export_glb(trimesh_scene)

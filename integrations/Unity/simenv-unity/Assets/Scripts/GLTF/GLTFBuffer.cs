@@ -42,8 +42,6 @@ public class GLTFBuffer
             string b64 = uri.Substring(embeddedPrefix2.Length, uri.Length - embeddedPrefix2.Length);
             byte[] bytes = Convert.FromBase64String(b64);
             result.stream = new MemoryStream(bytes);
-        } else if(SimEnv.RequestBuffer(uri, out byte[] bytes)) {
-            result.stream = new MemoryStream(bytes);
         } else {
             string directoryRoot = Directory.GetParent(filepath).ToString() + "/";
             result.stream = File.OpenRead(directoryRoot + uri);

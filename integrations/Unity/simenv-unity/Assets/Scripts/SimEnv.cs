@@ -1,34 +1,10 @@
-using System.IO;
-using System.Collections.Generic;
 using UnityEngine;
 
 [CreateAssetMenu(fileName = "SimEnv", menuName = "SimEnv/Controller")]
 public class SimEnv : SingletonScriptableObject<SimEnv>
 {
-    static Dictionary<string, byte[]> _buffers;
-    static Dictionary<string, byte[]> buffers {
-        get {
-            if(_buffers == null)
-                _buffers = new Dictionary<string, byte[]>();
-            return _buffers;
-        }
-    }
-
-    public static void ConstructScene(string json) {
-        GameObject root = Importer.LoadFromJson(json);
-    }
-
-    public static void WriteBuffer(string name, byte[] buffer) {
-        buffers.Add(name, buffer);
-    }
-
-    public static bool RequestBuffer(string name, out byte[] buffer) {
-        buffer = null;
-        if(buffers.ContainsKey(name)) {
-            buffer = buffers[name];
-            return true;
-        }
-        return false;
+    public static void BuildSceneFromBytes(byte[] bytes) {
+        GameObject root = Importer.LoadFromBytes(bytes);
     }
 
 #region DEPRECATED
