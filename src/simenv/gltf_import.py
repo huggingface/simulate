@@ -16,6 +16,7 @@
 """ Load a GLTF file in a Scene."""
 from copy import deepcopy
 from typing import ByteString, List, Set, Union
+from dataclasses import asdict
 
 import numpy as np
 import PIL.Image
@@ -134,12 +135,12 @@ def get_material_as_trimesh(gltf_scene: GLTF, material_id: int) -> PBRMaterial:
     gltf_material = gltf_materials[material_id]
 
     pbrMetallicRoughness = {}
-    if isinstance(gltf_material.pbrMetallicRoughness.__dict__, dict):
-        pbrMetallicRoughness = deepcopy(gltf_material.pbrMetallicRoughness.__dict__)
+    if gltf_material.pbrMetallicRoughness is not None:
+        pbrMetallicRoughness = deepcopy(asdict(gltf_material.pbrMetallicRoughness))
         del pbrMetallicRoughness["extensions"]
         del pbrMetallicRoughness["extras"]
 
-    other_keys = deepcopy(gltf_material.__dict__)
+    other_keys = deepcopy(asdict(gltf_material))
     del other_keys["pbrMetallicRoughness"]
     del other_keys["extensions"]
     del other_keys["extras"]
