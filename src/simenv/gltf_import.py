@@ -15,8 +15,8 @@
 # Lint as: python3
 """ Load a GLTF file in a Scene."""
 from copy import deepcopy
-from typing import ByteString, List, Set, Union
 from dataclasses import asdict
+from typing import ByteString, List, Set, Union
 
 import numpy as np
 import PIL.Image
