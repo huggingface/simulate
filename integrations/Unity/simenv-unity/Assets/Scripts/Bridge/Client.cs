@@ -9,9 +9,6 @@ public class Client : MonoBehaviour
 {
     public static Client Instance { get; private set; }
 
-    static string pendingBufferName;
-    static int pendingBufferLength;
-
     [SerializeField] string host = "localhost";
     [SerializeField] int port = 55000;
 
@@ -22,8 +19,6 @@ public class Client : MonoBehaviour
 
     void Awake() {
         Instance = this;
-        pendingBufferName = null;
-        pendingBufferLength = 0;
     }
 
     void OnEnable() {
@@ -55,24 +50,15 @@ public class Client : MonoBehaviour
     void Listen() {
         try {
             client = new TcpClient(host, port);
-            byte[] buffer = new byte[65535];
+            byte[] buffer = new byte[1048576];
             while(true) {
                 using (NetworkStream stream = client.GetStream()) {
                     int length;
                     while((length = stream.Read(buffer, 0, buffer.Length)) != 0) {
-                        if(string.IsNullOrEmpty(pendingBufferName)) {
-                            string message = Encoding.ASCII.GetString(buffer, 0, length);
-                            Debug.Log("Received message: " + message);
-                            lock(asyncLock)
-                                messageQueue.Enqueue(message);
-                        } else {
-                            Debug.Log(string.Format("Received buffer {0}", pendingBufferName));
-                            byte[] bytes = new byte[pendingBufferLength];
-                            Array.Copy(buffer, bytes, pendingBufferLength);
-                            SimEnv.WriteBuffer(pendingBufferName, bytes);
-                            pendingBufferName = null;
-                            OnFinishedRunningCommand("ack");
-                        }
+                        string message = Encoding.ASCII.GetString(buffer, 0, length);
+                        Debug.Log("Received message: " + message);
+                        lock(asyncLock)
+                            messageQueue.Enqueue(message);
                     }
                 }
             }
@@ -93,12 +79,5 @@ public class Client : MonoBehaviour
         } catch(Exception e) {
             Debug.Log("Socket error: " + e);
         }
-    }
-
-    public static void ListenForBuffer(string bufferName, int length) {
-        Debug.Assert(string.IsNullOrEmpty(pendingBufferName), "Already waiting for buffer " + pendingBufferName);
-        pendingBufferName = bufferName;
-        pendingBufferLength = length;
-        Debug.Log("Listening for buffer: " + pendingBufferName);
     }
 }
