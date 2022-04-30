@@ -74,7 +74,7 @@ def add_data_to_gltf(new_data: bytearray, gltf_model: gl.GLTFModel, buffer_data:
     buffer_data.extend(new_data)
 
     # Create/add a new bufferView
-    buffer_view = gl.BufferView(buffer=buffer_id, byteLength=byte_length, byteOffset=byte_offset, byteStride=0)
+    buffer_view = gl.BufferView(buffer=buffer_id, byteLength=byte_length, byteOffset=byte_offset, byteStride=None)
     gltf_model.bufferViews.append(buffer_view)
     buffer_view_id = len(gltf_model.bufferViews) - 1
 
@@ -129,7 +129,7 @@ def add_numpy_to_gltf(
         count=count,
         min=min,
         max=max,
-        sparse=False,
+        sparse=None,
     )
     gltf_model.accessors.append(accessor)
     accessor_id = len(gltf_model.accessors) - 1
@@ -417,6 +417,18 @@ def export_assets_to_gltf(root_node: Asset, filename: Optional[str] = "scene.glt
         gltf_model.extensionsUsed = ["KHRLightsPunctual"]
 
     resource = gl.FileResource("scene.bin", data=buffer_data)
+    # TODO: refactor adding buffer
+    buffer = gl.Buffer()
+    buffer.byteLength = len(buffer_data)
+    buffer.uri = "scene.bin"
+    gltf_model.buffers.append(buffer)
+
+    # TODO: refactor how empty properties are handled
+    attributes = [a for a in dir(gltf_model) if not a.startswith("__") and isinstance(getattr(gltf_model, a), list)]
+    for attribute in attributes:
+        if len(getattr(gltf_model, attribute)) == 0:
+            setattr(gltf_model, attribute, None)
+
     gltf = gl.GLTF(model=gltf_model, resources=[resource])
 
     gltf.export("scene.gltf")
