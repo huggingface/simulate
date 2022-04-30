@@ -3,10 +3,12 @@ from .animation import Animation
 from .animation_sampler import AnimationSampler
 from .asset import Asset
 from .attributes import Attributes
+from .base_model import Extensions
 from .buffer import Buffer
 from .buffer_view import BufferView
 from .camera import Camera
 from .channel import Channel
+from .extensions import *
 from .gltf_model import GLTFModel
 from .image import Image
 from .material import Material

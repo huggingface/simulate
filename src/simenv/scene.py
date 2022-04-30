@@ -31,7 +31,7 @@ class UnsetRendererError(Exception):
 class Scene:
     def __init__(
         self,
-        renderer: Optional[str] = None,
+        engine: Optional[str] = None,
         dimensionality=3,
         start_frame=0,
         end_frame=500,
@@ -39,15 +39,15 @@ class Scene:
         assets=None,
     ):
 
-        self.renderer = None
-        if renderer == "Unity":
-            self.renderer = Unity(self, start_frame=start_frame, end_frame=end_frame, frame_rate=frame_rate)
-        elif renderer == "Blender":
+        self.engine = None
+        if engine == "Unity":
+            self.engine = Unity(self, start_frame=start_frame, end_frame=end_frame, frame_rate=frame_rate)
+        elif engine == "Blender":
             raise NotImplementedError()
-        elif renderer is None:
+        elif engine is None:
             pass
         else:
-            raise ValueError("renderer should be selected ()")
+            raise ValueError("engine should be selected ()")
 
         self.dimensionality = dimensionality
 
@@ -110,8 +110,8 @@ class Scene:
 
     def render(self):
         gltf_file_path = export_assets_to_gltf(self.root)
-        if self.renderer is not None:
-            self.renderer.send_gltf(gltf_file_path)
+        if self.engine is not None:
+            self.engine.send_gltf(gltf_file_path)
         else:
             raise UnsetRendererError()
 
@@ -124,4 +124,4 @@ class Scene:
         return self
 
     def __repr__(self):
-        return f"Scene(dimensionality={self.dimensionality}, renderer='{self.renderer}, root={self.root}')\n{RenderTree(self.root).print_tree()}"
+        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}, root={self.root}')\n{RenderTree(self.root).print_tree()}"

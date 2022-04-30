@@ -676,7 +676,7 @@ class GLTF:
                 buffer_view.buffer += 1
         return glb_buffer
 
-    def _create_or_extend_glb_resource(self, data: bytearray) -> (GLBResource, int, int):
+    def _create_or_extend_glb_resource(self, data: bytearray) -> Tuple[GLBResource, int, int]:
         bytelen = len(data)
         glb_resource = self.get_glb_resource()
         if glb_resource is None:
