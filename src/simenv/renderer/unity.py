@@ -1,6 +1,6 @@
+import base64
 import json
 import socket
-import base64
 
 
 PRIMITIVE_TYPE_MAPPING = {
@@ -41,7 +41,7 @@ class Unity:
                 return response
 
     def send_gltf(self, bytes):
-        b64_bytes = base64.b64encode(bytes).decode('ascii')
+        b64_bytes = base64.b64encode(bytes).decode("ascii")
         command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
         self.run_command(command)
 

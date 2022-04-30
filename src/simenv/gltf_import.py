@@ -14,6 +14,7 @@
 
 # Lint as: python3
 """ Load a GLTF file in a Scene."""
+import io
 from copy import deepcopy
 from dataclasses import asdict
 from typing import ByteString, List, Set, Union
@@ -26,11 +27,10 @@ from trimesh import Trimesh
 from trimesh.visual.material import PBRMaterial
 from trimesh.visual.texture import TextureVisuals
 
-from simenv.gltflib.models import material
-
 from .assets import Asset, Camera, DirectionalLight, Object, PointLight, SpotLight
-from .gltflib import GLTF, GLTFModel, Material
+from .gltflib import GLTF, GLTFModel
 from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
+from .gltflib.models.material import Material
 
 
 # Conversion of gltf dtype and shapes in Numpy equivalents
@@ -61,14 +61,14 @@ def get_buffer_as_bytes(gltf_scene: GLTF, buffer_view_id: int) -> ByteString:
 
     buffer_view = gltf_model.bufferViews[buffer_view_id]
     buffer = gltf_model.buffers[buffer_view.buffer]
-    ressource = gltf_scene.get_resource(buffer.uri)
-    if not ressource.loaded:
-        ressource.load()
+    resource = gltf_scene.get_resource(buffer.uri)
+    if not resource.loaded:
+        resource.load()
 
     byte_offset = buffer_view.byteOffset
     length = buffer_view.byteLength
 
-    data = ressource.data[byte_offset : byte_offset + length]
+    data = resource.data[byte_offset : byte_offset + length]
 
     return data
 
@@ -81,11 +81,11 @@ def get_image_as_bytes(gltf_scene: GLTF, image_id: int) -> ByteString:
     if image.bufferView is not None:
         return get_buffer_as_bytes(gltf_scene=gltf_scene, buffer_view_id=image.bufferView)
 
-    ressource = gltf_scene.get_resource(image.uri)
-    if not ressource.loaded:
-        ressource.load()
+    resource = gltf_scene.get_resource(image.uri)
+    if not resource.loaded:
+        resource.load()
 
-    return ressource.data
+    return resource.data
 
 
 def get_accessor_as_numpy(gltf_scene: GLTF, accessor_id: int) -> np.ndarray:
@@ -119,12 +119,12 @@ def get_texture_as_pillow(gltf_scene: GLTF, texture_id: int) -> PIL.Image:
     if gltf_image.bufferView is not None:
         data = get_buffer_as_bytes(gltf_scene=gltf_scene, buffer_view_id=gltf_image.bufferView)
     else:
-        ressource = gltf_scene.get_resource(gltf_image.uri)
-        if not ressource.loaded:
-            ressource.load()
-        data = ressource.data
+        resource = gltf_scene.get_resource(gltf_image.uri)
+        if not resource.loaded:
+            resource.load()
+        data = resource.data
 
-    image = PIL.Image.open(data)  # TODO checkk all this image stuff
+    image = PIL.Image.open(io.BytesIO(data))  # TODO checkk all this image stuff
 
     return image
 
@@ -188,7 +188,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
             **common_kwargs,
         )
 
-    elif gltf_node.extensions.KHR_lights_punctual is not None:
+    if gltf_node.extensions is not None and gltf_node.extensions.KHR_lights_punctual is not None:
         # Let's add a light
         gltf_light_id = gltf_node.extensions.KHR_lights_punctual.light
         gltf_light = gltf_model.extensions.KHR_lights_punctual.lights[gltf_light_id]
@@ -209,7 +209,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                 f"Unrecognized GLTF file light type: {gltf_light.type}, please check that the file is conform with the KHR_lights_punctual specifications"
             )
 
-    elif gltf_node.mesh is not None:
+    if gltf_node.mesh is not None:
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
         primitives = gltf_mesh.primitives
@@ -243,7 +243,10 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                 vertex_colors = None
                 if primitive.material is not None:
                     material = get_material_as_trimesh(gltf_scene=gltf_scene, material_id=primitive.material)
-                    uv = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.TEXCOORD_0).copy()
+                    if attributes.TEXCOORD_0 is not None:
+                        uv = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.TEXCOORD_0).copy()
+                    else:
+                        uv = np.zeros((len(vertices), 2))
 
                     # From trimesh - trimesh.exchange.gltf.py
                     # flip UV's top- bottom to move origin to lower-left:

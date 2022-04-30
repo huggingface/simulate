@@ -124,4 +124,4 @@ class Scene:
         return self
 
     def __repr__(self):
-        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}, root={self.root}')\n{RenderTree(self.root).print_tree()}"
+        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}, root={self.root}')\n{RenderTree(self.root)}"
