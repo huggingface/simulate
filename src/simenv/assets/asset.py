@@ -27,12 +27,12 @@ from .utils import camelcase_to_snakecase, quat_from_euler
 
 class Asset(NodeMixin, object):
     dimensionality = 3  # 2 for bi-dimensional assets and 3 for tri-dimensional assets (default is 3)
-    NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self, name: Optional[str] = None, translation=None, rotation=None, scale=None, parent=None, children=None
     ):
-        self.id = next(self.__class__.NEW_ID)
+        self.id = next(self.__class__.__NEW_ID)
         if name is None:
             name = camelcase_to_snakecase(self.__class__.__name__ + f"_{self.id:02d}")
         self.name = name
@@ -93,7 +93,3 @@ class Asset(NodeMixin, object):
         elif self.dimensionality == 2:
             raise NotImplementedError()
         self._scale = tuple(value)
-
-class World3D(Asset):
-    dimensionality = 3
-    NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming

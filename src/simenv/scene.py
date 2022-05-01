@@ -14,13 +14,12 @@
 
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
-from typing import Optional, Sequence, Union
-from dataclasses import make_dataclass, fields
+from typing import Optional
 
 from .assets.anytree import RenderTree
 
-from .assets import Asset, World3D, NodeMixin
-from .gltf_export import export_assets_to_gltf
+from .assets import Asset
+from .gltf_export import export_tree_to_gltf
 from .gltf_import import load_gltf_as_tree
 from .renderer.unity import Unity
 
@@ -56,6 +55,7 @@ class Scene(Asset):
 
     @classmethod
     def from_gltf(cls, file_path, **kwargs):
+        """ Load a Scene from a GLTF file. """
         nodes = load_gltf_as_tree(file_path)
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
@@ -64,10 +64,14 @@ class Scene(Asset):
             root = Asset(name="Scene")  # Otherwise we build a main root node
         return cls(name=root.name, translation=root.translation, rotation=root.rotation, scale=root.scale, children=nodes, **kwargs)
 
+    def to_gltf(self, file_path):
+        """ Save a Scene to a GLTF file. """
+        return export_tree_to_gltf(self)
+
     def render(self):
-        gltf_file_path = export_assets_to_gltf(self.assets)
+        """ Render the Scene using the engine if provided. """
         if self.engine is not None:
-            self.engine.send_gltf(gltf_file_path)
+            self.engine.send_gltf(self.to_gltf())
         else:
             raise UnsetRendererError()
 

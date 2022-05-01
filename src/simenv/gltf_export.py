@@ -21,7 +21,6 @@ from typing import ByteString, List, Optional, Set, Tuple
 import numpy as np
 import PIL.Image
 import trimesh
-from trimesh.exchange.gltf import export_gltf
 
 # from trimesh.path.entities import Line  # Line need scipy
 from trimesh.visual.material import PBRMaterial
@@ -389,7 +388,7 @@ def add_node_to_scene(
     return
 
 
-def export_assets_to_gltf(root_node: Asset, filename: Optional[str] = "scene.gltf"):
+def export_tree_to_gltf(root_node: Asset, filename: Optional[str] = "scene.gltf"):
     buffer_data = bytearray()
     gltf_model = gl.GLTFModel(
         accessors=[],
@@ -431,6 +430,6 @@ def export_assets_to_gltf(root_node: Asset, filename: Optional[str] = "scene.glt
 
     gltf = gl.GLTF(model=gltf_model, resources=[resource])
 
-    gltf.export("scene.gltf")
+    gltf.export(filename)
 
-    return
+    return filename

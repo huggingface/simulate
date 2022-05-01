@@ -9,7 +9,7 @@ from .asset import Asset
 
 class Object(Asset):
     dimensionality = 3
-    NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -36,7 +36,7 @@ class Sphere(Object):
     """
     An isosphere or a UV sphere (latitude + longitude).
     """
-    NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -108,7 +108,7 @@ class Capsule(Object):
         - one hemisphere is centered at the origin
         - other hemisphere is centered along the Z axis at height
     """
-    NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -137,7 +137,7 @@ class Capsule(Object):
 
 
 class Cylinder(Object):
-    NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
     def __init__(
         self,
         name: Optional[str] = None,
@@ -166,7 +166,7 @@ class Cylinder(Object):
 
 
 class Cube(Object):
-    NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
     def __init__(
         self,
         name: Optional[str] = None,

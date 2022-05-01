@@ -327,7 +327,9 @@ class NodeMixin(object):
     def remove(self, asset: Union["NodeMixin", Sequence["NodeMixin"]]):
         if not self.tree_children:
             return self
-        if not isinstance(assets, (list, tuple)):
+        if isinstance(assets, list):
+            assets = tuple(assets)
+        if not isinstance(assets, tuple):
             assets = (assets, )
         for asset in assets:
             if asset in self.tree_children:
@@ -337,7 +339,9 @@ class NodeMixin(object):
         return self
 
     def add(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
-        if not isinstance(assets, (list, tuple)):
+        if isinstance(assets, list):
+            assets = tuple(assets)
+        if not isinstance(assets, tuple):
             assets = (assets, )
         self.tree_children += assets
         return self
