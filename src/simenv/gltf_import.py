@@ -186,7 +186,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
             **common_kwargs,
         )
 
-    if gltf_node.extensions is not None and gltf_node.extensions.KHR_lights_punctual is not None:
+    elif gltf_node.extensions is not None and gltf_node.extensions.KHR_lights_punctual is not None:
         # Let's add a light
         gltf_light_id = gltf_node.extensions.KHR_lights_punctual.light
         gltf_light = gltf_model.extensions.KHR_lights_punctual.lights[gltf_light_id]
@@ -207,7 +207,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                 f"Unrecognized GLTF file light type: {gltf_light.type}, please check that the file is conform with the KHR_lights_punctual specifications"
             )
 
-    if gltf_node.mesh is not None:
+    elif gltf_node.mesh is not None:
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
         primitives = gltf_mesh.primitives
