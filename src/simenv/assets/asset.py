@@ -16,33 +16,26 @@
 """ A simenv Asset - Objects in the scene (mesh, primitives, camera, lights)."""
 import math
 import uuid
+import itertools
 from typing import Optional, Union, Sequence
 
 import numpy as np
 
 from .anytree import NodeMixin
-
-
-def quat_from_euler(x, y, z):
-    qx = np.sin(x / 2) * np.cos(y / 2) * np.cos(z / 2) - np.cos(x / 2) * np.sin(y / 2) * np.sin(z / 2)
-    qy = np.cos(x / 2) * np.sin(y / 2) * np.cos(z / 2) + np.sin(x / 2) * np.cos(y / 2) * np.sin(z / 2)
-    qz = np.cos(x / 2) * np.cos(y / 2) * np.sin(z / 2) - np.sin(x / 2) * np.sin(y / 2) * np.cos(z / 2)
-    qw = np.cos(x / 2) * np.cos(y / 2) * np.cos(z / 2) + np.sin(x / 2) * np.sin(y / 2) * np.sin(z / 2)
-    return [qx, qy, qz, qw]
-
-
-def quat_from_degrees(x, y, z):
-    return quat_from_euler(math.radians(x), math.radians(y), math.radians(z))
+from .utils import camelcase_to_snakecase
 
 
 class Asset(NodeMixin, object):
     dimensionality = 3  # 2 for bi-dimensional assets and 3 for tri-dimensional assets (default is 3)
+    NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self, name: Optional[str] = None, translation=None, rotation=None, scale=None, parent=None, children=None
     ):
-        self.name = name or self.__class__.__name__
-        self.id = uuid.uuid4()
+        self.id = next(self.__class__.NEW_ID)
+        if name is not None:
+            name = camelcase_to_snakecase(self.__class__.__name__ + f"_{self.id:3}")
+        self.name = name
 
         self.parent = parent
         if children:
@@ -51,6 +44,18 @@ class Asset(NodeMixin, object):
         self.translation = translation
         self.rotation = rotation
         self.scale = scale
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, str):
+            raise TypeError("Name should be a string.")
+        if self.parent is not None:
+            self.parent
+        self._name = value
 
     @property
     def translation(self):
@@ -102,30 +107,30 @@ class Asset(NodeMixin, object):
         self._scale = tuple(value)
 
     def _post_detach_children(self, children):
-        """ Method call after detaching `children`.
-            We remove the attributes associated to the children if needed.
+        """ After detaching `children`. We remove the attributes associated to the children if needed.
         """
         for child in children:
             if hasattr(self, child.name) and getattr(self, child.name) == child:
                 delattr(self, child.name)
 
     def _post_attach_children(self, children):
-        """ Method call after attaching `children`.
-            We add name attributes associated to the children if there is no attribute of this name.
+        """ After attaching `children`. We add name attributes associated to the children if there is no attribute of this name.
         """
         for child in children:
             if not hasattr(self, child.name):
                 setattr(self, child.name, child)
 
     def __iadd__(self, assets: Union["Asset", Sequence["Asset"]]):
-        assets = tuple(assets)
+        if not isinstance(assets, (list, tuple)):
+            assets = (assets, )
         self.children += assets
         return self
 
     def __isub__(self, asset: Union["Asset", Sequence["Asset"]]):
         if not self.children:
             return self
-        assets = tuple(assets)
+        if not isinstance(assets, (list, tuple)):
+            assets = (assets, )
         for asset in assets:
             if asset in self.children:
                 children = self.children

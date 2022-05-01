@@ -1,5 +1,5 @@
 import simenv as sm
-import simenv.utils as utils
+import simenv.assets.utils as utils
 import os
 
 scene = sm.Scene()

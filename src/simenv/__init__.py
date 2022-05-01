@@ -24,4 +24,4 @@ from .gltf_export import *  # TODO cleanup all these * import
 from .gltf_import import *
 from .renderer.unity import Unity
 from .scene import Scene
-from .utils import *
+from .assets.utils import *
