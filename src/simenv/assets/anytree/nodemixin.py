@@ -9,7 +9,7 @@ from .preorderiter import PreOrderIter
 
 class NodeMixin(object):
 
-    separator = "/"
+    tree_separator = "/"
 
     """
     The :any:`NodeMixin` class extends any Python class to a tree node.
@@ -80,15 +80,22 @@ class NodeMixin(object):
 
     @property
     def name(self):
-        return self._name
+        try:
+            return self.__name
+        except AttributeError:
+            self.__name = None
+            return self.__name
 
     @name.setter
     def name(self, value):
         if not isinstance(value, str):
             raise TypeError("Name should be a string.")
         if self.tree_parent is not None:
-            self.tree_parent
-        self._name = value
+            if hasattr(self.tree_parent, self.name) and getattr(self.tree_parent, self.name) == self:
+                delattr(self.tree_parent, self.name)
+            if not hasattr(self.tree_parent, value):
+                setattr(self.tree_parent, value, self)
+        self.__name = value
 
     @property
     def tree_parent(self):

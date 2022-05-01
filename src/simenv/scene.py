@@ -21,7 +21,7 @@ from .assets.anytree import RenderTree
 
 from .assets import Asset, World3D, NodeMixin
 from .gltf_export import export_assets_to_gltf
-from .gltf_import import load_gltf_in_assets
+from .gltf_import import load_gltf_as_tree
 from .renderer.unity import Unity
 
 
@@ -29,17 +29,19 @@ class UnsetRendererError(Exception):
     pass
 
 
-class Scene(NodeMixin):
+class Scene(Asset):
     def __init__(
         self,
         engine: Optional[str] = None,
-        dimensionality=3,
         start_frame=0,
         end_frame=500,
         frame_rate=24,
-        assets=None,
+        children=None,
+        name=None,
+        translation=None,
+        rotation=None,
+        scale=None
     ):
-
         self.engine = None
         if engine == "Unity":
             self.engine = Unity(self, start_frame=start_frame, end_frame=end_frame, frame_rate=frame_rate)
@@ -50,12 +52,17 @@ class Scene(NodeMixin):
         else:
             raise ValueError("engine should be selected ()")
 
-        self.dimensionality = dimensionality
+        super().__init__(name=name, translation=translation, rotation=rotation, scale=scale, children=children)
 
     @classmethod
     def from_gltf(cls, file_path, **kwargs):
-        assets = load_gltf_in_assets(file_path)
-        return cls(assets=assets, **kwargs)
+        nodes = load_gltf_as_tree(file_path)
+        if len(nodes) == 1:
+            root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
+            nodes = root.tree_children
+        else:
+            root = Asset(name="Scene")  # Otherwise we build a main root node
+        return cls(name=root.name, translation=root.translation, rotation=root.rotation, scale=root.scale, children=nodes, **kwargs)
 
     def render(self):
         gltf_file_path = export_assets_to_gltf(self.assets)
