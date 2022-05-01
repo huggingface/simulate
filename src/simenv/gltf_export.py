@@ -388,7 +388,8 @@ def add_node_to_scene(
     return
 
 
-def export_tree_to_gltf(root_node: Asset, filename: Optional[str] = "scene.gltf"):
+def tree_as_gltf(root_node: Asset) -> gl.GLTF:
+    """ Return the tree of Assets as GLTF object. """
     buffer_data = bytearray()
     gltf_model = gl.GLTFModel(
         accessors=[],
@@ -428,8 +429,9 @@ def export_tree_to_gltf(root_node: Asset, filename: Optional[str] = "scene.gltf"
         if len(getattr(gltf_model, attribute)) == 0:
             setattr(gltf_model, attribute, None)
 
-    gltf = gl.GLTF(model=gltf_model, resources=[resource])
+    return gl.GLTF(model=gltf_model, resources=[resource])
 
-    gltf.export(filename)
-
-    return filename
+def tree_as_glb_bytes(root_node: Asset) -> bytes:
+    """ Return the tree of Assets as GLB bytes. """
+    gltf = tree_as_gltf(root_node=root_node)
+    return gltf.as_glb_bytes()

@@ -1,4 +1,5 @@
 import codecs
+import io
 import copy
 import struct
 import warnings
@@ -184,6 +185,18 @@ class GLTF:
         # noinspection PyProtectedMember
         glb._export_glb(filename, embed_buffer_resources, embed_image_resources, save_file_resources)
         return glb
+
+    def as_glb_bytes(self) -> bytes:
+        """
+        Return the model as a GLB bytes
+        :return the model as GLB bytes.
+        
+        The original GLTF instance is NOT mutated (in particular resources and associated buffers and buffer views are not modified
+            to become embedded).
+        """
+        glb = self.clone()
+        # noinspection PyProtectedMember
+        return glb._as_glb_bytes()
 
     def clone(self) -> "GLTF":
         """
@@ -529,6 +542,13 @@ class GLTF:
             self._validate_resources()
             basepath = path.dirname(filename)
             self._export_file_resources(basepath)
+
+    def _as_glb_bytes(self) -> bytes:
+        self._embed_buffer_resources()
+        self._embed_image_resources()
+        with io.BytesIO() as f:
+            self._write_glb(f)
+            return f.getvalue()
 
     def _get_resource_uris_from_model(self) -> Set:
         uris = set()
