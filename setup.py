@@ -61,6 +61,9 @@ from setuptools import find_packages, setup
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator
     "numpy>=1.17",
+    "trimesh",
+    "pillow",
+    "dataclasses_json"
 ]
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]

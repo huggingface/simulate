@@ -16,7 +16,7 @@
 """ A simenv Asset - Objects in the scene (mesh, primitives, camera, lights)."""
 import math
 import uuid
-from typing import Optional
+from typing import Optional, Union, Sequence
 
 import numpy as np
 
@@ -100,6 +100,38 @@ class Asset(NodeMixin, object):
         elif self.dimensionality == 2:
             raise NotImplementedError()
         self._scale = tuple(value)
+
+    def _post_detach_children(self, children):
+        """ Method call after detaching `children`.
+            We remove the attributes associated to the children if needed.
+        """
+        for child in children:
+            if hasattr(self, child.name) and getattr(self, child.name) == child:
+                delattr(self, child.name)
+
+    def _post_attach_children(self, children):
+        """ Method call after attaching `children`.
+            We add name attributes associated to the children if there is no attribute of this name.
+        """
+        for child in children:
+            if not hasattr(self, child.name):
+                setattr(self, child.name, child)
+
+    def __iadd__(self, assets: Union["Asset", Sequence["Asset"]]):
+        assets = tuple(assets)
+        self.children += assets
+        return self
+
+    def __isub__(self, asset: Union["Asset", Sequence["Asset"]]):
+        if not self.children:
+            return self
+        assets = tuple(assets)
+        for asset in assets:
+            if asset in self.children:
+                children = self.children
+                children.remove(asset)
+                self.children = children
+        return self
 
     def __repr__(self):
         return f"{self.name} ({self.__class__.__name__})"

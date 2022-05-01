@@ -15,8 +15,9 @@
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
 from typing import Optional, Sequence, Union
+from dataclasses import make_dataclass, fields
 
-from anytree import RenderTree
+from .assets.anytree import RenderTree
 
 from .assets import Asset, World3D
 from .gltf_export import export_assets_to_gltf
@@ -51,47 +52,54 @@ class Scene:
 
         self.dimensionality = dimensionality
 
-        self.root = None
-        self.assets = set()
+        self.assets = None
+        self._assets = set()
 
         if assets is not None:
             if isinstance(assets, Asset):
-                self.root = assets
+                self.assets = assets
                 self.add(assets)
             elif isinstance(assets, list) and len(assets) and isinstance(assets[0], Asset):
-                self.root = assets[0]
+                self.assets = assets[0]
                 self.add(assets)
             else:
                 raise ValueError("Provided assets should be an Asset or a list of Assets")
         else:
-            self.root = World3D("Scene")
-            self.assets = set([self.root])
+            self.assets = World3D("Scene")
+            self._assets = set([self.assets])
 
     @classmethod
     def from_gltf(cls, file_path, **kwargs):
         assets = load_gltf_in_assets(file_path)
         return cls(assets=assets, **kwargs)
 
+    def render(self):
+        gltf_file_path = export_assets_to_gltf(self.assets)
+        if self.engine is not None:
+            self.engine.send_gltf(gltf_file_path)
+        else:
+            raise UnsetRendererError()
+
     def add(self, assets: Union[Asset, Sequence[Asset]], exists_not_ok=False):
-        """Add an Asset or a list of Assets to the Scene together with all its descendants.
-        If the parent of the Asset is not set (None), the Asset will be set to be a child of the Scene root node
+        """ Add an Asset or a list of Assets to the Scene together with all its descendants.
+            If the parent of the Asset is not set (None), the Asset will be set to be a child of the Scene root node
         """
         if isinstance(assets, Asset):
             assets = [assets]
 
         for asset in assets:
             if asset.parent is None:
-                asset.parent = self.root if asset != self.root else None
-            elif asset.parent not in self.assets:
+                asset.parent = self.assets if asset != self.assets else None
+            elif asset.parent not in self._assets:
                 raise ValueError("The parent of the asset to add must be either None or an asset in the Scene")
 
-            if exists_not_ok and asset in self.assets:
+            if exists_not_ok and asset in self._assets:
                 raise ValueError("Asset is already in the Scene and exists_not_ok is True")
 
-            self.assets.add(asset)
+            self._assets.add(asset)
             for child in asset.descendants:
                 # Add all the descendants
-                self.assets.add(child)
+                self._assets.add(child)
 
     def remove(self, assets: Union[Asset, Sequence[Asset]], not_exist_ok=False):
         """Remove an Asset or a list of Assets to the Scene together with all its descendants."""
@@ -99,21 +107,14 @@ class Scene:
             assets = [assets]
 
         for asset in assets:
-            if not not_exist_ok and asset not in self.assets:
+            if not not_exist_ok and asset not in self._assets:
                 raise ValueError("Asset is not in the scene")
 
             asset.parent = None
-            self.assets.discard(asset)
+            self._assets.discard(asset)
             for child in asset.descendants:
                 # Remove all the descendants
-                self.assets.discard(child)
-
-    def render(self):
-        gltf_file_path = export_assets_to_gltf(self.root)
-        if self.engine is not None:
-            self.engine.send_gltf(gltf_file_path)
-        else:
-            raise UnsetRendererError()
+                self._assets.discard(child)
 
     def __iadd__(self, asset: Asset):
         self.add(asset)
@@ -124,4 +125,4 @@ class Scene:
         return self
 
     def __repr__(self):
-        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}, root={self.root}')\n{RenderTree(self.root)}"
+        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}, root={self.assets}')\n{RenderTree(self.root).print_tree()}"
