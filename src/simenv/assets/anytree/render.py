@@ -277,7 +277,7 @@ class RenderTree(object):
 
     def __next(self, node, continues, level=0):
         yield RenderTree.__item(node, continues, self.style)
-        children = node.children
+        children = node.tree_children
         level += 1
         if children and (self.maxlevel is None or level < self.maxlevel):
             children = self.childiter(children)
@@ -337,6 +337,46 @@ class RenderTree(object):
         def get():
             for pre, fill, node in self:
                 attr = attrname(node) if callable(attrname) else getattr(node, attrname, "")
+                if isinstance(attr, (list, tuple)):
+                    lines = attr
+                else:
+                    lines = str(attr).split("\n")
+                yield u"%s%s" % (pre, lines[0])
+                for line in lines[1:]:
+                    yield u"%s%s" % (fill, line)
+
+        return "\n".join(get())
+
+    def print_tree(self):
+        u"""
+        Return rendered tree with node representation and without root node.
+
+        >>> from anytree import AnyNode, RenderTree
+        >>> root = AnyNode(id="root")
+        >>> s0 = AnyNode(id="sub0", parent=root)
+        >>> s0b = AnyNode(id="sub0B", parent=s0, foo=4, bar=109)
+        >>> s0a = AnyNode(id="sub0A", parent=s0)
+        >>> s1 = AnyNode(id="sub1", parent=root)
+        >>> s1a = AnyNode(id="sub1A", parent=s1)
+        >>> s1b = AnyNode(id="sub1B", parent=s1, bar=8)
+        >>> s1c = AnyNode(id="sub1C", parent=s1)
+        >>> s1ca = AnyNode(id="sub1Ca", parent=s1c)
+        >>> print(RenderTree(root).print_tree())
+        ├── sub0
+        │   ├── sub0B
+        │   └── sub0A
+        └── sub1
+            ├── sub1A
+            ├── sub1B
+            └── sub1C
+                └── sub1Ca
+
+        """
+        def get():
+            iterable = iter(self)
+            next(iterable)  # Skip root node
+            for pre, fill, node in iterable:
+                attr = str(node)
                 if isinstance(attr, (list, tuple)):
                     lines = attr
                 else:

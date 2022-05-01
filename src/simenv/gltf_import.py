@@ -287,8 +287,8 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
         ]  # for the meshes primitives we've built the list already, for the other we build it here
 
     # Recursively build the node tree
-    if gltf_node.children:
-        for child_id in gltf_node.children:
+    if gltf_node.tree_children:
+        for child_id in gltf_node.tree_children:
             scene_child_nodes = build_node_tree(gltf_scene=gltf_scene, gltf_node_id=child_id, parent=scene_node)
             scene_nodes_list += scene_child_nodes
 

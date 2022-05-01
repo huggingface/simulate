@@ -22,7 +22,7 @@ from typing import Optional, Union, Sequence
 import numpy as np
 
 from .anytree import NodeMixin
-from .utils import camelcase_to_snakecase
+from .utils import camelcase_to_snakecase, quat_from_euler
 
 
 class Asset(NodeMixin, object):
@@ -33,29 +33,17 @@ class Asset(NodeMixin, object):
         self, name: Optional[str] = None, translation=None, rotation=None, scale=None, parent=None, children=None
     ):
         self.id = next(self.__class__.NEW_ID)
-        if name is not None:
-            name = camelcase_to_snakecase(self.__class__.__name__ + f"_{self.id:3}")
+        if name is None:
+            name = camelcase_to_snakecase(self.__class__.__name__ + f"_{self.id:02d}")
         self.name = name
 
-        self.parent = parent
+        self.tree_parent = parent
         if children:
-            self.children = children
+            self.tree_children = children
 
         self.translation = translation
         self.rotation = rotation
         self.scale = scale
-
-    @property
-    def name(self):
-        return self._name
-
-    @name.setter
-    def name(self, value):
-        if not isinstance(value, str):
-            raise TypeError("Name should be a string.")
-        if self.parent is not None:
-            self.parent
-        self._name = value
 
     @property
     def translation(self):
@@ -106,41 +94,6 @@ class Asset(NodeMixin, object):
             raise NotImplementedError()
         self._scale = tuple(value)
 
-    def _post_detach_children(self, children):
-        """ After detaching `children`. We remove the attributes associated to the children if needed.
-        """
-        for child in children:
-            if hasattr(self, child.name) and getattr(self, child.name) == child:
-                delattr(self, child.name)
-
-    def _post_attach_children(self, children):
-        """ After attaching `children`. We add name attributes associated to the children if there is no attribute of this name.
-        """
-        for child in children:
-            if not hasattr(self, child.name):
-                setattr(self, child.name, child)
-
-    def __iadd__(self, assets: Union["Asset", Sequence["Asset"]]):
-        if not isinstance(assets, (list, tuple)):
-            assets = (assets, )
-        self.children += assets
-        return self
-
-    def __isub__(self, asset: Union["Asset", Sequence["Asset"]]):
-        if not self.children:
-            return self
-        if not isinstance(assets, (list, tuple)):
-            assets = (assets, )
-        for asset in assets:
-            if asset in self.children:
-                children = self.children
-                children.remove(asset)
-                self.children = children
-        return self
-
-    def __repr__(self):
-        return f"{self.name} ({self.__class__.__name__})"
-
-
 class World3D(Asset):
     dimensionality = 3
+    NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming

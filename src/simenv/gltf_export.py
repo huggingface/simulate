@@ -371,13 +371,13 @@ def add_node_to_scene(
 
     # List as a child in parent node in GLTF scene if not root node
     if gl_parent_node_id is not None:
-        if gltf_model.nodes[gl_parent_node_id].children is None:
-            gltf_model.nodes[gl_parent_node_id].children = [gl_node_id]
+        if gltf_model.nodes[gl_parent_node_id].tree_children is None:
+            gltf_model.nodes[gl_parent_node_id].tree_children = [gl_node_id]
         else:
-            gltf_model.nodes[gl_parent_node_id].children.append(gl_node_id)
+            gltf_model.nodes[gl_parent_node_id].tree_children.append(gl_node_id)
 
     # Add the child nodes to the scene
-    for child_node in node.children:
+    for child_node in node.tree_children:
         add_node_to_scene(
             node=child_node,
             gl_parent_node_id=gl_node_id,

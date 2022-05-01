@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import warnings
+from typing import Union, Sequence
 
 from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
@@ -76,6 +77,18 @@ class NodeMixin(object):
     ├── my1  1 0
     └── my2  0 2
     """
+
+    @property
+    def name(self):
+        return self._name
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, str):
+            raise TypeError("Name should be a string.")
+        if self.tree_parent is not None:
+            self.tree_parent
+        self._name = value
 
     @property
     def tree_parent(self):
@@ -268,17 +281,75 @@ class NodeMixin(object):
         """Method call before detaching `children`."""
         pass
 
-    def _post_detach_children(self, children):
-        """Method call after detaching `children`."""
-        pass
-
     def _pre_attach_children(self, children):
         """Method call before attaching `children`."""
         pass
 
+    def _post_detach_children(self, children):
+        """ After detaching `children`. We remove the attributes associated to the children if needed.
+        """
+        for child in children:
+            if hasattr(self, child.name) and getattr(self, child.name) == child:
+                delattr(self, child.name)
+
     def _post_attach_children(self, children):
-        """Method call after attaching `children`."""
+        """ After attaching `children`. We add name attributes associated to the children if there is no attribute of this name.
+        """
+        for child in children:
+            if not hasattr(self, child.name):
+                setattr(self, child.name, child)
+
+    def _pre_detach(self, parent):
+        """Method call before detaching from `parent`."""
         pass
+
+    def _pre_attach(self, parent):
+        """Method call before attaching to `parent`."""
+        pass
+
+    def _post_detach(self, parent):
+        """ Before attaching to `parent`. We remove the attributes associated to the previous parent if needed."""
+        if hasattr(self.tree_parent, self.name) and getattr(self.tree_parent, self.name) == self:
+            delattr(self.tree_parent, self.name)
+
+    def _post_attach(self, parent):
+        """ After attaching to `parent`.  We add name attribute associated to the new children if there is no attribute of this name."""
+        if not hasattr(parent, self.name):
+            setattr(parent, self.name, self)
+
+    def remove(self, asset: Union["NodeMixin", Sequence["NodeMixin"]]):
+        if not self.tree_children:
+            return self
+        if not isinstance(assets, (list, tuple)):
+            assets = (assets, )
+        for asset in assets:
+            if asset in self.tree_children:
+                children = self.tree_children
+                children.remove(asset)
+                self.tree_children = children
+        return self
+
+    def add(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+        if not isinstance(assets, (list, tuple)):
+            assets = (assets, )
+        self.tree_children += assets
+        return self
+
+    def __iadd__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+        return self.add(assets)
+
+    def __add__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+        return self.add(assets)
+
+    def __isub__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+        return self.remove(assets)
+
+    def __sub__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+        return self.remove(assets)
+
+    def __repr__(self):
+        return f"{self.name} ({self.__class__.__name__})"
+
 
     @property
     def tree_path(self):
@@ -511,19 +582,3 @@ class NodeMixin(object):
         for i, _ in enumerate(self.tree_iter_path_reverse()):
             continue
         return i
-
-    def _pre_detach(self, parent):
-        """Method call before detaching from `parent`."""
-        pass
-
-    def _post_detach(self, parent):
-        """Method call after detaching from `parent`."""
-        pass
-
-    def _pre_attach(self, parent):
-        """Method call before attaching to `parent`."""
-        pass
-
-    def _post_attach(self, parent):
-        """Method call after attaching to `parent`."""
-        pass

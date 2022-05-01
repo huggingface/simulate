@@ -14,7 +14,7 @@
 
 # Lint as: python3
 """ A simenv Camera."""
-
+import itertools
 from typing import Optional
 
 from .asset import Asset
@@ -22,6 +22,7 @@ from .asset import Asset
 
 class Camera(Asset):
     dimensionality = 3
+    NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
