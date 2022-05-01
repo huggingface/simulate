@@ -20,16 +20,18 @@ public class GLTFNode
     public int? weights;
     public Extensions extensions;
 
-    public bool ShouldSerializeTranslation => translation != Vector3.zero;
-    public bool ShouldSerializeRotation => rotation != Quaternion.identity;
-    public bool ShouldSerializeScale => scale != Vector3.one;
+    public bool ShouldSerializematrix() { return matrix != Matrix4x4.identity; }
+    public bool ShouldSerializetranslation() { return translation != Vector3.zero; }
+    public bool ShouldSerializerotation() { return rotation != Quaternion.identity; }
+    public bool ShouldSerializescale() { return scale != Vector3.one; }
 
     public class Extensions
     {
-        public LightInfo KHR_lights_punctual;
+        public KHR_light KHR_lights_punctual;
+        public HF_colliders HF_collision_shapes;
     }
 
-    public class LightInfo
+    public class KHR_light
     {
         public int light;
     }
@@ -143,30 +145,35 @@ public class GLTFNode
                             break;
                     }
                 }
-                if(nodes[i].extensions != null && nodes[i].extensions.KHR_lights_punctual != null) {
-                    int lightValue = nodes[i].extensions.KHR_lights_punctual.light;
-                    if(extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {
-                        Debug.LogWarning("Error importing light");
-                    } else {
-                        KHR_lights_punctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
-                        Light light = result[i].transform.gameObject.AddComponent<Light>();
-                        result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
-                        if(!string.IsNullOrEmpty(lightData.name))
-                            light.transform.gameObject.name = lightData.name;
-                        light.color = lightData.color;
-                        light.intensity = lightData.intensity;
-                        light.range = lightData.range;
-                        switch(lightData.type) {
-                            case LightType.directional:
-                                light.type = UnityEngine.LightType.Directional;
-                                break;
-                            case LightType.point:
-                                light.type = UnityEngine.LightType.Point;
-                                break;
-                            case LightType.spot:
-                                light.type = UnityEngine.LightType.Spot;
-                                break;
+                if(nodes[i].extensions != null) {
+                    if(nodes[i].extensions.KHR_lights_punctual != null) {
+                        int lightValue = nodes[i].extensions.KHR_lights_punctual.light;
+                        if(extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {
+                            Debug.LogWarning("Error importing light");
+                        } else {
+                            KHR_lights_punctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
+                            Light light = result[i].transform.gameObject.AddComponent<Light>();
+                            result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
+                            if(!string.IsNullOrEmpty(lightData.name))
+                                light.transform.gameObject.name = lightData.name;
+                            light.color = lightData.color;
+                            light.intensity = lightData.intensity;
+                            light.range = lightData.range;
+                            switch(lightData.type) {
+                                case LightType.directional:
+                                    light.type = UnityEngine.LightType.Directional;
+                                    break;
+                                case LightType.point:
+                                    light.type = UnityEngine.LightType.Point;
+                                    break;
+                                case LightType.spot:
+                                    light.type = UnityEngine.LightType.Spot;
+                                    break;
+                            }
                         }
+                    }
+                    if(nodes[i].extensions.HF_collision_shapes != null) {
+                        throw new NotImplementedException();
                     }
                 }
             }

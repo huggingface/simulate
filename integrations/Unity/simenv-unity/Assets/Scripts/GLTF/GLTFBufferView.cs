@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using System.IO;
 using System.Threading.Tasks;
+using UnityEngine;
 
 public class GLTFBufferView
 {

@@ -199,7 +199,7 @@ public static class Importer
         GLTFNode.ImportTask nodeTask = new GLTFNode.ImportTask(gltfObject.nodes, meshTask, skinTask, gltfObject.cameras, gltfObject.extensions);
         nodeTask.RunSynchronously();
         GLTFAnimation.ImportResult[] animationResult = gltfObject.animations.Import(accessorTask.result, nodeTask.result, importSettings);
-        if (animationResult != null) 
+        if (animationResult != null)
             animations = animationResult.Select(x => x.clip).ToArray();
         else 
             animations = new AnimationClip[0];
