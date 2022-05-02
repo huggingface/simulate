@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import warnings
-from typing import Union, Sequence
+from typing import Sequence, Union
 
 from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
@@ -293,15 +293,13 @@ class NodeMixin(object):
         pass
 
     def _post_detach_children(self, children):
-        """ After detaching `children`. We remove the attributes associated to the children if needed.
-        """
+        """After detaching `children`. We remove the attributes associated to the children if needed."""
         for child in children:
             if hasattr(self, child.name) and getattr(self, child.name) == child:
                 delattr(self, child.name)
 
     def _post_attach_children(self, children):
-        """ After attaching `children`. We add name attributes associated to the children if there is no attribute of this name.
-        """
+        """After attaching `children`. We add name attributes associated to the children if there is no attribute of this name."""
         for child in children:
             if not hasattr(self, child.name):
                 setattr(self, child.name, child)
@@ -315,12 +313,12 @@ class NodeMixin(object):
         pass
 
     def _post_detach(self, parent):
-        """ Before attaching to `parent`. We remove the attributes associated to the previous parent if needed."""
+        """Before attaching to `parent`. We remove the attributes associated to the previous parent if needed."""
         if hasattr(self.tree_parent, self.name) and getattr(self.tree_parent, self.name) == self:
             delattr(self.tree_parent, self.name)
 
     def _post_attach(self, parent):
-        """ After attaching to `parent`.  We add name attribute associated to the new children if there is no attribute of this name."""
+        """After attaching to `parent`.  We add name attribute associated to the new children if there is no attribute of this name."""
         if not hasattr(parent, self.name):
             setattr(parent, self.name, self)
 
@@ -330,7 +328,7 @@ class NodeMixin(object):
         if isinstance(assets, list):
             assets = tuple(assets)
         if not isinstance(assets, tuple):
-            assets = (assets, )
+            assets = (assets,)
         for asset in assets:
             if asset in self.tree_children:
                 children = self.tree_children
@@ -342,7 +340,7 @@ class NodeMixin(object):
         if isinstance(assets, list):
             assets = tuple(assets)
         if not isinstance(assets, tuple):
-            assets = (assets, )
+            assets = (assets,)
         self.tree_children += assets
         return self
 
@@ -360,7 +358,6 @@ class NodeMixin(object):
 
     def __repr__(self):
         return f"{self.name} ({self.__class__.__name__})"
-
 
     @property
     def tree_path(self):

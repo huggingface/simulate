@@ -1,5 +1,5 @@
-from typing import List, Optional
 import itertools
+from typing import List, Optional
 
 from .asset import Asset
 

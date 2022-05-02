@@ -1,6 +1,6 @@
 import codecs
-import io
 import copy
+import io
 import struct
 import warnings
 from os import path
@@ -190,7 +190,7 @@ class GLTF:
         """
         Return the model as a GLB bytes
         :return the model as GLB bytes.
-        
+
         The original GLTF instance is NOT mutated (in particular resources and associated buffers and buffer views are not modified
             to become embedded).
         """

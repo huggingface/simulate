@@ -20,8 +20,8 @@
 __version__ = "0.0.1.dev0"
 
 from .assets import *
+from .assets.utils import *
 from .gltf_export import *  # TODO cleanup all these * import
 from .gltf_import import *
 from .renderer.unity import Unity
 from .scene import Scene
-from .assets.utils import *

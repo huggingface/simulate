@@ -287,9 +287,9 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
 
 
 def load_gltf_as_tree(file_path) -> List[Asset]:
-    """ Loading function to create a tree of asset nodes from a GLTF file.
-        Return a list of the main nodes in the GLTF files (often only one main node).
-        The tree can be walked from the main nodes.
+    """Loading function to create a tree of asset nodes from a GLTF file.
+    Return a list of the main nodes in the GLTF files (often only one main node).
+    The tree can be walked from the main nodes.
     """
     gltf_scene = GLTF.load(file_path)
     gltf_model = gltf_scene.model

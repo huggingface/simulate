@@ -16,9 +16,8 @@
 """ A simenv Scene - Host a level or Scene."""
 from typing import Optional
 
-from .assets.anytree import RenderTree
-
 from .assets import Asset
+from .assets.anytree import RenderTree
 from .gltf_export import tree_as_glb_bytes
 from .gltf_import import load_gltf_as_tree
 from .renderer.unity import Unity
@@ -39,7 +38,7 @@ class Scene(Asset):
         name=None,
         translation=None,
         rotation=None,
-        scale=None
+        scale=None,
     ):
         self.engine = None
         if engine == "Unity":
@@ -55,17 +54,24 @@ class Scene(Asset):
 
     @classmethod
     def from_gltf(cls, file_path, **kwargs):
-        """ Load a Scene from a GLTF file. """
+        """Load a Scene from a GLTF file."""
         nodes = load_gltf_as_tree(file_path)
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
             nodes = root.tree_children
         else:
             root = Asset(name="Scene")  # Otherwise we build a main root node
-        return cls(name=root.name, translation=root.translation, rotation=root.rotation, scale=root.scale, children=nodes, **kwargs)
+        return cls(
+            name=root.name,
+            translation=root.translation,
+            rotation=root.rotation,
+            scale=root.scale,
+            children=nodes,
+            **kwargs,
+        )
 
     def render(self):
-        """ Render the Scene using the engine if provided. """
+        """Render the Scene using the engine if provided."""
         if self.engine is not None:
             self.engine.send_gltf(tree_as_glb_bytes(self))
         else:

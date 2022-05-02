@@ -14,8 +14,8 @@
 
 # Lint as: python3
 """Utilities."""
-import math
 import itertools
+import math
 import re
 
 import numpy as np
