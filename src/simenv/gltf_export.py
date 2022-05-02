@@ -272,7 +272,7 @@ def add_mesh_to_model(
         )
 
     # Store face indices
-    np_array = tm_mesh.faces.astype(NP_UINT32)
+    np_array = tm_mesh.faces.reshape((-1, 1)).astype(NP_UINT32)
     primitive.indices = add_numpy_to_gltf(
         np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
     )
@@ -389,7 +389,7 @@ def add_node_to_scene(
 
 
 def tree_as_gltf(root_node: Asset) -> gl.GLTF:
-    """ Return the tree of Assets as GLTF object. """
+    """Return the tree of Assets as GLTF object."""
     buffer_data = bytearray()
     gltf_model = gl.GLTFModel(
         accessors=[],
@@ -431,7 +431,8 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
 
     return gl.GLTF(model=gltf_model, resources=[resource])
 
+
 def tree_as_glb_bytes(root_node: Asset) -> bytes:
-    """ Return the tree of Assets as GLB bytes. """
+    """Return the tree of Assets as GLB bytes."""
     gltf = tree_as_gltf(root_node=root_node)
     return gltf.as_glb_bytes()
