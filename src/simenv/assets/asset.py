@@ -14,39 +14,32 @@
 
 # Lint as: python3
 """ A simenv Asset - Objects in the scene (mesh, primitives, camera, lights)."""
+import itertools
 import math
 import uuid
-from typing import Optional
+from typing import Optional, Sequence, Union
 
 import numpy as np
 
 from .anytree import NodeMixin
-
-
-def quat_from_euler(x, y, z):
-    qx = np.sin(x / 2) * np.cos(y / 2) * np.cos(z / 2) - np.cos(x / 2) * np.sin(y / 2) * np.sin(z / 2)
-    qy = np.cos(x / 2) * np.sin(y / 2) * np.cos(z / 2) + np.sin(x / 2) * np.cos(y / 2) * np.sin(z / 2)
-    qz = np.cos(x / 2) * np.cos(y / 2) * np.sin(z / 2) - np.sin(x / 2) * np.sin(y / 2) * np.cos(z / 2)
-    qw = np.cos(x / 2) * np.cos(y / 2) * np.cos(z / 2) + np.sin(x / 2) * np.sin(y / 2) * np.sin(z / 2)
-    return [qx, qy, qz, qw]
-
-
-def quat_from_degrees(x, y, z):
-    return quat_from_euler(math.radians(x), math.radians(y), math.radians(z))
+from .utils import camelcase_to_snakecase, quat_from_euler
 
 
 class Asset(NodeMixin, object):
     dimensionality = 3  # 2 for bi-dimensional assets and 3 for tri-dimensional assets (default is 3)
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self, name: Optional[str] = None, translation=None, rotation=None, scale=None, parent=None, children=None
     ):
-        self.name = name or self.__class__.__name__
-        self.id = uuid.uuid4()
+        self.id = next(self.__class__.__NEW_ID)
+        if name is None:
+            name = camelcase_to_snakecase(self.__class__.__name__ + f"_{self.id:02d}")
+        self.name = name
 
-        self.parent = parent
+        self.tree_parent = parent
         if children:
-            self.children = children
+            self.tree_children = children
 
         self.translation = translation
         self.rotation = rotation
@@ -100,10 +93,3 @@ class Asset(NodeMixin, object):
         elif self.dimensionality == 2:
             raise NotImplementedError()
         self._scale = tuple(value)
-
-    def __repr__(self):
-        return f"{self.name} ({self.__class__.__name__})"
-
-
-class World3D(Asset):
-    dimensionality = 3

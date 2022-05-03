@@ -1,3 +1,4 @@
+import itertools
 from optparse import Option
 from typing import List, Optional, Union
 
@@ -8,6 +9,7 @@ from .asset import Asset
 
 class Object(Asset):
     dimensionality = 3
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -34,6 +36,8 @@ class Sphere(Object):
     """
     An isosphere or a UV sphere (latitude + longitude).
     """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -106,6 +110,8 @@ class Capsule(Object):
         - other hemisphere is centered along the Z axis at height
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         name: Optional[str] = None,
@@ -133,6 +139,8 @@ class Capsule(Object):
 
 
 class Cylinder(Object):
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         name: Optional[str] = None,
@@ -161,6 +169,8 @@ class Cylinder(Object):
 
 
 class Cube(Object):
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         name: Optional[str] = None,

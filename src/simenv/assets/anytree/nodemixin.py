@@ -1,6 +1,7 @@
 # -*- coding: utf-8 -*-
 
 import warnings
+from typing import Sequence, Union
 
 from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
@@ -8,7 +9,7 @@ from .preorderiter import PreOrderIter
 
 class NodeMixin(object):
 
-    separator = "/"
+    tree_separator = "/"
 
     """
     The :any:`NodeMixin` class extends any Python class to a tree node.
@@ -29,11 +30,11 @@ class NodeMixin(object):
     ...     def __init__(self, name, length, width, parent=None, children=None):
     ...         super(MyClass, self).__init__()
     ...         self.name = name
-    ...         self.length = length
-    ...         self.width = width
-    ...         self.parent = parent
+    ...         self.tree_length = length
+    ...         self.tree_width = width
+    ...         self.tree_parent = parent
     ...         if children:
-    ...             self.children = children
+    ...             self.tree_children = children
 
     Construction via `parent`:
 
@@ -43,7 +44,7 @@ class NodeMixin(object):
 
     >>> for pre, _, node in RenderTree(my0):
     ...     treestr = u"%s%s" % (pre, node.name)
-    ...     print(treestr.ljust(8), node.length, node.width)
+    ...     print(treestr.ljust(8), node.tree_length, node.tree_width)
     my0      0 0
     ├── my1  1 0
     └── my2  0 2
@@ -57,7 +58,7 @@ class NodeMixin(object):
 
     >>> for pre, _, node in RenderTree(my0):
     ...     treestr = u"%s%s" % (pre, node.name)
-    ...     print(treestr.ljust(8), node.length, node.width)
+    ...     print(treestr.ljust(8), node.tree_length, node.tree_width)
     my0      0 0
     ├── my1  1 0
     └── my2  0 2
@@ -71,14 +72,33 @@ class NodeMixin(object):
 
     >>> for pre, _, node in RenderTree(my0):
     ...     treestr = u"%s%s" % (pre, node.name)
-    ...     print(treestr.ljust(8), node.length, node.width)
+    ...     print(treestr.ljust(8), node.tree_length, node.tree_width)
     my0      0 0
     ├── my1  1 0
     └── my2  0 2
     """
 
     @property
-    def parent(self):
+    def name(self):
+        try:
+            return self.__name
+        except AttributeError:
+            self.__name = None
+            return self.__name
+
+    @name.setter
+    def name(self, value):
+        if not isinstance(value, str):
+            raise TypeError("Name should be a string.")
+        if self.tree_parent is not None:
+            if hasattr(self.tree_parent, self.name) and getattr(self.tree_parent, self.name) == self:
+                delattr(self.tree_parent, self.name)
+            if not hasattr(self.tree_parent, value):
+                setattr(self.tree_parent, value, self)
+        self.__name = value
+
+    @property
+    def tree_parent(self):
         """
         Parent Node.
 
@@ -97,7 +117,7 @@ class NodeMixin(object):
 
         **Attach**
 
-        >>> marc.parent = udo
+        >>> marc.tree_parent = udo
         >>> print(RenderTree(udo))
         Node('/Udo')
         └── Node('/Udo/Marc')
@@ -107,10 +127,10 @@ class NodeMixin(object):
 
         To make a node to a root node, just set this attribute to `None`.
 
-        >>> marc.is_root
+        >>> marc.tree_is_root
         False
-        >>> marc.parent = None
-        >>> marc.is_root
+        >>> marc.tree_parent = None
+        >>> marc.tree_is_root
         True
         """
         try:
@@ -118,8 +138,8 @@ class NodeMixin(object):
         except AttributeError:
             return None
 
-    @parent.setter
-    def parent(self, value):
+    @tree_parent.setter
+    def tree_parent(self, value):
         if value is not None and not isinstance(value, NodeMixin):
             msg = "Parent node %r is not of type 'NodeMixin'." % value
             raise TreeError(msg)
@@ -137,7 +157,7 @@ class NodeMixin(object):
             if node is self:
                 msg = "Cannot set parent. %r cannot be parent of itself."
                 raise LoopError(msg % self)
-            if any(child is self for child in node.iter_path_reverse()):
+            if any(child is self for child in node.tree_iter_path_reverse()):
                 msg = "Cannot set parent. %r is parent of %r."
                 raise LoopError(msg % (self, node))
 
@@ -172,7 +192,7 @@ class NodeMixin(object):
             return self.__children
 
     @property
-    def children(self):
+    def tree_children(self):
         """
         All child nodes.
 
@@ -181,7 +201,7 @@ class NodeMixin(object):
         >>> a = Node("a", parent=n)
         >>> b = Node("b", parent=n)
         >>> c = Node("c", parent=n)
-        >>> n.children
+        >>> n.tree_children
         (Node('/n/a'), Node('/n/b'), Node('/n/c'))
 
         Modifying the children attribute modifies the tree.
@@ -190,8 +210,8 @@ class NodeMixin(object):
 
         The children attribute can be updated by setting to an iterable.
 
-        >>> n.children = [a, b]
-        >>> n.children
+        >>> n.tree_children = [a, b]
+        >>> n.tree_children
         (Node('/n/a'), Node('/n/b'))
 
         Node `c` is removed from the tree.
@@ -205,8 +225,8 @@ class NodeMixin(object):
         >>> d = Node("d")
         >>> d
         Node('/d')
-        >>> n.children = [a, b, d]
-        >>> n.children
+        >>> n.tree_children = [a, b, d]
+        >>> n.tree_children
         (Node('/n/a'), Node('/n/b'), Node('/n/d'))
         >>> d
         Node('/n/d')
@@ -215,7 +235,7 @@ class NodeMixin(object):
 
         A node can just be the children once. Duplicates cause a :any:`TreeError`:
 
-        >>> n.children = [a, b, d, a]
+        >>> n.tree_children = [a, b, d, a]
         Traceback (most recent call last):
             ...
         anytree.node.exceptions.TreeError: Cannot add node Node('/n/a') multiple times as child.
@@ -236,52 +256,111 @@ class NodeMixin(object):
                 msg = "Cannot add node %r multiple times as child." % child
                 raise TreeError(msg)
 
-    @children.setter
-    def children(self, children):
+    @tree_children.setter
+    def tree_children(self, children):
         # convert iterable to tuple
         children = tuple(children)
         NodeMixin.__check_children(children)
         # ATOMIC start
-        old_children = self.children
-        del self.children
+        old_children = self.tree_children
+        del self.tree_children
         try:
             self._pre_attach_children(children)
             for child in children:
-                child.parent = self
+                child.tree_parent = self
             self._post_attach_children(children)
-            assert len(self.children) == len(children)
+            assert len(self.tree_children) == len(children)
         except Exception:
-            self.children = old_children
+            self.tree_children = old_children
             raise
         # ATOMIC end
 
-    @children.deleter
-    def children(self):
-        children = self.children
+    @tree_children.deleter
+    def tree_children(self):
+        children = self.tree_children
         self._pre_detach_children(children)
-        for child in self.children:
-            child.parent = None
-        assert len(self.children) == 0
+        for child in self.tree_children:
+            child.tree_parent = None
+        assert len(self.tree_children) == 0
         self._post_detach_children(children)
 
     def _pre_detach_children(self, children):
         """Method call before detaching `children`."""
         pass
 
-    def _post_detach_children(self, children):
-        """Method call after detaching `children`."""
-        pass
-
     def _pre_attach_children(self, children):
         """Method call before attaching `children`."""
         pass
 
+    def _post_detach_children(self, children):
+        """After detaching `children`. We remove the attributes associated to the children if needed."""
+        for child in children:
+            if hasattr(self, child.name) and getattr(self, child.name) == child:
+                delattr(self, child.name)
+
     def _post_attach_children(self, children):
-        """Method call after attaching `children`."""
+        """After attaching `children`. We add name attributes associated to the children if there is no attribute of this name."""
+        for child in children:
+            if not hasattr(self, child.name):
+                setattr(self, child.name, child)
+
+    def _pre_detach(self, parent):
+        """Method call before detaching from `parent`."""
         pass
 
+    def _pre_attach(self, parent):
+        """Method call before attaching to `parent`."""
+        pass
+
+    def _post_detach(self, parent):
+        """Before attaching to `parent`. We remove the attributes associated to the previous parent if needed."""
+        if hasattr(self.tree_parent, self.name) and getattr(self.tree_parent, self.name) == self:
+            delattr(self.tree_parent, self.name)
+
+    def _post_attach(self, parent):
+        """After attaching to `parent`.  We add name attribute associated to the new children if there is no attribute of this name."""
+        if not hasattr(parent, self.name):
+            setattr(parent, self.name, self)
+
+    def remove(self, asset: Union["NodeMixin", Sequence["NodeMixin"]]):
+        if not self.tree_children:
+            return self
+        if isinstance(assets, list):
+            assets = tuple(assets)
+        if not isinstance(assets, tuple):
+            assets = (assets,)
+        for asset in assets:
+            if asset in self.tree_children:
+                children = self.tree_children
+                children.remove(asset)
+                self.tree_children = children
+        return self
+
+    def add(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+        if isinstance(assets, list):
+            assets = tuple(assets)
+        if not isinstance(assets, tuple):
+            assets = (assets,)
+        self.tree_children += assets
+        return self
+
+    def __iadd__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+        return self.add(assets)
+
+    def __add__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+        return self.add(assets)
+
+    def __isub__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+        return self.remove(assets)
+
+    def __sub__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+        return self.remove(assets)
+
+    def __repr__(self):
+        return f"{self.name} ({self.__class__.__name__})"
+
     @property
-    def path(self):
+    def tree_path(self):
         """
         Path of this `Node`.
 
@@ -289,16 +368,16 @@ class NodeMixin(object):
         >>> udo = Node("Udo")
         >>> marc = Node("Marc", parent=udo)
         >>> lian = Node("Lian", parent=marc)
-        >>> udo.path
+        >>> udo.tree_path
         (Node('/Udo'),)
-        >>> marc.path
+        >>> marc.tree_path
         (Node('/Udo'), Node('/Udo/Marc'))
-        >>> lian.path
+        >>> lian.tree_path
         (Node('/Udo'), Node('/Udo/Marc'), Node('/Udo/Marc/Lian'))
         """
         return self._path
 
-    def iter_path_reverse(self):
+    def tree_iter_path_reverse(self):
         """
         Iterate up the tree from the current node.
 
@@ -306,14 +385,14 @@ class NodeMixin(object):
         >>> udo = Node("Udo")
         >>> marc = Node("Marc", parent=udo)
         >>> lian = Node("Lian", parent=marc)
-        >>> for node in udo.iter_path_reverse():
+        >>> for node in udo.tree_iter_path_reverse():
         ...     print(node)
         Node('/Udo')
-        >>> for node in marc.iter_path_reverse():
+        >>> for node in marc.tree_iter_path_reverse():
         ...     print(node)
         Node('/Udo/Marc')
         Node('/Udo')
-        >>> for node in lian.iter_path_reverse():
+        >>> for node in lian.tree_iter_path_reverse():
         ...     print(node)
         Node('/Udo/Marc/Lian')
         Node('/Udo/Marc')
@@ -322,14 +401,14 @@ class NodeMixin(object):
         node = self
         while node is not None:
             yield node
-            node = node.parent
+            node = node.tree_parent
 
     @property
     def _path(self):
-        return tuple(reversed(list(self.iter_path_reverse())))
+        return tuple(reversed(list(self.tree_iter_path_reverse())))
 
     @property
-    def ancestors(self):
+    def tree_ancestors(self):
         """
         All parent nodes and their parent nodes.
 
@@ -337,19 +416,19 @@ class NodeMixin(object):
         >>> udo = Node("Udo")
         >>> marc = Node("Marc", parent=udo)
         >>> lian = Node("Lian", parent=marc)
-        >>> udo.ancestors
+        >>> udo.tree_ancestors
         ()
-        >>> marc.ancestors
+        >>> marc.tree_ancestors
         (Node('/Udo'),)
-        >>> lian.ancestors
+        >>> lian.tree_ancestors
         (Node('/Udo'), Node('/Udo/Marc'))
         """
-        if self.parent is None:
+        if self.tree_parent is None:
             return tuple()
-        return self.parent.path
+        return self.tree_parent.tree_path
 
     @property
-    def descendants(self):
+    def tree_descendants(self):
         """
         All child nodes and all their child nodes.
 
@@ -359,17 +438,17 @@ class NodeMixin(object):
         >>> lian = Node("Lian", parent=marc)
         >>> loui = Node("Loui", parent=marc)
         >>> soe = Node("Soe", parent=lian)
-        >>> udo.descendants
+        >>> udo.tree_descendants
         (Node('/Udo/Marc'), Node('/Udo/Marc/Lian'), Node('/Udo/Marc/Lian/Soe'), Node('/Udo/Marc/Loui'))
-        >>> marc.descendants
+        >>> marc.tree_descendants
         (Node('/Udo/Marc/Lian'), Node('/Udo/Marc/Lian/Soe'), Node('/Udo/Marc/Loui'))
-        >>> lian.descendants
+        >>> lian.tree_descendants
         (Node('/Udo/Marc/Lian/Soe'),)
         """
         return tuple(PreOrderIter(self))[1:]
 
     @property
-    def root(self):
+    def tree_root(self):
         """
         Tree Root Node.
 
@@ -377,20 +456,20 @@ class NodeMixin(object):
         >>> udo = Node("Udo")
         >>> marc = Node("Marc", parent=udo)
         >>> lian = Node("Lian", parent=marc)
-        >>> udo.root
+        >>> udo.tree_root
         Node('/Udo')
-        >>> marc.root
+        >>> marc.tree_root
         Node('/Udo')
-        >>> lian.root
+        >>> lian.tree_root
         Node('/Udo')
         """
         node = self
-        while node.parent is not None:
-            node = node.parent
+        while node.tree_parent is not None:
+            node = node.tree_parent
         return node
 
     @property
-    def siblings(self):
+    def tree_siblings(self):
         """
         Tuple of nodes with the same parent.
 
@@ -400,23 +479,23 @@ class NodeMixin(object):
         >>> lian = Node("Lian", parent=marc)
         >>> loui = Node("Loui", parent=marc)
         >>> lazy = Node("Lazy", parent=marc)
-        >>> udo.siblings
+        >>> udo.tree_siblings
         ()
-        >>> marc.siblings
+        >>> marc.tree_siblings
         ()
-        >>> lian.siblings
+        >>> lian.tree_siblings
         (Node('/Udo/Marc/Loui'), Node('/Udo/Marc/Lazy'))
-        >>> loui.siblings
+        >>> loui.tree_siblings
         (Node('/Udo/Marc/Lian'), Node('/Udo/Marc/Lazy'))
         """
-        parent = self.parent
+        parent = self.tree_parent
         if parent is None:
             return tuple()
         else:
-            return tuple(node for node in parent.children if node is not self)
+            return tuple(node for node in parent.tree_children if node is not self)
 
     @property
-    def leaves(self):
+    def tree_leaves(self):
         """
         Tuple of all leaf nodes.
 
@@ -426,15 +505,15 @@ class NodeMixin(object):
         >>> lian = Node("Lian", parent=marc)
         >>> loui = Node("Loui", parent=marc)
         >>> lazy = Node("Lazy", parent=marc)
-        >>> udo.leaves
+        >>> udo.tree_leaves
         (Node('/Udo/Marc/Lian'), Node('/Udo/Marc/Loui'), Node('/Udo/Marc/Lazy'))
-        >>> marc.leaves
+        >>> marc.tree_leaves
         (Node('/Udo/Marc/Lian'), Node('/Udo/Marc/Loui'), Node('/Udo/Marc/Lazy'))
         """
-        return tuple(PreOrderIter(self, filter_=lambda node: node.is_leaf))
+        return tuple(PreOrderIter(self, filter_=lambda node: node.tree_is_leaf))
 
     @property
-    def is_leaf(self):
+    def tree_is_leaf(self):
         """
         `Node` has no children (External Node).
 
@@ -442,17 +521,17 @@ class NodeMixin(object):
         >>> udo = Node("Udo")
         >>> marc = Node("Marc", parent=udo)
         >>> lian = Node("Lian", parent=marc)
-        >>> udo.is_leaf
+        >>> udo.tree_is_leaf
         False
-        >>> marc.is_leaf
+        >>> marc.tree_is_leaf
         False
-        >>> lian.is_leaf
+        >>> lian.tree_is_leaf
         True
         """
         return len(self.__children_or_empty) == 0
 
     @property
-    def is_root(self):
+    def tree_is_root(self):
         """
         `Node` is tree root.
 
@@ -460,14 +539,14 @@ class NodeMixin(object):
         >>> udo = Node("Udo")
         >>> marc = Node("Marc", parent=udo)
         >>> lian = Node("Lian", parent=marc)
-        >>> udo.is_root
+        >>> udo.tree_is_root
         True
-        >>> marc.is_root
+        >>> marc.tree_is_root
         False
-        >>> lian.is_root
+        >>> lian.tree_is_root
         False
         """
-        return self.parent is None
+        return self.tree_parent is None
 
     @property
     def tree_height(self):
@@ -500,30 +579,14 @@ class NodeMixin(object):
         >>> udo = Node("Udo")
         >>> marc = Node("Marc", parent=udo)
         >>> lian = Node("Lian", parent=marc)
-        >>> udo.depth
+        >>> udo.tree_depth
         0
-        >>> marc.depth
+        >>> marc.tree_depth
         1
-        >>> lian.depth
+        >>> lian.tree_depth
         2
         """
         # count without storing the entire path
-        for i, _ in enumerate(self.iter_path_reverse()):
+        for i, _ in enumerate(self.tree_iter_path_reverse()):
             continue
         return i
-
-    def _pre_detach(self, parent):
-        """Method call before detaching from `parent`."""
-        pass
-
-    def _post_detach(self, parent):
-        """Method call after detaching from `parent`."""
-        pass
-
-    def _pre_attach(self, parent):
-        """Method call before attaching to `parent`."""
-        pass
-
-    def _post_attach(self, parent):
-        """Method call after attaching to `parent`."""
-        pass

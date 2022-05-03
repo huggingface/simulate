@@ -171,8 +171,6 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
         "parent": parent,
     }
 
-    scene_nodes_list = []
-
     if gltf_node.camera is not None:
         # Let's add a Camera
         gltf_camera = gltf_model.cameras[gltf_node.camera]
@@ -188,7 +186,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
             **common_kwargs,
         )
 
-    if gltf_node.extensions is not None and gltf_node.extensions.KHR_lights_punctual is not None:
+    elif gltf_node.extensions is not None and gltf_node.extensions.KHR_lights_punctual is not None:
         # Let's add a light
         gltf_light_id = gltf_node.extensions.KHR_lights_punctual.light
         gltf_light = gltf_model.extensions.KHR_lights_punctual.lights[gltf_light_id]
@@ -209,7 +207,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                 f"Unrecognized GLTF file light type: {gltf_light.type}, please check that the file is conform with the KHR_lights_punctual specifications"
             )
 
-    if gltf_node.mesh is not None:
+    elif gltf_node.mesh is not None:
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
         primitives = gltf_mesh.primitives
@@ -275,37 +273,33 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                 raise NotImplementedError()
 
             scene_node = Object(**common_kwargs, mesh=trimesh_primitive)  # we create an object and link it
-            scene_nodes_list.append(scene_node)
 
     else:
         # We just have an empty node with a transform
         scene_node = Asset(**common_kwargs)
 
-    if not scene_nodes_list:
-        scene_nodes_list = [
-            scene_node
-        ]  # for the meshes primitives we've built the list already, for the other we build it here
-
     # Recursively build the node tree
     if gltf_node.children:
         for child_id in gltf_node.children:
-            scene_child_nodes = build_node_tree(gltf_scene=gltf_scene, gltf_node_id=child_id, parent=scene_node)
-            scene_nodes_list += scene_child_nodes
+            _ = build_node_tree(gltf_scene=gltf_scene, gltf_node_id=child_id, parent=scene_node)
 
-    return scene_nodes_list
+    return scene_node
 
 
-def load_gltf_in_assets(file_path) -> List[Asset]:
-    """Loading function to create a Scene from a GLTF file"""
+def load_gltf_as_tree(file_path) -> List[Asset]:
+    """Loading function to create a tree of asset nodes from a GLTF file.
+    Return a list of the main nodes in the GLTF files (often only one main node).
+    The tree can be walked from the main nodes.
+    """
     gltf_scene = GLTF.load(file_path)
     gltf_model = gltf_scene.model
 
-    main_scene = gltf_model.scenes[gltf_model.scene if gltf_model.scene else 0]
-    main_nodes = main_scene.nodes
+    gltf_main_scene = gltf_model.scenes[gltf_model.scene if gltf_model.scene else 0]
+    gltf_main_nodes = gltf_main_scene.nodes
 
-    assets = []
+    main_nodes = []
 
-    for main_node_id in main_nodes:
-        assets += build_node_tree(gltf_scene=gltf_scene, gltf_node_id=main_node_id, parent=None)
+    for gltf_node_id in gltf_main_nodes:
+        main_nodes.append(build_node_tree(gltf_scene=gltf_scene, gltf_node_id=gltf_node_id, parent=None))
 
-    return assets
+    return main_nodes
