@@ -58,11 +58,11 @@ public static class Exporter
             scenes = new List<GLTFScene>()
         };
 
-        GLTFScene scene = new GLTFScene() {
-            nodes = new List<int>()
-        };
+        GLTFScene scene = new GLTFScene();
+        scene.nodes = new List<int>();
         for(int i = 0; i < nodes.Count; i++)
-            scene.nodes.Add(i);
+            if(nodes[i].transform.parent == null)
+                scene.nodes.Add(i);
         gltfObject.scenes.Add(scene);
 
         byte[] bufferData = new byte[0];
@@ -80,6 +80,24 @@ public static class Exporter
                 primitive.attributes = attributes;
             }
         }
+
+
+        List<GLTFMaterial.ExportResult> materials = GLTFMaterial.Export(meshes);
+        if(materials.Count > 0) {
+            gltfObject.materials = new List<GLTFMaterial>();
+            for(int i = 0; i < materials.Count; i++) {
+                GLTFMaterial.ExportResult result = materials[i];
+                Material material = result.material;
+                if(material.mainTexture != null)
+                    throw new NotImplementedException();
+                GLTFMaterial.PbrMetallicRoughness pbrMetallicRoughness = new GLTFMaterial.PbrMetallicRoughness();
+                pbrMetallicRoughness.baseColorFactor = material.color;
+                // TODO: material properties
+                result.pbrMetallicRoughness = pbrMetallicRoughness;
+            }
+        }
+        gltfObject.materials = materials.Cast<GLTFMaterial>().ToList();
+
         GLTFBuffer buffer = new GLTFBuffer();
         buffer.byteLength = bufferData.Length;
         string bufferPath = filepath.Replace(".gltf", ".bin");

@@ -328,6 +328,7 @@ public class GLTFMesh
 
     public class ExportResult : GLTFMesh
     {
+        [JsonIgnore] public GLTFNode.ExportResult node;
         [JsonIgnore] public Mesh mesh;
     }
 
@@ -338,7 +339,9 @@ public class GLTFMesh
                 Mesh mesh = nodes[i].filter.sharedMesh;
                 if(mesh) {
                     nodes[i].mesh = results.Count;
-                    results.Add(Export(mesh));
+                    ExportResult result = Export(mesh);
+                    result.node = nodes[i];
+                    results.Add(result);
                 }
             }
         }
