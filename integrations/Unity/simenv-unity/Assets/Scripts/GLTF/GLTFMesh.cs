@@ -203,8 +203,6 @@ public class GLTFMesh
                             break;
                         case RenderingMode.TRIANGLES:
                             mesh.SetTriangles(submeshTris[i].ToArray(), i);
-                            for(int j = 0; j < submeshTris[i].Count; j++)
-                                Debug.Log(submeshTris[i][j]);
                             break;
                         default:
                             Debug.LogWarning("GLTF rendering mode " + submeshTrisMode[i] + " not supported.");
