@@ -8,6 +8,7 @@ public enum GLType { UNSET = -1, BYTE = 5120, UNSIGNED_BYTE = 5121, SHORT = 5122
 public enum Format { AUTO, GLTF, GLB }
 public enum CameraType { perspective, orthographic }
 public enum LightType { directional, point, spot }
+public enum ColliderType { BOX, SPHERE, CAPSULE, CYLINDER, MESH }
 public enum InterpolationMode { ImportFromFile = -1, LINEAR = 0, STEP = 1, CUBICSPLINE = 2 }
 
 public static class EnumExtensions

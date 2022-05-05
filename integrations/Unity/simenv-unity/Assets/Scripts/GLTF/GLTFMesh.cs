@@ -323,4 +323,38 @@ public class GLTFMesh
             IsCompleted = true;
         }
     }
+
+    public class ExportResult : GLTFMesh
+    {
+        [JsonIgnore] public GLTFNode.ExportResult node;
+        [JsonIgnore] public Mesh mesh;
+    }
+
+    public static List<ExportResult> Export(List<GLTFNode.ExportResult> nodes) {
+        List<ExportResult> results = new List<ExportResult>();
+        for(int i = 0; i < nodes.Count; i++) {
+            if(nodes[i].filter) {
+                Mesh mesh = nodes[i].filter.sharedMesh;
+                if(mesh) {
+                    nodes[i].mesh = results.Count;
+                    ExportResult result = Export(mesh);
+                    result.node = nodes[i];
+                    results.Add(result);
+                }
+            }
+        }
+        return results;
+    }
+
+    public static ExportResult Export(Mesh mesh) {
+        ExportResult result = new ExportResult();
+        result.name = mesh.name;
+        result.mesh = mesh;
+        result.primitives = new List<GLTFPrimitive>();
+        for(int i = 0; i < mesh.subMeshCount; i++) {
+            GLTFPrimitive primitive = new GLTFPrimitive();
+            result.primitives.Add(primitive);
+        }
+        return result;
+    }
 }

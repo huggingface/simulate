@@ -14,26 +14,28 @@
 
 # Lint as: python3
 """ A simenv Camera."""
-
+import itertools
 from typing import Optional
+from math import radians
 
 from .asset import Asset
 
 
 class Camera(Asset):
     dimensionality = 3
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
         name="Camera",
-        translation=[0, 2, -5],
-        rotation=[0, 0, 0, 1],
+        translation=[0, 0, -10],
+        rotation=[0, 1, 0, 0],
         width=256,
         height=256,
         aspect_ratio: Optional[float] = None,
-        yfov: Optional[float] = None,
+        yfov: Optional[float] = radians(60),
+        znear: Optional[float] = 0.3,
         zfar: Optional[float] = None,
-        znear: float = None,
         camera_type: Optional[str] = "perspective",
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,

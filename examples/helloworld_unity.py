@@ -1,7 +1,7 @@
 import simenv as sm
 
 
-scene = sm.Scene(renderer='Unity')
+scene = sm.Scene(engine='Unity')
 
 sphere = sm.Sphere('sphere')
 light = sm.DirectionalLight('light')
@@ -15,4 +15,4 @@ scene += camera
 
 scene.render()
 
-scene.renderer.close()  # TODO have this in the delete of the Scene class instead of manually
+scene.engine.close()  # TODO have this in the delete of the Scene class instead of manually

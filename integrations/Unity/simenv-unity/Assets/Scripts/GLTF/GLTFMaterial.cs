@@ -5,6 +5,7 @@ using System.Collections;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using System.Linq;
 
 public class GLTFMaterial
 {
@@ -26,7 +27,7 @@ public class GLTFMaterial
 #endif
 
     public string name;
-    public PbrMetalRoughness pbrMetallicRoughness;
+    public PbrMetallicRoughness pbrMetallicRoughness;
     public TextureInfo normalTexture;
     public TextureInfo occlusionTexture;
     public TextureInfo emissiveTexture;
@@ -35,6 +36,11 @@ public class GLTFMaterial
     public float alphaCutoff = .5f;
     public bool doubleSided = false;
     public Extensions extensions;
+
+    public bool ShouldSerializeemissiveFactor() { return emissiveFactor != Color.black; }
+    public bool ShouldSerializealphaMode() { return alphaMode != AlphaMode.OPAQUE; }
+    public bool ShouldSerializealphaCutoff() { return alphaCutoff != .5f; }
+    public bool ShouldSerializedoubleSided() { return doubleSided; }
 
     public class ImportResult
     {
@@ -112,13 +118,17 @@ public class GLTFMaterial
             yield return null;
     }
 
-    public class PbrMetalRoughness
+    public class PbrMetallicRoughness
     {
         [JsonConverter(typeof(ColorRGBAConverter))] public Color baseColorFactor = Color.white;
         public TextureInfo baseColorTexture;
         public float metallicFactor;
         public float roughnessFactor;
         public TextureInfo metallicRoughnessTexture;
+
+        public bool ShouldSerializebaseColorFactor() { return baseColorFactor != Color.white; }
+        public bool ShouldSerializemetallicFactor() { return metallicFactor != 0f; }
+        public bool ShouldSerializeroughnessFactor() { return roughnessFactor != 0f; }
 
         public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, ShaderSettings shaderSettings, Action<Material> onFinish) {
             Shader sh = null;
@@ -283,5 +293,31 @@ public class GLTFMaterial
             }
             IsCompleted = true;
         }
+    }
+
+    public class ExportResult : GLTFMaterial
+    {
+        [JsonIgnore] public Material material;
+        [JsonIgnore] public int index;
+    }
+
+    public static List<ExportResult> Export(List<GLTFMesh.ExportResult> meshes) {
+        Dictionary<Material, ExportResult> results = new Dictionary<Material, ExportResult>();
+        for(int i = 0; i < meshes.Count; i++) {
+            if(meshes[i].node.renderer != null && meshes[i].node.renderer.sharedMaterial != null) {
+                Material material = meshes[i].node.renderer.sharedMaterial;
+                ExportResult result;
+                if(!results.TryGetValue(material, out result)) {
+                    result = new ExportResult() {
+                        material = material,
+                        index = results.Count
+                    };
+                    results.Add(material, result);
+                }
+                for(int j = 0; j < meshes[i].primitives.Count; j++)
+                    meshes[i].primitives[j].material = result.index;
+            }
+        }
+        return results.Values.OrderBy(x => x.index).ToList();
     }
 }

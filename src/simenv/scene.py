@@ -14,13 +14,12 @@
 
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
-from typing import Optional, Sequence, Union
+from typing import Optional
 
-from anytree import RenderTree
-
-from .assets import Asset, World3D
-from .gltf_export import export_assets_to_gltf
-from .gltf_import import load_gltf_in_assets
+from .assets import Asset
+from .assets.anytree import RenderTree
+from .gltf_export import tree_as_glb_bytes
+from .gltf_import import load_gltf_as_tree
 from .renderer.unity import Unity
 
 
@@ -28,17 +27,19 @@ class UnsetRendererError(Exception):
     pass
 
 
-class Scene:
+class Scene(Asset):
     def __init__(
         self,
         engine: Optional[str] = None,
-        dimensionality=3,
         start_frame=0,
         end_frame=500,
         frame_rate=24,
-        assets=None,
+        children=None,
+        name=None,
+        translation=None,
+        rotation=None,
+        scale=None,
     ):
-
         self.engine = None
         if engine == "Unity":
             self.engine = Unity(self, start_frame=start_frame, end_frame=end_frame, frame_rate=frame_rate)
@@ -49,79 +50,32 @@ class Scene:
         else:
             raise ValueError("engine should be selected ()")
 
-        self.dimensionality = dimensionality
-
-        self.root = None
-        self.assets = set()
-
-        if assets is not None:
-            if isinstance(assets, Asset):
-                self.root = assets
-                self.add(assets)
-            elif isinstance(assets, list) and len(assets) and isinstance(assets[0], Asset):
-                self.root = assets[0]
-                self.add(assets)
-            else:
-                raise ValueError("Provided assets should be an Asset or a list of Assets")
-        else:
-            self.root = World3D("Scene")
-            self.assets = set([self.root])
+        super().__init__(name=name, translation=translation, rotation=rotation, scale=scale, children=children)
 
     @classmethod
     def from_gltf(cls, file_path, **kwargs):
-        assets = load_gltf_in_assets(file_path)
-        return cls(assets=assets, **kwargs)
-
-    def add(self, assets: Union[Asset, Sequence[Asset]], exists_not_ok=False):
-        """Add an Asset or a list of Assets to the Scene together with all its descendants.
-        If the parent of the Asset is not set (None), the Asset will be set to be a child of the Scene root node
-        """
-        if isinstance(assets, Asset):
-            assets = [assets]
-
-        for asset in assets:
-            if asset.parent is None:
-                asset.parent = self.root if asset != self.root else None
-            elif asset.parent not in self.assets:
-                raise ValueError("The parent of the asset to add must be either None or an asset in the Scene")
-
-            if exists_not_ok and asset in self.assets:
-                raise ValueError("Asset is already in the Scene and exists_not_ok is True")
-
-            self.assets.add(asset)
-            for child in asset.descendants:
-                # Add all the descendants
-                self.assets.add(child)
-
-    def remove(self, assets: Union[Asset, Sequence[Asset]], not_exist_ok=False):
-        """Remove an Asset or a list of Assets to the Scene together with all its descendants."""
-        if isinstance(assets, Asset):
-            assets = [assets]
-
-        for asset in assets:
-            if not not_exist_ok and asset not in self.assets:
-                raise ValueError("Asset is not in the scene")
-
-            asset.parent = None
-            self.assets.discard(asset)
-            for child in asset.descendants:
-                # Remove all the descendants
-                self.assets.discard(child)
+        """Load a Scene from a GLTF file."""
+        nodes = load_gltf_as_tree(file_path)
+        if len(nodes) == 1:
+            root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
+            nodes = root.tree_children
+        else:
+            root = Asset(name="Scene")  # Otherwise we build a main root node
+        return cls(
+            name=root.name,
+            translation=root.translation,
+            rotation=root.rotation,
+            scale=root.scale,
+            children=nodes,
+            **kwargs,
+        )
 
     def render(self):
-        gltf_file_path = export_assets_to_gltf(self.root)
+        """Render the Scene using the engine if provided."""
         if self.engine is not None:
-            self.engine.send_gltf(gltf_file_path)
+            self.engine.send_gltf(tree_as_glb_bytes(self))
         else:
             raise UnsetRendererError()
 
-    def __iadd__(self, asset: Asset):
-        self.add(asset)
-        return self
-
-    def __isub__(self, asset: Asset):
-        self.remove(asset)
-        return self
-
     def __repr__(self):
-        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}, root={self.root}')\n{RenderTree(self.root)}"
+        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}')\n{RenderTree(self).print_tree()}"

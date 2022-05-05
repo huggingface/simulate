@@ -47,8 +47,9 @@ class Unity:
 
     def run_command(self, command):
         message = json.dumps(command)
-        print("Sending command: " + message)
-        self.send_bytes(message.encode())
+        print(f"Sending command: {message}")
+        message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
+        self.send_bytes(message_bytes)
 
     def close(self):
         self.client.close()

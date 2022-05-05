@@ -21,7 +21,6 @@ from typing import ByteString, List, Optional, Set, Tuple
 import numpy as np
 import PIL.Image
 import trimesh
-from trimesh.exchange.gltf import export_gltf
 
 # from trimesh.path.entities import Line  # Line need scipy
 from trimesh.visual.material import PBRMaterial
@@ -273,7 +272,7 @@ def add_mesh_to_model(
         )
 
     # Store face indices
-    np_array = tm_mesh.faces.astype(NP_UINT32)
+    np_array = tm_mesh.faces.reshape((-1, 1)).astype(NP_UINT32)
     primitive.indices = add_numpy_to_gltf(
         np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
     )
@@ -377,7 +376,7 @@ def add_node_to_scene(
             gltf_model.nodes[gl_parent_node_id].children.append(gl_node_id)
 
     # Add the child nodes to the scene
-    for child_node in node.children:
+    for child_node in node.tree_children:
         add_node_to_scene(
             node=child_node,
             gl_parent_node_id=gl_node_id,
@@ -389,7 +388,8 @@ def add_node_to_scene(
     return
 
 
-def export_assets_to_gltf(root_node: Asset, filename: Optional[str] = "scene.gltf"):
+def tree_as_gltf(root_node: Asset) -> gl.GLTF:
+    """Return the tree of Assets as GLTF object."""
     buffer_data = bytearray()
     gltf_model = gl.GLTFModel(
         accessors=[],
@@ -429,8 +429,10 @@ def export_assets_to_gltf(root_node: Asset, filename: Optional[str] = "scene.glt
         if len(getattr(gltf_model, attribute)) == 0:
             setattr(gltf_model, attribute, None)
 
-    gltf = gl.GLTF(model=gltf_model, resources=[resource])
+    return gl.GLTF(model=gltf_model, resources=[resource])
 
-    gltf.export("scene.gltf")
 
-    return
+def tree_as_glb_bytes(root_node: Asset) -> bytes:
+    """Return the tree of Assets as GLB bytes."""
+    gltf = tree_as_gltf(root_node=root_node)
+    return gltf.as_glb_bytes()

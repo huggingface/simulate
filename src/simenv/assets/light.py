@@ -1,3 +1,4 @@
+import itertools
 from typing import List, Optional
 
 from .asset import Asset
@@ -5,6 +6,7 @@ from .asset import Asset
 
 class Light(Asset):
     dimensionality = 3
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -25,12 +27,15 @@ class Light(Asset):
 
 
 class SpotLight(Light):
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
     pass
 
 
 class DirectionalLight(Light):
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
     pass
 
 
 class PointLight(Light):
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
     pass

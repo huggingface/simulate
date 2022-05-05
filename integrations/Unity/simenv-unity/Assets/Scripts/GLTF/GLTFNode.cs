@@ -20,16 +20,18 @@ public class GLTFNode
     public int? weights;
     public Extensions extensions;
 
-    public bool ShouldSerializeTranslation => translation != Vector3.zero;
-    public bool ShouldSerializeRotation => rotation != Quaternion.identity;
-    public bool ShouldSerializeScale => scale != Vector3.one;
+    public bool ShouldSerializematrix() { return matrix != Matrix4x4.identity; }
+    public bool ShouldSerializetranslation() { return translation != Vector3.zero; }
+    public bool ShouldSerializerotation() { return rotation != Quaternion.identity; }
+    public bool ShouldSerializescale() { return scale != Vector3.one; }
 
     public class Extensions
     {
-        public LightInfo KHR_lights_punctual;
+        public KHR_light KHR_lights_punctual;
+        public HF_colliders HF_collision_shapes;
     }
 
-    public class LightInfo
+    public class KHR_light
     {
         public int light;
     }
@@ -143,30 +145,35 @@ public class GLTFNode
                             break;
                     }
                 }
-                if(nodes[i].extensions != null && nodes[i].extensions.KHR_lights_punctual != null) {
-                    int lightValue = nodes[i].extensions.KHR_lights_punctual.light;
-                    if(extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {
-                        Debug.LogWarning("Error importing light");
-                    } else {
-                        KHR_lights_punctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
-                        Light light = result[i].transform.gameObject.AddComponent<Light>();
-                        result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
-                        if(!string.IsNullOrEmpty(lightData.name))
-                            light.transform.gameObject.name = lightData.name;
-                        light.color = lightData.color;
-                        light.intensity = lightData.intensity;
-                        light.range = lightData.range;
-                        switch(lightData.type) {
-                            case LightType.directional:
-                                light.type = UnityEngine.LightType.Directional;
-                                break;
-                            case LightType.point:
-                                light.type = UnityEngine.LightType.Point;
-                                break;
-                            case LightType.spot:
-                                light.type = UnityEngine.LightType.Spot;
-                                break;
+                if(nodes[i].extensions != null) {
+                    if(nodes[i].extensions.KHR_lights_punctual != null) {
+                        int lightValue = nodes[i].extensions.KHR_lights_punctual.light;
+                        if(extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {
+                            Debug.LogWarning("Error importing light");
+                        } else {
+                            KHR_lights_punctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
+                            Light light = result[i].transform.gameObject.AddComponent<Light>();
+                            result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
+                            if(!string.IsNullOrEmpty(lightData.name))
+                                light.transform.gameObject.name = lightData.name;
+                            light.color = lightData.color;
+                            light.intensity = lightData.intensity;
+                            light.range = lightData.range;
+                            switch(lightData.type) {
+                                case LightType.directional:
+                                    light.type = UnityEngine.LightType.Directional;
+                                    break;
+                                case LightType.point:
+                                    light.type = UnityEngine.LightType.Point;
+                                    break;
+                                case LightType.spot:
+                                    light.type = UnityEngine.LightType.Spot;
+                                    break;
+                            }
                         }
+                    }
+                    if(nodes[i].extensions.HF_collision_shapes != null) {
+                        throw new NotImplementedException();
                     }
                 }
             }
@@ -176,6 +183,7 @@ public class GLTFNode
 
     public class ExportResult : GLTFNode
     {
+        [JsonIgnore] public Transform transform;
         [JsonIgnore] public MeshRenderer renderer;
         [JsonIgnore] public MeshFilter filter;
         [JsonIgnore] public SkinnedMeshRenderer skinnedMeshRenderer;
@@ -189,6 +197,7 @@ public class GLTFNode
 
     static void CreateNodeListRecursive(Transform transform, List<ExportResult> nodes) {
         ExportResult node = new ExportResult();
+        node.transform = transform;
         node.name = transform.name;
         node.translation = transform.localPosition;
         node.rotation = transform.localRotation;
@@ -197,10 +206,10 @@ public class GLTFNode
         node.filter = transform.gameObject.GetComponent<MeshFilter>();
         node.skinnedMeshRenderer = transform.gameObject.GetComponent<SkinnedMeshRenderer>();
         nodes.Add(node);
-        if (transform.childCount > 0) {
-            if (transform.childCount > 0) {
+        if(transform.childCount > 0) {
+            if(transform.childCount > 0) {
                 node.children = new int[transform.childCount];
-                for (int i = 0; i < node.children.Length; i++) {
+                for(int i = 0; i < node.children.Length; i++) {
                     Transform child = transform.GetChild(i);
                     node.children[i] = nodes.Count;
                     CreateNodeListRecursive(child, nodes);
@@ -214,11 +223,11 @@ public static class GLTFNodeExtensions
 {
     public static GameObject GetRoot(this GLTFNode.ImportResult[] nodes) {
         GLTFNode.ImportResult[] roots = nodes.Where(x => x.IsRoot).ToArray();
-        if (roots.Length == 1) {
+        if(roots.Length == 1) {
             return roots[0].transform.gameObject;
         } else {
             GameObject root = new GameObject("Root");
-            for (int i = 0; i < roots.Length; i++)
+            for(int i = 0; i < roots.Length; i++)
                 roots[i].transform.parent = root.transform;
             return root;
         }
