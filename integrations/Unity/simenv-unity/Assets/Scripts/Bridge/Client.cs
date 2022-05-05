@@ -52,24 +52,25 @@ public class Client : MonoBehaviour {
             int chunk_size = 1024;
             byte[] buffer = new byte[chunk_size];
             while (true) {
-                using (NetworkStream stream = client.GetStream()) {
-                    byte[] lengthBuffer = new byte[4];
-                    stream.Read(lengthBuffer, 0, 4);
+                NetworkStream stream = client.GetStream();
+                if(!stream.DataAvailable) continue;
+                
+                byte[] lengthBuffer = new byte[4];
+                stream.Read(lengthBuffer, 0, 4);
 
-                    int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
-                    byte[] data = new byte[messageLength];
-                    int dataReceived = 0;
+                int messageLength = BitConverter.ToInt32(lengthBuffer, 0);
+                byte[] data = new byte[messageLength];
+                int dataReceived = 0;
 
-                    while (dataReceived < messageLength) {
-                        dataReceived += stream.Read(data, dataReceived, Math.Min(chunk_size, messageLength - dataReceived));
-                    }
-
-                    Debug.Assert(dataReceived == messageLength);
-                    string message = Encoding.ASCII.GetString(data, 0, messageLength);
-                    Debug.Log("Received message: " + message);
-                    lock (asyncLock)
-                        messageQueue.Enqueue(message);
+                while (dataReceived < messageLength) {
+                    dataReceived += stream.Read(data, dataReceived, Math.Min(chunk_size, messageLength - dataReceived));
                 }
+
+                Debug.Assert(dataReceived == messageLength);
+                string message = Encoding.ASCII.GetString(data, 0, messageLength);
+                Debug.Log("Received message: " + message);
+                lock (asyncLock)
+                    messageQueue.Enqueue(message);
             }
         } catch (Exception e) {
             Debug.Log("Disconnected: " + e);
