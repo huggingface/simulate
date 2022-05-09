@@ -31,7 +31,7 @@ class Accessor(NamedBaseModel):
     """
 
     bufferView: Optional[int] = None
-    byteOffset: Optional[int] = None
+    byteOffset: Optional[int] = 0
     componentType: int = None
     normalized: Optional[bool] = None
     count: int = None

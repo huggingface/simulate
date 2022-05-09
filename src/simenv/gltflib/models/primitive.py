@@ -3,6 +3,8 @@ from typing import List, Optional
 
 from dataclasses_json import dataclass_json
 
+from simenv.gltflib.enums.primitive_mode import PrimitiveMode
+
 from .attributes import Attributes
 from .base_model import BaseModel
 
@@ -30,5 +32,5 @@ class Primitive(BaseModel):
     attributes: Attributes = field(default_factory=Attributes)
     indices: Optional[int] = None
     material: Optional[int] = None
-    mode: Optional[int] = None
+    mode: Optional[int] = PrimitiveMode.TRIANGLES
     targets: Optional[List[Attributes]] = None
