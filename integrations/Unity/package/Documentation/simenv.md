@@ -2,9 +2,22 @@ This plugin provides support for creating and sharing environments in Unity, for
 
 Installation
 
+From Git
+
+---
+
 1. Open package manager in Unity (Window -> Package Manager)
 2. Click "+" -> "Add package from git URL"
-3. Install from the URL: "https://github.com/dylanebert/simenv.git?path=/integrations/Unity/simenv-unity/Packages/co.huggingface.simenv"
+3. Install from the URL: "https://github.com/dylanebert/simenv.git?path=/integrations/Unity/package"
+
+From File
+
+---
+
+1. Place the SimEnv `integrations/Unity/package` folder in a known location
+2. Open package manager in Unity (Window -> Package Manager)
+3. Click "+" -> "Add package from disk"
+4. Locate the `package.json` file in the `integrations/Unity/package` folder
 
 Setup
 
