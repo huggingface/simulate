@@ -3,5 +3,9 @@
     "version": "0.1.0",
     "description": "This plugin provides support for creating and sharing environments in Unity, for the Hugging Face Simulation Environment project (https://github.com/huggingface/simenv).",
     "displayName": "SimEnv",
-    "unity": "2021.3"
+    "unity": "2021.3",
+    "hideInEditor": false,
+    "dependencies": {
+        "com.unity.nuget.newtonsoft-json": "2.0.2"
+    }
 }
