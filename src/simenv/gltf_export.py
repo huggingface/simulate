@@ -29,7 +29,7 @@ from trimesh.visual.texture import TextureVisuals
 from simenv.gltflib.models.extensions.khr_lights_ponctual import KHRLightsPunctualLight
 
 from . import gltflib as gl
-from .assets import Asset, Camera, DirectionalLight, Light, Object, PointLight, SpotLight
+from .assets import Asset, Camera, DirectionalLight, Light, Object3D, PointLight, SpotLight
 from .gltflib.utils import padbytes
 
 
@@ -359,7 +359,7 @@ def add_node_to_scene(
     elif isinstance(node, Light):
         light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
-    elif isinstance(node, Object):
+    elif isinstance(node, Object3D):
         gl_node.mesh = add_mesh_to_model(
             tm_mesh=node.mesh, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
         )

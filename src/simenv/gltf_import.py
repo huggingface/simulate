@@ -27,7 +27,7 @@ from trimesh import Trimesh
 from trimesh.visual.material import PBRMaterial
 from trimesh.visual.texture import TextureVisuals
 
-from .assets import Asset, Camera, DirectionalLight, Object, PointLight, SpotLight
+from .assets import Asset, Camera, DirectionalLight, Object3D, PointLight, SpotLight
 from .gltflib import GLTF, GLTFModel
 from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
 from .gltflib.models.material import Material
@@ -272,7 +272,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
             else:
                 raise NotImplementedError()
 
-            scene_node = Object(**common_kwargs, mesh=trimesh_primitive)  # we create an object and link it
+            scene_node = Object3D(**common_kwargs, mesh=trimesh_primitive)  # we create an object and link it
 
     else:
         # We just have an empty node with a transform

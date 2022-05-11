@@ -29,9 +29,7 @@ class Asset(NodeMixin, object):
     dimensionality = 3  # 2 for bi-dimensional assets and 3 for tri-dimensional assets (default is 3)
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
-    def __init__(
-        self, name: Optional[str] = None, translation=None, rotation=None, scale=None, parent=None, children=None
-    ):
+    def __init__(self, name=None, center=None, direction=None, scale=None, parent=None, children=None):
         self.id = next(self.__class__.__NEW_ID)
         if name is None:
             name = camelcase_to_snakecase(self.__class__.__name__ + f"_{self.id:02d}")
@@ -41,41 +39,44 @@ class Asset(NodeMixin, object):
         if children:
             self.tree_children = children
 
-        self.translation = translation
-        self.rotation = rotation
+        self._center = None
+        self._direction = None
+        self._scale = None
+        self.center = center
+        self.direction = direction
         self.scale = scale
 
     @property
-    def translation(self):
-        return self._translation
+    def center(self):
+        return self._center
 
-    @translation.setter
-    def translation(self, value):
+    @center.setter
+    def center(self, value):
         if self.dimensionality == 3:
             if value is None:
                 value = [0.0, 0.0, 0.0]
             elif len(value) != 3:
-                raise ValueError("Translation should be of size 3 (X, Y, Z)")
+                raise ValueError("Center should be of size 3 (X, Y, Z)")
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._translation = tuple(value)
+        self._center = tuple(value)
 
     @property
-    def rotation(self):
-        return self._rotation
+    def direction(self):
+        return self._direction
 
-    @rotation.setter
-    def rotation(self, value):
+    @direction.setter
+    def direction(self, value):
         if self.dimensionality == 3:
             if value is None:
-                value = [0.0, 0.0, 0.0, 0.0]
+                value = [0.0, 0.0, 0.0, 1.0]
             elif len(value) == 3:
                 value = quat_from_euler(*value)
             elif len(value) != 4:
-                raise ValueError("Rotation should be of size 3 (Euler angles) or 4 (Quaternions")
+                raise ValueError("Direction should be of size 3 (Euler angles) or 4 (Quaternions")
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._rotation = tuple(value)
+        self._direction = tuple(value)
 
     @property
     def scale(self):
@@ -90,6 +91,3 @@ class Asset(NodeMixin, object):
                 value = [value, value, value]
             elif len(value) != 3:
                 raise ValueError("Scale should be of size 1 (Uniform scale) or 3 (X, Y, Z)")
-        elif self.dimensionality == 2:
-            raise NotImplementedError()
-        self._scale = tuple(value)

@@ -61,8 +61,8 @@ from setuptools import find_packages, setup
 REQUIRED_PKGS = [
     # We use numpy>=1.17 to have np.random.Generator
     "numpy>=1.17",
-    "trimesh",
-    "pillow",
+    "pyvista",
+#     "pillow",  # A dependency of pyvista, can remove it
     "dataclasses_json"
 ]
 
