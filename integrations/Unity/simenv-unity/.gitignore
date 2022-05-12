@@ -72,5 +72,4 @@ crashlytics-build.properties
 /[Aa]ssets/[Ss]treamingAssets/aa/*
 
 # Custom definitions
-/[Aa]ssets/GLTF/
-/[Aa]ssets/Playground/
+/[Aa]ssets/GLTF/*

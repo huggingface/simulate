@@ -15,8 +15,8 @@
 # Lint as: python3
 """ A simenv Camera."""
 import itertools
-from math import radians
 from typing import Optional
+from math import radians
 
 from .asset import Asset
 
