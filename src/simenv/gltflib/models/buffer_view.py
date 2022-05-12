@@ -24,7 +24,7 @@ class BufferView(NamedBaseModel):
     """
 
     buffer: int = None
-    byteOffset: Optional[int] = 0
+    byteOffset: Optional[int] = None
     byteLength: int = None
     byteStride: Optional[int] = None
     target: Optional[int] = None

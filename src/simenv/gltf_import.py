@@ -270,7 +270,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
                 )
 
             else:
-                raise NotImplementedError(primitive.mode)
+                raise NotImplementedError()
 
             scene_node = Object(**common_kwargs, mesh=trimesh_primitive)  # we create an object and link it
 
