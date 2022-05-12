@@ -4,9 +4,7 @@
       "version": "file:co.huggingface.simenv",
       "depth": 0,
       "source": "embedded",
-      "dependencies": {
-        "com.unity.nuget.newtonsoft-json": "2.0.2"
-      }
+      "dependencies": {}
     },
     "com.unity.burst": {
       "version": "1.6.5",
@@ -67,7 +65,7 @@
     },
     "com.unity.nuget.newtonsoft-json": {
       "version": "3.0.2",
-      "depth": 1,
+      "depth": 2,
       "source": "registry",
       "dependencies": {},
       "url": "https://packages.unity.com"
