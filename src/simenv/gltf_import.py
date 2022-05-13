@@ -21,13 +21,13 @@ from typing import ByteString, List, Set, Union
 
 import numpy as np
 import PIL.Image
-from trimesh import Trimesh
+import pyvista as pv
 
 # from trimesh.path.entities import Line  # Line need scipy
 from trimesh.visual.material import PBRMaterial
 from trimesh.visual.texture import TextureVisuals
 
-from .assets import Asset, Camera, DirectionalLight, Object3D, PointLight, SpotLight
+from .assets import Asset, Camera, Light, Object3D
 from .gltflib import GLTF, GLTFModel
 from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
 from .gltflib.models.material import Material
@@ -191,16 +191,30 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
         gltf_light_id = gltf_node.extensions.KHR_lights_punctual.light
         gltf_light = gltf_model.extensions.KHR_lights_punctual.lights[gltf_light_id]
         if gltf_light.type == "directional":
-            scene_node = DirectionalLight(
-                intensity=gltf_light.intensity, color=gltf_light.color, range=gltf_light.range, **common_kwargs
+            scene_node = Light(
+                light_type="directional",
+                intensity=gltf_light.intensity,
+                color=gltf_light.color,
+                range=gltf_light.range,
+                **common_kwargs,
             )
         elif gltf_light.type == "point":
-            scene_node = PointLight(
-                intensity=gltf_light.intensity, color=gltf_light.color, range=gltf_light.range, **common_kwargs
+            scene_node = Light(
+                light_type="positional",
+                intensity=gltf_light.intensity,
+                color=gltf_light.color,
+                range=gltf_light.range,
+                **common_kwargs,
             )
         elif gltf_light.type == "spot":
-            scene_node = SpotLight(
-                intensity=gltf_light.intensity, color=gltf_light.color, range=gltf_light.range, **common_kwargs
+            scene_node = Light(
+                light_type="positional",
+                inner_cone_angle=np.degrees(gltf_light.innerConeAngle),
+                outer_cone_angle=np.degrees(gltf_light.outerConeAngle),
+                intensity=gltf_light.intensity,
+                color=gltf_light.color,
+                range=gltf_light.range,
+                **common_kwargs,
             )
         else:
             raise ValueError(
@@ -215,7 +229,7 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
             attributes = primitive.attributes
             vertices = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.POSITION)
             if primitive.mode == PrimitiveMode.POINTS:
-                trimesh_primitive = Trimesh(vertices=vertices)
+                trimesh_primitive = pv.PolyData(vertices=vertices)
             elif primitive.mode == PrimitiveMode.LINES:
                 raise NotImplementedError()  # Using Line in trimesh reauires scipy
                 # trimesh_primitive = Trimesh(vertices=vertices, entities=[Line(points=np.arange(len(vertices)))])

@@ -403,6 +403,9 @@ class NodeMixin(object):
             yield node
             node = node.tree_parent
 
+    def __iter__(self):
+        return PreOrderIter(self)
+
     @property
     def _path(self):
         return tuple(reversed(list(self.tree_iter_path_reverse())))

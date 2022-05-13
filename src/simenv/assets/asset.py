@@ -22,14 +22,23 @@ from typing import Optional, Sequence, Union
 import numpy as np
 
 from .anytree import NodeMixin
-from .utils import camelcase_to_snakecase, quat_from_euler
+from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler
 
 
 class Asset(NodeMixin, object):
     dimensionality = 3  # 2 for bi-dimensional assets and 3 for tri-dimensional assets (default is 3)
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
-    def __init__(self, name=None, center=None, direction=None, scale=None, parent=None, children=None):
+    def __init__(
+        self,
+        name=None,
+        center=None,
+        direction=None,
+        scale=None,
+        transformation_matrix=None,
+        parent=None,
+        children=None,
+    ):
         self.id = next(self.__class__.__NEW_ID)
         if name is None:
             name = camelcase_to_snakecase(self.__class__.__name__ + f"_{self.id:02d}")
@@ -42,6 +51,7 @@ class Asset(NodeMixin, object):
         self._center = None
         self._direction = None
         self._scale = None
+        self._transform = None
         self.center = center
         self.direction = direction
         self.scale = scale
@@ -59,7 +69,8 @@ class Asset(NodeMixin, object):
                 raise ValueError("Center should be of size 3 (X, Y, Z)")
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._center = tuple(value)
+        self._transform_matrix = None  # Reset transform matrix
+        self._center = np.array(value)
 
     @property
     def direction(self):
@@ -69,14 +80,15 @@ class Asset(NodeMixin, object):
     def direction(self, value):
         if self.dimensionality == 3:
             if value is None:
-                value = [0.0, 0.0, 0.0, 1.0]
+                value = [1.0, 0.0, 0.0, 0.0]
             elif len(value) == 3:
                 value = quat_from_euler(*value)
             elif len(value) != 4:
                 raise ValueError("Direction should be of size 3 (Euler angles) or 4 (Quaternions")
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._direction = tuple(value)
+        self._transform_matrix = None  # Reset transform matrix
+        self._direction = np.array(value)
 
     @property
     def scale(self):
@@ -91,3 +103,25 @@ class Asset(NodeMixin, object):
                 value = [value, value, value]
             elif len(value) != 3:
                 raise ValueError("Scale should be of size 1 (Uniform scale) or 3 (X, Y, Z)")
+        elif self.dimensionality == 2:
+            raise NotImplementedError()
+        self._transform_matrix = None  # Reset transform matrix
+        self._scale = np.array(value)
+
+    @property
+    def transform(self):
+        if self._transform is None:
+            self._transform = get_transform_from_trs(self.center, self.direction, self.scale)
+        return self._transform
+
+    @transform.setter
+    def transform(self, value):
+        if self.dimensionality == 3:
+            if value is None:
+                value = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+        elif self.dimensionality == 2:
+            raise NotImplementedError()
+        self._transform = np.array(value)
+        self._center = None  # Reset center/direction/scale
+        self._direction = None  # Not sure we can extract center/direction/scale from transform matrix in a unique way
+        self._scale = None

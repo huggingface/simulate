@@ -29,7 +29,7 @@ from trimesh.visual.texture import TextureVisuals
 from simenv.gltflib.models.extensions.khr_lights_ponctual import KHRLightsPunctualLight
 
 from . import gltflib as gl
-from .assets import Asset, Camera, DirectionalLight, Light, Object3D, PointLight, SpotLight
+from .assets import Asset, Camera, Light, Object3D
 from .gltflib.utils import padbytes
 
 
@@ -56,9 +56,6 @@ numpy_to_gltf_shapes_mapping = {
     (3, 3): gl.AccessorType.MAT3,
     (4, 4): gl.AccessorType.MAT4,
 }
-
-
-lights_to_gltf_mapping = {SpotLight: "spot", DirectionalLight: "directional", PointLight: "point"}
 
 
 def add_data_to_gltf(new_data: bytearray, gltf_model: gl.GLTFModel, buffer_data: bytearray, buffer_id: int = 0) -> int:
@@ -330,9 +327,18 @@ def add_camera_to_model(camera: Camera, gltf_model: gl.GLTFModel, buffer_data: B
 
 
 def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
-    light_type = lights_to_gltf_mapping[node.__class__]
+    light_type = node.light_type
+    if light_type == "positional":
+        if node.outer_cone_angle is None or node.outer_cone_angle > np.pi / 2:
+            light_type = "point"
+        else:
+            light_type = "spot"
 
     light = gl.KHRLightsPunctualLight(type=light_type, color=node.color, intensity=node.intensity, range=node.range)
+
+    if light_type == "spot":
+        light.innerConeAngle = node.inner_cone_angle
+        light.outerConeAngle = node.outer_cone_angle
 
     # Add the new light
     if gltf_model.extensions.KHR_lights_punctual is None:

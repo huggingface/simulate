@@ -35,7 +35,7 @@ class Object3D(Asset):
         self.mesh.plot(**kwargs)
 
 
-class Sphere(Asset):
+class Sphere(Object3D):
     """Create a vtk Sphere
 
     Parameters

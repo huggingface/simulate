@@ -1,5 +1,4 @@
-# flake8: noqa
-# Copyright 2020 The HuggingFace Simenv Authors.
+# Copyright 2022 The HuggingFace Authors.
 #
 # Licensed under the Apache License, Version 2.0 (the "License");
 # you may not use this file except in compliance with the License.
@@ -14,14 +13,13 @@
 # limitations under the License.
 
 # Lint as: python3
-# pylint: enable=line-too-long
-# pylint: disable=g-import-not-at-top,g-bad-import-order,wrong-import-position
+""" A generic engine."""
+from typing import Optional
 
-__version__ = "0.0.1.dev0"
 
-from .assets import *
-from .assets.utils import *
-from .engine import PyVistaEngine, UnityEngine
-from .gltf_export import *  # TODO cleanup all these * import
-from .gltf_import import *
-from .scene import Scene
+class Engine:
+    def __init__(self, scene):
+        self._scene = scene
+
+    def __repr__(self):
+        return f"{self.__class__.__name__}"
