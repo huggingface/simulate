@@ -27,12 +27,8 @@ class UnsetRendererError(Exception):
 
 
 class Scene(Asset):
-    def __init__(
-        self,
-        engine: Optional[str] = None,
-        name: Optional[str] = None,
-    ):
-        super().__init__(name=name)
+    def __init__(self, engine: Optional[str] = None, name: Optional[str] = None, **kwargs):
+        super().__init__(name=name, **kwargs)
         self.engine = None
         if engine == "Unity":
             self.engine = UnityEngine(self)
@@ -54,8 +50,8 @@ class Scene(Asset):
             root = Asset(name="Scene")  # Otherwise we build a main root node
         return cls(
             name=root.name,
-            translation=root.translation,
-            rotation=root.rotation,
+            center=root.center,
+            direction=root.direction,
             scale=root.scale,
             children=nodes,
             **kwargs,

@@ -74,18 +74,18 @@ def get_transform_from_trs(
     translation_matrix[3, 3] = 1
 
     # Rotation matrix
-    q0, q1, q2, q3 = rotation[0], rotation[1], rotation[2], rotation[3]
-    r00 = 2 * (q0 * q0 + q1 * q1) - 1
-    r01 = 2 * (q1 * q2 - q0 * q3)
-    r02 = 2 * (q1 * q3 + q0 * q2)
+    qx, qy, qz, qw = rotation[0], rotation[1], rotation[2], rotation[3]
+    r00 = 1 - 2 * (qy * qy + qz * qz)
+    r01 = 2 * (qx * qy - qw * qz)
+    r02 = 2 * (qx * qz + qw * qy)
 
-    r10 = 2 * (q1 * q2 + q0 * q3)
-    r11 = 2 * (q0 * q0 + q2 * q2) - 1
-    r12 = 2 * (q2 * q3 - q0 * q1)
+    r10 = 2 * (qx * qy + qw * qz)
+    r11 = 1 - 2 * (qx * qx + qz * qz)
+    r12 = 2 * (qy * qz - qw * qx)
 
-    r20 = 2 * (q1 * q3 - q0 * q2)
-    r21 = 2 * (q2 * q3 + q0 * q1)
-    r22 = 2 * (q0 * q0 + q3 * q3) - 1
+    r20 = 2 * (qx * qz - qw * qy)
+    r21 = 2 * (qy * qz + qw * qx)
+    r22 = 1 - 2 * (qx * qx + qy * qy)
     # Gather it all
     rotation_matrix = np.zeros((4, 4))
     rotation_matrix[3, 3] = 1

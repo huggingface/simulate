@@ -17,20 +17,29 @@
 import io
 from copy import deepcopy
 from dataclasses import asdict
-from typing import ByteString, List, Set, Union
+from typing import ByteString, List, Optional, Set, Union
 
 import numpy as np
 import PIL.Image
 import pyvista as pv
 
-# from trimesh.path.entities import Line  # Line need scipy
-from trimesh.visual.material import PBRMaterial
-from trimesh.visual.texture import TextureVisuals
-
 from .assets import Asset, Camera, Light, Object3D
 from .gltflib import GLTF, GLTFModel
 from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
 from .gltflib.models.material import Material
+
+
+# TODO remove this GLTFReader once the new version of pyvista is released 0.34+ (included in it)
+class GLTFReader(pv.utilities.reader.BaseReader):
+    """GLTFeader for .gltf and .glb files.
+
+    Examples
+    --------
+    >>> reader = GLTFReader(filename)
+    >>> mesh = reader.read()  # A MultiBlock reproducing the hierarchy of Nodes in the GLTF file
+    """
+
+    _class_reader = pv._vtk.vtkGLTFReader
 
 
 # Conversion of gltf dtype and shapes in Numpy equivalents
@@ -129,45 +138,18 @@ def get_texture_as_pillow(gltf_scene: GLTF, texture_id: int) -> PIL.Image:
     return image
 
 
-def get_material_as_trimesh(gltf_scene: GLTF, material_id: int) -> PBRMaterial:
-    """Get a trimesh material of the material stored in a GLTF scene"""
-    gltf_materials = gltf_scene.model.materials
-    gltf_material = gltf_materials[material_id]
-
-    pbrMetallicRoughness = {}
-    if gltf_material.pbrMetallicRoughness is not None:
-        pbrMetallicRoughness = deepcopy(asdict(gltf_material.pbrMetallicRoughness))
-        del pbrMetallicRoughness["extensions"]
-        del pbrMetallicRoughness["extras"]
-
-    other_keys = deepcopy(asdict(gltf_material))
-    del other_keys["pbrMetallicRoughness"]
-    del other_keys["extensions"]
-    del other_keys["extras"]
-
-    # Load images if needed
-    full_dict = dict(**pbrMetallicRoughness, **other_keys)
-    for key in full_dict:
-        if isinstance(full_dict[key], dict) and "index" in full_dict[key]:
-            texture_id = full_dict[key]["index"]
-            full_dict[key] = get_texture_as_pillow(gltf_scene=gltf_scene, texture_id=texture_id)
-
-    material = PBRMaterial(
-        **full_dict
-    )  # TODO maybe loss of precision when converting to trimesh (uint8 for baseColor for instance - to check)
-
-    return material
-
-
 # Build a tree of simenv nodes from a GLTF object
-def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
+def build_node_tree(
+    gltf_scene: GLTF, pyvista_meshes: pv.MultiBlock, gltf_node_id: int, parent: Optional[Asset] = None
+) -> List:
     """Build the node tree of simenv objects from the GLTF scene"""
     gltf_model = gltf_scene.model
     gltf_node = gltf_model.nodes[gltf_node_id]
     common_kwargs = {
         "name": gltf_node.name,
-        "translation": gltf_node.translation,
-        "rotation": gltf_node.rotation,
+        "center": gltf_node.translation,
+        "direction": gltf_node.rotation,
+        "scale": gltf_node.scale,
         "parent": parent,
     }
 
@@ -224,70 +206,10 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
     elif gltf_node.mesh is not None:
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
-        primitives = gltf_mesh.primitives
-        for primitive in primitives:
-            attributes = primitive.attributes
-            vertices = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.POSITION)
-            if primitive.mode == PrimitiveMode.POINTS:
-                trimesh_primitive = pv.PolyData(vertices=vertices)
-            elif primitive.mode == PrimitiveMode.LINES:
-                raise NotImplementedError()  # Using Line in trimesh reauires scipy
-                # trimesh_primitive = Trimesh(vertices=vertices, entities=[Line(points=np.arange(len(vertices)))])
-            elif primitive.mode in [PrimitiveMode.TRIANGLES, PrimitiveMode.TRIANGLE_STRIP]:
-                # Faces
-                faces = None
-                if primitive.indices is None:
-                    faces = np.arange(len(vertices), dtype=np.int64).reshape((-1, 3))
-                else:
-                    faces = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=primitive.indices)
-                if primitive.mode == PrimitiveMode.TRIANGLE_STRIP:
-                    raise NotImplementedError()
-
-                # Vertex normals
-                vertex_normals = None
-                if attributes.NORMAL is not None:
-                    vertex_normals = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.NORMAL)
-
-                # TODO we are not handling "tangent" at the moment
-
-                # Visuals/vertex colors
-                visual = None
-                vertex_colors = None
-                if primitive.material is not None:
-                    material = get_material_as_trimesh(gltf_scene=gltf_scene, material_id=primitive.material)
-                    if attributes.TEXCOORD_0 is not None:
-                        uv = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.TEXCOORD_0).copy()
-                    else:
-                        uv = np.zeros((len(vertices), 2))
-
-                    # From trimesh - trimesh.exchange.gltf.py
-                    # flip UV's top- bottom to move origin to lower-left:
-                    # https://github.com/KhronosGroup/glTF/issues/1021
-                    uv[:, 1] = 1.0 - uv[:, 1]
-                    # create a texture visual
-                    visual = TextureVisuals(uv=uv, material=material)
-
-                    if attributes.COLOR_0 is not None:
-                        colors = get_accessor_as_numpy(gltf_scene=gltf_scene, accessor_id=attributes.COLOR_0)
-                        if len(colors) == len(vertices):
-                            visual.vertex_attributes["color"] = colors
-                            vertex_colors = colors
-
-                # TODO metadata are not included at the moment
-
-                trimesh_primitive = Trimesh(
-                    vertices=vertices,
-                    faces=faces,
-                    vertex_normals=vertex_normals,
-                    vertex_colors=vertex_colors,
-                    visual=visual,
-                )
-
-            else:
-                raise NotImplementedError()
-
-            scene_node = Object3D(**common_kwargs, mesh=trimesh_primitive)  # we create an object and link it
-
+        n_primitives = len(gltf_mesh.primitives)
+        for index in range(n_primitives):
+            mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][index]
+            scene_node = Object3D(**common_kwargs, mesh=mesh)
     else:
         # We just have an empty node with a transform
         scene_node = Asset(**common_kwargs)
@@ -295,7 +217,12 @@ def build_node_tree(gltf_scene: GLTF, gltf_node_id: int, parent=None) -> List:
     # Recursively build the node tree
     if gltf_node.children:
         for child_id in gltf_node.children:
-            _ = build_node_tree(gltf_scene=gltf_scene, gltf_node_id=child_id, parent=scene_node)
+            _ = build_node_tree(
+                gltf_scene=gltf_scene,
+                pyvista_meshes=pyvista_meshes[f"Node_{child_id}"],
+                gltf_node_id=child_id,
+                parent=scene_node,
+            )
 
     return scene_node
 
@@ -305,7 +232,12 @@ def load_gltf_as_tree(file_path) -> List[Asset]:
     Return a list of the main nodes in the GLTF files (often only one main node).
     The tree can be walked from the main nodes.
     """
-    gltf_scene = GLTF.load(file_path)
+    pyvista_reader = GLTFReader(
+        file_path
+    )  # We load the meshe already converted by pyvista/vtk instead of decoding our self
+    pyvista_reader.reader.ApplyDeformationsToGeometryOff()  # We don't want to apply the transforms to the various nodes
+    pyvista_meshes = pyvista_reader.read()
+    gltf_scene = GLTF.load(file_path)  # We load the other nodes (camera, lights, our extensions) ourselves
     gltf_model = gltf_scene.model
 
     gltf_main_scene = gltf_model.scenes[gltf_model.scene if gltf_model.scene else 0]
@@ -314,6 +246,13 @@ def load_gltf_as_tree(file_path) -> List[Asset]:
     main_nodes = []
 
     for gltf_node_id in gltf_main_nodes:
-        main_nodes.append(build_node_tree(gltf_scene=gltf_scene, gltf_node_id=gltf_node_id, parent=None))
+        main_nodes.append(
+            build_node_tree(
+                gltf_scene=gltf_scene,
+                pyvista_meshes=pyvista_meshes[f"Node_{gltf_node_id}"],
+                gltf_node_id=gltf_node_id,
+                parent=None,
+            )
+        )
 
     return main_nodes

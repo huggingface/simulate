@@ -16,7 +16,7 @@
 """ A simenv Camera."""
 import itertools
 from math import radians
-from typing import Optional
+from typing import List, Optional, Union
 
 from .asset import Asset
 
@@ -27,9 +27,7 @@ class Camera(Asset):
 
     def __init__(
         self,
-        name="Camera",
-        translation=[0, 0, -10],
-        rotation=[0, 1, 0, 0],
+        *,
         width=256,
         height=256,
         aspect_ratio: Optional[float] = None,
@@ -39,12 +37,14 @@ class Camera(Asset):
         camera_type: Optional[str] = "perspective",
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,
-        parent=None,
-        children=None,
+        name: Optional[str] = None,
+        center: Optional[List[float]] = None,
+        direction: Optional[List[float]] = None,
+        scale: Optional[Union[float, List[float]]] = None,
+        parent: Optional[Asset] = None,
+        children: Optional[List[Asset]] = None,
     ):
-        super().__init__(
-            name=name, translation=translation, rotation=rotation, scale=None, parent=parent, children=children
-        )
+        super().__init__(name=name, center=center, direction=direction, scale=scale, parent=parent, children=children)
         self.width = width
         self.height = height
 
