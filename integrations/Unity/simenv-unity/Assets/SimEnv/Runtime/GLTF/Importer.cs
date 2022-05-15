@@ -176,8 +176,6 @@ namespace SimEnv.GLTF {
         static GameObject LoadInternal(this GLTFObject gltfObject, string filepath, byte[] bytefile, long binChunkStart, ImportSettings importSettings, out AnimationClip[] animations) {
             string directoryRoot = filepath != null ? Directory.GetParent(filepath).ToString() + "/" : null;
 
-            importSettings.shaderOverrides.CacheDefaultShaders();
-
             GLTFBuffer.ImportTask bufferTask = new GLTFBuffer.ImportTask(gltfObject.buffers, filepath, bytefile, binChunkStart);
             bufferTask.RunSynchronously();
             GLTFBufferView.ImportTask bufferViewTask = new GLTFBufferView.ImportTask(gltfObject.bufferViews, bufferTask);
@@ -216,8 +214,6 @@ namespace SimEnv.GLTF {
             GLTFObject gltfObject = deserializeTask.Result;
 
             string directoryRoot = filepath != null ? Directory.GetParent(filepath).ToString() + "/" : null;
-
-            importSettings.shaderOverrides.CacheDefaultShaders();
 
             List<ImportTask> importTasks = new List<ImportTask>();
 

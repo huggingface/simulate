@@ -6,7 +6,6 @@ namespace SimEnv.GLTF {
     [Serializable]
     public class ImportSettings {
         public bool materials = true;
-        public ShaderSettings shaderOverrides = new ShaderSettings();
         public AnimationSettings animationSettings = new AnimationSettings();
         public bool generateLightmapUVs;
         [Range(0, 180)] public float hardAngle = 88;
