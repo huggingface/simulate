@@ -76,7 +76,8 @@ namespace SimEnv.GLTF {
                 for(int i = 0; i < result.Length; i++) {
                     result[i] = new GLTFNode.ImportResult();
                     result[i].transform = new GameObject().transform;
-                    result[i].transform.name = nodes[i].name;
+                    result[i].transform.gameObject.name = nodes[i].name;
+                    result[i].transform.gameObject.AddComponent<SimObjectBase>().Initialize();
                 }
                 for(int i = 0; i < result.Length; i++) {
                     if(nodes[i].children != null) {

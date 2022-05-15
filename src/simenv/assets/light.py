@@ -2,6 +2,7 @@ import itertools
 from typing import List, Optional
 
 from .asset import Asset
+from .utils import quat_from_degrees
 
 
 class Light(Asset):
@@ -15,7 +16,7 @@ class Light(Asset):
         color=[1.0, 1.0, 1.0],
         range=None,
         translation=[0, 0, 0],
-        rotation=[0, 0, 0, 1],
+        rotation=quat_from_degrees(-60, 225, 0),
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
