@@ -4,6 +4,7 @@ from typing import List, Optional, Union
 import numpy as np
 
 from .asset import Asset
+from .utils import quat_from_degrees
 
 
 class Light(Asset):
