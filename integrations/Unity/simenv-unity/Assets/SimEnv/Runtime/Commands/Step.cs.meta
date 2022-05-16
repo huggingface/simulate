@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<< HEAD
-guid: 3660fc37a33d2ad42a8e75cf80f14462
-=======
 guid: cf7cdc70034fbc94485d48e2a100a5f5
->>>>>>> 2994c28 (added sim object extensions and simulation step)
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
