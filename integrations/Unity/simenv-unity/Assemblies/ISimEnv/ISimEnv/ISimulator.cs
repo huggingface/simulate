@@ -3,9 +3,18 @@ using System.Collections.Generic;
 
 namespace ISimEnv {
     /// <summary>
-    /// Exposes simulator functionality to modding API
+    /// References all SimObjects
     /// </summary>
     public class ISimulator {
+        static ISimulator _instance;
+        public static ISimulator Instance {
+            get {
+                if (_instance == null)
+                    _instance = new ISimulator();
+                return _instance;
+            }
+        }
+
         static Dictionary<string, ISimObject> _objects;
         static Dictionary<string, ISimObject> objects {
             get {
@@ -15,27 +24,25 @@ namespace ISimEnv {
             }
         }
 
-        public static void Add(GameObject gameObject) {
-
-        }
-
         public static void Register(ISimObject simObject) {
             if(objects.ContainsKey(simObject.Name)) {
-                Debug.LogError("Environment already contains object with name: " + simObject.Name);
+                Debug.LogWarning("Environment already contains object with name: " + simObject.Name);
                 return;
             }
             objects.Add(simObject.Name, simObject);
-            simObject.OnDeinitialize += Unregister;
         }
 
         public static void Unregister(ISimObject simObject) {
-            simObject.OnDeinitialize -= Unregister;
+            if(!objects.ContainsKey(simObject.Name)) {
+                Debug.LogWarning(string.Format("Object with name {0} not found", simObject.Name));
+                return;
+            }
             objects.Remove(simObject.Name);
         }
 
         public static ISimObject GetObject(string identifier) {
             if(!objects.ContainsKey(identifier)) {
-                Debug.LogError("Couldn't find object with identifier: " + identifier);
+                Debug.LogWarning("Couldn't find object with identifier: " + identifier);
                 return null;
             }
             return objects[identifier];
