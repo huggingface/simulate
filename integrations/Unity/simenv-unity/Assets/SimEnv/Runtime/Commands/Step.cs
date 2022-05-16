@@ -1,17 +1,10 @@
-using System;
+using ISimEnv;
 using UnityEngine.Events;
-using UnityEngine;
-using System.Collections.Generic;
-
 
 namespace SimEnv {
-    public class Step : Command {
-        public List<float> action;
-
+    public class Step : ICommand {
         public override void Execute(UnityAction<string> callback) {
-
-            Debug.Log("Stepping " + action.ToString());
-            RuntimeManager.Instance.Step(action);
+            Simulator.Step();
             callback("ack");
         }
     }
