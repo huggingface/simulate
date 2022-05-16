@@ -1,11 +1,10 @@
 using UnityEngine;
-using SimEnv.GLTF;
-using System.Collections.Generic;
+using System;
+using System.Linq;
 using System.Collections;
 using System.IO;
-using System.Threading.Tasks;
-using System;
 using System.Reflection;
+using ISimEnv;
 
 namespace SimEnv {
     /// <summary>
@@ -17,21 +16,38 @@ namespace SimEnv {
     public class Simulator : MonoBehaviour {
         public static Simulator Instance { get; private set; }
 
+        #region Simulation
+        static readonly int FRAME_RATE = 30;
+        static readonly int FRAME_SKIP = 4;
+        static readonly float FRAME_INTERVAL = 1f / FRAME_RATE;
+
+        public static void Step() {
+            for(int i = 0; i < FRAME_SKIP; i++)
+                Physics.Simulate(FRAME_INTERVAL);
+        }
+        #endregion
+
+        #region Initialization
         [Header("Mod Path")]
         public string modPath = "Resources/Mods";
+
+        Type[] simObjectExtensions;
+        public static Type[] SimObjectExtensions => Instance.simObjectExtensions;
 
         Client client;
         IEnumerator listenCoroutine;
         bool initialized;
 
         void Awake() {
-            Instance = this;            
+            Instance = this;
+            Physics.autoSimulation = false;
             client = new Client();
             modPath = Application.dataPath + "/" + modPath;
         }
 
         void Start() {
             LoadMods();
+            LoadExtensions();
             StartClient();
         }
 
@@ -49,6 +65,15 @@ namespace SimEnv {
             }
         }
 
+        void LoadExtensions() {
+            simObjectExtensions = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(x => x.GetTypes())
+                .Where(x => x.GetInterfaces().Contains(typeof(ISimObjectExtension)))
+                .ToArray();
+            simObjectExtensions.ToList().ForEach(x => Debug.Log(x));
+            Debug.Log(simObjectExtensions.Length);
+        }
+
         void StartClient() {
             Debug.Assert(!initialized);
             listenCoroutine = client.Listen();
@@ -63,5 +88,6 @@ namespace SimEnv {
                 initialized = false;
             }
         }
+        #endregion
     }
 }
