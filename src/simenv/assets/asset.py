@@ -45,7 +45,7 @@ class Asset(NodeMixin, object):
     def __init__(
         self,
         name=None,
-        translation: Optional[List[float]] = None,
+        position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scale: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
@@ -61,11 +61,11 @@ class Asset(NodeMixin, object):
         if children:
             self.tree_children = children
 
-        self._translation = None
+        self._position = None
         self._rotation = None
         self._scale = None
         self._transform = None
-        self.translation = translation
+        self.position = position
         self.rotation = rotation
         self.scale = scale
         if transformation_matrix is not None:
@@ -90,7 +90,7 @@ class Asset(NodeMixin, object):
         """
         if vector is None:
             return self
-        self.translation += np.array(vector)
+        self.position += np.array(vector)
         return self
 
     def rotate(self, rotation: Optional[List[float]] = None):
@@ -210,20 +210,20 @@ class Asset(NodeMixin, object):
         return self
 
     @property
-    def translation(self):
-        return self._translation
+    def position(self):
+        return self._position
 
-    @translation.setter
-    def translation(self, value):
+    @position.setter
+    def position(self, value):
         if self.dimensionality == 3:
             if value is None:
                 value = [0.0, 0.0, 0.0]
             elif len(value) != 3:
-                raise ValueError("translation should be of size 3 (X, Y, Z)")
+                raise ValueError("position should be of size 3 (X, Y, Z)")
         elif self.dimensionality == 2:
             raise NotImplementedError()
         self._transform_matrix = None  # Reset transform matrix
-        self._translation = np.array(value)
+        self._position = np.array(value)
 
     @property
     def rotation(self):
@@ -264,7 +264,7 @@ class Asset(NodeMixin, object):
     @property
     def transform(self):
         if self._transform is None:
-            self._transform = get_transform_from_trs(self.translation, self.rotation, self.scale)
+            self._transform = get_transform_from_trs(self.position, self.rotation, self.scale)
         return self._transform
 
     @transform.setter
@@ -275,8 +275,9 @@ class Asset(NodeMixin, object):
         elif self.dimensionality == 2:
             raise NotImplementedError()
         self._transform = np.array(value)
-        self._translation = None  # Reset translation/rotation/scale
-        self._rotation = (
-            None  # Not sure we can extract translation/rotation/scale from transform matrix in a unique way
-        )
+
+        # Not sure we can extract position/rotation/scale from transform matrix in a unique way
+        # Reset position/rotation/scale
+        self._position = None
+        self._rotation = None
         self._scale = None

@@ -57,6 +57,11 @@ class Scene(Asset):
             **kwargs,
         )
 
+    def clear(self):
+        """ " Remove all assets in the scene."""
+        self.tree_children = []
+        return self
+
     def show(self):
         """Render the Scene using the engine if provided."""
         if self.engine is not None:
