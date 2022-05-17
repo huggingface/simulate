@@ -87,9 +87,9 @@ namespace SimEnv {
         }
     }
 
+    [RequireComponent(typeof(CharacterController))]
     public class Agent : MonoBehaviour {
 
-        public CharacterController controller;
         public float move_speed = 1f;
         public float turn_speed = 1f;
         public float height = 1f;
@@ -98,6 +98,11 @@ namespace SimEnv {
 
         public Color color = Color.white;
 
+        CharacterController controller;
+
+        void Awake() {
+            controller = GetComponent<CharacterController>();
+        }
 
         public Actions actions;
         // Start is called before the first frame update

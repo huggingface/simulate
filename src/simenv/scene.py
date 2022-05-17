@@ -113,6 +113,5 @@ class Scene(Asset):
     def __repr__(self):
         return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}')\n{RenderTree(self).print_tree()}"
 
-
     def close(self):
         self.engine.close()
