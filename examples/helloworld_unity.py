@@ -5,7 +5,7 @@ scene = sm.Scene(engine='Unity')
 
 sphere = sm.Sphere('sphere')
 light = sm.DirectionalLight('light')
-agent = sm.Agent('agent')
+agent = sm.RL_Agent('agent')
 camera = sm.Camera('cam')
 
 scene += sphere
