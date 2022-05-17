@@ -6,7 +6,7 @@ from simenv.assets import agent
 
 
 class RL_Env(gym.Env):
-    def __init__(self, scene: sm.Scene) -> None:
+    def __init__(self, scene) -> None:
         super().__init__()
 
         self.scene = scene
