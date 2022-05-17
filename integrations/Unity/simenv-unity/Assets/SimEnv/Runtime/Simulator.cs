@@ -87,6 +87,8 @@ namespace SimEnv {
                 .SelectMany(x => x.GetTypes())
                 .Where(x => x.GetInterfaces().Contains(typeof(ISimObjectExtension)))
                 .ToArray();
+            if(simObjectExtensions == null)
+                simObjectExtensions = new Type[0];
             simObjectExtensions.ToList().ForEach(x => Debug.Log(x));
             Debug.Log(string.Format("Loaded {0} extensions", simObjectExtensions.Length));
         }
