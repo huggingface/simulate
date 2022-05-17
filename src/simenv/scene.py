@@ -21,9 +21,12 @@ from .assets.anytree import RenderTree
 from .gltf_export import tree_as_glb_bytes
 from .gltf_import import load_gltf_as_tree
 from .renderer.unity import Unity
-
+import simenv as sm
 
 class UnsetRendererError(Exception):
+    pass
+
+class SceneNotBuiltError(Exception):
     pass
 
 
@@ -50,6 +53,7 @@ class Scene(Asset):
         else:
             raise ValueError("engine should be selected ()")
 
+        self._built = False
         super().__init__(name=name, translation=translation, rotation=rotation, scale=scale, children=children)
 
     @classmethod
@@ -70,12 +74,37 @@ class Scene(Asset):
             **kwargs,
         )
 
-    def render(self):
+    def _get_decendants_of_class_type(self, class_type):
+        result = []
+        for child in self.tree_descendants:
+            if isinstance(child, class_type):
+                result.append(child)
+
+        return result
+
+    def get_agents(self):
+        # search all nodes for agents classes and then return in list
+        return self._get_decendants_of_class_type(sm.RL_Agent)
+
+    def build(self):
         """Render the Scene using the engine if provided."""
-        if self.engine is not None:
-            self.engine.send_gltf(tree_as_glb_bytes(self))
-        else:
+        if self.engine is None:
             raise UnsetRendererError()
 
+        self.engine.send_gltf(tree_as_glb_bytes(self))
+        self._built = True
+
+    def step(self, action):
+        """Step the Scene using the engine if provided."""
+
+        if not self._built:
+            raise SceneNotBuiltError()
+
+        if self.engine is None:
+            raise UnsetRendererError()
+
+        obs = self.engine.step(action)
+
+        return obs
     def __repr__(self):
         return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}')\n{RenderTree(self).print_tree()}"

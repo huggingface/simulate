@@ -25,3 +25,4 @@ from .gltf_export import *  # TODO cleanup all these * import
 from .gltf_import import *
 from .renderer.unity import Unity
 from .scene import Scene
+from .rl_env import RL_Env
