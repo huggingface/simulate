@@ -24,6 +24,24 @@ namespace ISimEnv {
             }
         }
 
+        public static ISimAgent Agent { get; private set; }
+
+        public static void Register(ISimAgent agent) {
+            if(Agent != null) {
+                Debug.LogWarning("Environment already contains an agent: " + Agent.Name);
+                return;
+            }
+            Agent = agent;
+        }
+
+        public static void Unregister(ISimAgent agent) {
+            if(Agent == null || Agent != agent) {
+                Debug.LogWarning("ISimulator agent isn't set to agent: " + agent.Name);
+                return;
+            }
+            Agent = null;
+        }
+
         public static void Register(ISimObject simObject) {
             if(objects.ContainsKey(simObject.Name)) {
                 Debug.LogWarning("Environment already contains object with name: " + simObject.Name);

@@ -45,8 +45,8 @@ class Unity:
         command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
         self.run_command(command)
 
-    def step(self):
-        command = {"type": "Step", "contents": "{}"}
+    def step(self, action):
+        command = {"type": "Step", "contents": json.dumps({"action": action})}
         self.run_command(command)
 
     def run_command(self, command):

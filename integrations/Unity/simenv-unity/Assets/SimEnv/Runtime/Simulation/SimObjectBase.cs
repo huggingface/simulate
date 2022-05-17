@@ -28,7 +28,7 @@ namespace SimEnv {
             ISimulator.Unregister(this);
         }
 
-        void OnDestroy() {
+        protected virtual void OnDestroy() {
             Deinitialize();
         }
     }

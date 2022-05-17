@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 
 namespace SimEnv.GLTF {
-    public class GLTF_agents {
+    public class HF_agents {
         public List<GLTFAgent> agents;
 
         public class GLTFAgent {
