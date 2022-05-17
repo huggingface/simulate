@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:integrations/Unity/simenv-unity/Assets/SimEnv/Runtime/GLTF/HF_agents.cs.meta
 guid: 7cf379888f54a5144909dc9672242147
+========
+guid: cf7cdc70034fbc94485d48e2a100a5f5
+>>>>>>>> 3d714fd2b8d1ec7580da3362fc436bb861c719fc:integrations/Unity/simenv-unity/Assets/SimEnv/Runtime/Commands/Step.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

@@ -1,5 +1,9 @@
 fileFormatVersion: 2
+<<<<<<<< HEAD:integrations/Unity/simenv-unity/Assets/SimEnv/Runtime/Simulation/Agent.cs.meta
 guid: 78b88f6ae3317c740b3699f45b27f75b
+========
+guid: c7e0908596f24534eb6ed776d6a37d41
+>>>>>>>> 3d714fd2b8d1ec7580da3362fc436bb861c719fc:integrations/Unity/simenv-unity/Assets/SimEnv/Runtime/Simulation/SimObjectBase.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2
