@@ -13,6 +13,6 @@ scene += light
 scene += agent
 scene += camera
 
-scene.render()
+scene.build()
 
-scene.engine.close()  # TODO have this in the delete of the Scene class instead of manually
+scene.close()  # TODO have this in the delete of the Scene class instead of manually
