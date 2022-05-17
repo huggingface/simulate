@@ -21,11 +21,12 @@ from typing import ByteString, List, Optional, Set, Tuple
 import numpy as np
 import PIL.Image
 import trimesh
-import simenv as sm
+
 # from trimesh.path.entities import Line  # Line need scipy
 from trimesh.visual.material import PBRMaterial
 from trimesh.visual.texture import TextureVisuals
 
+import simenv as sm
 from simenv.gltflib.models.extensions.khr_lights_ponctual import KHRLightsPunctualLight
 
 from . import gltflib as gl
@@ -343,7 +344,10 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
 
     return light_id
 
-def add_agent_to_model(node: sm.RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
+
+def add_agent_to_model(
+    node: sm.RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0
+) -> int:
     agent = gl.GLTF_RL_Agent(
         color=node.color,
         height=node.height,

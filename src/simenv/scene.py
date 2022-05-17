@@ -16,15 +16,18 @@
 """ A simenv Scene - Host a level or Scene."""
 from typing import Optional
 
+import simenv as sm
+
 from .assets import Asset
 from .assets.anytree import RenderTree
 from .gltf_export import tree_as_glb_bytes
 from .gltf_import import load_gltf_as_tree
 from .renderer.unity import Unity
-import simenv as sm
+
 
 class UnsetRendererError(Exception):
     pass
+
 
 class SceneNotBuiltError(Exception):
     pass
@@ -106,5 +109,6 @@ class Scene(Asset):
         obs = self.engine.step(action)
 
         return obs
+
     def __repr__(self):
         return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}')\n{RenderTree(self).print_tree()}"

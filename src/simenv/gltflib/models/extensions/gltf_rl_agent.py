@@ -1,5 +1,5 @@
-from ctypes import LittleEndianStructure
 import string
+from ctypes import LittleEndianStructure
 from dataclasses import dataclass
 from typing import Dict, List, Optional, Tuple
 

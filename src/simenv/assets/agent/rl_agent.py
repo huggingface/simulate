@@ -5,7 +5,8 @@ from typing import List, Optional
 from dataclasses_json import dataclass_json
 
 from ..asset import Asset
-from .rl_agent_actions import DiscreteRLAgentActions 
+from .rl_agent_actions import DiscreteRLAgentActions
+
 
 class RL_Agent(Asset):
     dimensionality = 3
@@ -31,4 +32,3 @@ class RL_Agent(Asset):
         self.move_speed = move_speed
         self.turn_speed = turn_speed
         self.actions = actions
-        
