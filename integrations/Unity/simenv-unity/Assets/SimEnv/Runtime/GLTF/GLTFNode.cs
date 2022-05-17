@@ -182,7 +182,7 @@ namespace SimEnv.GLTF {
 
                                 Debug.Log("Creating Agent");
 
-                                GLTF_agents.GLTFAgent agentData = extensions.GLTF_agents.agents[agent_id];
+                                HF_agents.GLTFAgent agentData = extensions.GLTF_agents.agents[agent_id];
 
                                 Debug.Log("color" + agentData.color.ToString());
                                 Agent agent = GameObject.Instantiate(
@@ -192,7 +192,7 @@ namespace SimEnv.GLTF {
                                     result[i].transform
                                 );
 
-                                agent.setProperties(agentData);
+                                agent.Initialize(agentData);
 
                                 result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                             }

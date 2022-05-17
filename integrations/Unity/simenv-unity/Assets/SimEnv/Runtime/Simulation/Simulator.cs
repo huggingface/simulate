@@ -5,6 +5,7 @@ using System.Collections;
 using System.IO;
 using System.Reflection;
 using ISimEnv;
+using System.Collections.Generic;
 
 namespace SimEnv {
     /// <summary>
@@ -21,7 +22,14 @@ namespace SimEnv {
         static readonly int FRAME_SKIP = 4;
         static readonly float FRAME_INTERVAL = 1f / FRAME_RATE;
 
-        public static void Step() {
+        public static void Step(List<float> action) {
+            if(ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                Debug.Log("Stepping agent");
+                Agent agent = ISimulator.Agent as Agent;
+                agent.SetAction(action);
+            } else {
+                Debug.LogWarning("Attempting to step environment without an Agent");
+            }
             for(int i = 0; i < FRAME_SKIP; i++)
                 Physics.Simulate(FRAME_INTERVAL);
         }
