@@ -7,7 +7,7 @@ namespace SimEnv {
 
         public override void Execute(UnityAction<string> callback) {
             byte[] bytes = Convert.FromBase64String(b64bytes);
-            RuntimeManager.BuildSceneFromBytes(bytes);
+            RuntimeManager.Instance.BuildSceneFromBytes(bytes);
             callback("ack");
         }
     }
