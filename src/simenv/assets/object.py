@@ -1,3 +1,19 @@
+# Copyright 2022 The HuggingFace Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lint as: python3
+""" A simenv Scene Object."""
 import itertools
 from optparse import Option
 from typing import List, Optional, Union
@@ -6,40 +22,146 @@ import numpy as np
 import pyvista as pv
 
 from .asset import Asset
+from .material import Material
 
 
 class Object3D(Asset):
+    """Create a 3D Object.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    Examples
+    --------
+
+    """
+
     dimensionality = 3
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
-        *,
         mesh: Optional[pv.UnstructuredGrid] = None,
+        material: Optional[Material] = None,
         name: Optional[str] = None,
-        center: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
+        translation: Optional[List[float]] = None,
+        rotation: Optional[List[float]] = None,
         scale: Optional[Union[float, List[float]]] = None,
         dynamic: bool = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
-        super().__init__(name=name, center=center, direction=direction, scale=scale, parent=parent, children=children)
+        super().__init__(
+            name=name, translation=translation, rotation=rotation, scale=scale, parent=parent, children=children
+        )
         self.mesh = mesh
+        self.material = material
         self.dynamic = dynamic
 
     def __repr__(self):
-        return f"{self.name} ({self.__class__.__name__} - Mesh={self.mesh})"
+        mesh_str = ""
+        if self.mesh is not None:
+            mesh_str = f" - Mesh: {self.mesh.n_points} points, {self.mesh.n_cells} cells"
+        material_str = ""
+        if self.material is not None:
+            material_str = f" - Material: {self.material}"
+        return f"{self.name} ({self.__class__.__name__}{mesh_str}{material_str})"
 
     def plot(self, **kwargs):
         self.mesh.plot(**kwargs)
 
 
-class Sphere(Object3D):
-    """Create a vtk Sphere
+class Plane(Object3D):
+    """Create a plane.
 
     Parameters
     ----------
+    center : np.ndarray or list, optional
+        Center in ``[x, y, z]``.
+        Default to a center at the origin ``[0, 0, 0]``.
+
+    direction : list or tuple or np.ndarray, optional
+        Direction the normal to the plane in ``[x, y, z]``.
+        Default to normal pointing in the ``y`` (up) direction.
+
+    i_size : float
+        Size of the plane in the i direction.
+
+    j_size : float
+        Size of the plane in the j direction.
+
+    i_resolution : int
+        Number of points on the plane in the i direction.
+
+    j_resolution : int
+        Number of points on the plane in the j direction.
+
+    Returns
+    -------
+
+    Examples
+    --------
+
+    """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
+    def __init__(
+        self,
+        i_size: Optional[float] = 1,
+        j_size: Optional[float] = 1,
+        i_resolution: Optional[int] = 10,
+        j_resolution: Optional[int] = 10,
+        name: Optional[str] = None,
+        center: Optional[List[float]] = None,
+        direction: Optional[List[float]] = None,
+        translation: Optional[List[float]] = None,
+        rotation: Optional[List[float]] = None,
+        scale: Optional[List[float]] = None,
+        dynamic: Optional[bool] = False,
+        parent: Optional[Asset] = None,
+        children: Optional[List[Asset]] = None,
+    ):
+        if center is None:
+            center = (0, 0, 0)
+        if direction is None:
+            direction = (0, 1, 0)
+        mesh = pv.Plane(
+            center=center,
+            direction=direction,
+            i_size=i_size,
+            j_size=j_size,
+            i_resolution=i_resolution,
+            j_resolution=j_resolution,
+        )
+        super().__init__(
+            mesh=mesh,
+            name=name,
+            translation=translation,
+            rotation=rotation,
+            scale=scale,
+            dynamic=dynamic,
+            parent=parent,
+            children=children,
+        )
+
+
+class Sphere(Object3D):
+    """Create a Sphere
+
+    Parameters
+    ----------
+    center : np.ndarray or list, optional
+        Center in ``[x, y, z]``.
+        Default to a center at the origin ``[0, 0, 0]``.
+
+    direction : list or tuple or np.ndarray, optional
+        Direction the top of the sphere points to in ``[x, y, z]``.
+        Default to top of sphere pointing in the ``y`` (up) direction.
+
     radius : float, optional
         Sphere radius.
 
@@ -71,7 +193,8 @@ class Sphere(Object3D):
 
     def __init__(
         self,
-        *,
+        center: Optional[List[float]] = None,
+        direction: Optional[List[float]] = None,
         radius: Optional[float] = 1.0,
         theta_resolution: Optional[int] = 30,
         phi_resolution: Optional[int] = 30,
@@ -81,22 +204,11 @@ class Sphere(Object3D):
         end_phi: Optional[float] = 180,
         sphere_type: Optional[str] = "uv",
         name: Optional[str] = None,
-        center: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
         scale: Optional[Union[float, List[float]]] = None,
         dynamic: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
-        super().__init__(
-            name=name,
-            center=center,
-            direction=direction,
-            scale=scale,
-            dynamic=dynamic,
-            parent=parent,
-            children=children,
-        )
         if sphere_type not in ["uv", "ico"]:
             raise ValueError("Sphere type should be one of 'uv' or 'ico'.")
 
@@ -112,7 +224,24 @@ class Sphere(Object3D):
         sphere.SetEndPhi(end_phi)
         sphere.SetLatLongTessellation(bool(sphere_type == "uv"))
         sphere.Update()
-        self.mesh = pv.wrap(sphere.GetOutput())
+        mesh = pv.wrap(sphere.GetOutput())
+        mesh.rotate_y(-90, inplace=True)
+        if center is None:
+            center = (0, 0, 0)
+        if direction is None:
+            direction = (0, 1, 0)
+        pv.translate(mesh, center, direction)
+
+        super().__init__(
+            name=name,
+            mesh=mesh,
+            center=center,
+            direction=direction,
+            scale=scale,
+            dynamic=dynamic,
+            parent=parent,
+            children=children,
+        )
 
 
 class Capsule(Object3D):
@@ -146,7 +275,6 @@ class Capsule(Object3D):
 
     def __init__(
         self,
-        *,
         height: Optional[float] = 1.0,
         radius: Optional[float] = 1.0,
         theta_resolution: Optional[int] = 30,
@@ -215,7 +343,6 @@ class Cylinder(Object3D):
 
     def __init__(
         self,
-        *,
         height: Optional[float] = 1.0,
         radius: Optional[float] = 1.0,
         resolution: Optional[int] = 32,
@@ -269,7 +396,6 @@ class Cube(Object3D):
 
     def __init__(
         self,
-        *,
         bounds: Optional[Union[float, List[float]]] = None,
         level: Optional[int] = 0,
         quads: Optional[bool] = True,
@@ -286,61 +412,6 @@ class Cube(Object3D):
         if isinstance(bounds, (float, int)):
             bounds = (-bounds, bounds, -bounds, bounds, -bounds, bounds)  # Make it a list
         mesh = pv.Box(bounds=bounds, level=level, quads=quads)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            center=center,
-            direction=direction,
-            scale=scale,
-            dynamic=dynamic,
-            parent=parent,
-            children=children,
-        )
-
-
-class Plane(Object3D):
-    """Create a plane.
-
-    Parameters
-    ----------
-    i_size : float
-        Size of the plane in the i direction.
-
-    j_size : float
-        Size of the plane in the j direction.
-
-    i_resolution : int
-        Number of points on the plane in the i direction.
-
-    j_resolution : int
-        Number of points on the plane in the j direction.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
-    """
-
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-
-    def __init__(
-        self,
-        *,
-        i_size: Optional[float] = 1,
-        j_size: Optional[float] = 1,
-        i_resolution: Optional[int] = 10,
-        j_resolution: Optional[int] = 10,
-        name: Optional[str] = None,
-        center: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
-        scale: Optional[List[float]] = None,
-        dynamic: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-    ):
-        mesh = pv.Plane(i_size=i_size, j_size=j_size, i_resolution=i_resolution, j_resolution=j_resolution)
         super().__init__(
             mesh=mesh,
             name=name,
@@ -379,7 +450,6 @@ class Line(Object3D):
 
     def __init__(
         self,
-        *,
         pointa: Optional[List[float]] = None,
         pointb: Optional[List[float]] = None,
         resolution: Optional[int] = 1,
@@ -428,7 +498,6 @@ class MultipleLines(Object3D):
 
     def __init__(
         self,
-        *,
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
         center: Optional[List[float]] = None,
@@ -485,7 +554,6 @@ class Tube(Object3D):
 
     def __init__(
         self,
-        *,
         pointa: Optional[List[float]] = None,
         pointb: Optional[List[float]] = None,
         resolution: Optional[int] = 1,
@@ -550,7 +618,6 @@ class Cube(Object3D):
 
     def __init__(
         self,
-        *,
         x_length: Optional[float] = 1.0,
         y_length: Optional[float] = 1.0,
         z_length: Optional[float] = 1.0,
@@ -610,7 +677,6 @@ class Cube(Object3D):
 
     def __init__(
         self,
-        *,
         x_length: Optional[float] = 1.0,
         y_length: Optional[float] = 1.0,
         z_length: Optional[float] = 1.0,
@@ -670,7 +736,6 @@ class Cube(Object3D):
 
     def __init__(
         self,
-        *,
         x_length: Optional[float] = 1.0,
         y_length: Optional[float] = 1.0,
         z_length: Optional[float] = 1.0,
@@ -722,7 +787,6 @@ class Cone(Object3D):
 
     def __init__(
         self,
-        *,
         height: Optional[float] = 1.0,
         radius: Optional[float] = 1.0,
         resolution: Optional[int] = 6,
@@ -770,7 +834,6 @@ class Polygon(Object3D):
 
     def __init__(
         self,
-        *,
         radius: Optional[float] = 1.0,
         n_sides: Optional[int] = 6,
         name: Optional[str] = None,
@@ -827,7 +890,6 @@ class Disc(Object3D):
 
     def __init__(
         self,
-        *,
         inner: Optional[
             float
         ] = 0.25,  # TODO(thomas) add back center and normal and see how to handle that for 2D/3D stuff
@@ -878,7 +940,6 @@ class Text3D(Object3D):
 
     def __init__(
         self,
-        *,
         string: Optional[str] = "Hello",
         depth: Optional[float] = 0.5,
         name: Optional[str] = None,
@@ -923,7 +984,6 @@ class Triangle(Object3D):
 
     def __init__(
         self,
-        *,
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
         center: Optional[List[float]] = None,
@@ -966,7 +1026,6 @@ class Rectangle(Object3D):
 
     def __init__(
         self,
-        *,
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
         center: Optional[List[float]] = None,
@@ -1012,7 +1071,6 @@ class Circle(Object3D):
 
     def __init__(
         self,
-        *,
         radius: Optional[float] = 0.5,
         resolution: Optional[int] = 100,
         name: Optional[str] = None,
@@ -1062,7 +1120,6 @@ class StructuredGrid(Object3D):
 
     def __init__(
         self,
-        *,
         x: Union[np.ndarray, List[List[float]]] = None,
         y: Union[np.ndarray, List[List[float]]] = None,
         z: Union[np.ndarray, List[List[float]]] = None,

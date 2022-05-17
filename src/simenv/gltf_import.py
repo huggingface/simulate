@@ -82,6 +82,9 @@ def get_buffer_as_bytes(gltf_scene: GLTF, buffer_view_id: int) -> ByteString:
     return data
 
 
+# TODO we can probably remove a lot of gltf method since we now have them supported through pyvista
+# Still keeping them if we want to support our own collision shape and maybe complex operations
+# To be cleaned up at the end
 def get_image_as_bytes(gltf_scene: GLTF, image_id: int) -> ByteString:
     """Get a ByteString of the data stored in a GLTF image"""
     gltf_model = gltf_scene.model

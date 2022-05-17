@@ -18,18 +18,31 @@ from typing import Optional
 
 import numpy as np
 import pyvista
+from matplotlib.pyplot import plot
 
 from ..assets import Asset, Camera, Light, Object3D
 from .engine import Engine
 
 
 class PyVistaEngine(Engine):
-    def __init__(self, scene, **pyvista_plotter_kwargs):
-        self.plotter: pyvista.Plotter = pyvista.Plotter(lighting="none", **pyvista_plotter_kwargs)
+    def __init__(self, scene, **plotter_kwargs):
+        self.plotter: pyvista.Plotter = None
+        self.plotter_kwargs = plotter_kwargs
         self._scene: Asset = scene
+        self._initialize_plotter()
+
+    def _initialize_plotter(self):
+        plotter_args = {"lighting": "none"}
+        plotter_args.update(self.plotter_kwargs)
+        self.plotter: pyvista.Plotter = pyvista.Plotter(**plotter_args)
+        self.plotter.camera_position = "xy"
+        self.plotter.add_axes(box=True)
 
     def _update_scene(self):
+        if not hasattr(self.plotter, "ren_win"):
+            self._initialize_plotter()
         self.plotter.clear()
+
         has_lights = False
         for node in self._scene:
             if not isinstance(node, (Object3D, Camera, Light)):
@@ -58,6 +71,10 @@ class PyVistaEngine(Engine):
 
     def show(self, **pyvista_plotter_kwargs):
         self._update_scene()
+
+        if "cpos" not in pyvista_plotter_kwargs:
+            pyvista_plotter_kwargs["cpos"] = "xy"
+
         self.plotter.show(**pyvista_plotter_kwargs)
 
     def close(self):
