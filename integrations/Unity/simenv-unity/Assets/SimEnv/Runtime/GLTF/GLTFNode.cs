@@ -27,11 +27,15 @@ namespace SimEnv.GLTF {
         public class Extensions {
             public KHR_light KHR_lights_punctual;
             public HFRLAgent HF_RL_agents;
-            public HF_colliders HF_collision_shapes;
+            public HFCollider HF_colliders; 
         }
 
         public class HFRLAgent {
             public int agent;
+        }
+
+        public class HFCollider {
+            public int collider;
         }
 
         public class KHR_light {
@@ -47,7 +51,7 @@ namespace SimEnv.GLTF {
         }
 
         public void ApplyMatrix(Transform transform) {
-            if (matrix != Matrix4x4.identity)
+            if(matrix != Matrix4x4.identity)
                 matrix.UnpackMatrix(ref translation, ref rotation, ref scale);
             transform.localPosition = translation;
             transform.localRotation = rotation;
@@ -70,43 +74,45 @@ namespace SimEnv.GLTF {
             }
 
             public override IEnumerator TaskCoroutine(Action<float> onProgress = null) {
-                if (nodes == null) {
-                    if (onProgress != null)
+                if(nodes == null) {
+                    if(onProgress != null)
                         onProgress(1f);
                     IsCompleted = true;
                     yield break;
                 }
                 result = new ImportResult[nodes.Count];
-                for (int i = 0; i < result.Length; i++) {
+                for(int i = 0; i < result.Length; i++) {
                     result[i] = new GLTFNode.ImportResult();
                     result[i].transform = new GameObject().transform;
                     result[i].transform.gameObject.name = nodes[i].name;
-                    result[i].transform.gameObject.AddComponent<SimObjectBase>().Initialize();
+                    SimObjectBase simObject = result[i].transform.gameObject.AddComponent<SimObjectBase>();
+                    if(Application.isPlaying)
+                        simObject.Initialize();
                 }
-                for (int i = 0; i < result.Length; i++) {
-                    if (nodes[i].children != null) {
+                for(int i = 0; i < result.Length; i++) {
+                    if(nodes[i].children != null) {
                         int[] children = nodes[i].children;
                         result[i].children = children;
-                        for (int k = 0; k < children.Length; k++) {
+                        for(int k = 0; k < children.Length; k++) {
                             int childIndex = children[k];
                             result[childIndex].parent = i;
                             result[childIndex].transform.parent = result[i].transform;
                         }
                     }
                 }
-                for (int i = 0; i < result.Length; i++)
+                for(int i = 0; i < result.Length; i++)
                     nodes[i].ApplyMatrix(result[i].transform);
-                for (int i = 0; i < result.Length; i++) {
-                    if (nodes[i].mesh.HasValue) {
+                for(int i = 0; i < result.Length; i++) {
+                    if(nodes[i].mesh.HasValue) {
                         GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
-                        if (meshResult == null) continue;
+                        if(meshResult == null) continue;
 
                         Mesh mesh = meshResult.mesh;
                         Renderer renderer;
-                        if (nodes[i].skin.HasValue) {
+                        if(nodes[i].skin.HasValue) {
                             GLTFSkin.ImportResult skin = skinTask.result[nodes[i].skin.Value];
                             renderer = skin.SetupSkinnedMeshRenderer(result[i].transform.gameObject, mesh, result);
-                        } else if (mesh.blendShapeCount > 0) {
+                        } else if(mesh.blendShapeCount > 0) {
                             SkinnedMeshRenderer skinnedMeshRenderer = result[i].transform.gameObject.AddComponent<SkinnedMeshRenderer>();
                             skinnedMeshRenderer.sharedMesh = mesh;
                             renderer = skinnedMeshRenderer;
@@ -117,18 +123,18 @@ namespace SimEnv.GLTF {
                             renderer = meshRenderer;
                         }
                         renderer.materials = meshResult.materials;
-                        if (string.IsNullOrEmpty(result[i].transform.name))
+                        if(string.IsNullOrEmpty(result[i].transform.name))
                             result[i].transform.name = "node" + i;
                     } else {
-                        if (string.IsNullOrEmpty(result[i].transform.name))
+                        if(string.IsNullOrEmpty(result[i].transform.name))
                             result[i].transform.name = "node" + i;
                     }
 
-                    if (nodes[i].camera.HasValue) {
+                    if(nodes[i].camera.HasValue) {
                         GLTFCamera cameraData = cameras[nodes[i].camera.Value];
                         Camera camera = result[i].transform.gameObject.AddComponent<Camera>();
                         result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
-                        switch (cameraData.type) {
+                        switch(cameraData.type) {
                             case CameraType.orthographic:
                                 camera.orthographic = true;
                                 camera.nearClipPlane = cameraData.orthographic.znear;
@@ -138,29 +144,29 @@ namespace SimEnv.GLTF {
                             case CameraType.perspective:
                                 camera.orthographic = false;
                                 camera.nearClipPlane = cameraData.perspective.znear;
-                                if (cameraData.perspective.zfar.HasValue)
+                                if(cameraData.perspective.zfar.HasValue)
                                     camera.farClipPlane = cameraData.perspective.zfar.Value;
-                                if (cameraData.perspective.aspectRatio.HasValue)
+                                if(cameraData.perspective.aspectRatio.HasValue)
                                     camera.aspect = cameraData.perspective.aspectRatio.Value;
                                 camera.fieldOfView = Mathf.Rad2Deg * cameraData.perspective.yfov;
                                 break;
                         }
                     }
-                    if (nodes[i].extensions != null) {
-                        if (nodes[i].extensions.KHR_lights_punctual != null) {
+                    if(nodes[i].extensions != null) {
+                        if(nodes[i].extensions.KHR_lights_punctual != null) {
                             int lightValue = nodes[i].extensions.KHR_lights_punctual.light;
-                            if (extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {
+                            if(extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {
                                 Debug.LogWarning("Error importing light");
                             } else {
                                 KHR_lights_punctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
                                 Light light = result[i].transform.gameObject.AddComponent<Light>();
                                 result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
-                                if (!string.IsNullOrEmpty(lightData.name))
+                                if(!string.IsNullOrEmpty(lightData.name))
                                     light.transform.gameObject.name = lightData.name;
                                 light.color = lightData.color;
                                 light.intensity = lightData.intensity;
                                 light.range = lightData.range;
-                                switch (lightData.type) {
+                                switch(lightData.type) {
                                     case LightType.directional:
                                         light.type = UnityEngine.LightType.Directional;
                                         break;
@@ -173,13 +179,30 @@ namespace SimEnv.GLTF {
                                 }
                             }
                         }
+                        if(nodes[i].extensions.HF_colliders != null) {
+                            Debug.Log("not null " + i + " " + nodes[i].name + " " + nodes[i].extensions);
+                            int collider_id = nodes[i].extensions.HF_colliders.collider;
+                            if(extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.shapes == null || extensions.HF_colliders.shapes.Count < collider_id) {
+                                Debug.LogWarning("Error importing collider");
+                            } else {
+                                Debug.Log("Creating collider");
+
+                                HF_colliders.GLTFCollider collider = extensions.HF_colliders.shapes[collider_id];
+                                
+                                if(collider.type == ColliderType.BOX) {
+                                    BoxCollider col = result[i].transform.gameObject.AddComponent<BoxCollider>();
+                                    col.size = collider.boundingBox;
+                                } else {
+                                    throw new System.NotImplementedException();
+                                }
+                            }
+                        }
                         if (nodes[i].extensions.HF_RL_agents != null) {
                             Debug.Log("not null2 " + i + " " + nodes[i].name + " " + nodes[i].extensions);
                             int agent_id = nodes[i].extensions.HF_RL_agents.agent;
                             if (extensions == null || extensions.HF_RL_agents == null || extensions.HF_RL_agents.agents == null || extensions.HF_RL_agents.agents.Count < agent_id) {
                                 Debug.LogWarning("Error importing agent");
                             } else {
-
                                 Debug.Log("Creating Agent");
 
                                 HF_RL_agents.HF_RL_Agent agentData = extensions.HF_RL_agents.agents[agent_id];
@@ -192,17 +215,11 @@ namespace SimEnv.GLTF {
                                     result[i].transform
                                 );
 
-                                agent.Initialize(agentData);
+                                if(Application.isPlaying)
+                                    agent.Initialize(agentData);
 
                                 result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                             }
-                        }
-
-
-
-
-                        if (nodes[i].extensions.HF_collision_shapes != null) {
-                            throw new NotImplementedException();
                         }
                     }
                 }
@@ -234,10 +251,10 @@ namespace SimEnv.GLTF {
             node.filter = transform.gameObject.GetComponent<MeshFilter>();
             node.skinnedMeshRenderer = transform.gameObject.GetComponent<SkinnedMeshRenderer>();
             nodes.Add(node);
-            if (transform.childCount > 0) {
-                if (transform.childCount > 0) {
+            if(transform.childCount > 0) {
+                if(transform.childCount > 0) {
                     node.children = new int[transform.childCount];
-                    for (int i = 0; i < node.children.Length; i++) {
+                    for(int i = 0; i < node.children.Length; i++) {
                         Transform child = transform.GetChild(i);
                         node.children[i] = nodes.Count;
                         CreateNodeListRecursive(child, nodes);
@@ -250,11 +267,11 @@ namespace SimEnv.GLTF {
     public static class GLTFNodeExtensions {
         public static GameObject GetRoot(this GLTFNode.ImportResult[] nodes) {
             GLTFNode.ImportResult[] roots = nodes.Where(x => x.IsRoot).ToArray();
-            if (roots.Length == 1) {
+            if(roots.Length == 1) {
                 return roots[0].transform.gameObject;
             } else {
                 GameObject root = new GameObject("Root");
-                for (int i = 0; i < roots.Length; i++)
+                for(int i = 0; i < roots.Length; i++)
                     roots[i].transform.parent = root.transform;
                 return root;
             }
