@@ -24,10 +24,7 @@ class UnityEngine:
 
         self.host = "127.0.0.1"
         self.port = 55000
-        self.initialize_server()
-
-    def show(self):
-        self._send_gltf(tree_as_glb_bytes(self._scene))
+        self._initialize_server()
 
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -50,6 +47,17 @@ class UnityEngine:
         b64_bytes = base64.b64encode(bytes).decode("ascii")
         command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
         self._run_command(command)
+
+    def update_asset_in_scene(self):
+        # TODO update and make this API more consistent with all the
+        # update_asset_in_scene, recreate_scene, show
+        self._send_gltf(tree_as_glb_bytes(self._scene))
+
+    def recreate_scene(self):
+        self._send_gltf(tree_as_glb_bytes(self._scene))
+
+    def show(self):
+        self._send_gltf(tree_as_glb_bytes(self._scene))
 
     def step(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}

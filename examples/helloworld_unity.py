@@ -4,7 +4,7 @@ import simenv as sm
 scene = sm.Scene(engine='Unity')
 
 sphere = sm.Sphere('sphere')
-light = sm.DirectionalLight('light')
+light = sm.Light('light')
 agent = sm.RL_Agent('agent')
 camera = sm.Camera('cam')
 

@@ -366,7 +366,12 @@ def add_node_to_scene(
     gl_parent_node_id: Optional[int] = None,
     buffer_id: Optional[int] = 0,
 ):
-    gl_node = gl.Node(name=node.name, translation=node.center, rotation=node.direction, scale=node.scale)
+    gl_node = gl.Node(
+        name=node.name,
+        translation=node.position.tolist(),
+        rotation=node.rotation.tolist(),
+        scale=node.scaling.tolist(),
+    )
     if isinstance(node, Camera):
         gl_node.camera = add_camera_to_model(
             camera=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
@@ -375,7 +380,7 @@ def add_node_to_scene(
         light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
 
-    elif isinstance(node, sm.RL_Agent):
+    elif isinstance(node, RL_Agent):
         agent_id = add_agent_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(GLTF_agents=gl.GLTF_RL_Agents(agent=agent_id))
 

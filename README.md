@@ -116,10 +116,21 @@ Starting the vizualization engine can be done simply with `.show()`.
 scene.show()
 ```
 
-Rendering in Unity Example
----
-1. Open the Unity project, then open the Sample Scene, or create a new scene and add an empty GameObject with a `Client.cs` component attached.
-2. Add the Unity backend to your scene, and render it. For example, modifying the above example:
+## Using with Unity as engine
+
+### Install with the Unity editor
+
+Currently we use Unity version `2021.3.2f1` as the development version.
+
+To install and run the project in Unity:
+- First install Unity `2021.3.2f1` using the Unity Hub if you don't have it
+- From the Unity Hub, open the project at `./integrations/Unity/simenv-unity`
+- Open the Sample Scene or create a new scene with an empty GameObject with a `Client.cs` component attached
+
+### Run with the Unity engine
+
+1. If it's not already opened, open the Unity project with Scene with a GameObject with a `Client.cs` component attached.
+2. Create the `simenv` scene with a `'Unity'` engine, for example:
 ```
 import simenv as sm
 
@@ -130,8 +141,8 @@ scene.render()
 3. Run the python script. It should print "Waiting for connection...", meaning that it has spawned a websocket server, and is waiting for a connection from the Unity client.
 4. Press Play in Unity. It should connect to the Python client, then display a basic Sphere. The python script should finish execution.
 
-Creating Custom Functionality
----
+### Creating Custom Functionality
+
 Communication with the backend is through JSON messages over a socket connection. A socket command has the following format:
 ```
 {

@@ -59,11 +59,12 @@ from setuptools import find_packages, setup
 
 
 REQUIRED_PKGS = [
-    # We use numpy>=1.17 to have np.random.Generator
-    "numpy>=1.17",
-    "pyvista",
-#     "pillow",  # A dependency of pyvista, can remove it
-    "dataclasses_json"
+   "dataclasses_json",  # For GLTF export/imports
+   "numpy>=1.17", # We use numpy>=1.17 to have np.random.Generator
+   "pyvista",  # For mesh creation and edition and simple vizualization
+   "gym",  # For RL action spaces and API
+   "pyvistaqt",  # For having a background vizualization capabilities (could be optional - note than some Qt backend can have GPL license)
+   "PySide6",
 ]
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
