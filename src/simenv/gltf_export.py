@@ -28,7 +28,7 @@ except:
     pass
 
 from . import gltflib as gl
-from .assets import Asset, Camera, Light, Material, Object3D
+from .assets import Asset, Camera, Light, Material, Object3D, RL_Agent
 from .gltflib.utils import padbytes
 
 
@@ -339,9 +339,7 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
     return light_id
 
 
-def add_agent_to_model(
-    node: sm.RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0
-) -> int:
+def add_agent_to_model(node: RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
     agent = gl.GLTF_RL_Agent(
         color=node.color,
         height=node.height,

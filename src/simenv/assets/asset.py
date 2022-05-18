@@ -121,7 +121,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        self.position += np.array((amount, 0, 0))
+        self.position += np.array((amount, 0.0, 0.0))
         return self
 
     def translate_y(self, amount: Optional[float] = 0.0):
@@ -141,7 +141,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        self.position += np.array((0, amount, 0))
+        self.position += np.array((0.0, amount, 0.0))
         return self
 
     def translate_z(self, amount: Optional[float] = 0.0):
@@ -161,7 +161,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        self.position += np.array((0, 0, amount))
+        self.position += np.array((0.0, 0.0, amount))
         return self
 
     def rotate(self, rotation: Optional[List[float]] = None):
@@ -211,7 +211,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        return self._rotate_axis(vector=[1, 0, 0], value=value)
+        return self._rotate_axis(vector=[1.0, 0.0, 0.0], value=value)
 
     def rotate_y(self, value: Optional[float] = None):
         """Rotate the asset around the ``y`` axis with a given rotation value in degree.
@@ -230,7 +230,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        return self._rotate_axis(vector=[0, 1, 0], value=value)
+        return self._rotate_axis(vector=[0.0, 1.0, 0.0], value=value)
 
     def rotate_z(self, value: Optional[float] = None):
         """Rotate the asset around the ``z`` axis with a given rotation value in degree.
@@ -249,7 +249,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        return self._rotate_axis(vector=[0, 0, 1], value=value)
+        return self._rotate_axis(vector=[0.0, 0.0, 1.0], value=value)
 
     def scale(self, scaling: Optional[Union[float, List[float]]] = None):
         """Scale the asset with a given scaling, either a global scaling value or a vector of ``[x, y, z]`` scaling values.
