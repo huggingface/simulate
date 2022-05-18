@@ -20,9 +20,8 @@ import simenv as sm
 
 from .assets import Asset
 from .assets.anytree import RenderTree
-from .gltf_export import tree_as_glb_bytes
+from .engine import PyVistaEngine, UnityEngine
 from .gltf_import import load_gltf_as_tree
-from .renderer.unity import Unity
 
 
 class UnsetRendererError(Exception):
@@ -34,30 +33,18 @@ class SceneNotBuiltError(Exception):
 
 
 class Scene(Asset):
-    def __init__(
-        self,
-        engine: Optional[str] = None,
-        start_frame=0,
-        end_frame=500,
-        frame_rate=24,
-        children=None,
-        name=None,
-        translation=None,
-        rotation=None,
-        scale=None,
-    ):
+    def __init__(self, engine: Optional[str] = None, name: Optional[str] = None, **kwargs):
+        super().__init__(name=name, **kwargs)
         self.engine = None
+        self._built = False
         if engine == "Unity":
-            self.engine = Unity(self, start_frame=start_frame, end_frame=end_frame, frame_rate=frame_rate)
+            self.engine = UnityEngine(self)
         elif engine == "Blender":
             raise NotImplementedError()
-        elif engine is None:
-            pass
+        elif engine == "pyvista" or engine is None:
+            self.engine = PyVistaEngine(self)
         else:
             raise ValueError("engine should be selected ()")
-
-        self._built = False
-        super().__init__(name=name, translation=translation, rotation=rotation, scale=scale, children=children)
 
     @classmethod
     def from_gltf(cls, file_path, **kwargs):
@@ -70,12 +57,17 @@ class Scene(Asset):
             root = Asset(name="Scene")  # Otherwise we build a main root node
         return cls(
             name=root.name,
-            translation=root.translation,
+            position=root.position,
             rotation=root.rotation,
-            scale=root.scale,
+            scaling=root.scaling,
             children=nodes,
             **kwargs,
         )
+
+    def clear(self):
+        """ " Remove all assets in the scene."""
+        self.tree_children = []
+        return self
 
     def _get_decendants_of_class_type(self, class_type):
         result = []
@@ -89,12 +81,12 @@ class Scene(Asset):
         # search all nodes for agents classes and then return in list
         return self._get_decendants_of_class_type(sm.RL_Agent)
 
-    def build(self):
+    def show(self):
         """Render the Scene using the engine if provided."""
         if self.engine is None:
             raise UnsetRendererError()
 
-        self.engine.send_gltf(tree_as_glb_bytes(self))
+        self.engine.show()
         self._built = True
 
     def step(self, action):

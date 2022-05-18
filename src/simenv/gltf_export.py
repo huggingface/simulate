@@ -19,18 +19,16 @@ from io import BytesIO
 from typing import ByteString, List, Optional, Set, Tuple
 
 import numpy as np
-import PIL.Image
-import trimesh
+import pyvista as pv
 
-# from trimesh.path.entities import Line  # Line need scipy
-from trimesh.visual.material import PBRMaterial
-from trimesh.visual.texture import TextureVisuals
 
-import simenv as sm
-from simenv.gltflib.models.extensions.khr_lights_ponctual import KHRLightsPunctualLight
+try:
+    import PIL.Image
+except:
+    pass
 
 from . import gltflib as gl
-from .assets import Asset, Camera, DirectionalLight, Light, Object, PointLight, SpotLight
+from .assets import Asset, Camera, Light, Material, Object3D, RL_Agent
 from .gltflib.utils import padbytes
 
 
@@ -57,9 +55,6 @@ numpy_to_gltf_shapes_mapping = {
     (3, 3): gl.AccessorType.MAT3,
     (4, 4): gl.AccessorType.MAT4,
 }
-
-
-lights_to_gltf_mapping = {SpotLight: "spot", DirectionalLight: "directional", PointLight: "point"}
 
 
 def add_data_to_gltf(new_data: bytearray, gltf_model: gl.GLTFModel, buffer_data: bytearray, buffer_id: int = 0) -> int:
@@ -137,13 +132,8 @@ def add_numpy_to_gltf(
     return accessor_id
 
 
-def add_image_to_gltf(image: PIL.Image, gltf_model: gl.GLTFModel, buffer_data: bytearray, buffer_id: int = 0) -> int:
+def add_image_to_gltf(image: "PIL.Image", gltf_model: gl.GLTFModel, buffer_data: bytearray, buffer_id: int = 0) -> int:
     """Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and add the numpy array in the buffer_data."""
-    # From trimesh
-    # probably not a PIL image so exit
-    if not hasattr(image, "format"):
-        return None
-
     # don't re-encode JPEGs
     if image.format == "JPEG":
         # no need to mangle JPEGs
@@ -173,24 +163,20 @@ def add_image_to_gltf(image: PIL.Image, gltf_model: gl.GLTFModel, buffer_data: b
 
 
 def add_material_to_gltf(
-    tm_material: trimesh.visual.material.PBRMaterial,
+    material: Material,
     gltf_model: gl.GLTFModel,
     buffer_data: bytearray,
     buffer_id: int = 0,
 ) -> int:
     """Add GLTF accessor and bufferview to the GLTF scene to store a numpy array and add the numpy array in the buffer_data."""
-    # convert passed input to PBR if necessary
-    if hasattr(tm_material, "to_pbr"):
-        tm_material = tm_material.to_pbr()
 
-    # From trimesh
     # Store keys of the PBRMaterial which are images
     images_to_add = {
-        "baseColorTexture": tm_material.baseColorTexture,
-        "emissiveTexture": tm_material.emissiveTexture,
-        "normalTexture": tm_material.normalTexture,
-        "occlusionTexture": tm_material.occlusionTexture,
-        "metallicRoughnessTexture": tm_material.metallicRoughnessTexture,
+        "baseColorTexture": material.baseColorTexture,
+        "emissiveTexture": material.emissiveTexture,
+        "normalTexture": material.normalTexture,
+        "occlusionTexture": material.occlusionTexture,
+        "metallicRoughnessTexture": material.metallicRoughnessTexture,
     }
 
     textures_ids = {}
@@ -203,32 +189,24 @@ def add_material_to_gltf(
             textures_ids[key] = gl.TextureInfo(index=texture_id)
 
     pbr_metallic_roughness = gl.PBRMetallicRoughness(
-        metallicFactor=tm_material.metallicFactor if isinstance(tm_material.metallicFactor, float) else None,
-        roughnessFactor=tm_material.roughnessFactor if isinstance(tm_material.roughnessFactor, float) else None,
+        baseColorFactor=material.baseColorFactor,
         baseColorTexture=textures_ids["baseColorTexture"],
+        metallicFactor=material.metallicFactor,
+        roughnessFactor=material.roughnessFactor,
         metallicRoughnessTexture=textures_ids["metallicRoughnessTexture"],
     )
-    try:  # try to convert base color to (4,) float color
-        pbr_metallic_roughness.baseColorFactor = (
-            trimesh.visual.color.to_float(tm_material.baseColorFactor).reshape(4).tolist()
-        )
-    except BaseException:
-        pass
 
     material = gl.Material(
-        name=tm_material.name if isinstance(tm_material.name, str) else None,
+        name=material.name,
         pbrMetallicRoughness=pbr_metallic_roughness,
         normalTexture=textures_ids["normalTexture"],
         occlusionTexture=textures_ids["occlusionTexture"],
         emissiveTexture=textures_ids["emissiveTexture"],
-        alphaMode=tm_material.alphaMode if isinstance(tm_material.alphaMode, str) else None,
-        alphaCutoff=tm_material.alphaCutoff if isinstance(tm_material.alphaCutoff, float) else None,
-        doubleSided=tm_material.doubleSided if isinstance(tm_material.doubleSided, bool) else None,
+        emissiveFactor=material.emissiveFactor,
+        alphaMode=material.alphaMode,
+        alphaCutoff=material.alphaCutoff,
+        doubleSided=material.doubleSided,
     )
-    try:
-        material.emissiveFactor = tm_material.emissiveFactor.reshape(3).tolist()
-    except BaseException:
-        pass
 
     # Add the new material
     gltf_model.materials.append(material)
@@ -237,75 +215,86 @@ def add_material_to_gltf(
     return material_id
 
 
-def add_mesh_to_model(
-    tm_mesh: trimesh.Trimesh, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0
-) -> int:
-    if len(tm_mesh.faces) == 0 or len(tm_mesh.vertices) == 0:
+def add_mesh_to_model(node: Object3D, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
+    mesh = node.mesh
+    material = node.material
+    if mesh.n_verts == 0 and mesh.n_lines == 0 and mesh.n_faces == 0:
         raise NotImplementedError()
 
-    # Build attributes, primitive and mesh
-    attributes = gl.Attributes()
-    primitive = gl.Primitive(mode=gl.PrimitiveMode.TRIANGLES.value, attributes=attributes)
-    mesh = gl.Mesh(primitives=[primitive])
-
-    # Store vertex positions
-    np_array = tm_mesh.vertices.astype(NP_FLOAT32)
-    attributes.POSITION = add_numpy_to_gltf(
+    # Store points in gltf
+    np_array = mesh.points.astype(NP_FLOAT32)
+    point_accessor = add_numpy_to_gltf(
         np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
     )
 
-    # store vertex normals (TODO maybe not always necessary?)
-    np_array = tm_mesh.vertex_normals.astype(NP_FLOAT32)
-    attributes.NORMAL = add_numpy_to_gltf(
-        np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
-    )
-
-    # check to see if we have vertex or face colors or if a TextureVisual has colors included as an attribute
-    vertex_colors = None
-    if tm_mesh.visual.kind in ["vertex", "face"]:
-        vertex_colors = tm_mesh.visual.vertex_colors
-    elif hasattr(tm_mesh.visual, "vertex_attributes") and "color" in tm_mesh.visual.vertex_attributes:
-        vertex_colors = tm_mesh.visual.vertex_attributes["color"]
-    if vertex_colors is not None:
-        np_array = vertex_colors.astype(NP_UINT8)
-        attributes.COLOR_0 = add_numpy_to_gltf(
+    # Store vertex normals in gltf (TODO maybe not always necessary?)
+    normal_accessor = None
+    if mesh.active_normals is not None:
+        np_array = mesh.active_normals.astype(NP_FLOAT32)
+        normal_accessor = add_numpy_to_gltf(
             np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
         )
 
-    # Store face indices
-    np_array = tm_mesh.faces.reshape((-1, 1)).astype(NP_UINT32)
-    primitive.indices = add_numpy_to_gltf(
-        np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
-    )
+    # Store texture coord in gltf (TODO maybe not always necessary?)
+    tcoord_accessor = None
+    if mesh.active_t_coords is not None:
+        np_array = mesh.active_t_coords.astype(NP_FLOAT32)
+        tcoord_accessor = add_numpy_to_gltf(
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+        )
 
-    # append the material and then set from returned index
-    if hasattr(tm_mesh.visual, "material"):
+    if material is not None:
+        # Add a material and/or texture if we want
         material_id = add_material_to_gltf(
-            tm_material=tm_mesh.visual.material, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+            material=material, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+        )
+    else:
+        material_id = None
+
+    attributes = gl.Attributes(POSITION=point_accessor, NORMAL=normal_accessor, TEXCOORD_0=tcoord_accessor)
+    # attributes.COLOR_0 = vertex_accessor  # TODO Add back vertex color if we want to
+
+    primitives = []
+
+    # Add verts as a a Primitive if we have some
+    if mesh.n_verts:
+        primitive = gl.Primitive(mode=gl.PrimitiveMode.POINTS.value, attributes=attributes)
+        # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
+        np_array = mesh.verts.copy().reshape((-1, 1)).astype(NP_UINT32)
+        primitive.indices = add_numpy_to_gltf(
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
         )
         primitive.material = material_id
+        primitives.append(primitive)
 
-        # if tm_mesh has UV coordinates defined export them
-        has_uv = (
-            hasattr(tm_mesh.visual, "uv")
-            and tm_mesh.visual.uv is not None
-            and len(tm_mesh.visual.uv) == len(tm_mesh.vertices)
+    # Add lines as a Primitive if we have some
+    if mesh.n_lines:
+        primitive = gl.Primitive(mode=gl.PrimitiveMode.LINES.value, attributes=attributes)
+        # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
+        np_array = mesh.lines.copy().reshape((-1, 1)).astype(NP_UINT32)
+        primitive.indices = add_numpy_to_gltf(
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
         )
-        if has_uv:
-            # slice off W if passed
-            uv = tm_mesh.visual.uv.copy()[:, :2]
-            # reverse the Y for GLTF
-            uv[:, 1] = 1.0 - uv[:, 1]
+        primitive.material = material_id
+        primitives.append(primitive)
 
-            # Store uv coords
-            np_array = uv.astype(NP_FLOAT32)
-            uv_accessor_id = add_numpy_to_gltf(
-                np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
-            )
-            attributes.TEXCOORD_0 = uv_accessor_id
+    # Add faces as a Primitive if we have some
+    if mesh.n_faces:
+        primitive = gl.Primitive(mode=gl.PrimitiveMode.TRIANGLES.value, attributes=attributes)
+        # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
+        tri_mesh = mesh.triangulate()  # Triangulate the mesh (gltf can nly store triangulated meshes)
+        np_array = (
+            tri_mesh.faces.copy().reshape((-1, 4))[:, 1:].reshape(-1, 1).astype(NP_UINT32)
+        )  # We drop the number of indices per face
+        primitive.indices = add_numpy_to_gltf(
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+        )
+        primitive.material = material_id
+        primitives.append(primitive)
 
     # Add the new mesh
-    gltf_model.meshes.append(mesh)
+    gltf_mesh = gl.Mesh(primitives=primitives)
+    gltf_model.meshes.append(gltf_mesh)
     mesh_id = len(gltf_model.meshes) - 1
 
     return mesh_id
@@ -331,9 +320,18 @@ def add_camera_to_model(camera: Camera, gltf_model: gl.GLTFModel, buffer_data: B
 
 
 def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
-    light_type = lights_to_gltf_mapping[node.__class__]
+    light_type = node.light_type
+    if light_type == "positional":
+        if node.outer_cone_angle is None or node.outer_cone_angle > np.pi / 2:
+            light_type = "point"
+        else:
+            light_type = "spot"
 
     light = gl.KHRLightsPunctualLight(type=light_type, color=node.color, intensity=node.intensity, range=node.range)
+
+    if light_type == "spot":
+        light.innerConeAngle = node.inner_cone_angle
+        light.outerConeAngle = node.outer_cone_angle
 
     # Add the new light
     if gltf_model.extensions.KHR_lights_punctual is None:
@@ -345,9 +343,7 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
     return light_id
 
 
-def add_agent_to_model(
-    node: sm.RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0
-) -> int:
+def add_agent_to_model(node: RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
     agent = gl.GLTF_RL_Agent(
         color=node.color,
         height=node.height,
@@ -374,7 +370,12 @@ def add_node_to_scene(
     gl_parent_node_id: Optional[int] = None,
     buffer_id: Optional[int] = 0,
 ):
-    gl_node = gl.Node(name=node.name, translation=node.translation, rotation=node.rotation, scale=node.scale)
+    gl_node = gl.Node(
+        name=node.name,
+        translation=node.position.tolist(),
+        rotation=node.rotation.tolist(),
+        scale=node.scaling.tolist(),
+    )
     if isinstance(node, Camera):
         gl_node.camera = add_camera_to_model(
             camera=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
@@ -383,13 +384,13 @@ def add_node_to_scene(
         light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
 
-    elif isinstance(node, sm.RL_Agent):
+    elif isinstance(node, RL_Agent):
         agent_id = add_agent_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(GLTF_agents=gl.GLTF_RL_Agents(agent=agent_id))
 
-    elif isinstance(node, Object):
+    elif isinstance(node, Object3D):
         gl_node.mesh = add_mesh_to_model(
-            tm_mesh=node.mesh, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+            node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
         )
 
     # Add the new node
