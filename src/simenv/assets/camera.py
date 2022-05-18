@@ -57,3 +57,17 @@ class Camera(Asset):
         self.camera_type = camera_type
         self.xmag = xmag
         self.ymag = ymag
+
+    @Asset.position.setter
+    def position(self, value):  # override default position a distance from the origin
+        if self.dimensionality == 3:
+            if value is None:
+                value = [0.0, 0.0, -10.0]
+        Asset.position.fset(self, value)
+
+    @Asset.rotation.setter
+    def rotation(self, value):  # override default rotation facing origin
+        if self.dimensionality == 3:
+            if value is None:
+                value = [0.0, 1.0, 0.0, 0.0]
+        Asset.rotation.fset(self, value)
