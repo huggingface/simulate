@@ -47,8 +47,9 @@ class Object3D(Asset):
         position: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
-        super().__init__(name=name, position=position, parent=parent, children=children)
+        super().__init__(name=name, position=position, parent=parent, children=children, **kwargs)
         self.mesh = mesh
         self.material = material
 

@@ -72,7 +72,14 @@ class Asset(NodeMixin, object):
         if transformation_matrix is not None:
             self.transformation_matrix = transformation_matrix
 
+    def get(self, name: str):
+        """Return the first children tree node with the given name."""
+        for node in self.tree_children:
+            if node.name == name:
+                return node
+
     def copy(self):
+        """Return a copy of the Asset. Parent and children are not attached to the copy."""
         return Asset(name=None, position=self.position, rotation=self.rotation, scaling=self.scaling)
 
     def translate(self, vector: Optional[List[float]] = None):

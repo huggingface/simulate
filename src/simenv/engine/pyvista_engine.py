@@ -120,6 +120,8 @@ class PyVistaEngine(Engine):
 
             self._add_asset_to_scene(node, model_transform_matrix)
 
+        self.plotter.reset_camera()
+
     def _add_asset_to_scene(self, node, model_transform_matrix):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             return
@@ -162,6 +164,8 @@ class PyVistaEngine(Engine):
 
         if not self.plotter.renderer.lights:
             self.plotter.enable_lightkit()  # Still add some lights
+
+        self.plotter.reset_camera()
 
     def show(self, **pyvista_plotter_kwargs):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):

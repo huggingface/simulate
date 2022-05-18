@@ -38,13 +38,15 @@ class Camera(Asset):
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,
         name: Optional[str] = None,
-        center: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
-        scale: Optional[Union[float, List[float]]] = None,
+        position: Optional[List[float]] = None,
+        rotation: Optional[List[float]] = None,
+        scaling: Optional[Union[float, List[float]]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
-        super().__init__(name=name, center=center, direction=direction, scale=scale, parent=parent, children=children)
+        super().__init__(
+            name=name, position=position, rotation=rotation, scaling=scaling, parent=parent, children=children
+        )
         self.width = width
         self.height = height
 

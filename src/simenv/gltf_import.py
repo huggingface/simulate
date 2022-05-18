@@ -150,9 +150,9 @@ def build_node_tree(
     gltf_node = gltf_model.nodes[gltf_node_id]
     common_kwargs = {
         "name": gltf_node.name,
-        "center": gltf_node.translation,
-        "direction": gltf_node.rotation,
-        "scale": gltf_node.scale,
+        "position": gltf_node.translation,
+        "rotation": gltf_node.rotation,
+        "scaling": gltf_node.scale,
         "parent": parent,
     }
 

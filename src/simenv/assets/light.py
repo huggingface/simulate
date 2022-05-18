@@ -24,7 +24,6 @@ class Light(Asset):
 
     def __init__(
         self,
-        *,
         intensity: Optional[float] = 1.0,
         color: Optional[List[float]] = [1.0, 1.0, 1.0],
         range: Optional[float] = None,
@@ -32,13 +31,15 @@ class Light(Asset):
         outer_cone_angle: Optional[float] = 45.0,
         light_type: Optional[str] = "directional",
         name: Optional[str] = None,
-        center: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
-        scale: Optional[Union[float, List[float]]] = None,
+        position: Optional[List[float]] = None,
+        rotation: Optional[List[float]] = None,
+        scaling: Optional[Union[float, List[float]]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
-        super().__init__(name=name, center=center, direction=direction, scale=scale, parent=parent, children=children)
+        super().__init__(
+            name=name, position=position, rotation=rotation, scaling=scaling, parent=parent, children=children
+        )
         self.intensity = intensity
         self.color = color
         self.range = range

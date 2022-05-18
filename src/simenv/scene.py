@@ -50,9 +50,9 @@ class Scene(Asset):
             root = Asset(name="Scene")  # Otherwise we build a main root node
         return cls(
             name=root.name,
-            center=root.center,
-            direction=root.direction,
-            scale=root.scale,
+            position=root.position,
+            rotation=root.rotation,
+            scaling=root.scaling,
             children=nodes,
             **kwargs,
         )
