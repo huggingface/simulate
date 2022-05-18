@@ -136,3 +136,4 @@ dmypy.json
 *.DS_Store
 .vscode
 *omnisharp.json
+.idea

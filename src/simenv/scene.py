@@ -21,6 +21,7 @@ from .assets.anytree import RenderTree
 from .gltf_export import tree_as_glb_bytes
 from .gltf_import import load_gltf_as_tree
 from .renderer.unity import Unity
+from .renderer.godot import Godot
 
 
 class UnsetRendererError(Exception):
@@ -43,6 +44,8 @@ class Scene(Asset):
         self.engine = None
         if engine == "Unity":
             self.engine = Unity(self, start_frame=start_frame, end_frame=end_frame, frame_rate=frame_rate)
+        elif engine == "Godot":
+            self.engine = Godot(self, start_frame=start_frame, end_frame=end_frame, frame_rate=frame_rate)
         elif engine == "Blender":
             raise NotImplementedError()
         elif engine is None:
