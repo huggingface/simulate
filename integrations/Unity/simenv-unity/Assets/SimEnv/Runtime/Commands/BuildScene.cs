@@ -1,6 +1,5 @@
 using System;
 using UnityEngine.Events;
-using SimEnv.GLTF;
 using ISimEnv;
 
 namespace SimEnv {
@@ -9,7 +8,7 @@ namespace SimEnv {
 
         public override void Execute(UnityAction<string> callback) {
             byte[] bytes = Convert.FromBase64String(b64bytes);
-            Importer.LoadFromBytes(bytes);
+            Simulator.BuildSceneFromBytes(bytes);
             callback("ack");
         }
     }

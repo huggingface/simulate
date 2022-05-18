@@ -6,6 +6,7 @@ using System.IO;
 using System.Reflection;
 using ISimEnv;
 using System.Collections.Generic;
+using SimEnv.GLTF;
 
 namespace SimEnv {
     /// <summary>
@@ -21,6 +22,14 @@ namespace SimEnv {
         static readonly int FRAME_RATE = 30;
         static readonly int FRAME_SKIP = 4;
         static readonly float FRAME_INTERVAL = 1f / FRAME_RATE;
+
+        static GameObject root;
+
+        public static void BuildSceneFromBytes(byte[] bytes) {
+            if(root != null)
+                GameObject.DestroyImmediate(root);
+            root = Importer.LoadFromBytes(bytes);
+        }
 
         public static void Step(List<float> action) {
             if(ISimulator.Agent != null && ISimulator.Agent is Agent) {
@@ -79,7 +88,7 @@ namespace SimEnv {
                 .Where(x => x.GetInterfaces().Contains(typeof(ISimObjectExtension)))
                 .ToArray();
             simObjectExtensions.ToList().ForEach(x => Debug.Log(x));
-            Debug.Log(simObjectExtensions.Length);
+            Debug.Log(string.Format("Loaded {0} extensions", simObjectExtensions.Length));
         }
 
         void StartClient() {

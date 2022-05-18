@@ -50,3 +50,10 @@ class Light(Asset):
         self.light_type = light_type
         self.inner_cone_angle = inner_cone_angle
         self.outer_cone_angle = outer_cone_angle
+
+    @Asset.rotation.setter
+    def rotation(self, value):  # override default rotation to be like the sun
+        if self.dimensionality == 3:
+            if value is None:
+                value = quat_from_degrees(-60, 225, 0)
+        Asset.rotation.fset(self, value)
