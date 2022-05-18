@@ -16,12 +16,9 @@
 """ A simenv Scene - Host a level or Scene."""
 from typing import Optional
 
-import simenv as sm
-
-from .assets import Asset
-from .assets.anytree import RenderTree
+from .assets import Asset, Camera, Light, Object3D, RenderTree, RLAgent
 from .engine import PyVistaEngine, UnityEngine
-from .gltf_import import load_gltf_as_tree
+from .gltf import load_gltf_as_tree
 
 
 class UnsetRendererError(Exception):
@@ -64,22 +61,30 @@ class Scene(Asset):
             **kwargs,
         )
 
+    @property
+    def agents(self):
+        """Tuple with all RLAgent in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, RLAgent))
+
+    @property
+    def lights(self):
+        """Tuple with all Light in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, Light))
+
+    @property
+    def cameras(self):
+        """Tuple with all Camera in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, Camera))
+
+    @property
+    def objets(self):
+        """Tuple with all Object3D in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, Object3D))
+
     def clear(self):
         """ " Remove all assets in the scene."""
         self.tree_children = []
         return self
-
-    def _get_decendants_of_class_type(self, class_type):
-        result = []
-        for child in self.tree_descendants:
-            if isinstance(child, class_type):
-                result.append(child)
-
-        return result
-
-    def get_agents(self):
-        # search all nodes for agents classes and then return in list
-        return self._get_decendants_of_class_type(sm.RL_Agent)
 
     def show(self):
         """Render the Scene using the engine if provided."""

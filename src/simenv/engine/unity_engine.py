@@ -2,7 +2,7 @@ import base64
 import json
 import socket
 
-from ..gltf_export import tree_as_glb_bytes
+from ..gltf import tree_as_glb_bytes
 
 
 PRIMITIVE_TYPE_MAPPING = {

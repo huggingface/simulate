@@ -1,18 +1,22 @@
 import gym
 from gym import spaces
+from typing import TYPE_CHECKING
 
-from .assets import RLAgentActions
+if TYPE_CHECKING:
+    from ..scene import Scene
+
+from .rl_agent_actions import RLAgentActions
 
 
-class RL_Env(gym.Env):
-    def __init__(self, scene) -> None:
+class RLEnv(gym.Env):
+    def __init__(self, scene: "Scene") -> None:
         super().__init__()
 
         self.scene = scene
-        self.agents = scene.get_agents()
+        self.agents = scene.agents
         assert len(self.agents), "at least one sm.Agent is require in the scene for RL"
 
-        agent_actions: agent.RLAgentActions = self.agents[0].actions
+        agent_actions: RLAgentActions = self.agents[0].actions
 
         if agent_actions.dist == "discrete":
             n_actions = len(agent_actions.available_actions)

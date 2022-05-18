@@ -23,7 +23,7 @@ from typing import List, Optional, Sequence, Union
 import numpy as np
 
 from .anytree import NodeMixin
-from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler
+from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_degrees
 
 
 class Asset(NodeMixin, object):
@@ -323,7 +323,7 @@ class Asset(NodeMixin, object):
             if value is None:
                 value = [0.0, 0.0, 0.0, 1.0]
             elif len(value) == 3:
-                value = quat_from_euler(*value)
+                value = quat_from_degrees(*value)
             elif len(value) != 4:
                 raise ValueError("rotation should be of size 3 (Euler angles) or 4 (Quaternions")
         elif self.dimensionality == 2:

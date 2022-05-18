@@ -27,9 +27,8 @@ try:
 except:
     pass
 
+from ..assets import Asset, Camera, Light, Material, Object3D, RLAgent
 from . import gltflib as gl
-from .assets import Asset, Camera, Light, Material, Object3D, RL_Agent
-from .gltflib.utils import padbytes
 
 
 # Conversion of Numnpy dtype and shapes in GLTF equivalents
@@ -60,10 +59,10 @@ numpy_to_gltf_shapes_mapping = {
 def add_data_to_gltf(new_data: bytearray, gltf_model: gl.GLTFModel, buffer_data: bytearray, buffer_id: int = 0) -> int:
     """Add byte data to the buffer_data, create/add a new buffer view for it in the scene and return the index of the added buffer view"""
     # Pad the current buffer to a multiple of 4 bytes for GLTF alignement
-    byte_offset = padbytes(buffer_data, 4)
+    byte_offset = gl.padbytes(buffer_data, 4)
 
     # Pad new data to a multiple of 4 bytes as well
-    byte_length = padbytes(new_data, 4)
+    byte_length = gl.padbytes(new_data, 4)
 
     # Add our binary data to the end of the buffer
     buffer_data.extend(new_data)
@@ -343,7 +342,7 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
     return light_id
 
 
-def add_agent_to_model(node: RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
+def add_agent_to_model(node: RLAgent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
     agent = gl.GLTF_RL_Agent(
         color=node.color,
         height=node.height,
@@ -384,7 +383,7 @@ def add_node_to_scene(
         light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
 
-    elif isinstance(node, RL_Agent):
+    elif isinstance(node, RLAgent):
         agent_id = add_agent_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(GLTF_agents=gl.GLTF_RL_Agents(agent=agent_id))
 

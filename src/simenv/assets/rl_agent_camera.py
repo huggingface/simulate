@@ -13,20 +13,24 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simenv Camera."""
+""" A simenv RL Agent camera."""
 import itertools
+from dataclasses import dataclass
 from math import radians
 from typing import List, Optional, Union
+
+from dataclasses_json import dataclass_json
 
 from .asset import Asset
 
 
-class Camera(Asset):
+class RLAgentCamera(Asset):
     dimensionality = 3
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
+        *,
         width=256,
         height=256,
         aspect_ratio: Optional[float] = None,

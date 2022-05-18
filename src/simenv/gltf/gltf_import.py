@@ -23,7 +23,7 @@ import numpy as np
 import PIL.Image
 import pyvista as pv
 
-from . import Asset, Camera, Light, Object3D
+from ..assets import Asset, Camera, Light, Object3D
 from .gltflib import GLTF, GLTFModel
 from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
 from .gltflib.models.material import Material
