@@ -1,6 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
 
 namespace SimEnv {
     public abstract class Actions {
@@ -89,20 +90,20 @@ namespace SimEnv {
 
     [RequireComponent(typeof(CharacterController))]
     public class Agent : MonoBehaviour {
-
-        public Camera camera;
         public float move_speed = 1f;
         public float turn_speed = 1f;
         public float height = 1f;
 
-        private const bool HUMAN = true;
+        private const bool HUMAN = false;
 
         public Color color = Color.white;
 
         CharacterController controller;
+        Camera agent_camera; // the new is required see: https://forum.unity.com/threads/warning-cs0108-grapplinggun-camera-hides-inherited-member-component-camera-use-the-new-keyword.1209343/
 
         void Awake() {
             controller = GetComponent<CharacterController>();
+            agent_camera = GetComponentInChildren<Camera>();
         }
 
         public Actions actions;
@@ -134,12 +135,11 @@ namespace SimEnv {
             }
 
             actions.name = agentData.action_name;
-
             actions.dist = agentData.action_dist;
             actions.available = agentData.available_actions;
 
         }
-        void Update() {
+        public void AgentUpdate() {
 
             if (HUMAN) {
                 // Human control
@@ -162,16 +162,29 @@ namespace SimEnv {
                 transform.Rotate(Vector3.up * rotate * turn_speed);
             }
 
-            GetObservation();
+
         }
 
-        public void GetObservation() {
+        public void ObservationCoroutine(UnityAction<string> callback) {
+            StartCoroutine(RenderCoroutine(callback));
+        }
+
+        IEnumerator RenderCoroutine(UnityAction<string> callback) {
+
+            yield return new WaitForEndOfFrame();
+            GetObservation(callback);
+            Debug.Log("Finished rendering");
+
+        }
+
+        public void GetObservation(UnityAction<string> callback) {
 
             RenderTexture activeRenderTexture = RenderTexture.active;
-            RenderTexture.active = camera.targetTexture;
-            camera.Render();
-            int width = camera.pixelWidth;
-            int height = camera.pixelHeight;
+            RenderTexture.active = agent_camera.targetTexture;
+            agent_camera.Render();
+            int width = agent_camera.pixelWidth;
+            int height = agent_camera.pixelHeight;
+            Debug.Log(width + " " + height);
             Texture2D image = new Texture2D(width, height);
             image.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             image.Apply();
@@ -180,8 +193,18 @@ namespace SimEnv {
 
             RenderTexture.active = activeRenderTexture;
             //byte[] bytes = image.EncodeToPNG();
-            Debug.Log(pixels.ToString());
+
+            string pixel_string = "";
+            for (int i = 0; i < 10; i++) {
+                pixel_string += pixels[i].ToString();
+            }
+
+            Debug.Log(pixel_string);
             //File.WriteAllBytes(filepath, bytes);
+
+            if (callback != null)
+                callback(pixel_string);
+
         }
 
         public void SetAction(List<float> step_action) {

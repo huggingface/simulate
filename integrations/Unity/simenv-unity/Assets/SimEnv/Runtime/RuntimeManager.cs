@@ -1,7 +1,7 @@
 using UnityEngine;
 using SimEnv.GLTF;
 using System.Collections.Generic;
-
+using UnityEngine.Events;
 namespace SimEnv {
     [CreateAssetMenu(fileName = "RuntimeManager", menuName = "SimEnv/Runtime Manager")]
     public class RuntimeManager : SingletonScriptableObject<RuntimeManager> {
@@ -23,7 +23,7 @@ namespace SimEnv {
             }
 
         }
-        public void Step(List<float> action) {
+        public void Step(List<float> action, UnityAction<string> callback) {
 
             // find the agent
             if (agentScript) {
@@ -32,11 +32,16 @@ namespace SimEnv {
             } else {
                 Debug.Log("Warning, attempting to step environment with an agent");
             }
+            // Step the agent for a number of timesteps
             for (int i = 0; i < FRAME_SKIP; i++) {
+                if (agentScript) {
+                    agentScript.AgentUpdate();
+                }
                 Physics.Simulate(frameInterval);
             }
 
-            // TODO: send back the observation to python side
+            // Calculate the agent's observation and send to python with callback
+            //agentScript.ObservationCoroutine(callback);
         }
     }
 }
