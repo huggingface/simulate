@@ -129,7 +129,7 @@ class Plane(Object3D):
         children: Optional[List[Asset]] = None,
     ):
         if direction is None:
-            direction = (0, 1, 0)
+            direction = (0, -1, 0)
         mesh = pv.Plane(
             direction=direction,
             i_size=i_size,

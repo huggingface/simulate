@@ -1,18 +1,10 @@
 import simenv as sm
+scene = sm.Scene() # engine='Unity')
 
-
-scene = sm.Scene(engine='Unity')
-
-sphere = sm.Sphere('sphere')
-light = sm.Light('light')
-agent = sm.RL_Agent('agent')
-camera = sm.Camera('cam')
-
-scene += sphere
-scene += light
-scene += agent
-scene += camera
-
-scene.build()
+scene += sm.Sphere()
+scene += sm.Light()
+scene += sm.RL_Agent()
+scene += sm.Camera()
+scene.show()
 
 scene.close()  # TODO have this in the delete of the Scene class instead of manually

@@ -46,9 +46,9 @@ class UnityEngine:
     def _send_gltf(self, bytes):
         b64_bytes = base64.b64encode(bytes).decode("ascii")
         command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
-        self._run_command(command)
+        self.run_command(command)
 
-    def update_asset_in_scene(self):
+    def update_asset_in_scene(self, root_node):
         # TODO update and make this API more consistent with all the
         # update_asset_in_scene, recreate_scene, show
         self._send_gltf(tree_as_glb_bytes(self._scene))

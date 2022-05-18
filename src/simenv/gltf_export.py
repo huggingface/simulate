@@ -228,16 +228,20 @@ def add_mesh_to_model(node: Object3D, gltf_model: gl.GLTFModel, buffer_data: Byt
     )
 
     # Store vertex normals in gltf (TODO maybe not always necessary?)
-    np_array = mesh.active_normals.astype(NP_FLOAT32)
-    normal_accessor = add_numpy_to_gltf(
-        np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
-    )
+    normal_accessor = None
+    if mesh.active_normals is not None:
+        np_array = mesh.active_normals.astype(NP_FLOAT32)
+        normal_accessor = add_numpy_to_gltf(
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+        )
 
     # Store texture coord in gltf (TODO maybe not always necessary?)
-    np_array = mesh.active_t_coords.astype(NP_FLOAT32)
-    tcoord_accessor = add_numpy_to_gltf(
-        np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
-    )
+    tcoord_accessor = None
+    if mesh.active_t_coords is not None:
+        np_array = mesh.active_t_coords.astype(NP_FLOAT32)
+        tcoord_accessor = add_numpy_to_gltf(
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+        )
 
     if material is not None:
         # Add a material and/or texture if we want
