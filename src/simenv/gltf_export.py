@@ -339,6 +339,28 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
     return light_id
 
 
+def add_agent_to_model(
+    node: sm.RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0
+) -> int:
+    agent = gl.GLTF_RL_Agent(
+        color=node.color,
+        height=node.height,
+        move_speed=node.move_speed,
+        turn_speed=node.turn_speed,
+        action_name=node.actions.name,
+        action_dist=node.actions.dist,
+        available_actions=node.actions.available_actions,
+    )
+
+    if gltf_model.extensions.GLTF_agents is None:
+        gltf_model.extensions.GLTF_agents = gl.GLTF_RL_Agents(agents=[agent])
+    else:
+        gltf_model.extensions.GLTF_agents.agents.append(agent)
+    agent_id = len(gltf_model.extensions.GLTF_agents.agents) - 1
+
+    return agent_id
+
+
 def add_node_to_scene(
     node: Asset,
     gltf_model: gl.GLTFModel,
@@ -354,6 +376,11 @@ def add_node_to_scene(
     elif isinstance(node, Light):
         light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
+
+    elif isinstance(node, sm.RL_Agent):
+        agent_id = add_agent_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
+        gl_node.extensions = gl.Extensions(GLTF_agents=gl.GLTF_RL_Agents(agent=agent_id))
+
     elif isinstance(node, Object3D):
         gl_node.mesh = add_mesh_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id

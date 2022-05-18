@@ -5,7 +5,7 @@ scene = sm.Scene(engine='Unity')
 
 sphere = sm.Sphere('sphere')
 light = sm.DirectionalLight('light')
-agent = sm.Agent('agent')
+agent = sm.RL_Agent('agent')
 camera = sm.Camera('cam')
 
 scene += sphere
@@ -13,6 +13,6 @@ scene += light
 scene += agent
 scene += camera
 
-scene.render()
+scene.build()
 
-scene.engine.close()  # TODO have this in the delete of the Scene class instead of manually
+scene.close()  # TODO have this in the delete of the Scene class instead of manually

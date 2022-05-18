@@ -16,6 +16,8 @@
 """ A simenv Scene - Host a level or Scene."""
 from typing import Optional
 
+import simenv as sm
+
 from .assets import Asset
 from .assets.anytree import RenderTree
 from .engine import PyVistaEngine, UnityEngine
@@ -26,10 +28,15 @@ class UnsetRendererError(Exception):
     pass
 
 
+class SceneNotBuiltError(Exception):
+    pass
+
+
 class Scene(Asset):
     def __init__(self, engine: Optional[str] = None, name: Optional[str] = None, **kwargs):
         super().__init__(name=name, **kwargs)
         self.engine = None
+        self._built = False
         if engine == "Unity":
             self.engine = UnityEngine(self)
         elif engine == "Blender":
@@ -62,12 +69,41 @@ class Scene(Asset):
         self.tree_children = []
         return self
 
+    def _get_decendants_of_class_type(self, class_type):
+        result = []
+        for child in self.tree_descendants:
+            if isinstance(child, class_type):
+                result.append(child)
+
+        return result
+
+    def get_agents(self):
+        # search all nodes for agents classes and then return in list
+        return self._get_decendants_of_class_type(sm.RL_Agent)
+
     def show(self):
         """Render the Scene using the engine if provided."""
-        if self.engine is not None:
-            self.engine.show()
-        else:
+        if self.engine is None:
             raise UnsetRendererError()
+
+        self.engine.show()
+        self._built = True
+
+    def step(self, action):
+        """Step the Scene using the engine if provided."""
+
+        if not self._built:
+            raise SceneNotBuiltError()
+
+        if self.engine is None:
+            raise UnsetRendererError()
+
+        obs = self.engine.step(action)
+
+        return obs
 
     def __repr__(self):
         return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}')\n{RenderTree(self).print_tree()}"
+
+    def close(self):
+        self.engine.close()

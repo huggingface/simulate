@@ -24,4 +24,5 @@ from .assets.utils import *
 from .engine import PyVistaEngine, UnityEngine
 from .gltf_export import *  # TODO cleanup all these * import
 from .gltf_import import *
+from .rl_env import RL_Env
 from .scene import Scene
