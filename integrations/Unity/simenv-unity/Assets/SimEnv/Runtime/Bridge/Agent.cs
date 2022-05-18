@@ -90,11 +90,12 @@ namespace SimEnv {
     [RequireComponent(typeof(CharacterController))]
     public class Agent : MonoBehaviour {
 
+        public Camera camera;
         public float move_speed = 1f;
         public float turn_speed = 1f;
         public float height = 1f;
 
-        private const bool HUMAN = false;
+        private const bool HUMAN = true;
 
         public Color color = Color.white;
 
@@ -160,6 +161,27 @@ namespace SimEnv {
                 float rotate = actions.turnRight;
                 transform.Rotate(Vector3.up * rotate * turn_speed);
             }
+
+            GetObservation();
+        }
+
+        public void GetObservation() {
+
+            RenderTexture activeRenderTexture = RenderTexture.active;
+            RenderTexture.active = camera.targetTexture;
+            camera.Render();
+            int width = camera.pixelWidth;
+            int height = camera.pixelHeight;
+            Texture2D image = new Texture2D(width, height);
+            image.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            image.Apply();
+
+            Color32[] pixels = image.GetPixels32();
+
+            RenderTexture.active = activeRenderTexture;
+            //byte[] bytes = image.EncodeToPNG();
+            Debug.Log(pixels.ToString());
+            //File.WriteAllBytes(filepath, bytes);
         }
 
         public void SetAction(List<float> step_action) {
