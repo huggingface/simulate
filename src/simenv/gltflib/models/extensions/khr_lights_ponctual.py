@@ -1,6 +1,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+import numpy as np
 from dataclasses_json import dataclass_json
 
 
@@ -29,6 +30,8 @@ class KHRLightsPunctualLight:
     intensity: Optional[float] = 1.0
     type: str = None
     range: Optional[float] = None
+    innerConeAngle: Optional[float] = 0.0
+    outerConeAngle: Optional[float] = np.pi / 4.0
     name: Optional[str] = None
 
 
