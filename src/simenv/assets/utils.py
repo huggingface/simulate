@@ -31,6 +31,12 @@ _multiple_underscores_re = re.compile(r"(_{2,})")
 _split_re = r"^\w+(\.\w+)*$"
 
 
+def make_default_name_for_object(obj):
+    id = next(obj.__class__.__NEW_ID)
+    name = camelcase_to_snakecase(obj.__class__.__name__ + f"_{id:02d}")
+    return name
+
+
 def camelcase_to_snakecase(name: str) -> str:
     """Convert camel-case string to snake-case."""
     name = _uppercase_uppercase_re.sub(r"\1_\2", name)
@@ -51,6 +57,9 @@ def get_transform_from_trs(
     scale: Union[np.ndarray, List[float]],
 ) -> np.ndarray:
     """Create a homogenious transform matrix (4x4) from 3D vector of translation and scale, and a quaternion vector of rotation."""
+    if translation is None or rotation is None or scale is None:
+        return None
+
     if not isinstance(translation, np.ndarray):
         translation = np.array(translation)
     if not isinstance(rotation, np.ndarray):

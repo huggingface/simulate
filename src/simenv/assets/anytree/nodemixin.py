@@ -309,8 +309,9 @@ class NodeMixin(object):
         pass
 
     def _pre_attach(self, parent):
-        """Method call before attaching to `parent`."""
-        pass
+        """When attaching to `parent`.  We add name attribute associated to the new children if there is no attribute of this name."""
+        if not hasattr(parent, self.name):
+            setattr(parent, self.name, self)
 
     def _post_detach(self, parent):
         """Before attaching to `parent`. We remove the attributes associated to the previous parent if needed."""
@@ -318,11 +319,10 @@ class NodeMixin(object):
             delattr(self.tree_parent, self.name)
 
     def _post_attach(self, parent):
-        """After attaching to `parent`.  We add name attribute associated to the new children if there is no attribute of this name."""
-        if not hasattr(parent, self.name):
-            setattr(parent, self.name, self)
+        """Method call after attaching to `parent`."""
+        pass
 
-    def remove(self, asset: Union["NodeMixin", Sequence["NodeMixin"]]):
+    def remove(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
         if not self.tree_children:
             return self
         if isinstance(assets, list):
@@ -332,8 +332,7 @@ class NodeMixin(object):
         for asset in assets:
             if asset in self.tree_children:
                 children = self.tree_children
-                children.remove(asset)
-                self.tree_children = children
+                self.tree_children = tuple(child for child in children if child is not asset)
         return self
 
     def add(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):

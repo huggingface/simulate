@@ -39,9 +39,6 @@ class Object3D(Asset):
 
     """
 
-    dimensionality = 3
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-
     def __init__(
         self,
         mesh: Optional[pv.UnstructuredGrid] = None,
@@ -54,6 +51,23 @@ class Object3D(Asset):
         super().__init__(name=name, position=position, parent=parent, children=children)
         self.mesh = mesh
         self.material = material
+
+    def copy(self):
+        mesh_copy = None
+        if self.mesh is not None:
+            mesh_copy = self.mesh.copy()
+
+        material_copy = None
+        if self.material is not None:
+            raise NotImplementedError()
+
+        instance_copy = type(self)(name=None)
+        instance_copy.mesh = mesh_copy
+        instance_copy.material = material_copy
+        instance_copy.position = self.position
+        instance_copy.rotation = self.rotation
+        instance_copy.scaling = self.scaling
+        return instance_copy
 
     def __repr__(self):
         mesh_str = ""
@@ -100,8 +114,6 @@ class Plane(Object3D):
     --------
 
     """
-
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -172,8 +184,6 @@ class Sphere(Object3D):
     sphere_type : str, optional
         One of 'uv' for a UV-sphere or 'ico' for an icosphere.
     """
-
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -257,8 +267,6 @@ class Capsule(Object3D):
 
     """
 
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-
     def __init__(
         self,
         position: Optional[List[float]] = None,
@@ -332,8 +340,6 @@ class Cylinder(Object3D):
     --------
     """
 
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-
     def __init__(
         self,
         height: Optional[float] = 1.0,
@@ -390,8 +396,6 @@ class Cube(Object3D):
     --------
 
     """
-
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -451,8 +455,6 @@ class Cone(Object3D):
 
     """
 
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-
     def __init__(
         self,
         height: Optional[float] = 1.0,
@@ -498,8 +500,6 @@ class Line(Object3D):
 
     """
 
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-
     def __init__(
         self,
         pointa: Optional[List[float]] = None,
@@ -538,8 +538,6 @@ class MultipleLines(Object3D):
     --------
 
     """
-
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -587,8 +585,6 @@ class Tube(Object3D):
     --------
 
     """
-
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -640,8 +636,6 @@ class Polygon(Object3D):
     --------
 
     """
-
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -702,8 +696,6 @@ class Disc(Object3D):
 
     """
 
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-
     # TODO(thomas) add back center and normal and see how to handle that for 2D/3D stuff
     def __init__(
         self,
@@ -756,8 +748,6 @@ class Text3D(Object3D):
 
     """
 
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-
     def __init__(
         self,
         string: Optional[str] = "Hello",
@@ -800,8 +790,6 @@ class Triangle(Object3D):
 
     """
 
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-
     def __init__(
         self,
         points: Optional[List[List[float]]] = None,
@@ -833,8 +821,6 @@ class Rectangle(Object3D):
     --------
 
     """
-
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -878,8 +864,6 @@ class Circle(Object3D):
     --------
 
     """
-
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -926,8 +910,6 @@ class StructuredGrid(Object3D):
     --------
 
     """
-
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,

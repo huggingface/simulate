@@ -24,58 +24,99 @@ from ..assets import Asset, Camera, Light, Object3D
 from .engine import Engine
 
 
+try:
+    from pyvistaqt import BackgroundPlotter
+except:
+    BackgroundPlotter = None
+
+
 class PyVistaEngine(Engine):
-    def __init__(self, scene, **plotter_kwargs):
+    def __init__(self, scene, disable_background_plotter=False, **plotter_kwargs):
         self.plotter: pyvista.Plotter = None
         self.plotter_kwargs = plotter_kwargs
+        self._background_plotter = bool(BackgroundPlotter is not None and not disable_background_plotter)
+
         self._scene: Asset = scene
-        self._initialize_plotter()
+        self._plotter_actors = {}
 
     def _initialize_plotter(self):
         plotter_args = {"lighting": "none"}
         plotter_args.update(self.plotter_kwargs)
-        self.plotter: pyvista.Plotter = pyvista.Plotter(**plotter_args)
+        if self._background_plotter:
+            self.plotter: pyvista.Plotter = BackgroundPlotter(**plotter_args)
+        else:
+            self.plotter: pyvista.Plotter = pyvista.Plotter(**plotter_args)
         self.plotter.camera_position = "xy"
         self.plotter.add_axes(box=True)
 
-    def _update_scene(self):
-        if not hasattr(self.plotter, "ren_win"):
-            self._initialize_plotter()
-        self.plotter.clear()
+    def update_asset_in_scene(self, root_node):
+        """Update the location of an asset and all its children in the scene"""
+        if self.plotter is None or not hasattr(self.plotter, "ren_win"):
+            return
 
-        has_lights = False
-        for node in self._scene:
+        for node in root_node:
             if not isinstance(node, (Object3D, Camera, Light)):
                 continue
 
-            transforms = list(n.transform for n in node.tree_path)
+            transforms = list(n.transformation_matrix for n in node.tree_path)
             if len(transforms) > 1:
                 model_transform_matrix = np.linalg.multi_dot(transforms)  # Compute transform from the tree parents
             else:
                 model_transform_matrix = transforms[0]
 
-            if isinstance(node, Object3D):
-                located_mesh = node.mesh.transform(model_transform_matrix, inplace=False)
-                self.plotter.add_mesh(located_mesh)
-            elif isinstance(node, Camera):
-                camera = pyvista.Camera()
-                camera.model_transform_matrix = model_transform_matrix
-                self.plotter.camera = camera
-            elif isinstance(node, Light):
-                light = pyvista.Light()
-                light.transform_matrix = model_transform_matrix
-                self.plotter.add_light(light)
-                has_lights = True
-        if not has_lights:
+            actor = self._plotter_actors.get(node)
+            if actor is not None:
+                self.plotter.remove_actor(actor)
+
+            self._add_asset_to_scene(node, model_transform_matrix)
+
+    def _add_asset_to_scene(self, node, model_transform_matrix):
+        if self.plotter is None or not hasattr(self.plotter, "ren_win"):
+            return
+
+        if isinstance(node, Object3D):
+            # Copying the mesh to located meshes
+            located_mesh = node.mesh.transform(model_transform_matrix, inplace=False)
+            self._plotter_actors[node] = self.plotter.add_mesh(located_mesh)
+
+        elif isinstance(node, Camera):
+            camera = pyvista.Camera()
+            camera.model_transform_matrix = model_transform_matrix
+            self._plotter_actors[node] = camera
+
+            self.plotter.camera = camera
+        elif isinstance(node, Light):
+            light = pyvista.Light()
+            light.transform_matrix = model_transform_matrix
+            self._plotter_actors[node] = self.plotter.add_light(light)
+
+    def recreate_scene(self):
+        if self.plotter is None or not hasattr(self.plotter, "ren_win"):
+            self._initialize_plotter()
+
+        # Clear plotter and dict of located meshes
+        self.plotter.clear()
+        self._plotter_actors = {}
+
+        for node in self._scene:
+            if not isinstance(node, (Object3D, Camera, Light)):
+                continue
+
+            transforms = list(n.transformation_matrix for n in node.tree_path)
+            if len(transforms) > 1:
+                model_transform_matrix = np.linalg.multi_dot(transforms)  # Compute transform from the tree parents
+            else:
+                model_transform_matrix = transforms[0]
+
+            self._add_asset_to_scene(node, model_transform_matrix)
+
+        if not self.plotter.renderer.lights:
             self.plotter.enable_lightkit()  # Still add some lights
 
     def show(self, **pyvista_plotter_kwargs):
-        self._update_scene()
-
-        if "cpos" not in pyvista_plotter_kwargs:
-            pyvista_plotter_kwargs["cpos"] = "xy"
-
-        self.plotter.show(**pyvista_plotter_kwargs)
+        if self.plotter is None or not hasattr(self.plotter, "ren_win"):
+            self.recreate_scene()
+            self.plotter.show(**pyvista_plotter_kwargs)
 
     def close(self):
         self.plotter.close()

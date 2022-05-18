@@ -17,6 +17,7 @@
 import itertools
 import math
 import uuid
+from turtle import position
 from typing import List, Optional, Sequence, Union
 
 import numpy as np
@@ -47,14 +48,14 @@ class Asset(NodeMixin, object):
         name=None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
-        scale: Optional[Union[float, List[float]]] = None,
+        scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
         parent=None,
         children=None,
     ):
-        self.id = next(self.__class__.__NEW_ID)
+        id = next(self.__class__.__NEW_ID)
         if name is None:
-            name = camelcase_to_snakecase(self.__class__.__name__ + f"_{self.id:02d}")
+            name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
         self.name = name
 
         self.tree_parent = parent
@@ -63,13 +64,16 @@ class Asset(NodeMixin, object):
 
         self._position = None
         self._rotation = None
-        self._scale = None
-        self._transform = None
+        self._scaling = None
+        self._transformation_matrix = None
         self.position = position
         self.rotation = rotation
-        self.scale = scale
+        self.scaling = scaling
         if transformation_matrix is not None:
-            self.transform = transformation_matrix
+            self.transformation_matrix = transformation_matrix
+
+    def copy(self):
+        return Asset(name=None, position=self.position, rotation=self.rotation, scaling=self.scaling)
 
     def translate(self, vector: Optional[List[float]] = None):
         """Translate the asset from a given translation vector
@@ -91,6 +95,66 @@ class Asset(NodeMixin, object):
         if vector is None:
             return self
         self.position += np.array(vector)
+        return self
+
+    def translate_x(self, amount: Optional[float] = 0.0):
+        """Translate the asset along the ``x`` axis of the given amount
+
+        Parameters
+        ----------
+        amount : float, optional
+            Amount to translate the asset along the ``x`` axis.
+            Default to applying no translation.
+
+        Returns
+        -------
+        self : Asset modified in-place with the translation.
+
+        Examples
+        --------
+
+        """
+        self.position += np.array((amount, 0, 0))
+        return self
+
+    def translate_y(self, amount: Optional[float] = 0.0):
+        """Translate the asset along the ``y`` axis of the given amount
+
+        Parameters
+        ----------
+        amount : float, optional
+            Amount to translate the asset along the ``y`` axis.
+            Default to applying no translation.
+
+        Returns
+        -------
+        self : Asset modified in-place with the translation.
+
+        Examples
+        --------
+
+        """
+        self.position += np.array((0, amount, 0))
+        return self
+
+    def translate_z(self, amount: Optional[float] = 0.0):
+        """Translate the asset along the ``z`` axis of the given amount
+
+        Parameters
+        ----------
+        amount : float, optional
+            Amount to translate the asset along the ``z`` axis.
+            Default to applying no translation.
+
+        Returns
+        -------
+        self : Asset modified in-place with the translation.
+
+        Examples
+        --------
+
+        """
+        self.position += np.array((0, 0, amount))
         return self
 
     def rotate(self, rotation: Optional[List[float]] = None):
@@ -202,16 +266,34 @@ class Asset(NodeMixin, object):
             return self
         if scaling is None:
             scaling = [1.0, 1.0, 1.0]
-        elif len(scaling) == 1:
+        elif isinstance(scaling, (float, int)) or (isinstance(scaling, np.ndarray) and len(scaling) == 1):
             scaling = [scaling, scaling, scaling]
         elif len(scaling) != 3:
             raise ValueError("Scale should be of size 1 (Uniform scale) or 3 (X, Y, Z)")
-        self.scale = np.multiply(self.scale, scaling)
+        self.scaling = np.multiply(self.scaling, scaling)
         return self
+
+    # getters for position/rotation/scale
 
     @property
     def position(self):
         return self._position
+
+    @property
+    def rotation(self):
+        return self._rotation
+
+    @property
+    def scaling(self):
+        return self._scaling
+
+    @property
+    def transformation_matrix(self):
+        if self._transformation_matrix is None:
+            self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
+        return self._transformation_matrix
+
+    # setters for position/rotation/scale
 
     @position.setter
     def position(self, value):
@@ -222,33 +304,31 @@ class Asset(NodeMixin, object):
                 raise ValueError("position should be of size 3 (X, Y, Z)")
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._transform_matrix = None  # Reset transform matrix
         self._position = np.array(value)
+        self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
-    @property
-    def rotation(self):
-        return self._rotation
+        if getattr(self.tree_root, "engine", None) is not None:
+            self.tree_root.engine.update_asset_in_scene(self)
 
     @rotation.setter
     def rotation(self, value):
         if self.dimensionality == 3:
             if value is None:
-                value = [1.0, 0.0, 0.0, 0.0]
+                value = [0.0, 0.0, 0.0, 1.0]
             elif len(value) == 3:
                 value = quat_from_euler(*value)
             elif len(value) != 4:
                 raise ValueError("rotation should be of size 3 (Euler angles) or 4 (Quaternions")
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._transform_matrix = None  # Reset transform matrix
         self._rotation = np.array(value)
+        self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
-    @property
-    def scale(self):
-        return self._scale
+        if getattr(self.tree_root, "engine", None) is not None:
+            self.tree_root.engine.update_asset_in_scene(self)
 
-    @scale.setter
-    def scale(self, value):
+    @scaling.setter
+    def scaling(self, value):
         if self.dimensionality == 3:
             if value is None:
                 value = [1.0, 1.0, 1.0]
@@ -258,26 +338,38 @@ class Asset(NodeMixin, object):
                 raise ValueError("Scale should be of size 1 (Uniform scale) or 3 (X, Y, Z)")
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._transform_matrix = None  # Reset transform matrix
-        self._scale = np.array(value)
+        self._scaling = np.array(value)
+        self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
-    @property
-    def transform(self):
-        if self._transform is None:
-            self._transform = get_transform_from_trs(self.position, self.rotation, self.scale)
-        return self._transform
+        if getattr(self.tree_root, "engine", None) is not None:
+            self.tree_root.engine.update_asset_in_scene(self)
 
-    @transform.setter
-    def transform(self, value):
+    @transformation_matrix.setter
+    def transformation_matrix(self, value):
         if self.dimensionality == 3:
             if value is None:
                 value = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._transform = np.array(value)
+        self._transformation_matrix = np.array(value)
 
         # Not sure we can extract position/rotation/scale from transform matrix in a unique way
         # Reset position/rotation/scale
         self._position = None
         self._rotation = None
-        self._scale = None
+        self._scaling = None
+
+        if getattr(self.tree_root, "engine", None) is not None:
+            self.tree_root.engine.update_asset_in_scene(self)
+
+    def _post_attach(self, parent):
+        if getattr(parent.tree_root, "engine", None) is not None:
+            parent.tree_root.engine.update_asset_in_scene(self)
+
+    def _pre_detach(self, parent):
+        if getattr(parent.tree_root, "engine", None) is not None:
+            parent.tree_root.engine.recreate_scene()
+
+    def _pre_attach_children(self, children):
+        if getattr(self.tree_root, "engine", None) is not None:
+            self.tree_root.engine.recreate_scene()
