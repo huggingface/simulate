@@ -3,7 +3,7 @@ from typing import Any, Optional, Union
 
 from dataclasses_json import dataclass_json
 
-from .extensions.gltf_rl_agent import GLTF_RL_Agents
+from .extensions.hf_rl_agents import HFRLAgents
 from .extensions.khr_lights_ponctual import KHRLightsPunctual
 
 
@@ -15,7 +15,7 @@ class Extensions:
     """
 
     KHR_lights_punctual: Optional[KHRLightsPunctual] = None
-    GLTF_agents: Optional[GLTF_RL_Agents] = None
+    HF_rl_agents: Optional[HFRLAgents] = None
 
 
 @dataclass_json

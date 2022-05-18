@@ -8,9 +8,9 @@ from dataclasses_json import dataclass_json
 
 @dataclass_json
 @dataclass
-class GLTF_RL_Agent:
+class HFRLAgent:
     """
-    A GTLF RL Agent
+    A HF RL Agent
     """
 
     color: Optional[List[float]] = None
@@ -24,10 +24,10 @@ class GLTF_RL_Agent:
 
 @dataclass_json
 @dataclass
-class GLTF_RL_Agents:
+class HFRLAgents:
     """
-    A collection of GLTFAgents
+    A collection of HFRLAgents
     """
 
-    agents: Optional[List[GLTF_RL_Agent]] = None
+    agents: Optional[List[HFRLAgent]] = None
     agent: Optional[int] = None

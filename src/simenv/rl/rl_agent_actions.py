@@ -1,4 +1,4 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from typing import List, Optional
 
 import numpy as np
@@ -6,32 +6,15 @@ import numpy as np
 
 @dataclass
 class RLAgentActions:
-    name: Optional[str] = None
+    name: Optional[str] = field(default_factory=lambda: ["movement"])
     dist: Optional[str] = None
     available_actions: Optional[List[str]] = None
 
 
 class DiscreteRLAgentActions(RLAgentActions):
-    def __init__(self, name=None, dist=None, available_actions=None) -> None:
-        super().__init__(name=name, dist=dist, available_actions=available_actions)
+    dist: Optional[str] = field(default_factory=lambda: ["discrete"])
+    available_actions: Optional[List[str]] = field(default_factory=lambda: ["move_forward", "move_backward", "move_left", "move_right", "turn_left", "turn_right"])
 
-    @classmethod
-    def default(cls):
-        return cls(
-            name="movement",
-            dist="discrete",
-            available_actions=["move_forward", "move_backward", "move_left", "move_right", "turn_left", "turn_right"],
-        )
-
-
-class ContinuosRLAgentActions(RLAgentActions):
-    def __init__(self, name=None, dist=None, types=None, available_actions=None) -> None:
-        super().__init__(name=name, dist=dist, types=types, available_actions=available_actions)
-
-    @classmethod
-    def default(cls):
-        return cls(
-            name="movement",
-            dist="continuous",
-            available_actions=["move_forward_backward", "move_right_left", "turn_right_left"],
-        )
+class ContinuousRLAgentActions(RLAgentActions):
+    dist: Optional[str] = field(default_factory=lambda: ["continuous"])
+    available_actions: Optional[List[str]] = field(default_factory=lambda: ["move_forward_backward", "move_right_left", "turn_right_left"])
