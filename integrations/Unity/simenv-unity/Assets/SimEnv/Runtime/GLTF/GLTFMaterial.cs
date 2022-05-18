@@ -50,15 +50,16 @@ namespace SimEnv.GLTF {
             public PbrSpecularGlossiness KHR_materials_pbrSpecularGlossiness = null;
         }
 
-        public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, ShaderSettings shaderSettings, Action<Material> onFinish) {
-            Material mat = null;
+        public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, Action<Material> onFinish) {
+            GameObject primitive = GameObject.CreatePrimitive(PrimitiveType.Cube);
+            primitive.SetActive(false);
+            Material mat = primitive.GetComponent<MeshRenderer>().sharedMaterial;
+            GameObject.DestroyImmediate(primitive);
             IEnumerator coroutine = null;
             if(pbrMetallicRoughness != null) {
-                coroutine = pbrMetallicRoughness.CreateMaterial(textures, alphaMode, shaderSettings, x => mat = x);
+                coroutine = pbrMetallicRoughness.CreateMaterial(textures, alphaMode, mat.shader, x => mat = x);
                 while(coroutine.MoveNext())
                     yield return null;
-            } else {
-                mat = new Material(Shader.Find("Standard"));
             }
             if(normalTexture != null) {
                 coroutine = TryGetTexture(textures, normalTexture, true, tex => {
@@ -127,9 +128,8 @@ namespace SimEnv.GLTF {
             public bool ShouldSerializemetallicFactor() { return metallicFactor != 0f; }
             public bool ShouldSerializeroughnessFactor() { return roughnessFactor != 0f; }
 
-            public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, ShaderSettings shaderSettings, Action<Material> onFinish) {
-                Shader sh = shaderSettings.Metallic;
-                Material mat = new Material(sh);
+            public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, Shader shader, Action<Material> onFinish) {
+                Material mat = new Material(shader);
                 mat.color = baseColorFactor;
                 mat.SetFloat("_Mode", (float)alphaMode);
                 mat.SetFloat("_Metallic", metallicFactor);
@@ -179,9 +179,8 @@ namespace SimEnv.GLTF {
             public float glossinessFactor = 1f;
             public TextureInfo specularGlossinessTexture;
 
-            public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, ShaderSettings shaderSettings, Action<Material> onFinish) {
-                Shader sh = shaderSettings.Specular;
-                Material mat = new Material(sh);
+            public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, Shader shader, Action<Material> onFinish) {
+                Material mat = new Material(shader);
                 mat.color = diffuseFactor;
                 mat.SetFloat("_Mode", (float)alphaMode);
                 mat.SetColor("_SpecColor", specularFactor);
@@ -268,7 +267,7 @@ namespace SimEnv.GLTF {
                 }
                 for(int i = 0; i < result.Length; i++) {
                     result[i] = new ImportResult();
-                    IEnumerator coroutine = materials[i].CreateMaterial(textureTask.result, importSettings.shaderOverrides, x => result[i].material = x);
+                    IEnumerator coroutine = materials[i].CreateMaterial(textureTask.result, x => result[i].material = x);
                     while(coroutine.MoveNext())
                         yield return null;
                     if(result[i].material.name == null)
