@@ -1,0 +1,10 @@
+[gd_scene load_steps=3 format=3 uid="uid://cphodccas3saj"]
+
+[ext_resource type="Script" path="res://SimEnv/Bridge/Command.gd" id="1_d3bp2"]
+[ext_resource type="Script" path="res://SimEnv/Bridge/Commands/BuildScene.gd" id="2_cpfmh"]
+
+[node name="Command" type="Node"]
+script = ExtResource( "1_d3bp2" )
+
+[node name="BuildScene" type="Node" parent="."]
+script = ExtResource( "2_cpfmh" )

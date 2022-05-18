@@ -15,9 +15,9 @@ func _ready():
 func _process(delta):
 	if should_connect and not connected:
 		pass
-	if connected and not client.is_connected_to_host():
+	if connected and not client.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 		connected = false
-	if client.is_connected_to_host():
+	if client.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 		poll_server()
 
 
