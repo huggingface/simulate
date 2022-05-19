@@ -35,6 +35,10 @@ namespace SimEnv.GLTF {
             public int agent;
         }
 
+        public class HFCollider {
+            public int collider;
+        }
+
         public class KHR_light {
             public int light;
         }
