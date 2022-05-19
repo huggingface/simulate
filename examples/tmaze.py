@@ -1,41 +1,44 @@
 import simenv as sm
 import simenv.assets.utils as utils
-import os
+import os, time
+from simenv.rl_env import RL_Env
+scene = sm.Scene(engine="Unity")
 
-scene = sm.Scene(start_frame=0, end_frame=300, frame_rate=60)
-view = sm.Unity(scene)
 
-camera = sm.Camera('cam1', translation=[5, 6.5, -3.75], rotation=utils.quat_from_degrees(45, -45, 0), width=1024, height=1024)
-light = sm.DirectionalLight('sun', rotation=utils.quat_from_degrees(60, -30, 0), intensity=3.5)
-agent = sm.Agent('agent', translation=[0, 0, -1.5])
-floor = sm.Plane('floor', dynamic=False, scale=[3, 3, 3])
-wall1 = sm.Cube('wall1', dynamic=False, translation=[-1, .5, 0], scale=[.1, 1, 5.1])
-wall2 = sm.Cube('wall2', dynamic=False, translation=[1, .5, 0], scale=[.1, 1, 5.1])
-wall3 = sm.Cube('wall3', dynamic=False, translation=[0, .5, 4.5], scale=[5.9, 1, .1])
-wall4 = sm.Cube('wall4', dynamic=False, translation=[-2, .5, 2.5], scale=[1.9, 1, .1])
-wall5 = sm.Cube('wall5', dynamic=False, translation=[2, .5, 2.5], scale=[1.9, 1, .1])
-wall6 = sm.Cube('wall6', dynamic=False, translation=[-3, .5, 3.5], scale=[.1, 1, 2.1])
-wall7 = sm.Cube('wall7', dynamic=False, translation=[3, .5, 3.5], scale=[.1, 1, 2.1])
-wall8 = sm.Cube('wall8', dynamic=False, translation=[0, .5, -2.5], scale=[1.9, 1, .1])
+scene += sm.Light(
+    "sun", position=[0, 20, 0], rotation=utils.quat_from_degrees(60, -30, 0), intensity=3.5
+)
+scene += sm.Cube("floor", position=[0, -0.05, 0], scaling=[100, 0.1, 100])
+scene += sm.Cube("wall1", position=[-1, 0.5, 0], scaling=[0.1, 1, 5.1])
+scene += sm.Cube("wall2", position=[1, 0.5, 0], scaling=[0.1, 1, 5.1])
+scene += sm.Cube("wall3", position=[0, 0.5, 4.5], scaling=[5.9, 1, 0.1])
+scene += sm.Cube("wall4", position=[-2, 0.5, 2.5], scaling=[1.9, 1, 0.1])
+scene += sm.Cube("wall5", position=[2, 0.5, 2.5], scaling=[1.9, 1, 0.1])
+scene += sm.Cube("wall6", position=[-3, 0.5, 3.5], scaling=[0.1, 1, 2.1])
+scene += sm.Cube("wall7", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1])
+scene += sm.Cube("wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
-scene += camera
-scene += light
+
+agent = sm.RL_Agent("agent", position=[0, 0, 0.0])
+agent += sm.Camera(
+    "cam1", position=[5, 6.5, -3.75], rotation=utils.quat_from_degrees(45, -45, 0), width=1024, height=1024
+)
 scene += agent
-scene += floor
-scene += wall1
-scene += wall2
-scene += wall3
-scene += wall4
-scene += wall5
-scene += wall6
-scene += wall7
-scene += wall8
 
-view.run()
 
-render_dir = os.getcwd() + '/output/tmaze/'
-if not os.path.exists(render_dir):
-    os.makedirs(render_dir)
-view.render(render_dir)
+scene.build()
 
-view.close()
+
+env = RL_Env(scene)
+for i in range(1000):
+    action = env.action_space.sample()
+    if type(action) == int: # discrete are ints, continuous are numpy arrays
+        action = [action]
+    else:
+        action = action.tolist()
+
+    env.step(action)
+    time.sleep(0.5)
+
+
+scene.close()

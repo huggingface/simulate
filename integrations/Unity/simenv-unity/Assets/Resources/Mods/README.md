@@ -1,0 +1,1 @@
+For instructions on modding, see https://github.com/dylanebert/simenv-modding-concept

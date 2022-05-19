@@ -1,61 +1,37 @@
 using System;
 using System.Net.Sockets;
-using System.Collections.Generic;
-using System.Threading;
-using UnityEngine;
 using System.Text;
+using System.Collections;
+using UnityEngine;
+using ISimEnv;
+using System.Linq;
 
 namespace SimEnv {
-    public class Client : MonoBehaviour {
-        public static Client Instance { get; private set; }
-
-        [SerializeField] string host = "localhost";
-        [SerializeField] int port = 55000;
-
-        Queue<string> messageQueue = new Queue<string>();
-        Thread clientThread;
+    /// <summary>
+    /// Manages all communication with Python API
+    /// </summary>
+    public class Client {
         TcpClient client;
-        object asyncLock = new object();
+        string host;
+        int port;
 
-        void Awake() {
-            Instance = this;
+        public Client(string host = "localhost", int port = 55000) {
+            this.host = host;
+            this.port = port;
         }
 
-        void OnEnable() {
-            try {
-                clientThread = new Thread(new ThreadStart(Listen));
-                clientThread.IsBackground = true;
-                clientThread.Start();
-            } catch(Exception e) {
-                Debug.Log("Client exception: " + e);
-            }
-        }
-
-        void OnDisable() {
-            if(client != null && client.Connected)
-                client.Close();
-        }
-
-        void Update() {
-            lock(asyncLock) {
-                while(messageQueue.Count > 0) {
-                    string json = messageQueue.Dequeue();
-                    Command command = Command.Parse(json);
-                    Debug.Log("Executing command: " + command.GetType().ToString());
-                    command.Execute(OnFinishedRunningCommand);
-                }
-            }
-        }
-
-        void Listen() {
+        public IEnumerator Listen() {
             try {
                 client = new TcpClient(host, port);
-                int chunk_size = 1024;
-                byte[] buffer = new byte[chunk_size];
-                while(true) {
-                    NetworkStream stream = client.GetStream();
-                    if(!stream.DataAvailable) continue;
-
+            } catch(Exception e) {
+                Debug.LogError("Connection failed: " + e.ToString());
+                yield break;
+            }
+            int chunk_size = 1024;
+            byte[] buffer = new byte[chunk_size];
+            while(true) {
+                NetworkStream stream = client.GetStream();
+                if(stream.DataAvailable) {
                     byte[] lengthBuffer = new byte[4];
                     stream.Read(lengthBuffer, 0, 4);
 
@@ -70,26 +46,56 @@ namespace SimEnv {
                     Debug.Assert(dataReceived == messageLength);
                     string message = Encoding.ASCII.GetString(data, 0, messageLength);
                     Debug.Log("Received message: " + message);
-                    lock(asyncLock)
-                        messageQueue.Enqueue(message);
+                    if(TryParseCommand(message, out ICommand command, out string error)) {
+                        command.Execute(response => WriteMessage(response));
+                    } else {
+                        Debug.LogWarning(error);
+                        WriteMessage(error);
+                    }
                 }
-            } catch(Exception e) {
-                Debug.Log("Disconnected: " + e);
+                yield return null;
             }
         }
 
-        void OnFinishedRunningCommand(string response) {
+        public void WriteMessage(string message) {
             if(client == null) return;
             try {
                 NetworkStream stream = client.GetStream();
                 if(stream.CanWrite) {
-                    byte[] buffer = Encoding.ASCII.GetBytes(response);
+                    byte[] buffer = Encoding.ASCII.GetBytes(message);
                     stream.Write(buffer, 0, buffer.Length);
-                    Debug.Log("Sent message: " + response);
+                    Debug.Log("Sent message: " + message);
                 }
             } catch(Exception e) {
                 Debug.Log("Socket error: " + e);
             }
+        }
+
+        public void Close() {
+            if(client != null && client.Connected)
+                client.Close();
+        }
+
+        bool TryParseCommand(string json, out ICommand command, out string error) {
+            error = "";
+            command = null;
+            CommandWrapper commandWrapper = JsonUtility.FromJson<CommandWrapper>(json);
+            Type commandType = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(x => x.GetTypes())
+                .Where(x => x.IsSubclassOf(typeof(ICommand)))
+                .FirstOrDefault(x => x.ToString().EndsWith(commandWrapper.type));
+            if(commandType == null) {
+                error = "Unknown Command " + commandWrapper.type;
+                return false;
+            }
+            command = JsonUtility.FromJson(commandWrapper.contents, commandType) as ICommand;
+            return true;
+        }
+
+        [Serializable]
+        private class CommandWrapper {
+            public string type;
+            public string contents;
         }
     }
 }
