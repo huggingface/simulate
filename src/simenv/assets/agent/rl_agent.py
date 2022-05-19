@@ -18,7 +18,7 @@ class RL_Agent(Asset):
         color=[1.0, 0.0, 0.0],
         height=1.5,
         move_speed=2.0,
-        turn_speed=0.4,
+        turn_speed=2.0,
         actions=DiscreteRLAgentActions.default(),
         translation=[0, 0, 0],
         rotation=[0, 0, 0, 1],

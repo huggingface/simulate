@@ -40,6 +40,7 @@ class Unity:
                 print(f"Received response: {response}")
                 return response
 
+
     def send_gltf(self, bytes):
         b64_bytes = base64.b64encode(bytes).decode("ascii")
         command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
@@ -47,13 +48,13 @@ class Unity:
 
     def step(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
-        self.run_command(command)
+        return self.run_command(command)
 
     def run_command(self, command):
         message = json.dumps(command)
         print(f"Sending command: {message}")
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
-        self.send_bytes(message_bytes)
+        return self.send_bytes(message_bytes)
 
     def close(self):
         self.client.close()

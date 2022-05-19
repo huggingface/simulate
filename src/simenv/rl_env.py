@@ -1,9 +1,9 @@
 import gym
 from gym import spaces
-
+import json
 import simenv as sm
 from simenv.assets import agent
-
+import numpy as np
 
 class RL_Env(gym.Env):
     def __init__(self, scene) -> None:
@@ -27,6 +27,10 @@ class RL_Env(gym.Env):
         raise NotImplementedError
 
     def step(self, action):
-        self.scene.step(action)
+        encoded_obs = self.scene.step(action) # TODO: separated step command, observation command, reward command, etc
+        decoded_obs = json.loads(encoded_obs)
 
-        # TODO: return observation
+        obs = np.flip(np.array(decoded_obs["Items"]).reshape(32,32,4)[:,:,:3],0)
+
+        return obs
+

@@ -12,7 +12,7 @@ namespace SimEnv {
 
             Debug.Log("Stepping " + action.ToString());
             RuntimeManager.Instance.Step(action, callback);
-            callback("ack");
+            //callback("ack");
         }
     }
 }

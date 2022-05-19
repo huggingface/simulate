@@ -2,8 +2,31 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
-
+using System;
 namespace SimEnv {
+    public static class JsonHelper {
+        public static T[] FromJson<T>(string json) {
+            Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
+            return wrapper.Items;
+        }
+
+        public static string ToJson<T>(T[] array) {
+            Wrapper<T> wrapper = new Wrapper<T>();
+            wrapper.Items = array;
+            return JsonUtility.ToJson(wrapper);
+        }
+
+        public static string ToJson<T>(T[] array, bool prettyPrint) {
+            Wrapper<T> wrapper = new Wrapper<T>();
+            wrapper.Items = array;
+            return JsonUtility.ToJson(wrapper, prettyPrint);
+        }
+
+        [Serializable]
+        private class Wrapper<T> {
+            public T[] Items;
+        }
+    }
     public abstract class Actions {
         public string name;
         public string dist;
@@ -112,6 +135,13 @@ namespace SimEnv {
 
         }
 
+        void Update() {
+            if (HUMAN) {
+                AgentUpdate();
+                ObservationCoroutine(null);
+            }
+        }
+
         public void setProperties(SimEnv.GLTF.GLTF_agents.GLTFAgent agentData) {
 
             Debug.Log("Setting Agent properties");
@@ -184,26 +214,26 @@ namespace SimEnv {
             agent_camera.Render();
             int width = agent_camera.pixelWidth;
             int height = agent_camera.pixelHeight;
-            Debug.Log(width + " " + height);
             Texture2D image = new Texture2D(width, height);
             image.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             image.Apply();
 
             Color32[] pixels = image.GetPixels32();
-
             RenderTexture.active = activeRenderTexture;
-            //byte[] bytes = image.EncodeToPNG();
 
-            string pixel_string = "";
-            for (int i = 0; i < 10; i++) {
-                pixel_string += pixels[i].ToString();
+            uint[] pixel_values = new uint[pixels.Length * 4];
+
+            for (int i = 0; i < pixels.Length; i++) {
+                pixel_values[i * 4] += pixels[i].r;
+                pixel_values[i * 4 + 1] += pixels[i].g;
+                pixel_values[i * 4 + 2] += pixels[i].b;
+                pixel_values[i * 4 + 3] += pixels[i].a;
             }
 
-            Debug.Log(pixel_string);
-            //File.WriteAllBytes(filepath, bytes);
-
+            string string_array = JsonHelper.ToJson(pixel_values);
+            Debug.Log(string_array);
             if (callback != null)
-                callback(pixel_string);
+                callback(string_array);
 
         }
 
