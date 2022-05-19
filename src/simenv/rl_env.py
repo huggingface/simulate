@@ -21,15 +21,20 @@ class RL_Env(gym.Env):
         else:
             self.action_space = spaces.Box(low=-1, high=1, shape=[len(agent_actions.types)])
 
-        self.observation_space = None  # TODO
+        camera_width =self.agents[0].camera_width
+        camera_height =self.agents[0].camera_height
+
+        self.observation_space = spaces.Box(low=0, high=255, shape=[camera_height, camera_width, 3])
 
     def reset(self):
         raise NotImplementedError
 
     def step(self, action):
-        self.scene.step(action) # TODO: separated step command, observation command, reward command, etc
+        self.scene.step(action)
 
         obs = self.scene.get_observation()
+        # TODO: remove np.flip for training (the agent does not care the world is upside-down
+        obs = np.flip(np.array(obs["Items"]).reshape(*self.observation_space.shape),0)
         # reward = scene.get_reward()
         # info = scene.get_info()
 
