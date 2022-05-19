@@ -6,7 +6,7 @@ namespace SimEnv {
     [CreateAssetMenu(fileName = "RuntimeManager", menuName = "SimEnv/Runtime Manager")]
     public class RuntimeManager : SingletonScriptableObject<RuntimeManager> {
         static int frameRate = 30;
-        const int FRAME_SKIP = 4;
+        const int FRAME_SKIP = 10;
         static float frameInterval => 1f / frameRate;
         GameObject root = null;
         GameObject agent = null;
@@ -41,7 +41,8 @@ namespace SimEnv {
             }
 
             // Calculate the agent's observation and send to python with callback
-            //agentScript.ObservationCoroutine(callback);
+            agentScript.ObservationCoroutine(callback);
+            //callback("ack");
         }
     }
 }
