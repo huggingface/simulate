@@ -153,6 +153,8 @@ MonoBehaviour:
   move_speed: 1
   turn_speed: 1
   height: 1
+  camera_width: 16
+  camera_height: 16
   color: {r: 1, g: 1, b: 1, a: 1}
 --- !u!1 &3031940015783909194
 GameObject:
@@ -219,7 +221,7 @@ Camera:
     serializedVersion: 2
     m_Bits: 4294967295
   m_RenderingPath: -1
-  m_TargetTexture: {fileID: 8400000, guid: e3dbfbf9682b2b19c9bfc6a6eef17a8f, type: 2}
+  m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
   m_TargetEye: 3
   m_HDR: 1
