@@ -55,9 +55,8 @@ class Unity:
 
         encoded_obs = self.run_command(command)
         decoded_obs = json.loads(encoded_obs)
-        # TODO: remove np.flip for training (the agent does not care the world is upside-down
-        obs = np.flip(np.array(decoded_obs["Items"]).reshape(32,32,4)[:,:,:3],0)
-        return obs
+
+        return decoded_obs
 
     def run_command(self, command):
         message = json.dumps(command)
