@@ -23,6 +23,8 @@ import numpy as np
 import PIL.Image
 import pyvista as pv
 
+from simenv.assets import Material
+
 from .assets import Asset, Camera, Light, Object3D
 from .gltflib import GLTF, GLTFModel
 from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
@@ -212,7 +214,8 @@ def build_node_tree(
         n_primitives = len(gltf_mesh.primitives)
         for index in range(n_primitives):
             mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][index]
-            scene_node = Object3D(**common_kwargs, mesh=mesh)
+            material = 
+            scene_node = Object3D(**common_kwargs, mesh=mesh, material=material)
     else:
         # We just have an empty node with a transform
         scene_node = Asset(**common_kwargs)
@@ -230,7 +233,7 @@ def build_node_tree(
     return scene_node
 
 
-def load_gltf_as_tree(file_path) -> List[Asset]:
+def load_gltf_as_tree(file_path:str, file_type: Optional[str]=None) -> List[Asset]:
     """Loading function to create a tree of asset nodes from a GLTF file.
     Return a list of the main nodes in the GLTF files (often only one main node).
     The tree can be walked from the main nodes.

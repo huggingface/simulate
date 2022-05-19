@@ -16,6 +16,8 @@
 """ A simenv Scene - Host a level or Scene."""
 from typing import Optional
 
+from huggingface_hub import hf_hub_download
+
 import simenv as sm
 
 from .assets import Asset
@@ -33,10 +35,11 @@ class SceneNotBuiltError(Exception):
 
 
 class Scene(Asset):
-    def __init__(self, engine: Optional[str] = None, name: Optional[str] = None, **kwargs):
+    def __init__(self, engine: Optional[str] = None, name: Optional[str] = None, created_from_file: Optional[str] = None, **kwargs):
         super().__init__(name=name, **kwargs)
         self.engine = None
         self._built = False
+        self._created_from_file = created_from_file
         if engine == "Unity":
             self.engine = UnityEngine(self)
         elif engine == "Blender":
@@ -47,9 +50,18 @@ class Scene(Asset):
             raise ValueError("engine should be selected ()")
 
     @classmethod
-    def from_gltf(cls, file_path, **kwargs):
+    def from_hub(cls, repo_id: str, revision: Optional[str] = None):
+        """ Load a Scene from a GLTF file on the hub.
+
+            For now the file should be a GLTF-Embedded file (single file) named 'scene.gltf' at the root of the repo.
+        """
+        gltf_file = hf_hub_download(repo_id=repo_id, revision=revision, filename="scene.gltf", force_filename="scene.gltf", repo_type='space')
+        return cls.from_gltf(gltf_file)
+
+    @classmethod
+    def from_gltf(cls, file_path: str, file_type: Optional[str]=None, **kwargs):
         """Load a Scene from a GLTF file."""
-        nodes = load_gltf_as_tree(file_path)
+        nodes = load_gltf_as_tree(file_path, file_type=file_type)
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
             nodes = root.tree_children
@@ -61,6 +73,7 @@ class Scene(Asset):
             rotation=root.rotation,
             scaling=root.scaling,
             children=nodes,
+            created_from_file=file_path,
             **kwargs,
         )
 
