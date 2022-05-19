@@ -9,10 +9,9 @@ namespace SimEnv {
         public List<float> action;
 
         public override void Execute(UnityAction<string> callback) {
-
             Debug.Log("Stepping " + action.ToString());
-            RuntimeManager.Instance.Step(action, callback);
-            //callback("ack");
+            RuntimeManager.Instance.Step(action);
+            callback("ack");
         }
     }
 }

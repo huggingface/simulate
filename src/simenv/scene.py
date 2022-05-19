@@ -92,15 +92,17 @@ class Scene(Asset):
     def step(self, action):
         """Step the Scene using the engine if provided."""
 
-        if not self._built:
-            raise SceneNotBuiltError()
+        if not self._built: raise SceneNotBuiltError()
+        if self.engine is None:raise UnsetRendererError()
 
-        if self.engine is None:
-            raise UnsetRendererError()
+        return self.engine.step(action)
 
-        obs = self.engine.step(action)
+    def get_observation(self):
+        """Step the Scene using the engine if provided."""
+        if not self._built: raise SceneNotBuiltError()
+        if self.engine is None: raise UnsetRendererError()
 
-        return obs
+        return self.engine.get_observation()
 
     def __repr__(self):
         return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}')\n{RenderTree(self).print_tree()}"

@@ -27,10 +27,11 @@ class RL_Env(gym.Env):
         raise NotImplementedError
 
     def step(self, action):
-        encoded_obs = self.scene.step(action) # TODO: separated step command, observation command, reward command, etc
-        decoded_obs = json.loads(encoded_obs)
+        self.scene.step(action) # TODO: separated step command, observation command, reward command, etc
 
-        obs = np.flip(np.array(decoded_obs["Items"]).reshape(32,32,4)[:,:,:3],0)
+        obs = self.scene.get_observation()
+        # reward = scene.get_reward()
+        # info = scene.get_info()
 
         return obs
 
