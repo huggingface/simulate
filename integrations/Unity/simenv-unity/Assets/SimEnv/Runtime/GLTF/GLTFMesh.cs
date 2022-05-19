@@ -333,6 +333,7 @@ namespace SimEnv.GLTF {
                         nodes[i].mesh = results.Count;
                         ExportResult result = Export(mesh);
                         result.node = nodes[i];
+                        nodes[i].meshResult = result;
                         results.Add(result);
                     }
                 }

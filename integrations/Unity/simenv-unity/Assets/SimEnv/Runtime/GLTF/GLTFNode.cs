@@ -24,6 +24,7 @@ namespace SimEnv.GLTF {
         public bool ShouldSerializetranslation() { return translation != Vector3.zero; }
         public bool ShouldSerializerotation() { return rotation != Quaternion.identity; }
         public bool ShouldSerializescale() { return scale != Vector3.one; }
+
         public class Extensions {
             public KHR_light KHR_lights_punctual;
             public HFCollider HF_colliders;
@@ -32,10 +33,6 @@ namespace SimEnv.GLTF {
 
         public class HFRLAgent {
             public int agent;
-        }
-
-        public class HFCollider {
-            public int collider;
         }
 
         public class KHR_light {
@@ -85,9 +82,10 @@ namespace SimEnv.GLTF {
                     result[i] = new GLTFNode.ImportResult();
                     result[i].transform = new GameObject().transform;
                     result[i].transform.gameObject.name = nodes[i].name;
-                    SimObjectBase simObject = result[i].transform.gameObject.AddComponent<SimObjectBase>();
-                    if(Application.isPlaying)
+                    if(Application.isPlaying) {
+                        SimObjectBase simObject = result[i].transform.gameObject.AddComponent<SimObjectBase>();
                         simObject.Initialize();
+                    }
                 }
                 for(int i = 0; i < result.Length; i++) {
                     if(nodes[i].children != null) {
@@ -181,19 +179,37 @@ namespace SimEnv.GLTF {
                         }
                         if(nodes[i].extensions.HF_colliders != null) {
                             Debug.Log("not null " + i + " " + nodes[i].name + " " + nodes[i].extensions);
-                            int collider_id = nodes[i].extensions.HF_colliders.collider;
-                            if(extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.shapes == null || extensions.HF_colliders.shapes.Count < collider_id) {
+                            HF_colliders colliders = nodes[i].extensions.HF_colliders;
+                            if(colliders.shapes == null || colliders.shapes.Count == 0) {
                                 Debug.LogWarning("Error importing collider");
                             } else {
-                                Debug.Log("Creating collider");
-
-                                HF_colliders.GLTFCollider collider = extensions.HF_colliders.shapes[collider_id];
-                                
-                                if(collider.type == ColliderType.BOX) {
-                                    BoxCollider col = result[i].transform.gameObject.AddComponent<BoxCollider>();
-                                    col.size = collider.boundingBox;
-                                } else {
-                                    throw new System.NotImplementedException();
+                                foreach(HF_colliders.ColliderShape collider in colliders.shapes) {
+                                    if(collider.offsetRotation != Quaternion.identity || collider.offsetScale != Vector3.one || collider.offsetMatrix != Matrix4x4.identity || collider.primaryAxis != "Y") {
+                                        Debug.LogWarning("Provided collider offset not supported");
+                                        continue;
+                                    }
+                                    if(collider.mesh.HasValue) {
+                                        Debug.LogWarning("Ignoring collider mesh value");
+                                    }
+                                    if(collider.type == ColliderType.BOX) {
+                                        BoxCollider col = result[i].transform.gameObject.AddComponent<BoxCollider>();
+                                        col.size = collider.boundingBox;
+                                        col.center = collider.offsetTranslation;
+                                        col.isTrigger = collider.intangible;
+                                    } else if(collider.type == ColliderType.SPHERE) {
+                                        SphereCollider col = result[i].transform.gameObject.AddComponent<SphereCollider>();
+                                        col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[1], collider.boundingBox[2]);
+                                        col.center = collider.offsetTranslation;
+                                        col.isTrigger = collider.intangible;
+                                    } else if(collider.type == ColliderType.CAPSULE) {
+                                        CapsuleCollider col = result[i].transform.gameObject.AddComponent<CapsuleCollider>();
+                                        col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[2]);
+                                        col.height = collider.boundingBox[1];
+                                        col.center = collider.offsetTranslation;
+                                        col.isTrigger = collider.intangible;
+                                    } else {
+                                        Debug.LogWarning(string.Format("Collider type {0} not implemented", collider.GetType()));
+                                    }
                                 }
                             }
                         }
@@ -232,6 +248,7 @@ namespace SimEnv.GLTF {
             [JsonIgnore] public MeshRenderer renderer;
             [JsonIgnore] public MeshFilter filter;
             [JsonIgnore] public SkinnedMeshRenderer skinnedMeshRenderer;
+            [JsonIgnore] public GLTFMesh meshResult;
         }
 
         public static List<ExportResult> Export(Transform root) {

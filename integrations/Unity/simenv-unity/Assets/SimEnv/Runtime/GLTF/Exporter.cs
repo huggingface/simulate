@@ -81,6 +81,7 @@ namespace SimEnv.GLTF {
                 }
             }
 
+            HF_colliders.Export(nodes);
 
             List<GLTFMaterial.ExportResult> materials = GLTFMaterial.Export(meshes);
             if(materials.Count > 0) {
