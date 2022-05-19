@@ -51,10 +51,10 @@ class UnityEngine:
     def update_asset_in_scene(self, root_node):
         # TODO update and make this API more consistent with all the
         # update_asset_in_scene, recreate_scene, show
-        self._send_gltf(tree_as_glb_bytes(self._scene))
+        pass
 
     def recreate_scene(self):
-        self._send_gltf(tree_as_glb_bytes(self._scene))
+        pass
 
     def show(self):
         self._send_gltf(tree_as_glb_bytes(self._scene))

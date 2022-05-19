@@ -80,7 +80,8 @@ namespace SimEnv.GLTF {
                 for (int i = 0; i < result.Length; i++) {
                     result[i] = new GLTFNode.ImportResult();
                     result[i].transform = new GameObject().transform;
-                    result[i].transform.name = nodes[i].name;
+                    result[i].transform.gameObject.name = nodes[i].name;
+                    result[i].transform.gameObject.AddComponent<SimObjectBase>().Initialize();
                 }
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].children != null) {
@@ -181,7 +182,7 @@ namespace SimEnv.GLTF {
 
                                 Debug.Log("Creating Agent");
 
-                                GLTF_agents.GLTFAgent agentData = extensions.GLTF_agents.agents[agent_id];
+                                HF_agents.GLTFAgent agentData = extensions.GLTF_agents.agents[agent_id];
 
                                 Debug.Log("color" + agentData.color.ToString());
                                 Agent agent = GameObject.Instantiate(
@@ -191,7 +192,7 @@ namespace SimEnv.GLTF {
                                     result[i].transform
                                 );
 
-                                agent.setProperties(agentData);
+                                agent.Initialize(agentData);
 
                                 result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                             }

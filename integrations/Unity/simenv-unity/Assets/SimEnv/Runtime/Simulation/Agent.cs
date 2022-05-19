@@ -13,8 +13,8 @@ namespace SimEnv {
 
         public abstract void SetAction(List<float> stepAction);
     }
-    public class DiscreteActions : Actions {
 
+    public class DiscreteActions : Actions {
         public override void SetAction(List<float> stepAction) {
             Debug.Assert(dist == "discrete", "not implemented");
             Debug.Assert(stepAction.Count == 1, "in the discrete case step action must be of length 1");
@@ -76,7 +76,6 @@ namespace SimEnv {
         }
 
         public void Print() {
-
             Debug.Log("Printing actions");
             Debug.Log("name: " + name);
             Debug.Log("dist: " + dist);
@@ -88,15 +87,14 @@ namespace SimEnv {
     }
 
     [RequireComponent(typeof(CharacterController))]
-    public class Agent : MonoBehaviour {
-
+    public class Agent : SimAgentBase {
+        public Actions actions;
+        public Color color = Color.white;
         public float move_speed = 1f;
         public float turn_speed = 1f;
         public float height = 1f;
 
         private const bool HUMAN = false;
-
-        public Color color = Color.white;
 
         CharacterController controller;
 
@@ -104,42 +102,7 @@ namespace SimEnv {
             controller = GetComponent<CharacterController>();
         }
 
-        public Actions actions;
-        // Start is called before the first frame update
-        void Start() {
-
-        }
-
-        public void setProperties(SimEnv.GLTF.GLTF_agents.GLTFAgent agentData) {
-
-            Debug.Log("Setting Agent properties");
-
-            color = agentData.color;
-            height = agentData.height;
-            move_speed = agentData.move_speed;
-            turn_speed = agentData.turn_speed;
-
-            switch (agentData.action_dist) {
-
-                case "discrete":
-                    actions = new DiscreteActions();
-                    break;
-                case "continuous":
-                    actions = new ContinuousActions();
-                    break;
-                default:
-                    Debug.Assert(false, "action distribution was not discrete or continuous");
-                    break;
-            }
-
-            actions.name = agentData.action_name;
-
-            actions.dist = agentData.action_dist;
-            actions.available = agentData.available_actions;
-
-        }
         void Update() {
-
             if (HUMAN) {
                 // Human control
                 float x = Input.GetAxis("Horizontal");
@@ -162,10 +125,38 @@ namespace SimEnv {
             }
         }
 
+        public void Initialize(SimEnv.GLTF.HF_agents.GLTFAgent agentData) {
+            Initialize();
+            SetProperties(agentData);
+        }
+
+        void SetProperties(SimEnv.GLTF.HF_agents.GLTFAgent agentData) {
+            Debug.Log("Setting Agent properties");
+
+            color = agentData.color;
+            height = agentData.height;
+            move_speed = agentData.move_speed;
+            turn_speed = agentData.turn_speed;
+
+            switch (agentData.action_dist) {
+                case "discrete":
+                    actions = new DiscreteActions();
+                    break;
+                case "continuous":
+                    actions = new ContinuousActions();
+                    break;
+                default:
+                    Debug.Assert(false, "action distribution was not discrete or continuous");
+                    break;
+            }
+
+            actions.name = agentData.action_name;
+            actions.dist = agentData.action_dist;
+            actions.available = agentData.available_actions;
+        }
+
         public void SetAction(List<float> step_action) {
             actions.SetAction(step_action);
         }
     }
-
-
 }
