@@ -23,9 +23,8 @@ namespace SimEnv {
             }
 
         }
-        public void Step(List<float> action, UnityAction<string> callback) {
-
-            // find the agent
+        public void Step(List<float> action) {
+            
             if (agentScript) {
                 Debug.Log("stepping agent");
                 agentScript.SetAction(action);
@@ -39,10 +38,11 @@ namespace SimEnv {
                 }
                 Physics.Simulate(frameInterval);
             }
+        }
 
+        public void GetObservation(UnityAction<string> callback) {
             // Calculate the agent's observation and send to python with callback
             agentScript.ObservationCoroutine(callback);
-            //callback("ack");
         }
     }
 }
