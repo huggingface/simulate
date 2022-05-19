@@ -1,7 +1,7 @@
 import base64
 import json
 import socket
-
+import numpy as np
 
 PRIMITIVE_TYPE_MAPPING = {
     "Sphere": 0,
@@ -49,6 +49,15 @@ class Unity:
     def step(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
         return self.run_command(command)
+
+    def get_observation(self):
+        command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
+
+        encoded_obs = self.run_command(command)
+        decoded_obs = json.loads(encoded_obs)
+        # TODO: remove np.flip for training (the agent does not care the world is upside-down
+        obs = np.flip(np.array(decoded_obs["Items"]).reshape(32,32,4)[:,:,:3],0)
+        return obs
 
     def run_command(self, command):
         message = json.dumps(command)
