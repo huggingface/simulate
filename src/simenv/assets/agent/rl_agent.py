@@ -4,6 +4,8 @@ from typing import List, Optional
 
 from dataclasses_json import dataclass_json
 
+from simenv.gltflib.models import camera
+
 from ..asset import Asset
 from .rl_agent_actions import DiscreteRLAgentActions
 
@@ -20,6 +22,8 @@ class RL_Agent(Asset):
         move_speed=2.0,
         turn_speed=2.0,
         actions=DiscreteRLAgentActions.default(),
+        camera_width=32,
+        camera_height=32,
         translation=[0, 0, 0],
         rotation=[0, 0, 0, 1],
         parent: Optional[Asset] = None,
@@ -32,3 +36,5 @@ class RL_Agent(Asset):
         self.move_speed = move_speed
         self.turn_speed = turn_speed
         self.actions = actions
+        self.camera_height = camera_height
+        self.camera_width = camera_width

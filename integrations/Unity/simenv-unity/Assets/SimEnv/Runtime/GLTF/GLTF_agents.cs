@@ -15,6 +15,10 @@ namespace SimEnv.GLTF {
             public float turn_speed = 1f;
             public string action_name = "";
             public string action_dist = "";
+
+            public int camera_width = -1;
+            public int camera_height = -1;
+
             public List<string> available_actions = new List<string>();
         }
     }
