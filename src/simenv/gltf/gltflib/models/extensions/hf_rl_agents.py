@@ -8,6 +8,22 @@ from dataclasses_json import dataclass_json
 
 @dataclass_json
 @dataclass
+class HFRLAgentAction:
+    """
+    A HF RL Agent Action
+    """
+
+    color: Optional[List[float]] = None
+    height: Optional[float] = None
+    move_speed: Optional[float] = None
+    turn_speed: Optional[float] = None
+    action_name: Optional[str] = None
+    action_dist: Optional[str] = None
+    available_actions: Optional[List[str]] = None
+
+
+@dataclass_json
+@dataclass
 class HFRLAgent:
     """
     A HF RL Agent

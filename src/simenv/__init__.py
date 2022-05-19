@@ -21,5 +21,6 @@ __version__ = "0.0.1.dev0"
 
 from .assets import *
 from .engine import *
+from .gltf import *
 from .rl import *
 from .scene import Scene

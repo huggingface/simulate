@@ -1,5 +1,5 @@
 import simenv as sm
-import os, time
+import time
 scene = sm.Scene(engine="Unity")
 
 
