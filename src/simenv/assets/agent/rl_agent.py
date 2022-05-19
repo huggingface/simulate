@@ -10,7 +10,7 @@ from ..asset import Asset
 from .rl_agent_actions import DiscreteRLAgentActions, RLAgentActions
 
 
-class RL_Agent(Asset):
+class RLAgent(Asset):
     dimensionality = 3
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 

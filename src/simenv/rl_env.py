@@ -1,11 +1,9 @@
 import gym
 from gym import spaces
-import json
-import simenv as sm
 from simenv.assets import agent
 import numpy as np
 
-class RL_Env(gym.Env):
+class RLEnv(gym.Env):
     def __init__(self, scene) -> None:
         super().__init__()
 
