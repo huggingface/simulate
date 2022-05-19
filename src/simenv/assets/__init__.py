@@ -1,4 +1,4 @@
-from .agent import RL_Agent
+from .agent import RLAgent
 from .asset import *
 from .camera import Camera
 from .light import DirectionalLight, Light, PointLight, SpotLight

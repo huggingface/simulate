@@ -1,7 +1,7 @@
 import simenv as sm
 import simenv.assets.utils as utils
 import os, time
-from simenv.rl_env import RL_Env
+from simenv.rl_env import RLEnv
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -21,7 +21,7 @@ for i in range(20):
     scene += sm.Cube(f"cube{i}", dynamic=False, translation=[random.uniform(-9,9), 0.5, random.uniform(-9,9)], scale=[1,1,1])
 
 
-agent = sm.RL_Agent("agent", camera_width=64, camera_height=40, translation=[0, 0, 0.0])
+agent = sm.RLAgent("agent", camera_width=64, camera_height=40, translation=[0, 0, 0.0])
 scene += agent
 
 
@@ -31,7 +31,7 @@ fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(agent.camera_height, agent.camera_width, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
-env = RL_Env(scene)
+env = RLEnv(scene)
 for i in range(1000):
     action = env.action_space.sample()
     if type(action) == int: # discrete are ints, continuous are numpy arrays

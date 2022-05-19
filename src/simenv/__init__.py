@@ -24,5 +24,5 @@ from .assets.utils import *
 from .gltf_export import *  # TODO cleanup all these * import
 from .gltf_import import *
 from .renderer.unity import Unity
-from .rl_env import RL_Env
+from .rl_env import RLEnv
 from .scene import Scene

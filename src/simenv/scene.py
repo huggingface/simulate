@@ -87,7 +87,7 @@ class Scene(Asset):
 
     def get_agents(self):
         # search all nodes for agents classes and then return in list
-        return self._get_decendants_of_class_type(sm.RL_Agent)
+        return self._get_decendants_of_class_type(sm.RLAgent)
 
     def build(self):
         """Render the Scene using the engine if provided."""
