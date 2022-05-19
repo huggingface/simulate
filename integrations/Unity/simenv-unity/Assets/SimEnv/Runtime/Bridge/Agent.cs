@@ -40,7 +40,7 @@ namespace SimEnv {
     public class DiscreteActions : Actions {
 
         public override void SetAction(List<float> stepAction) {
-            Debug.Assert(dist == "discrete", "not implemented");
+            Debug.Assert(dist == "discrete");
             Debug.Assert(stepAction.Count == 1, "in the discrete case step action must be of length 1");
 
             // in the case of discrete actions, this list is just one value
@@ -78,7 +78,7 @@ namespace SimEnv {
 
     public class ContinuousActions : Actions {
         public override void SetAction(List<float> stepAction) {
-            Debug.Assert(dist == "continuous", "not implemented");
+            Debug.Assert(dist == "continuous");
             Debug.Assert(stepAction.Count == available.Count, "step action and avaiable count mismatch");
 
             for (int i = 0; i < stepAction.Count; i++) {
@@ -216,8 +216,6 @@ namespace SimEnv {
             int width = agent_camera.pixelWidth;
             int height = agent_camera.pixelHeight;
 
-            Debug.Log(width + " " + height);
-
             Texture2D image = new Texture2D(width, height);
             image.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             image.Apply();
@@ -235,7 +233,6 @@ namespace SimEnv {
             }
 
             string string_array = JsonHelper.ToJson(pixel_values);
-            Debug.Log(string_array);
             if (callback != null)
                 callback(string_array);
 
