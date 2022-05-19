@@ -170,3 +170,38 @@ public class MyCommand : Command {
 ```
 
 Simply adding the script to the project should be sufficient to make it work. Any public fields defined in a `Command` can be passed through your `contents` JSON. Only simple types (i.e. `int`, `float`, `string`) and arrays are supported, not Lists, Vector3, etc., since it uses Unity's built-in JSON serialization. You need to serialize/deserialize these yourself.
+
+### Colliders Extension
+
+The HF_colliders extension is based loosely on the PANDA3D_physics_collision_shapes extension: https://github.com/Moguri/glTF/tree/panda3d_physics_collision_shapes/extensions/2.0/Vendor/PANDA3D_collision_shapes
+
+This extension is defined at the node-level. For example, a node with a box collider:
+```
+{
+    "extensions": {
+        "HF_colliders": {
+            "shapes": [
+                {
+                    "type": "BOX",
+                    "boundingBox": [
+                        0.5,
+                        0.5,
+                        0.5
+                    ]
+                }
+            ]
+        }
+    }
+}
+```
+
+This currently only supports box, sphere, and capsule colliders (the Unity/PhysX colliders).
+
+Differences from the PANDA3D extension:
+- Properties `group` and `mask` are removed, since layer interactions are defined engine-wide, not per-object, in Unity. Layer interaction will need to be defined a different way if added, or throw an error if there are conflicting layer interactions per-object.
+- `Intangible` moved from outer class to shape class, because 
+
+TODOs:
+- Add mesh collider support.
+- Add shape `primaryAxis` support. This isn't represented in Unity, but could be converted on import.
+- Add support for other collider shapes, i.e. bullet has cylinders and cones. This isn't natively in Unity/PhysX, but could be approximated on import.
