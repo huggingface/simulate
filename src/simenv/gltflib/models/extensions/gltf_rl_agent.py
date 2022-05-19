@@ -19,6 +19,8 @@ class GLTF_RL_Agent:
     turn_speed: Optional[float] = None
     action_name: Optional[str] = None
     action_dist: Optional[str] = None
+    camera_width: Optional[int] = None
+    camera_height: Optional[int] = None
     available_actions: Optional[List[str]] = None
 
 

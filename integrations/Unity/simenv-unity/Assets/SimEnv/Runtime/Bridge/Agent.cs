@@ -116,17 +116,19 @@ namespace SimEnv {
         public float move_speed = 1f;
         public float turn_speed = 1f;
         public float height = 1f;
-
         private const bool HUMAN = false;
 
         public Color color = Color.white;
 
         CharacterController controller;
-        Camera agent_camera; // the new is required see: https://forum.unity.com/threads/warning-cs0108-grapplinggun-camera-hides-inherited-member-component-camera-use-the-new-keyword.1209343/
+        Camera agent_camera;
 
         void Awake() {
             controller = GetComponent<CharacterController>();
             agent_camera = GetComponentInChildren<Camera>();
+            if (HUMAN) {
+                agent_camera.targetTexture = new RenderTexture(32, 32, 24); // for debugging
+            }
         }
 
         public Actions actions;
@@ -168,6 +170,8 @@ namespace SimEnv {
             actions.dist = agentData.action_dist;
             actions.available = agentData.available_actions;
 
+            agent_camera.targetTexture = new RenderTexture(agentData.camera_width, agentData.camera_height, 24);
+
         }
         public void AgentUpdate() {
 
@@ -191,8 +195,6 @@ namespace SimEnv {
                 float rotate = actions.turnRight;
                 transform.Rotate(Vector3.up * rotate * turn_speed);
             }
-
-
         }
 
         public void ObservationCoroutine(UnityAction<string> callback) {
@@ -200,7 +202,6 @@ namespace SimEnv {
         }
 
         IEnumerator RenderCoroutine(UnityAction<string> callback) {
-
             yield return new WaitForEndOfFrame();
             GetObservation(callback);
             Debug.Log("Finished rendering");
@@ -214,6 +215,9 @@ namespace SimEnv {
             agent_camera.Render();
             int width = agent_camera.pixelWidth;
             int height = agent_camera.pixelHeight;
+
+            Debug.Log(width + " " + height);
+
             Texture2D image = new Texture2D(width, height);
             image.ReadPixels(new Rect(0, 0, width, height), 0, 0);
             image.Apply();
@@ -221,13 +225,13 @@ namespace SimEnv {
             Color32[] pixels = image.GetPixels32();
             RenderTexture.active = activeRenderTexture;
 
-            uint[] pixel_values = new uint[pixels.Length * 4];
+            uint[] pixel_values = new uint[pixels.Length * 3];
 
             for (int i = 0; i < pixels.Length; i++) {
-                pixel_values[i * 4] += pixels[i].r;
-                pixel_values[i * 4 + 1] += pixels[i].g;
-                pixel_values[i * 4 + 2] += pixels[i].b;
-                pixel_values[i * 4 + 3] += pixels[i].a;
+                pixel_values[i * 3] += pixels[i].r;
+                pixel_values[i * 3 + 1] += pixels[i].g;
+                pixel_values[i * 3 + 2] += pixels[i].b;
+                // we do not include alpha, TODO: Add option to include Depth Buffer
             }
 
             string string_array = JsonHelper.ToJson(pixel_values);

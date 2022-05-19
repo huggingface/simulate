@@ -349,6 +349,8 @@ def add_agent_to_model(node: RL_Agent, gltf_model: gl.GLTFModel, buffer_data: By
         height=node.height,
         move_speed=node.move_speed,
         turn_speed=node.turn_speed,
+        camera_width=node.camera_width,
+        camera_height=node.camera_height,
         action_name=node.actions.name,
         action_dist=node.actions.dist,
         available_actions=node.actions.available_actions,
