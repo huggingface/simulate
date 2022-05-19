@@ -1,6 +1,8 @@
 [gd_scene load_steps=2 format=3 uid="uid://w5e1yv0arg10"]
 
-[ext_resource type="Script" path="res://SimEnv/Bridge/Client.gd" id="1_oe0yn"]
+[ext_resource type="Script" path="res://SimEnv/Bridge/Client.gd" id="1_ivg3h"]
 
-[node name="Scene" type="Node3D"]
-script = ExtResource( "1_oe0yn" )
+[node name="Root" type="Node"]
+
+[node name="Client" type="Node" parent="."]
+script = ExtResource( "1_ivg3h" )
