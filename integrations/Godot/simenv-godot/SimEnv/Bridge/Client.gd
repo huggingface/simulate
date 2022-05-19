@@ -1,18 +1,18 @@
-extends Node3D
+extends Node
 
-var client
-var wrapped_client
-var connected = false
+var client : StreamPeerTCP
+var wrapped_client : PacketPeerStream
+var connected : bool = false
 var message_center
-var should_connect = false
+var should_connect : bool = false
 
 
-func _ready():
+func _ready() -> void:
 	client = StreamPeerTCP.new()
-	client.set_no_delay(true)
+	client.set_no_delay(false)
 	
 
-func _process(delta):
+func _process(delta : float) -> void:
 	if should_connect and not connected:
 		pass
 	if connected and not client.get_status() == StreamPeerTCP.STATUS_CONNECTED:
@@ -21,7 +21,7 @@ func _process(delta):
 		poll_server()
 
 
-func connect_to_server(timeout_seconds):
+func connect_to_server(timeout_seconds : int) -> void:
 	set_process(true)
 	should_connect = true
 	var ip = "127.0.0.1"
@@ -29,7 +29,7 @@ func connect_to_server(timeout_seconds):
 	print("Connecting to server: %s : %s" % [ip, str(port)])
 	var connect = client.connect_to_host(ip, port)
 	
-	if client.is_connected_to_host():
+	if client.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 		connected = true
 		print("Connected to local host server")
 	
@@ -37,11 +37,11 @@ func connect_to_server(timeout_seconds):
 		wrapped_client.set_stream_peer(client)
 
 
-func disconnect_from_server():
+func disconnect_from_server() -> void:
 	client.disconnect_from_host()
 
 
-func poll_server():	
+func poll_server() -> void:	
 	while wrapped_client.get_available_packet_count() > 0:
 		var msg = wrapped_client.get_var()
 		var error = wrapped_client.get_packet_error()
@@ -55,8 +55,8 @@ func poll_server():
 		message_center.process_msg(str(msg))
 
 
-func send_var(msg):
-	if client.is_connected_to_host():
+func send_var(msg : String) -> void:
+	if client.get_status() == StreamPeerTCP.STATUS_CONNECTED:
 		print("Sending: %s" % msg)
 		wrapped_client.put_var(msg)
 		var error = wrapped_client.get_packet_error()
