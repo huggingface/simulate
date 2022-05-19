@@ -92,15 +92,19 @@ class Scene(Asset):
     def step(self, action):
         """Step the Scene using the engine if provided."""
 
-        if not self._built: raise SceneNotBuiltError()
-        if self.engine is None: raise UnsetRendererError()
+        if not self._built:
+            raise SceneNotBuiltError()
+        if self.engine is None:
+            raise UnsetRendererError()
 
         return self.engine.step(action)
 
     def get_observation(self):
         """Step the Scene using the engine if provided."""
-        if not self._built: raise SceneNotBuiltError()
-        if self.engine is None: raise UnsetRendererError()
+        if not self._built:
+            raise SceneNotBuiltError()
+        if self.engine is None:
+            raise UnsetRendererError()
 
         return self.engine.get_observation()
 

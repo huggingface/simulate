@@ -1,7 +1,9 @@
 import base64
 import json
 import socket
+
 import numpy as np
+
 
 PRIMITIVE_TYPE_MAPPING = {
     "Sphere": 0,
@@ -39,7 +41,6 @@ class Unity:
                 response = data.decode()
                 print(f"Received response: {response}")
                 return response
-
 
     def send_gltf(self, bytes):
         b64_bytes = base64.b64encode(bytes).decode("ascii")

@@ -1,7 +1,9 @@
 import gym
-from gym import spaces
-from simenv.assets import agent
 import numpy as np
+from gym import spaces
+
+from simenv.assets import agent
+
 
 class RLEnv(gym.Env):
     def __init__(self, scene) -> None:
@@ -19,8 +21,8 @@ class RLEnv(gym.Env):
         else:
             self.action_space = spaces.Box(low=-1, high=1, shape=[len(agent_actions.types)])
 
-        camera_width =self.agents[0].camera_width
-        camera_height =self.agents[0].camera_height
+        camera_width = self.agents[0].camera_width
+        camera_height = self.agents[0].camera_height
 
         self.observation_space = spaces.Box(low=0, high=255, shape=[camera_height, camera_width, 3])
 
@@ -32,9 +34,8 @@ class RLEnv(gym.Env):
 
         obs = self.scene.get_observation()
         # TODO: remove np.flip for training (the agent does not care the world is upside-down
-        obs = np.flip(np.array(obs["Items"]).reshape(*self.observation_space.shape),0)
+        obs = np.flip(np.array(obs["Items"]).reshape(*self.observation_space.shape), 0)
         # reward = scene.get_reward()
         # info = scene.get_info()
 
         return obs
-
