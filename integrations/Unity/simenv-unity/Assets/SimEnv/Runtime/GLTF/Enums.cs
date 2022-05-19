@@ -9,7 +9,7 @@ namespace SimEnv.GLTF {
     public enum Format { AUTO, GLTF, GLB }
     public enum CameraType { perspective, orthographic }
     public enum LightType { directional, point, spot }
-    public enum ColliderType { BOX, SPHERE, CAPSULE, CYLINDER, MESH }
+    public enum ColliderType { BOX, SPHERE, CAPSULE, MESH }
     public enum InterpolationMode { ImportFromFile = -1, LINEAR = 0, STEP = 1, CUBICSPLINE = 2 }
 
     public static class EnumExtensions {
