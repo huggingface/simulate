@@ -8,24 +8,21 @@ import random
 scene = sm.Scene(engine="Unity")
 
 
-scene += sm.DirectionalLight(
-    "sun", translation=[0, 20, 0], rotation=utils.quat_from_degrees(60, -30, 0), intensity=3.5
-)
-scene += sm.Cube("floor", dynamic=False, translation=[0, -0.05, 0], scale=[100, 0.1, 100])
-scene += sm.Cube("wall1", dynamic=False, translation=[-10, 0.5, 0], scale=[0.1, 1, 20.0])
-scene += sm.Cube("wall2", dynamic=False, translation=[10, 0.5, 0], scale=[0.1, 1, 20.0])
-scene += sm.Cube("wall3", dynamic=False, translation=[0, 0.5, 10], scale=[20.0, 1, 0.1])
-scene += sm.Cube("wall4", dynamic=False, translation=[0, 0.5, -10], scale=[20.0, 1, 0.1])
+scene += sm.Light(name="sun", position=[0, 20, 0], rotation=utils.quat_from_degrees(60, -30, 0), intensity=3.5)
+scene += sm.Cube(name="floor",  position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50])
+scene += sm.Cube(name="wall1", position=[-10, 0.0, 0], bounds=[0, 0.1, 0,1, -10, 10])
+scene += sm.Cube(name="wall2",  position=[10, 0.5, 0], bounds=[0, 0.1, 0,1, -10, 10])
+scene += sm.Cube(name="wall3", position=[0, 0.5, 10], bounds=[-10, 10, 0,1, 0, 0.1])
+scene += sm.Cube(name="wall4", position=[0, 0.5, -10], bounds=[-10, 10, 0,1, 0, 0.1])
 
 for i in range(20):
-    scene += sm.Cube(f"cube{i}", dynamic=False, translation=[random.uniform(-9,9), 0.5, random.uniform(-9,9)], scale=[1,1,1])
+    scene += sm.Cube(name=f"cube{i}", position=[random.uniform(-9,9), 0.5, random.uniform(-9,9)])
 
 
-agent = sm.RLAgent("agent", camera_width=64, camera_height=40, translation=[0, 0, 0.0])
+agent = sm.RLAgent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
 scene += agent
 
-
-scene.build()
+scene.show()
 plt.ion()
 fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(agent.camera_height, agent.camera_width, 3), dtype=np.uint8)
@@ -44,6 +41,5 @@ for i in range(1000):
     fig1.canvas.flush_events()
     
     time.sleep(0.1)
-
 
 scene.close()

@@ -93,7 +93,7 @@ class Scene(Asset):
         """Step the Scene using the engine if provided."""
 
         if not self._built: raise SceneNotBuiltError()
-        if self.engine is None:raise UnsetRendererError()
+        if self.engine is None: raise UnsetRendererError()
 
         return self.engine.step(action)
 

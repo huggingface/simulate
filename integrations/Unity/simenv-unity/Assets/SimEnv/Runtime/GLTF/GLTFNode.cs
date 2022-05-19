@@ -26,11 +26,11 @@ namespace SimEnv.GLTF {
         public bool ShouldSerializescale() { return scale != Vector3.one; }
         public class Extensions {
             public KHR_light KHR_lights_punctual;
-            public GLTFAgent GLTF_agents;
+            public HFRLAgent HF_RL_agents;
             public HF_colliders HF_collision_shapes;
         }
 
-        public class GLTFAgent {
+        public class HFRLAgent {
             public int agent;
         }
 
@@ -173,16 +173,16 @@ namespace SimEnv.GLTF {
                                 }
                             }
                         }
-                        if (nodes[i].extensions.GLTF_agents != null) {
+                        if (nodes[i].extensions.HF_RL_agents != null) {
                             Debug.Log("not null2 " + i + " " + nodes[i].name + " " + nodes[i].extensions);
-                            int agent_id = nodes[i].extensions.GLTF_agents.agent;
-                            if (extensions == null || extensions.GLTF_agents == null || extensions.GLTF_agents.agents == null || extensions.GLTF_agents.agents.Count < agent_id) {
+                            int agent_id = nodes[i].extensions.HF_RL_agents.agent;
+                            if (extensions == null || extensions.HF_RL_agents == null || extensions.HF_RL_agents.agents == null || extensions.HF_RL_agents.agents.Count < agent_id) {
                                 Debug.LogWarning("Error importing agent");
                             } else {
 
                                 Debug.Log("Creating Agent");
 
-                                HF_agents.GLTFAgent agentData = extensions.GLTF_agents.agents[agent_id];
+                                HF_RL_agents.HF_RL_Agent agentData = extensions.HF_RL_agents.agents[agent_id];
 
                                 Debug.Log("color" + agentData.color.ToString());
                                 Agent agent = GameObject.Instantiate(

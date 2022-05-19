@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 
 namespace SimEnv.GLTF {
-    public class HF_agents {
-        public List<GLTFAgent> agents;
+    public class HF_RL_agents {
+        public List<HF_RL_Agent> agents;
 
-        public class GLTFAgent {
+        public class HF_RL_Agent {
             //public string name = "";
             [JsonConverter(typeof(ColorRGBConverter))] public Color color = Color.white;
             public float height = 1f;

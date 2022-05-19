@@ -7,7 +7,7 @@ using System.Reflection;
 using ISimEnv;
 using System.Collections.Generic;
 using SimEnv.GLTF;
-
+using UnityEngine.Events;
 namespace SimEnv {
     /// <summary>
     /// Master Simulator component, required to use SimEnv
@@ -26,22 +26,39 @@ namespace SimEnv {
         static GameObject root;
 
         public static void BuildSceneFromBytes(byte[] bytes) {
-            if(root != null)
+            if (root != null)
                 GameObject.DestroyImmediate(root);
             root = Importer.LoadFromBytes(bytes);
         }
 
         public static void Step(List<float> action) {
-            if(ISimulator.Agent != null && ISimulator.Agent is Agent) {
+            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
                 Debug.Log("Stepping agent");
                 Agent agent = ISimulator.Agent as Agent;
                 agent.SetAction(action);
             } else {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
-            for(int i = 0; i < FRAME_SKIP; i++)
-                Physics.Simulate(FRAME_INTERVAL);
+            for (int i = 0; i < FRAME_SKIP; i++)
+                if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                    Agent agent = ISimulator.Agent as Agent;
+                    agent.AgentUpdate();
+                }
+            Physics.Simulate(FRAME_INTERVAL);
         }
+
+
+        public static void GetObservation(UnityAction<string> callback) {
+            // Calculate the agent's observation and send to python with callback
+            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                Agent agent = ISimulator.Agent as Agent;
+                agent.ObservationCoroutine(callback);
+            } else {
+                Debug.LogWarning("Attempting to get observation without an Agent");
+            }
+
+        }
+
         #endregion
 
         #region Initialization
@@ -70,9 +87,9 @@ namespace SimEnv {
 
         void LoadMods() {
             DirectoryInfo modDirectory = new DirectoryInfo(modPath);
-            if(modDirectory.Exists) {
-                foreach(FileInfo file in modDirectory.GetFiles()) {
-                    if(file.Extension == ".dll") {
+            if (modDirectory.Exists) {
+                foreach (FileInfo file in modDirectory.GetFiles()) {
+                    if (file.Extension == ".dll") {
                         Assembly.LoadFile(file.FullName);
                         Debug.Log("Loaded mod assembly: " + file.Name);
                     }
@@ -99,7 +116,7 @@ namespace SimEnv {
         }
 
         void OnDestroy() {
-            if(initialized) {
+            if (initialized) {
                 StopCoroutine(listenCoroutine);
                 client.Close();
                 initialized = false;

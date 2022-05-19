@@ -61,13 +61,21 @@ class UnityEngine:
 
     def step(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
-        self.run_command(command)
+        return self.run_command(command)
+
+    def get_observation(self):
+        command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
+
+        encoded_obs = self.run_command(command)
+        decoded_obs = json.loads(encoded_obs)
+
+        return decoded_obs
 
     def run_command(self, command):
         message = json.dumps(command)
         print(f"Sending command: {message}")
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
-        self._send_bytes(message_bytes)
+        return self._send_bytes(message_bytes)
 
     def close(self):
         self.client.close()
