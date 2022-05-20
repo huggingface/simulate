@@ -14,7 +14,7 @@ namespace SimEnv.GLTF {
             public string primaryAxis = "Y";
             public int? mesh;
             [JsonConverter(typeof(Matrix4x4Converter))] public Matrix4x4 offsetMatrix = Matrix4x4.identity;
-            [JsonConverter(typeof(Vector3Converter))] public Vector3 offsetTranslation = Vector3.zero;
+            [JsonConverter(typeof(TranslationConverter))] public Vector3 offsetTranslation = Vector3.zero;
             [JsonConverter(typeof(QuaternionConverter))] public Quaternion offsetRotation = Quaternion.identity;
             [JsonConverter(typeof(Vector3Converter))] public Vector3 offsetScale = Vector3.one;
             public bool intangible = false;

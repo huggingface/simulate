@@ -21,6 +21,8 @@ from typing import ByteString, List, Optional, Set, Tuple
 import numpy as np
 import pyvista as pv
 
+from simenv.gltflib.enums.collider_type import ColliderType
+
 
 try:
     import PIL.Image
