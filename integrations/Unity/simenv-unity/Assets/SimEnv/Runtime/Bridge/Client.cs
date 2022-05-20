@@ -63,6 +63,9 @@ namespace SimEnv {
                 NetworkStream stream = client.GetStream();
                 if(stream.CanWrite) {
                     byte[] buffer = Encoding.ASCII.GetBytes(message);
+                    byte[] lengthBytes = BitConverter.GetBytes(buffer.Length);
+                    Debug.Assert(lengthBytes.Length == 4);
+                    stream.Write(lengthBytes, 0, 4);
                     stream.Write(buffer, 0, buffer.Length);
                     Debug.Log("Sent message: " + message);
                 }
