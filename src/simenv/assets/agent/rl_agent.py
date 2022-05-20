@@ -8,6 +8,7 @@ from simenv.gltflib.models import camera
 
 from ..asset import Asset
 from .rl_agent_actions import DiscreteRLAgentActions, RLAgentActions
+from .rl_agent_reward_function import RLAgentRewardFunction
 
 
 class RLAgent(Asset):
@@ -21,6 +22,7 @@ class RLAgent(Asset):
         move_speed: Optional[float] = 2.0,
         turn_speed: Optional[float] = 0.4,
         actions: Optional[RLAgentActions] = None,
+        reward_functions: Optional[List[RLAgentRewardFunction]] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
@@ -29,7 +31,7 @@ class RLAgent(Asset):
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
-        super().__init__(name=name, position=position, rotation=rotation, parent=parent, children=children)
+        super().__init__(name=name, position=position, rotation=rotation, sparent=parent, children=children)
 
         if color is None:
             color = [1.0, 0.0, 0.0]
@@ -42,3 +44,4 @@ class RLAgent(Asset):
         self.actions = actions
         self.camera_height = camera_height
         self.camera_width = camera_width
+        self.reward_functions = reward_functions
