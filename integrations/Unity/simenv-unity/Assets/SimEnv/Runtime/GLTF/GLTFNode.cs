@@ -188,10 +188,6 @@ namespace SimEnv.GLTF {
                                 Debug.LogWarning("Error importing collider");
                             } else {
                                 foreach(HF_colliders.ColliderShape collider in colliders.shapes) {
-                                    if(collider.offsetRotation != Quaternion.identity || collider.offsetScale != Vector3.one || collider.offsetMatrix != Matrix4x4.identity || collider.primaryAxis != "Y") {
-                                        Debug.LogWarning("Provided collider offset not supported");
-                                        continue;
-                                    }
                                     if(collider.mesh.HasValue) {
                                         Debug.LogWarning("Ignoring collider mesh value");
                                     }

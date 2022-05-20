@@ -11,20 +11,12 @@ namespace SimEnv.GLTF {
         public class ColliderShape {
             [JsonConverter(typeof(EnumConverter))] public ColliderType type = ColliderType.BOX;
             [JsonProperty(Required = Required.Always), JsonConverter(typeof(Vector3Converter))] public Vector3 boundingBox;
-            public string primaryAxis = "Y";
             public int? mesh;
-            [JsonConverter(typeof(Matrix4x4Converter))] public Matrix4x4 offsetMatrix = Matrix4x4.identity;
             [JsonConverter(typeof(TranslationConverter))] public Vector3 offsetTranslation = Vector3.zero;
-            [JsonConverter(typeof(QuaternionConverter))] public Quaternion offsetRotation = Quaternion.identity;
-            [JsonConverter(typeof(Vector3Converter))] public Vector3 offsetScale = Vector3.one;
             public bool intangible = false;
 
-            public bool ShouldSerializeprimaryAxis() { return primaryAxis != "Y"; }
             public bool ShouldSerializemesh() { return mesh.HasValue; }
-            public bool ShouldSerializeoffsetMatrix() { return offsetMatrix != Matrix4x4.identity; }
             public bool ShouldSerializeoffsetTranslation() { return offsetTranslation != Vector3.zero; }
-            public bool ShouldSerializeoffsetRotation() { return offsetRotation != Quaternion.identity; }
-            public bool ShouldSerializeoffsetScale() { return offsetScale != Vector3.one; }
             public bool ShouldSerializeintangible() { return intangible; }
         }
 
