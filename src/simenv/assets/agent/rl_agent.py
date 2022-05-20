@@ -31,12 +31,15 @@ class RLAgent(Asset):
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
-        super().__init__(name=name, position=position, rotation=rotation, sparent=parent, children=children)
+        super().__init__(name=name, position=position, rotation=rotation, parent=parent, children=children)
 
         if color is None:
             color = [1.0, 0.0, 0.0]
         if actions is None:
             actions = DiscreteRLAgentActions.default()
+        if reward_functions is None:
+            reward_functions = []
+
         self.color = color
         self.height = height
         self.move_speed = move_speed
@@ -45,3 +48,6 @@ class RLAgent(Asset):
         self.camera_height = camera_height
         self.camera_width = camera_width
         self.reward_functions = reward_functions
+
+    def add_reward_function(self, reward_function:RLAgentRewardFunction) -> None:
+        self.reward_functions.append(reward_function)
