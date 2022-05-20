@@ -1,65 +1,63 @@
 extends Node
 
-var client : StreamPeerTCP
-var wrapped_client : PacketPeerStream
-var connected : bool = false
-var message_center
-var should_connect : bool = false
+signal connected
+signal data
+signal disconnected
+signal error
 
+var _status: int = 0
+var _stream: StreamPeerTCP = StreamPeerTCP.new()
 
 func _ready() -> void:
-	client = StreamPeerTCP.new()
-	client.set_no_delay(false)
-	
+	_status = _stream.get_status()
 
-func _process(delta : float) -> void:
-	if should_connect and not connected:
-		pass
-	if connected and not client.get_status() == StreamPeerTCP.STATUS_CONNECTED:
-		connected = false
-	if client.get_status() == StreamPeerTCP.STATUS_CONNECTED:
-		poll_server()
+func _process(delta: float) -> void:
+	update_status()
+	read()
 
+func update_status():
+	_stream.poll()
+	var new_status: int = _stream.get_status()
+	if new_status != _status:
+		_status = new_status
+		match _status:
+			_stream.STATUS_NONE:
+				print("Disconnected from host.")
+				emit_signal("disconnected")
+			_stream.STATUS_CONNECTING:
+				print("Connecting to host.")
+			_stream.STATUS_CONNECTED:
+				print("Connected to host.")
+				emit_signal("connected")
+			_stream.STATUS_ERROR:
+				print("Error with socket stream.")
+				emit_signal("error")
 
-func connect_to_server(timeout_seconds : int) -> void:
-	set_process(true)
-	should_connect = true
-	var ip = "127.0.0.1"
-	var port = 55000
-	print("Connecting to server: %s : %s" % [ip, str(port)])
-	var connect = client.connect_to_host(ip, port)
-	
-	if client.get_status() == StreamPeerTCP.STATUS_CONNECTED:
-		connected = true
-		print("Connected to local host server")
-	
-		wrapped_client = PacketPeerStream.new()
-		wrapped_client.set_stream_peer(client)
+func read():
+	if _status == _stream.STATUS_CONNECTED:
+		var available_bytes: int = _stream.get_available_bytes()
+		if available_bytes > 0:
+			print("available bytes: ", available_bytes)
+			var data: Array = _stream.get_partial_data(available_bytes)
+			if data[0] != OK:
+				print("Error getting data from stream: ", data[0])
+				emit_signal("error")
+			else:
+				emit_signal("data", data[1])
 
+func connect_to_host(host: String, port: int) -> void:
+	print("Connecting to %s:%d" % [host, port])
+	_status = _stream.STATUS_NONE
+	if _stream.connect_to_host(host, port) != OK:
+		print("Error connecting to host.")
+		emit_signal("error")
 
-func disconnect_from_server() -> void:
-	client.disconnect_from_host()
-
-
-func poll_server() -> void:	
-	while wrapped_client.get_available_packet_count() > 0:
-		var msg = wrapped_client.get_var()
-		var error = wrapped_client.get_packet_error()
-		
-		if error != 0:
-			print("Error on packet get: %s" % error)
-		if msg == null:
-			continue;
-		
-		print("Received msg: " + str(msg))
-		message_center.process_msg(str(msg))
-
-
-func send_var(msg : String) -> void:
-	if client.get_status() == StreamPeerTCP.STATUS_CONNECTED:
-		print("Sending: %s" % msg)
-		wrapped_client.put_var(msg)
-		var error = wrapped_client.get_packet_error()
-		
-		if error != 0:
-			print("Error on packet put: %s" % error)
+func send(data: PackedByteArray) -> bool:
+	if _status != _stream.STATUS_CONNECTED:
+		print("Error: Stream is not currently connected.")
+		return false
+	var error: int = _stream.put_data(data)
+	if error != OK:
+		print("Error writing to stream: ", error)
+		return false
+	return true

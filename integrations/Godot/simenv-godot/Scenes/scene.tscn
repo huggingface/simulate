@@ -1,8 +1,6 @@
-[gd_scene load_steps=2 format=3 uid="uid://w5e1yv0arg10"]
+[gd_scene load_steps=2 format=3 uid="uid://bgnttgpwmbh5q"]
 
-[ext_resource type="Script" path="res://SimEnv/Bridge/Client.gd" id="1_ivg3h"]
+[ext_resource type="Script" path="res://SimEnv/Environment.gd" id="1_oo243"]
 
 [node name="Root" type="Node"]
-
-[node name="Client" type="Node" parent="."]
-script = ExtResource( "1_ivg3h" )
+script = ExtResource( "1_oo243" )

@@ -20,7 +20,7 @@ import simenv as sm
 
 from .assets import Asset
 from .assets.anytree import RenderTree
-from .engine import PyVistaEngine, UnityEngine
+from .engine import PyVistaEngine, UnityEngine, GodotEngine
 from .gltf_import import load_gltf_as_tree
 
 
@@ -40,7 +40,7 @@ class Scene(Asset):
         if engine == "Unity":
             self.engine = UnityEngine(self)
         elif engine == "Godot":
-            self.engine = Godot(self, start_frame=start_frame, end_frame=end_frame, frame_rate=frame_rate)
+            self.engine = GodotEngine(self)
         elif engine == "Blender":
             raise NotImplementedError()
         elif engine == "pyvista" or engine is None:
