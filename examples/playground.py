@@ -20,6 +20,15 @@ for i in range(20):
 
 
 agent = sm.RLAgent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
+
+reward_function = sm.RLAgentRewardFunction(
+    function="dense",
+    entity1="agent",
+    entity2="cube0",
+    distance_metric="euclidean"
+)
+agent.add_reward_function(reward_function)
+
 scene += agent
 
 scene.show()
@@ -36,7 +45,7 @@ for i in range(1000):
     else:
         action = action.tolist()
 
-    obs = env.step(action)
+    obs, done, reward, info = env.step(action)
     axim1.set_data(obs)
     fig1.canvas.flush_events()
     
