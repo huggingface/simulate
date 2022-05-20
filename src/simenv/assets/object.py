@@ -410,9 +410,15 @@ class Cube(Object3D):
         children: Optional[List[Asset]] = None,
     ):
         if bounds is None:
-            bounds = 1.0
+            bounds = (-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)
         if isinstance(bounds, (float, int)):
             bounds = (-bounds, bounds, -bounds, bounds, -bounds, bounds)  # Make it a list
+        self.bounding_box = (bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
+        self.offset_translation = (
+            (bounds[0] + bounds[1]) / 2.0,
+            (bounds[2] + bounds[3]) / 2.0,
+            (bounds[4] + bounds[5]) / 2.0,
+        )
         mesh = pv.Box(bounds=bounds, level=level, quads=quads)
         if direction is not None:
             pv.translate(mesh, (0, 0, 0), direction)
