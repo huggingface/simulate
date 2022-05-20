@@ -40,7 +40,7 @@ class UnityEngine:
             data = self.client.recv(65535)
             if data:
                 response = data.decode()
-                print(f"Received response: {response}")
+                #print(f"Received response: {response}")
                 return response
 
     def _send_gltf(self, bytes):
@@ -85,7 +85,7 @@ class UnityEngine:
 
     def run_command(self, command):
         message = json.dumps(command)
-        print(f"Sending command: {message}")
+        # print(f"Sending command: {message}")
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         return self._send_bytes(message_bytes)
 
