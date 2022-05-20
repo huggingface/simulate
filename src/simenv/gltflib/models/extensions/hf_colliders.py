@@ -15,12 +15,8 @@ class ColliderShape:
 
     type: Optional[ColliderType] = None
     boundingBox: List[float] = None
-    primaryAxis: Optional[str] = None
     mesh: Optional[int] = None
-    offsetMatrix: Optional[List[float]] = None
     offsetTranslation: Optional[List[float]] = None
-    offsetRotation: Optional[List[float]] = None
-    offsetScale: Optional[List[float]] = None
     intangible: Optional[bool] = None
 
 

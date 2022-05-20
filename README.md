@@ -199,9 +199,9 @@ This currently only supports box, sphere, and capsule colliders (the Unity/PhysX
 
 Differences from the PANDA3D extension:
 - Properties `group` and `mask` are removed, since layer interactions are defined engine-wide, not per-object, in Unity. Layer interaction will need to be defined a different way if added, or throw an error if there are conflicting layer interactions per-object.
-- `Intangible` moved from outer class to shape class, because 
+- `Intangible` moved from outer class to shape class, because there can be a mix of intangible and tangible colliders on an object.
+- Removed redundant features (offset rotation, scale, matrix, axis) that can be represented through other properties.
 
 TODOs:
 - Add mesh collider support.
-- Add shape `primaryAxis` support. This isn't represented in Unity, but could be converted on import.
 - Add support for other collider shapes, i.e. bullet has cylinders and cones. This isn't natively in Unity/PhysX, but could be approximated on import.
