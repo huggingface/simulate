@@ -89,23 +89,35 @@ class Scene(Asset):
         self.engine.show()
         self._built = True
 
-    def step(self, action):
-        """Step the Scene using the engine if provided."""
-
+    def _check_backend(self):
         if not self._built:
             raise SceneNotBuiltError()
         if self.engine is None:
             raise UnsetRendererError()
 
+    def reset(self):
+        """Reset the environment / episode"""
+        self._check_backend()
+        return self.engine.reset()
+
+    def get_done(self):
+        """Find out if the episode has ended"""
+        self._check_backend()
+        return self.engine.get_done()
+
+    def get_reward(self):
+        """Get the reward from the agent"""
+        self._check_backend()
+        return self.engine.get_reward()
+
+    def step(self, action):
+        """Step the Scene using the engine if provided."""
+        self._check_backend()
         return self.engine.step(action)
 
     def get_observation(self):
         """Step the Scene using the engine if provided."""
-        if not self._built:
-            raise SceneNotBuiltError()
-        if self.engine is None:
-            raise UnsetRendererError()
-
+        self._check_backend()
         return self.engine.get_observation()
 
     def __repr__(self):
