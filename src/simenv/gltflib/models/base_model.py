@@ -16,6 +16,7 @@ class Extensions:
 
     KHR_lights_punctual: Optional[KHRLightsPunctual] = None
     HF_RL_agents: Optional[HF_RL_Agents] = None
+    HF_colliders: Optional[HF_Colliders] = None
 
 
 @dataclass_json
