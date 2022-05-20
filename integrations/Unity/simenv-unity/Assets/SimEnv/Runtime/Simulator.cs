@@ -58,6 +58,40 @@ namespace SimEnv {
             }
 
         }
+        public static float GetReward() {
+            // Calculate the agent's reward for the current timestep 
+            // TODO: this should be caculated for each action repeat and averaged.
+            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                Agent agent = ISimulator.Agent as Agent;
+                return agent.CalculateReward();
+            } else {
+                Debug.LogWarning("Attempting to get observation without an Agent");
+            }
+            return 0.0f;
+        }
+        public static bool GetDone() {
+            // Check if the agent is in a terminal state 
+            // TODO: add option for auto reset
+            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                Agent agent = ISimulator.Agent as Agent;
+                return agent.IsDone();
+            } else {
+                Debug.LogWarning("Attempting to get observation without an Agent");
+            }
+            return false;
+        }
+
+        public static void Reset() {
+            // Reset the Agent & the environment # 
+            // TODO add the environment reset!
+            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                Agent agent = ISimulator.Agent as Agent;
+                agent.Reset();
+            } else {
+                Debug.LogWarning("Attempting to get observation without an Agent");
+            }
+        }
+
 
         #endregion
 
