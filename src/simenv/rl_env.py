@@ -43,6 +43,6 @@ class RLEnv(gym.Env):
 
         reward = self.scene.get_reward()
         done = self.scene.get_done()
-        info = {} # TODO: Add info to the backend, if we require it
+        info = {}  # TODO: Add info to the backend, if we require it
 
         return obs, reward, done, info

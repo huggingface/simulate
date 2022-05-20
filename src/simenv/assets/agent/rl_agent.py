@@ -49,5 +49,5 @@ class RLAgent(Asset):
         self.camera_width = camera_width
         self.reward_functions = reward_functions
 
-    def add_reward_function(self, reward_function:RLAgentRewardFunction) -> None:
+    def add_reward_function(self, reward_function: RLAgentRewardFunction) -> None:
         self.reward_functions.append(reward_function)
