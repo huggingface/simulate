@@ -26,21 +26,30 @@ namespace SimEnv {
         static GameObject root;
 
         public static void BuildSceneFromBytes(byte[] bytes) {
-            if(root != null)
+            if (root != null)
                 GameObject.DestroyImmediate(root);
             root = Importer.LoadFromBytes(bytes);
         }
 
         public static void Step(List<float> action) {
-            if(ISimulator.Agent != null && ISimulator.Agent is Agent) {
+            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
                 Debug.Log("Stepping agent");
                 Agent agent = ISimulator.Agent as Agent;
                 agent.SetAction(action);
             } else {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
-            for(int i = 0; i < FRAME_SKIP; i++)
+            for (int i = 0; i < FRAME_SKIP; i++)
                 Physics.Simulate(FRAME_INTERVAL);
+        }
+        public static void Close() {
+#if UNITY_EDITOR
+            // Application.Quit() does not work in the editor so
+            // UnityEditor.EditorApplication.isPlaying need to be set to false to end the game
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+         Application.Quit();
+#endif
         }
         #endregion
 
@@ -70,9 +79,9 @@ namespace SimEnv {
 
         void LoadMods() {
             DirectoryInfo modDirectory = new DirectoryInfo(modPath);
-            if(modDirectory.Exists) {
-                foreach(FileInfo file in modDirectory.GetFiles()) {
-                    if(file.Extension == ".dll") {
+            if (modDirectory.Exists) {
+                foreach (FileInfo file in modDirectory.GetFiles()) {
+                    if (file.Extension == ".dll") {
                         Assembly.LoadFile(file.FullName);
                         Debug.Log("Loaded mod assembly: " + file.Name);
                     }
@@ -99,7 +108,7 @@ namespace SimEnv {
         }
 
         void OnDestroy() {
-            if(initialized) {
+            if (initialized) {
                 StopCoroutine(listenCoroutine);
                 client.Close();
                 initialized = false;
