@@ -120,6 +120,8 @@ namespace SimEnv {
 
         public Color color = Color.white;
 
+        private List<RewardFunction> rewardFunctions;
+
         CharacterController controller;
         Camera agent_camera;
 
@@ -157,7 +159,6 @@ namespace SimEnv {
             turn_speed = agentData.turn_speed;
 
             switch (agentData.action_dist) {
-
                 case "discrete":
                     actions = new DiscreteActions();
                     break;
@@ -174,6 +175,49 @@ namespace SimEnv {
             actions.available = agentData.available_actions;
 
             agent_camera.targetTexture = new RenderTexture(agentData.camera_width, agentData.camera_height, 24);
+
+            // add the reward functions to the agent
+            for (int i = 0; i < agentData.reward_functions.Count; i++) {
+
+                // get the shared properties
+                GameObject entity1 = GameObject.Find(agentData.reward_entity1s[i]);
+                GameObject entity2 = GameObject.Find(agentData.reward_entity2s[i]);
+                IDistanceMetric distanceMetric = null; // refactor this to a reward factory?
+                RewardFunction rewardFunction = null;
+
+                switch (agentData.reward_distance_metrics[i]) {
+                    case "euclidian":
+                        distanceMetric = new EuclideanDistance();
+                        break;
+                    case "cosine":
+                        distanceMetric = new CosineDistance();
+                        break;
+                    default:
+                        Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
+                        break;
+                }
+
+                switch (agentData.reward_functions[i]) {
+                    case "dense":
+                        rewardFunction = new DenseRewardFunction(
+                            entity1, entity2, distanceMetric, agentData.reward_scalars[i]
+                        );
+                        break;
+                    case "sparse":
+                        rewardFunction = new SparseRewardFunction(
+                            entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
+                        break;
+
+
+                    default:
+                        Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
+                        break;
+
+
+
+                }
+
+            }
 
         }
         public void AgentUpdate() {
@@ -198,6 +242,37 @@ namespace SimEnv {
                 float rotate = actions.turnRight;
                 transform.Rotate(Vector3.up * rotate * turn_speed);
             }
+        }
+
+        public void Reset() {
+            // Reset the agent
+            // Reset reward objects?
+            // Reset reward functions
+            foreach (RewardFunction rewardFunction in rewardFunctions) {
+                rewardFunction.Reset();
+            }
+
+        }
+
+        public float CalculateReward() {
+            float reward = 0.0f;
+
+            foreach (RewardFunction rewardFunction in rewardFunctions) {
+                reward += rewardFunction.CalculateReward();
+            }
+            return reward;
+        }
+
+        public bool IsDone() {
+            // TODO: currently the reward functions identify which objects correspond to terminal states
+            bool done = false;
+            foreach (RewardFunction rewardFunction in rewardFunctions) {
+                if (rewardFunction is SparseRewardFunction) {
+                    var sparseRewardFunction = rewardFunction as SparseRewardFunction;
+                    done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);
+                }
+            }
+            return done;
         }
 
         public void ObservationCoroutine(UnityAction<string> callback) {
