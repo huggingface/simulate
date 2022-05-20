@@ -63,6 +63,18 @@ class UnityEngine:
         command = {"type": "Step", "contents": json.dumps({"action": action})}
         return self.run_command(command)
 
+    def get_reward(self):
+        command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
+        return self.run_command(command)
+
+    def get_done(self):
+        command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
+        return self.run_command(command)
+
+    def reset(self):
+        command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
+        self.run_command(command)
+
     def get_observation(self):
         command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
 
