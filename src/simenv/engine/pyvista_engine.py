@@ -20,7 +20,7 @@ import numpy as np
 import pyvista
 from matplotlib.pyplot import plot
 
-from ..assets import Asset, Camera, Light, Object3D
+from ..assets import Asset, Camera, Light, Material, Object3D
 from .engine import Engine
 
 
@@ -114,7 +114,7 @@ class PyVistaEngine(Engine):
             else:
                 model_transform_matrix = transforms[0]
 
-            actor = self._plotter_actors.get(node)
+            actor = self._plotter_actors.get(node.uuid)
             if actor is not None:
                 self.plotter.remove_actor(actor)
 
@@ -129,18 +129,32 @@ class PyVistaEngine(Engine):
         if isinstance(node, Object3D):
             # Copying the mesh to located meshes
             located_mesh = node.mesh.transform(model_transform_matrix, inplace=False)
-            self._plotter_actors[node] = self.plotter.add_mesh(located_mesh)
+            # Material
+            if node.material is None:
+                actor = self.plotter.add_mesh(located_mesh)
+            else:
+                material = node.material
+                actor = self.plotter.add_mesh(
+                    located_mesh,
+                    pbr=material.base_color_texture is None,  # pyvista doesn't support having both a texture and pbr
+                    color=material.base_color[:3],
+                    metallic=material.metallic_factor,
+                    roughness=material.roughness_factor,
+                    texture=material.base_color_texture,
+                )
+
+            self._plotter_actors[node.uuid] = actor
 
         elif isinstance(node, Camera):
             camera = pyvista.Camera()
             camera.model_transform_matrix = model_transform_matrix
-            self._plotter_actors[node] = camera
+            self._plotter_actors[node.uuid] = camera
 
             self.plotter.camera = camera
         elif isinstance(node, Light):
             light = pyvista.Light()
             light.transform_matrix = model_transform_matrix
-            self._plotter_actors[node] = self.plotter.add_light(light)
+            self._plotter_actors[node.uuid] = self.plotter.add_light(light)
 
     def recreate_scene(self):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
@@ -167,7 +181,11 @@ class PyVistaEngine(Engine):
 
         self.plotter.reset_camera()
 
-    def show(self, **pyvista_plotter_kwargs):
+    def show(self, in_background: Optional[bool] = None, **pyvista_plotter_kwargs):
+        if in_background is not None and in_background != self._background_plotter:
+            self.plotter = None
+            self._background_plotter = in_background
+
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             self.recreate_scene()
             self.plotter.show(**pyvista_plotter_kwargs)

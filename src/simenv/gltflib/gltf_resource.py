@@ -73,6 +73,10 @@ class FileResource(GLTFResource):
     def mimetype(self):
         return self._mimetype
 
+    @property
+    def fullpath(self):
+        return path.join(self._basepath, self._filename) if self._basepath is not None else self._filename
+
     def load(self, force_reload=False):
         if self._loaded and not force_reload:
             return

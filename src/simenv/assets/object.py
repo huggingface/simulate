@@ -50,8 +50,8 @@ class Object3D(Asset):
         **kwargs,
     ):
         super().__init__(name=name, position=position, parent=parent, children=children, **kwargs)
-        self.mesh = mesh
-        self.material = material
+        self.mesh = mesh if mesh is not None else pv.PolyData()
+        self.material = material if material is not None else Material()
 
     def copy(self):
         mesh_copy = None

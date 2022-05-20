@@ -16,10 +16,11 @@
 """ Export a Scene as a GLTF file."""
 from copy import deepcopy
 from io import BytesIO
-from typing import ByteString, List, Optional, Set, Tuple
+from typing import Any, ByteString, Dict, List, Optional, Set, Tuple
 
 import numpy as np
 import pyvista as pv
+import xxhash
 
 
 try:
@@ -57,8 +58,46 @@ numpy_to_gltf_shapes_mapping = {
 }
 
 
-def add_data_to_gltf(new_data: bytearray, gltf_model: gl.GLTFModel, buffer_data: bytearray, buffer_id: int = 0) -> int:
+def is_data_cached(data: Any, cache: Dict) -> Optional[int]:
+    """Helper function to check if data (numpy arrray, material, texture, anything hashable) is already in the cache dict"""
+    if not isinstance(cache, dict):
+        raise ValueError("Cache should be a dict")
+
+    h = xxhash.xxh64()
+    h.update(data)
+    intdigest = h.intdigest()
+
+    if intdigest in cache:
+        return cache[intdigest]
+    return None
+
+
+def cache_data(data: Any, data_id: int, cache: Dict) -> dict:
+    """Helper function to add some data (numpy arrray, material, texture, anything hashable) in the cache dict as pointer to a provided data_id integer"""
+    if not isinstance(cache, dict):
+        raise ValueError("Cache should be a dict")
+
+    h = xxhash.xxh64()
+    h.update(data)
+    intdigest = h.intdigest()
+
+    cache[intdigest] = data_id
+
+    return cache
+
+
+def add_data_to_gltf(
+    new_data: bytearray,
+    gltf_model: gl.GLTFModel,
+    buffer_data: bytearray,
+    buffer_id: int = 0,
+    cache: Optional[Dict] = None,
+) -> int:
     """Add byte data to the buffer_data, create/add a new buffer view for it in the scene and return the index of the added buffer view"""
+    cached_id = is_data_cached(data=new_data, cache=cache)
+    if cached_id is not None:
+        return cached_id
+
     # Pad the current buffer to a multiple of 4 bytes for GLTF alignement
     byte_offset = padbytes(buffer_data, 4)
 
@@ -73,6 +112,8 @@ def add_data_to_gltf(new_data: bytearray, gltf_model: gl.GLTFModel, buffer_data:
     gltf_model.bufferViews.append(buffer_view)
     buffer_view_id = len(gltf_model.bufferViews) - 1
 
+    cache_data(data=new_data, data_id=buffer_view_id, cache=cache)
+
     return buffer_view_id
 
 
@@ -82,8 +123,14 @@ def add_numpy_to_gltf(
     buffer_data: bytearray,
     normalized: Optional[bool] = False,
     buffer_id: int = 0,
+    cache: Optional[Dict] = None,
 ) -> int:
     """Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and add the numpy array in the buffer_data."""
+
+    cached_id = is_data_cached(data=np_array, cache=cache)
+    if cached_id is not None:
+        return cached_id
+
     component_type: gl.ComponentType = numpy_to_gltf_dtypes_mapping[np_array.dtype]
     accessor_type: gl.AccessorType = numpy_to_gltf_shapes_mapping[np_array.shape[1:]]
 
@@ -129,11 +176,24 @@ def add_numpy_to_gltf(
     gltf_model.accessors.append(accessor)
     accessor_id = len(gltf_model.accessors) - 1
 
+    cache_data(data=np_array, data_id=accessor_id, cache=cache)
+
     return accessor_id
 
 
-def add_image_to_gltf(image: "PIL.Image", gltf_model: gl.GLTFModel, buffer_data: bytearray, buffer_id: int = 0) -> int:
+def add_image_to_gltf(
+    image: "PIL.Image",
+    gltf_model: gl.GLTFModel,
+    buffer_data: bytearray,
+    buffer_id: int = 0,
+    cache: Optional[Dict] = None,
+) -> int:
     """Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and add the numpy array in the buffer_data."""
+
+    cached_id = is_data_cached(data=image, cache=cache)
+    if cached_id is not None:
+        return cached_id
+
     # don't re-encode JPEGs
     if image.format == "JPEG":
         # no need to mangle JPEGs
@@ -159,6 +219,8 @@ def add_image_to_gltf(image: "PIL.Image", gltf_model: gl.GLTFModel, buffer_data:
     gltf_model.textures.append(gl.Texture(source=image_id))
     texture_id = len(gltf_model.textures) - 1
 
+    cache_data(data=image, data_id=texture_id, cache=cache)
+
     return texture_id
 
 
@@ -167,16 +229,21 @@ def add_material_to_gltf(
     gltf_model: gl.GLTFModel,
     buffer_data: bytearray,
     buffer_id: int = 0,
+    cache: Optional[Dict] = None,
 ) -> int:
     """Add GLTF accessor and bufferview to the GLTF scene to store a numpy array and add the numpy array in the buffer_data."""
 
+    cached_id = is_data_cached(data=material, cache=cache)
+    if cached_id is not None:
+        return cached_id
+
     # Store keys of the PBRMaterial which are images
     images_to_add = {
-        "baseColorTexture": material.baseColorTexture,
-        "emissiveTexture": material.emissiveTexture,
-        "normalTexture": material.normalTexture,
-        "occlusionTexture": material.occlusionTexture,
-        "metallicRoughnessTexture": material.metallicRoughnessTexture,
+        "baseColorTexture": material.base_color_texture,
+        "emissiveTexture": material.emissive_texture,
+        "normalTexture": material.normal_texture,
+        "occlusionTexture": material.occlusion_texture,
+        "metallicRoughnessTexture": material.metallic_roughness_texture,
     }
 
     textures_ids = {}
@@ -184,15 +251,15 @@ def add_material_to_gltf(
         textures_ids[key] = None
         if image is not None:
             texture_id = add_image_to_gltf(
-                image=image, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+                image=image, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
             )
             textures_ids[key] = gl.TextureInfo(index=texture_id)
 
     pbr_metallic_roughness = gl.PBRMetallicRoughness(
-        baseColorFactor=material.baseColorFactor,
+        baseColorFactor=material.base_color,
         baseColorTexture=textures_ids["baseColorTexture"],
-        metallicFactor=material.metallicFactor,
-        roughnessFactor=material.roughnessFactor,
+        metallicFactor=material.metallic_factor,
+        roughnessFactor=material.roughness_factor,
         metallicRoughnessTexture=textures_ids["metallicRoughnessTexture"],
     )
 
@@ -202,20 +269,24 @@ def add_material_to_gltf(
         normalTexture=textures_ids["normalTexture"],
         occlusionTexture=textures_ids["occlusionTexture"],
         emissiveTexture=textures_ids["emissiveTexture"],
-        emissiveFactor=material.emissiveFactor,
-        alphaMode=material.alphaMode,
-        alphaCutoff=material.alphaCutoff,
-        doubleSided=material.doubleSided,
+        emissiveFactor=material.emissive_factor,
+        alphaMode=material.alpha_mode,
+        alphaCutoff=material.alpha_cutoff,
+        doubleSided=material.double_sided,
     )
 
     # Add the new material
     gltf_model.materials.append(material)
     material_id = len(gltf_model.materials) - 1
 
+    cache_data(data=material, data_id=material_id, cache=cache)
+
     return material_id
 
 
-def add_mesh_to_model(node: Object3D, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
+def add_mesh_to_model(
+    node: Object3D, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+) -> int:
     mesh = node.mesh
     material = node.material
     if mesh.n_verts == 0 and mesh.n_lines == 0 and mesh.n_faces == 0:
@@ -224,7 +295,7 @@ def add_mesh_to_model(node: Object3D, gltf_model: gl.GLTFModel, buffer_data: Byt
     # Store points in gltf
     np_array = mesh.points.astype(NP_FLOAT32)
     point_accessor = add_numpy_to_gltf(
-        np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+        np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
     )
 
     # Store vertex normals in gltf (TODO maybe not always necessary?)
@@ -232,7 +303,7 @@ def add_mesh_to_model(node: Object3D, gltf_model: gl.GLTFModel, buffer_data: Byt
     if mesh.active_normals is not None:
         np_array = mesh.active_normals.astype(NP_FLOAT32)
         normal_accessor = add_numpy_to_gltf(
-            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
 
     # Store texture coord in gltf (TODO maybe not always necessary?)
@@ -240,13 +311,13 @@ def add_mesh_to_model(node: Object3D, gltf_model: gl.GLTFModel, buffer_data: Byt
     if mesh.active_t_coords is not None:
         np_array = mesh.active_t_coords.astype(NP_FLOAT32)
         tcoord_accessor = add_numpy_to_gltf(
-            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
 
     if material is not None:
         # Add a material and/or texture if we want
         material_id = add_material_to_gltf(
-            material=material, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+            material=material, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
     else:
         material_id = None
@@ -262,7 +333,7 @@ def add_mesh_to_model(node: Object3D, gltf_model: gl.GLTFModel, buffer_data: Byt
         # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
         np_array = mesh.verts.copy().reshape((-1, 1)).astype(NP_UINT32)
         primitive.indices = add_numpy_to_gltf(
-            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
         primitive.material = material_id
         primitives.append(primitive)
@@ -273,7 +344,7 @@ def add_mesh_to_model(node: Object3D, gltf_model: gl.GLTFModel, buffer_data: Byt
         # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
         np_array = mesh.lines.copy().reshape((-1, 1)).astype(NP_UINT32)
         primitive.indices = add_numpy_to_gltf(
-            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
         primitive.material = material_id
         primitives.append(primitive)
@@ -287,7 +358,7 @@ def add_mesh_to_model(node: Object3D, gltf_model: gl.GLTFModel, buffer_data: Byt
             tri_mesh.faces.copy().reshape((-1, 4))[:, 1:].reshape(-1, 1).astype(NP_UINT32)
         )  # We drop the number of indices per face
         primitive.indices = add_numpy_to_gltf(
-            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
         primitive.material = material_id
         primitives.append(primitive)
@@ -369,6 +440,7 @@ def add_node_to_scene(
     buffer_data: ByteString,
     gl_parent_node_id: Optional[int] = None,
     buffer_id: Optional[int] = 0,
+    cache: Optional[Dict] = None,
 ):
     gl_node = gl.Node(
         name=node.name,
@@ -390,7 +462,7 @@ def add_node_to_scene(
 
     elif isinstance(node, Object3D):
         gl_node.mesh = add_mesh_to_model(
-            node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+            node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
 
     # Add the new node
@@ -412,6 +484,7 @@ def add_node_to_scene(
             gltf_model=gltf_model,
             buffer_data=buffer_data,
             buffer_id=buffer_id,
+            cache=cache,
         )
 
     return
@@ -438,7 +511,8 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
         textures=[],
         extensions=gl.Extensions(),
     )
-    add_node_to_scene(node=root_node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=0)
+    cache = {}  # A mapping for Mesh/material/Texture already added
+    add_node_to_scene(node=root_node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=0, cache=cache)
 
     # Update scene requirements with the GLTF extensions we need
     if gltf_model.extensions.KHR_lights_punctual is not None:
@@ -465,3 +539,14 @@ def tree_as_glb_bytes(root_node: Asset) -> bytes:
     """Return the tree of Assets as GLB bytes."""
     gltf = tree_as_gltf(root_node=root_node)
     return gltf.as_glb_bytes()
+
+
+def save_as_gltf_file(file_path: str, root_node: Asset) -> None:
+    """ " Save the tree in a GLTF file"""
+    gltf = tree_as_gltf(root_node=root_node)
+
+    # For now let's convert all in GLTF with embedded ressources
+    for ressource in gltf.resources:
+        gltf.convert_to_base64_resource(ressource)
+
+    gltf.export_gltf(file_path)

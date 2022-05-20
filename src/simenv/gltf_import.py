@@ -15,20 +15,21 @@
 # Lint as: python3
 """ Load a GLTF file in a Scene."""
 import io
+import os
 from copy import deepcopy
 from dataclasses import asdict
+from email.mime import base
 from typing import ByteString, List, Optional, Set, Union
 
 import numpy as np
 import PIL.Image
 import pyvista as pv
+import pyvistaqt
+from huggingface_hub import hf_hub_download
 
-from simenv.assets import Material
-
-from .assets import Asset, Camera, Light, Object3D
-from .gltflib import GLTF, GLTFModel
+from .assets import Asset, Camera, Light, Material, Object3D
+from .gltflib import GLTF, FileResource, GLTFModel, TextureInfo
 from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
-from .gltflib.models.material import Material
 
 
 # TODO remove this GLTFReader once the new version of pyvista is released 0.34+ (included in it)
@@ -122,12 +123,15 @@ def get_accessor_as_numpy(gltf_scene: GLTF, accessor_id: int) -> np.ndarray:
     return array
 
 
-def get_texture_as_pillow(gltf_scene: GLTF, texture_id: int) -> PIL.Image:
+def get_texture_as_pillow(gltf_scene: GLTF, texture_info: Optional[TextureInfo]) -> Optional[PIL.Image.Image]:
+    if texture_info is None:
+        return None
+
     gltf_textures = gltf_scene.model.textures
     gltf_images = gltf_scene.model.images
     gltf_samplers = gltf_scene.model.samplers
 
-    gltf_texture = gltf_textures[texture_id]
+    gltf_texture = gltf_textures[texture_info.index]
     gltf_image = gltf_images[gltf_texture.source]
 
     if gltf_image.bufferView is not None:
@@ -141,6 +145,26 @@ def get_texture_as_pillow(gltf_scene: GLTF, texture_id: int) -> PIL.Image:
     image = PIL.Image.open(io.BytesIO(data))  # TODO checkk all this image stuff
 
     return image
+
+
+def get_texture_as_pyvista(gltf_scene: GLTF, texture_info: Optional[TextureInfo]) -> Optional[pv.Texture]:
+    if texture_info is None:
+        return None
+
+    gltf_textures = gltf_scene.model.textures
+    gltf_images = gltf_scene.model.images
+    gltf_samplers = gltf_scene.model.samplers
+
+    gltf_texture = gltf_textures[texture_info.index]
+    gltf_image = gltf_images[gltf_texture.source]
+
+    if gltf_image.bufferView is not None:
+        raise NotImplementedError()
+    else:
+        resource = gltf_scene.get_resource(gltf_image.uri)
+        texture = pv.read_texture(resource.fullpath)
+
+    return texture
 
 
 # Build a tree of simenv nodes from a GLTF object
@@ -211,11 +235,29 @@ def build_node_tree(
     elif gltf_node.mesh is not None:
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
-        n_primitives = len(gltf_mesh.primitives)
-        for index in range(n_primitives):
+        primitives = gltf_mesh.primitives
+        for index, primitive in enumerate(primitives):
             mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][index]
-            material = 
-            scene_node = Object3D(**common_kwargs, mesh=mesh, material=material)
+            material_id = primitive.material
+            if material_id is not None:
+                mat = gltf_model.materials[material_id]
+                pbr = mat.pbrMetallicRoughness
+
+                scene_material = Material(
+                    base_color=pbr.baseColorFactor,
+                    base_color_texture=get_texture_as_pyvista(gltf_scene, pbr.baseColorTexture),
+                    metallic_factor=pbr.metallicFactor,
+                    metallic_roughness_texture=get_texture_as_pyvista(gltf_scene, pbr.metallicRoughnessTexture),
+                    normal_texture=get_texture_as_pyvista(gltf_scene, mat.normalTexture),
+                    occlusion_texture=get_texture_as_pyvista(gltf_scene, mat.occlusionTexture),
+                    emissive_factor=mat.emissiveFactor,
+                    emissive_texture=get_texture_as_pyvista(gltf_scene, mat.emissiveTexture),
+                    alpha_mode=mat.alphaMode,
+                    alpha_cutoff=mat.alphaCutoff,
+                )
+            else:
+                scene_material = Material()
+            scene_node = Object3D(**common_kwargs, mesh=mesh, material=scene_material)
     else:
         # We just have an empty node with a transform
         scene_node = Asset(**common_kwargs)
@@ -233,19 +275,50 @@ def build_node_tree(
     return scene_node
 
 
-def load_gltf_as_tree(file_path:str, file_type: Optional[str]=None) -> List[Asset]:
+def load_gltf_as_tree(
+    file_path: str,
+    file_type: Optional[str] = None,
+    repo_id: Optional[str] = None,
+    subfolder: Optional[str] = None,
+    revision: Optional[str] = None,
+) -> List[Asset]:
     """Loading function to create a tree of asset nodes from a GLTF file.
     Return a list of the main nodes in the GLTF files (often only one main node).
     The tree can be walked from the main nodes.
     """
+    gltf_scene = GLTF.load(file_path)  # We load the other nodes (camera, lights, our extensions) ourselves
+
+    # Let's download all the other needed ressources
+    if repo_id is not None:
+        updated_ressources = []
+        for ressource in gltf_scene.resources:
+            if isinstance(ressource, FileResource):
+                local_file = hf_hub_download(
+                    repo_id=repo_id,
+                    filename=ressource.filename,
+                    subfolder=subfolder,
+                    revision=revision,
+                    repo_type="space",
+                )
+                basepath, filename = os.path.split(local_file)
+                if ressource.filename != filename:
+                    raise ValueError(
+                        f"Hub file {filename} not matching expected ressource filename {ressource.filename}"
+                    )
+                new_ressource = FileResource(filename, basepath=basepath, mimetype=ressource.mimetype)
+                updated_ressources.append(new_ressource)
+            else:
+                updated_ressources.append(ressource)
+
+        gltf_scene.resources = updated_ressources
+
+    gltf_model = gltf_scene.model
+
     pyvista_reader = GLTFReader(
         file_path
     )  # We load the meshe already converted by pyvista/vtk instead of decoding our self
     pyvista_reader.reader.ApplyDeformationsToGeometryOff()  # We don't want to apply the transforms to the various nodes
     pyvista_meshes = pyvista_reader.read()
-    gltf_scene = GLTF.load(file_path)  # We load the other nodes (camera, lights, our extensions) ourselves
-    gltf_model = gltf_scene.model
-
     gltf_main_scene = gltf_model.scenes[gltf_model.scene if gltf_model.scene else 0]
     gltf_main_nodes = gltf_main_scene.nodes
 
