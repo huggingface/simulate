@@ -22,6 +22,13 @@ class HF_RL_Agent:
     camera_width: Optional[int] = None
     camera_height: Optional[int] = None
     available_actions: Optional[List[str]] = None
+    reward_functions: Optional[List[str]] = None
+    reward_entity1s: Optional[List[str]] = None
+    reward_entity2s: Optional[List[str]] = None
+    reward_distance_metrics: Optional[List[str]] = None
+    reward_scalars: Optional[List[float]] = None
+    reward_thresholds: Optional[List[float]] = None
+    reward_is_terminals: Optional[List[bool]] = None
 
 
 @dataclass_json
