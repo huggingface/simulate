@@ -23,7 +23,7 @@ import numpy as np
 import PIL.Image
 import pyvista as pv
 
-from .assets import Asset, Camera, Light, Object3D
+from .assets import Asset, Camera, Collider, Light, Object3D
 from .gltflib import GLTF, GLTFModel
 from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
 from .gltflib.models.material import Material
@@ -155,6 +155,17 @@ def build_node_tree(
         "scaling": gltf_node.scale,
         "parent": parent,
     }
+
+    if gltf_node.extensions is not None and gltf_node.extensions.HF_collider is not None:
+        hf_collider = gltf_node.extensions.HF_collider
+        collider = Collider(
+            type=hf_collider.type,
+            bounding_box=hf_collider.boundingBox,
+            mesh=hf_collider.mesh,
+            offset=hf_collider.offset,
+            intangible=hf_collider.intangible,
+        )
+        common_kwargs["collider"] = collider
 
     if gltf_node.camera is not None:
         # Let's add a Camera
