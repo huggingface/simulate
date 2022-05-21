@@ -21,7 +21,7 @@ from typing import ByteString, List, Optional, Set, Tuple
 import numpy as np
 import pyvista as pv
 
-from simenv.gltflib.enums.collider_type import ColliderType
+from simenv.gltflib.models.extensions.hf_collider import HF_Collider
 
 
 try:
@@ -30,7 +30,8 @@ except:
     pass
 
 from . import gltflib as gl
-from .assets import Asset, Camera, Light, Material, Object3D, RLAgent
+from .assets import Asset, Camera, Light, Material, Object3D, RL_Agent
+from .gltflib.enums.collider_type import ColliderType
 from .gltflib.utils import padbytes
 
 
@@ -405,6 +406,20 @@ def add_node_to_scene(
         gl_node.mesh = add_mesh_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
         )
+
+    # Add collider if node has one
+    if node.collider is not None:
+        hf_collider = HF_Collider(
+            type=node.collider.type,
+            boundingBox=node.collider.bounding_box,
+            mesh=node.collider.mesh,
+            offset=node.collider.offset,
+            intangible=node.collider.intangible,
+        )
+        if gl_node.extensions is None:
+            gl_node.extensions = gl.Extensions(HF_collider=hf_collider)
+        else:
+            gl_node.extensions.HF_collider = hf_collider
 
     # Add the new node
     gltf_model.nodes.append(gl_node)
