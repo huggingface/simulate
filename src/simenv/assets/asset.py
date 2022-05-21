@@ -23,6 +23,7 @@ from typing import List, Optional, Sequence, Union
 import numpy as np
 
 from .anytree import NodeMixin
+from .collider import Collider
 from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler
 
 
@@ -49,6 +50,7 @@ class Asset(NodeMixin, object):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
+        collider: Optional[Collider] = None,
         transformation_matrix=None,
         parent=None,
         children=None,
@@ -69,6 +71,7 @@ class Asset(NodeMixin, object):
         self.position = position
         self.rotation = rotation
         self.scaling = scaling
+        self.collider = collider
         if transformation_matrix is not None:
             self.transformation_matrix = transformation_matrix
 

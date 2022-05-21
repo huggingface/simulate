@@ -21,7 +21,7 @@ from typing import ByteString, List, Optional, Set, Tuple
 import numpy as np
 import pyvista as pv
 
-from simenv.gltflib.enums.collider_type import ColliderType
+from simenv.gltflib.models.extensions.hf_collider import HF_Collider
 
 
 try:
@@ -31,6 +31,7 @@ except:
 
 from . import gltflib as gl
 from .assets import Asset, Camera, Capsule, Cube, Light, Material, Object3D, RL_Agent, Sphere
+from .gltflib.enums.collider_type import ColliderType
 from .gltflib.utils import padbytes
 
 
@@ -365,22 +366,6 @@ def add_agent_to_model(node: RL_Agent, gltf_model: gl.GLTFModel, buffer_data: By
     return agent_id
 
 
-def attach_box_collider(node: Cube, gl_node: gl.Node, gltf_model: gl.GLTFModel):
-    collider = gl.extensions.ColliderShape(
-        type=ColliderType.BOX,
-        boundingBox=node.bounding_box,
-        offsetTranslation=node.offset_translation,
-    )
-
-    hf_colliders = gl.extensions.HF_Colliders(
-        shapes=[collider],
-    )
-    if gl_node.extensions is None:
-        gl_node.extensions = gl.Extensions(HF_colliders=hf_colliders)
-    else:
-        gl_node.extensions.HF_colliders = hf_colliders
-
-
 def add_node_to_scene(
     node: Asset,
     gltf_model: gl.GLTFModel,
@@ -411,9 +396,19 @@ def add_node_to_scene(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
         )
 
-    # Attach primitive colliders
-    if isinstance(node, Cube):
-        attach_box_collider(node, gl_node, gltf_model)
+    # Add collider if node has one
+    if node.collider is not None:
+        hf_collider = HF_Collider(
+            type=node.collider.type,
+            boundingBox=node.collider.bounding_box,
+            mesh=node.collider.mesh,
+            offset=node.collider.offset,
+            intangible=node.collider.intangible,
+        )
+        if gl_node.extensions is None:
+            gl_node.extensions = gl.Extensions(HF_collider=hf_collider)
+        else:
+            gl_node.extensions.HF_collider = hf_collider
 
     # Add the new node
     gltf_model.nodes.append(gl_node)

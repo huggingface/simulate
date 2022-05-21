@@ -19,6 +19,7 @@ from math import radians
 from typing import List, Optional, Union
 
 from .asset import Asset
+from .collider import Collider
 
 
 class Camera(Asset):
@@ -40,12 +41,19 @@ class Camera(Asset):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         scaling: Optional[Union[float, List[float]]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
         super().__init__(
-            name=name, position=position, rotation=rotation, scaling=scaling, parent=parent, children=children
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            parent=parent,
+            children=children,
+            collider=collider,
         )
         self.width = width
         self.height = height
