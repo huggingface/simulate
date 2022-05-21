@@ -14,14 +14,14 @@
 
 # Lint as: python3
 """ A simenv Scene Object."""
-import itertools
-from optparse import Option
 from typing import List, Optional, Union
 
 import numpy as np
 import pyvista as pv
 
+from ..gltflib.enums.collider_type import ColliderType
 from .asset import Asset
+from .collider import Collider
 from .material import Material
 
 
@@ -45,11 +45,12 @@ class Object3D(Asset):
         material: Optional[Material] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        super().__init__(name=name, position=position, parent=parent, children=children, **kwargs)
+        super().__init__(name=name, position=position, parent=parent, children=children, collider=collider, **kwargs)
         self.mesh = mesh
         self.material = material
 
@@ -125,6 +126,7 @@ class Plane(Object3D):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -143,6 +145,7 @@ class Plane(Object3D):
             position=position,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -190,6 +193,7 @@ class Sphere(Object3D):
         self,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         radius: Optional[float] = 1.0,
         theta_resolution: Optional[int] = 30,
         phi_resolution: Optional[int] = 30,
@@ -223,12 +227,19 @@ class Sphere(Object3D):
             direction = (0, 1, 0)
         pv.translate(mesh, (0, 0, 0), direction)
 
+        if collider is None:
+            collider = Collider(
+                type=ColliderType.SPHERE,
+                bounding_box=(radius, radius, radius),
+            )
+
         super().__init__(
             name=name,
             mesh=mesh,
             position=position,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -272,6 +283,7 @@ class Capsule(Object3D):
         self,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         height: Optional[float] = 1.0,
         radius: Optional[float] = 1.0,
         theta_resolution: Optional[int] = 10,
@@ -288,7 +300,7 @@ class Capsule(Object3D):
 
         capsule = vtkCapsuleSource()  # TODO pyvista capsules are aranged on the side
         capsule.SetRadius(radius)
-        capsule.SetCylinderLength(height)
+        capsule.SetCylinderLength(max(0, height - radius * 2))
         capsule.SetThetaResolution(theta_resolution)
         capsule.SetPhiResolution(phi_resolution)
         capsule.SetLatLongTessellation(bool(sphere_type == "uv"))
@@ -300,12 +312,19 @@ class Capsule(Object3D):
             direction = (0, 1, 0)
         pv.translate(mesh, (0, 0, 0), direction)
 
+        if collider is None:
+            collider = Collider(
+                type=ColliderType.CAPSULE,
+                bounding_box=(radius, height, radius),
+            )
+
         super().__init__(
             mesh=mesh,
             name=name,
             position=position,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -350,6 +369,7 @@ class Cylinder(Object3D):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -363,6 +383,7 @@ class Cylinder(Object3D):
             position=position,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -406,6 +427,7 @@ class Cube(Object3D):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -413,15 +435,19 @@ class Cube(Object3D):
             bounds = (-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)
         if isinstance(bounds, (float, int)):
             bounds = (-bounds, bounds, -bounds, bounds, -bounds, bounds)  # Make it a list
-        self.bounding_box = (bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
-        self.offset_translation = (
-            (bounds[0] + bounds[1]) / 2.0,
-            (bounds[2] + bounds[3]) / 2.0,
-            (bounds[4] + bounds[5]) / 2.0,
-        )
+
         mesh = pv.Box(bounds=bounds, level=level, quads=quads)
         if direction is not None:
             pv.translate(mesh, (0, 0, 0), direction)
+
+        if collider is None:
+            bounding_box = (bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
+            offset = (
+                (bounds[0] + bounds[1]) / 2.0,
+                (bounds[2] + bounds[3]) / 2.0,
+                (bounds[4] + bounds[5]) / 2.0,
+            )
+            collider = Collider(type=ColliderType.BOX, bounding_box=bounding_box, offset=offset)
 
         super().__init__(
             mesh=mesh,
@@ -429,6 +455,7 @@ class Cube(Object3D):
             position=position,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -470,6 +497,7 @@ class Cone(Object3D):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -482,6 +510,7 @@ class Cone(Object3D):
             position=position,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -513,6 +542,7 @@ class Line(Object3D):
         pointb: Optional[List[float]] = None,
         resolution: Optional[int] = 1,
         name: Optional[str] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -527,6 +557,7 @@ class Line(Object3D):
             name=name,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -550,6 +581,7 @@ class MultipleLines(Object3D):
         self,
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -562,6 +594,7 @@ class MultipleLines(Object3D):
             name=name,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -601,6 +634,7 @@ class Tube(Object3D):
         radius: Optional[float] = 1.0,
         n_sides: Optional[int] = 16,
         name: Optional[str] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -614,6 +648,7 @@ class Tube(Object3D):
             name=name,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -651,6 +686,7 @@ class Polygon(Object3D):
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
         name: Optional[str] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -663,6 +699,7 @@ class Polygon(Object3D):
             position=position,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -713,6 +750,7 @@ class Disc(Object3D):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -725,6 +763,7 @@ class Disc(Object3D):
             position=position,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -762,6 +801,7 @@ class Text3D(Object3D):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -777,6 +817,7 @@ class Text3D(Object3D):
             position=position,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -801,6 +842,7 @@ class Triangle(Object3D):
         self,
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -810,6 +852,7 @@ class Triangle(Object3D):
             name=name,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -833,6 +876,7 @@ class Rectangle(Object3D):
         self,
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -842,6 +886,7 @@ class Rectangle(Object3D):
             name=name,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -877,6 +922,7 @@ class Circle(Object3D):
         radius: Optional[float] = 0.5,
         resolution: Optional[int] = 100,
         name: Optional[str] = None,
+        collider: Optional[Collider] = None,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
@@ -893,6 +939,7 @@ class Circle(Object3D):
             position=position,
             parent=parent,
             children=children,
+            collider=collider,
         )
 
 
@@ -926,6 +973,7 @@ class StructuredGrid(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        collider: Optional[Collider] = None,
     ):
         if not isinstance(x, np.ndarray):
             x = np.array(x)
@@ -939,4 +987,5 @@ class StructuredGrid(Object3D):
             name=name,
             parent=parent,
             children=children,
+            collider=collider,
         )

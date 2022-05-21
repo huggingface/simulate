@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import Any, Optional, Union
+from typing import Any, Optional
 
 from dataclasses_json import dataclass_json
 
@@ -16,7 +16,7 @@ class Extensions:
 
     KHR_lights_punctual: Optional[KHRLightsPunctual] = None
     HF_RL_agents: Optional[HF_RL_Agents] = None
-    HF_colliders: Optional[HF_Colliders] = None
+    HF_collider: Optional[HF_Collider] = None
 
 
 @dataclass_json
