@@ -5,4 +5,7 @@ Mainly based on the repository https://github.com/ikarth/wfc_2019f which
 is licensed under the MIT license.
 """
 
-# TODO: Add useful functions from the repo here
+# cython_test.py
+from wfc_binding import py_main
+
+py_main()
