@@ -4,7 +4,6 @@ Generate tiles for debugging purposes, and for generating maps on the prototype.
 
 from PIL import Image
 import numpy as np
-from shutil import rmtree
 import os
 
 
@@ -66,7 +65,7 @@ def add_tile_name(xml_str, tile_name, weight, symmetry="L"):
     """
     return xml_str + '\t\t<tile name="{}" symmetry="{}" weight="{}"/>\n'.format(tile_name, symmetry, weight)
 
-def add_constraint(xml_str, left, right, left_or=0, right_or=0):
+def add_neighbor(xml_str, left, right, left_or=0, right_or=0):
     """
     Add a neighbors to the xml string.
 
@@ -122,28 +121,8 @@ def generate_tiles(width=9,
     ramp_weights = [0.5] * max_height
 
     print("Generating tiles with max height: {}".format(max_height))
-
-    # Create the folder if it doesn't exist.
-    if not os.path.exists(gen_folder):
-        os.makedirs(gen_folder)
     
-    # Create the tiles folder
     tiles_folder = os.path.join(gen_folder, 'tiles')
-
-    if os.path.exists(tiles_folder):
-        print("Tiles folder already exists. Continuing will overwrite current tiles. \
-            Do you wish to continue? (y/n)")
-        
-        answer = input()
-        if answer != 'y':
-            return
-        
-        # TODO: there's a bug on this
-        rmtree(tiles_folder)
-
-    # Recreate the tiles folder
-    os.makedirs(tiles_folder)
-    
     print("Saving tiles to {}".format(tiles_folder))
 
     # Step for the height (which is represented by the intensity of the color)
@@ -170,7 +149,7 @@ def generate_tiles(width=9,
             # Symmetry of a certain letter means that it has the sames symmetric properties
             # as the letter
             names_xml = add_tile_name(names_xml, plain_tile_names[h], weights[h], symmetry="X")
-            neighbors_xml = add_constraint(neighbors_xml, plain_tile_names[h], plain_tile_names[h])
+            neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h], plain_tile_names[h])
 
         # If i == max_height - 1, then we don't add more ramps
         if h < max_height - 1:
@@ -210,19 +189,15 @@ def generate_tiles(width=9,
                         # The tiles are rotate clockwise as i * 2 + ax increases
                         # And we add a rotation to fix that and keep the ramps in the right place
                         ramp_or = i * 2 + ax
-                        neighbors_xml = add_constraint(neighbors_xml, ramp_name, plain_tile_names[h], ramp_or, 0)
-                        neighbors_xml = add_constraint(neighbors_xml, plain_tile_names[h+1], ramp_name, 0, ramp_or)
+                        neighbors_xml = add_neighbor(neighbors_xml, ramp_name, plain_tile_names[h], ramp_or, 0)
+                        neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h+1], ramp_name, 0, ramp_or)
 
                         # Adding ramp to going upwards
                         if h < max_height - 2 and double_ramp:
-                            neighbors_xml = add_constraint(neighbors_xml, next_ramp_name, ramp_name, ramp_or, ramp_or)
+                            neighbors_xml = add_neighbor(neighbors_xml, next_ramp_name, ramp_name, ramp_or, ramp_or)
 
     # Create xml file
     if save:
         generate_xml(width, height, names_xml, neighbors_xml, tile_size, tiles_folder, gen_folder)
     
     print("Done generating tiles.")
-
-
-if __name__ == '__main__':
-    generate_tiles(width=9, height=9, max_height=4, tile_size=2, save=True)
