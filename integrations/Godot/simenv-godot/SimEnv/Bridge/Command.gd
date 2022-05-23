@@ -5,11 +5,15 @@ var type : String
 var content : String
 
 
-# Called when the node enters the scene tree for the first time.
 func _ready() -> void:
-	pass # Replace with function body.
+	pass
 
 
-# Called every frame. 'delta' is the elapsed time since the previous frame.
 func _process(delta : float) -> void:
 	pass
+
+
+func execute() -> void:
+	var command_script = load("res://SimEnv/Bridge/Commands/" + type + ".gd")
+	var command = command_script.new()
+	command.execute(content)
