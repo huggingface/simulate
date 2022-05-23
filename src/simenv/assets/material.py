@@ -90,8 +90,8 @@ class Material:
 
     base_color: Optional[List[float]] = None
     base_color_texture: Optional[pyvista.Texture] = None
-    metallic_factor: Optional[float] = 1.0
-    roughness_factor: Optional[float] = 1.0
+    metallic_factor: Optional[float] = None
+    roughness_factor: Optional[float] = None
     metallic_roughness_texture: Optional[pyvista.Texture] = None
 
     normal_texture: Optional[pyvista.Texture] = None
@@ -99,18 +99,25 @@ class Material:
     emissive_texture: Optional[pyvista.Texture] = None
     emissive_factor: Optional[List[float]] = None
     alpha_mode: Optional[str] = None
-    alpha_cutoff: Optional[float] = 0.5
-    double_sided: Optional[bool] = False
+    alpha_cutoff: Optional[float] = None
+    double_sided: Optional[bool] = None
 
     name: Optional[str] = None
 
     def __post_init__(self):
+        # Setup all our default values
         if self.base_color is None:
             self.base_color = [1.0, 1.0, 1.0, 1.0]
         if isinstance(self.base_color, np.ndarray):
             self.base_color = self.base_color.tolist()
         if len(self.base_color) == 3:
             self.base_color = self.base_color + [1.0]
+
+        if self.metallic_factor is None:
+            self.metallic_factor = 1.0
+
+        if self.roughness_factor is None:
+            self.roughness_factor = 1.0
 
         if self.emissive_factor is None:
             self.emissive_factor = [0.0, 0.0, 0.0, 0.0]
@@ -119,6 +126,12 @@ class Material:
 
         if self.alpha_mode is None:
             self.alpha_mode = "OPAQUE"
+
+        if self.alpha_cutoff is None:
+            self.alpha_cutoff = 0.5
+
+        if self.double_sided is None:
+            self.double_sided = False
 
         if self.name is None:
             id = next(self.__class__.__NEW_ID)

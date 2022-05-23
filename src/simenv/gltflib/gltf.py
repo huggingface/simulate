@@ -149,17 +149,17 @@ class GLTF:
             f"the appropriate extension (.gltf or .glb), or call export_gltf or export_glb directly."
         )
 
-    def export_gltf(self, filename: str, save_file_resources=True) -> "GLTF":
+    def export_gltf(self, filename: str, save_file_resources=True) -> List[str]:
         """
         Exports the model to a GLTF file
         :param filename: Output filename
         :param save_file_resources: If True, external file resources present in the resources list will be saved
-        :return Exported GLTF instance.
+        :return List of paths to the saved files (glTF + ressources).
         """
         gltf = self.clone()
         # noinspection PyProtectedMember
-        gltf._export_gltf(filename, save_file_resources)
-        return gltf
+        file_names = gltf._export_gltf(filename, save_file_resources)
+        return file_names
 
     def export_glb(
         self, filename: str, embed_buffer_resources=True, embed_image_resources=True, save_file_resources=True
@@ -208,7 +208,7 @@ class GLTF:
         return GLTF(model, resources)
 
     def get_resource(self, uri: str, strict: bool = False) -> GLTFResource:
-        return next(
+        next_item = next(
             (
                 resource
                 for resource in (self.resources or [])
@@ -221,6 +221,9 @@ class GLTF:
             ),
             None,
         )
+        if next_item is None:
+            raise ValueError(f"Cannot find ressource with uri {uri}.")
+        return next_item
 
     def get_glb_resource(self, resource_type: int = GLB_BINARY_CHUNK_TYPE) -> GLBResource:
         for resource in self.glb_resources:
@@ -440,12 +443,14 @@ class GLTF:
             if resource is None:
                 raise RuntimeError(f'Missing resource with uri: "{uri}".')
 
-    def _export_file_resources(self, basepath: str) -> None:
+    def _export_file_resources(self, basepath: str) -> List[str]:
+        file_names = []
         if self.resources is None or len(self.resources) == 0:
-            return
+            return file_names
         for resource in self.resources:
             if isinstance(resource, FileResource):
-                resource.export(basepath)
+                file_name_ressource = resource.export(basepath)
+                file_names += file_name_ressource
 
     def _load_glb(self, f: BinaryIO, json_encoding: str = None) -> None:
         self.resources = []
@@ -509,7 +514,7 @@ class GLTF:
         resource = GLBResource(b, chunk_type)
         self.resources.append(resource)
 
-    def _export_gltf(self, filename: str, save_file_resources=True) -> None:
+    def _export_gltf(self, filename: str, save_file_resources=True) -> List[str]:
         if any(isinstance(resource, GLBResource) for resource in (self.resources or [])):
             raise TypeError(
                 "Model may not contain resources of type GLBResource when exporting to GLTF. "
@@ -520,13 +525,16 @@ class GLTF:
             )
         create_parent_dirs(filename)
         data = self.model.to_json()
+        file_names = [filename]
         print(filename)
         with open(filename, "w", encoding="utf-8") as f:
             f.write(data)
         if save_file_resources:
             self._validate_resources()
             basepath = path.dirname(filename)
-            self._export_file_resources(basepath)
+            file_names_ressources = self._export_file_resources(basepath)
+            file_names += file_names_ressources
+        return file_names
 
     def _export_glb(
         self, filename: str, embed_buffer_resources=True, embed_image_resources=True, save_file_resources=True

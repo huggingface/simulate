@@ -1,8 +1,9 @@
-import simenv as sm
+from simenv import Scene
 
-scene = sm.Scene.load_from_hub(repo_id='simenv-tests/BoxTextured', subfolder='glTF', filename="BoxTextured.gltf")
+scene = Scene.load('simenv-tests/Chair', repo_filepath='glTF-Binary/SheenChair.glb')
 
 print(scene)
+print(scene._created_from_file)
 scene.show(in_background=False)
 print(scene)
 

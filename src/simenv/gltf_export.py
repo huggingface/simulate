@@ -541,12 +541,15 @@ def tree_as_glb_bytes(root_node: Asset) -> bytes:
     return gltf.as_glb_bytes()
 
 
-def save_as_gltf_file(file_path: str, root_node: Asset) -> None:
-    """ " Save the tree in a GLTF file"""
+def save_tree_as_gltf_file(file_path: str, root_node: Asset) -> List[str]:
+    """Save the tree in a GLTF file + additional (binary) ressource files if if shoulf be the case.
+    Return the list of all the path to the saved files (glTF file + ressource files)
+    """
     gltf = tree_as_gltf(root_node=root_node)
 
     # For now let's convert all in GLTF with embedded ressources
     for ressource in gltf.resources:
         gltf.convert_to_base64_resource(ressource)
 
-    gltf.export_gltf(file_path)
+    file_names = gltf.export_gltf(file_path)
+    return file_names

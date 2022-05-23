@@ -16,9 +16,11 @@
 """ Load a GLTF file in a Scene."""
 import io
 import os
+import tempfile
 from copy import deepcopy
 from dataclasses import asdict
 from email.mime import base
+from tempfile import tempdir
 from typing import ByteString, List, Optional, Set, Union
 
 import numpy as np
@@ -31,6 +33,8 @@ from .assets import Asset, Camera, Light, Material, Object3D
 from .gltflib import GLTF, FileResource, GLTFModel, TextureInfo
 from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
 
+
+UNSUPPORTED_REQUIRED_EXTENSIONS = ["KHR_draco_mesh_compression"]
 
 # TODO remove this GLTFReader once the new version of pyvista is released 0.34+ (included in it)
 class GLTFReader(pv.utilities.reader.BaseReader):
@@ -74,7 +78,7 @@ def get_buffer_as_bytes(gltf_scene: GLTF, buffer_view_id: int) -> ByteString:
     buffer_view = gltf_model.bufferViews[buffer_view_id]
     buffer = gltf_model.buffers[buffer_view.buffer]
     resource = gltf_scene.get_resource(buffer.uri)
-    if not resource.loaded:
+    if isinstance(resource, FileResource) and not resource.loaded:
         resource.load()
 
     byte_offset = buffer_view.byteOffset
@@ -159,7 +163,14 @@ def get_texture_as_pyvista(gltf_scene: GLTF, texture_info: Optional[TextureInfo]
     gltf_image = gltf_images[gltf_texture.source]
 
     if gltf_image.bufferView is not None:
-        raise NotImplementedError()
+        # Temporarly store the image for loading with vtk
+        bytes = get_buffer_as_bytes(gltf_scene=gltf_scene, buffer_view_id=gltf_image.bufferView)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            filename = gltf_image.mimeType.replace("/", ".")  # Will convert mimeType 'image/png' in 'image.png'
+            filepath = os.path.join(tmpdirname, filename)
+            with open(filepath, "wb") as file:
+                file.write(bytes)
+            texture = pv.read_texture(filepath)
     else:
         resource = gltf_scene.get_resource(gltf_image.uri)
         texture = pv.read_texture(resource.fullpath)
@@ -300,12 +311,13 @@ def load_gltf_as_tree(
                     revision=revision,
                     repo_type="space",
                 )
-                basepath, filename = os.path.split(local_file)
-                if ressource.filename != filename:
-                    raise ValueError(
-                        f"Hub file {filename} not matching expected ressource filename {ressource.filename}"
-                    )
-                new_ressource = FileResource(filename, basepath=basepath, mimetype=ressource.mimetype)
+                basepath, basename = os.path.split(local_file)
+                former_file_name_and_uri = ressource.filename
+                former_basename = os.path.basename(former_file_name_and_uri)
+                if former_basename != basename:
+                    raise ValueError(f"Hub file {basename} not matching expected ressource filename {former_basename}")
+                # We need to keep former_file_name_and_uri in the ressource because it's the uri used everywhere in the glTF file
+                new_ressource = FileResource(former_file_name_and_uri, basepath=basepath, mimetype=ressource.mimetype)
                 updated_ressources.append(new_ressource)
             else:
                 updated_ressources.append(ressource)
@@ -313,6 +325,15 @@ def load_gltf_as_tree(
         gltf_scene.resources = updated_ressources
 
     gltf_model = gltf_scene.model
+
+    if gltf_model.extensionsRequired is not None and gltf_model.extensionsRequired:
+        for extension_required in gltf_model.extensionsRequired:
+            # Sanity check of the required extension before running pyvista glTF reader
+            # because it can segfault on some unsupported extensions.
+            if extension_required in UNSUPPORTED_REQUIRED_EXTENSIONS:
+                raise ValueError(
+                    f"The glTF extension '{extension_required}' is required to load this scene but is not currently supported."
+                )
 
     pyvista_reader = GLTFReader(
         file_path

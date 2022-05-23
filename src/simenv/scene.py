@@ -14,16 +14,19 @@
 
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
-from typing import Optional
+import os
+import tempfile
+from typing import List, Optional
 
-from huggingface_hub import Repository, hf_hub_download
+from huggingface_hub import hf_hub_download, upload_file
+from isort import file
 
 import simenv as sm
 
 from .assets import Asset
 from .assets.anytree import RenderTree
 from .engine import PyVistaEngine, UnityEngine
-from .gltf_export import save_as_gltf_file
+from .gltf_export import save_tree_as_gltf_file
 from .gltf_import import load_gltf_as_tree
 
 
@@ -57,22 +60,35 @@ class Scene(Asset):
             raise ValueError("engine should be selected ()")
 
     @classmethod
-    def load_from_hub(
+    def load(
         cls,
-        repo_id: str,
-        filename: str = "scene.gltf",
-        subfolder: Optional[str] = None,
+        repo_id_or_local_filepath: str,
+        repo_filepath: str = "scene.gltf",
+        use_auth_token: Optional[str] = None,
         revision: Optional[str] = None,
         **kwargs,
-    ):
-        """Load a Scene from a GLTF file on the hub.
+    ) -> "Scene":
+        """Load a Scene from the HuggingFace hub or from a local GLTF file on the drive or on the hub.
 
-        For now the file should be a GLTF-Embedded file (single file) named 'scene.gltf' at the root of the repo.
+        First argument is either a repository id on the HuggingFace hub or a path to an existing local file on the drive.
+
+        If the first argument is a repository id, the path of the file inside the hub repository can be provided as `repo_filepath`.
         """
+        if os.path.exists(repo_id_or_local_filepath) and os.path.isfile(repo_id_or_local_filepath):
+            return cls.load_from_file(filepath=repo_id_or_local_filepath, **kwargs)
+
+        subfolder, filename = os.path.split(repo_filepath)
         gltf_file = hf_hub_download(
-            repo_id=repo_id, filename=filename, subfolder=subfolder, revision=revision, repo_type="space"
+            repo_id=repo_id_or_local_filepath,
+            filename=filename,
+            subfolder=subfolder,
+            revision=revision,
+            repo_type="space",
+            use_auth_token=use_auth_token,
+            force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
+            **kwargs,
         )
-        nodes = load_gltf_as_tree(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
+        nodes = load_gltf_as_tree(gltf_file, repo_id=repo_id_or_local_filepath, subfolder=subfolder, revision=revision)
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
             nodes = root.tree_children
@@ -88,19 +104,43 @@ class Scene(Asset):
             **kwargs,
         )
 
-    def push_to_hub(self, repo_id: str, local_dir: str, **kwargs):
+    def push_to_hub(
+        self,
+        repo_id: str,
+        repo_filepath: str = "glTF/scene.gltf",
+        token: Optional[str] = None,
+        revision: Optional[str] = None,
+        identical_ok: bool = True,
+        **kwargs,
+    ) -> List[str]:
         """Push a GLTF Scene to the hub.
 
         For now the file should be a GLTF-Embedded file (single file) named 'scene.gltf' at the root of the repo.
         """
-        local_repository = Repository(local_dir=local_dir, clone_from=repo_id, repo_type="space", **kwargs)
-        with local_repository.commit("updating scene file"):
-            self.save_to_gltf_file("scene.gltf")
+        hub_subfolder, hub_filename = os.path.split(repo_filepath)
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            full_filename = os.path.join(tmpdirname, hub_filename)
+            saved_filepaths = self.save_to_gltf_file(full_filename)
+            hub_urls = []
+            for saved_filepath in saved_filepaths:
+                saved_filename = os.path.basename(saved_filepath)
+                repo_filepath = os.path.join(hub_subfolder, saved_filename)
+                hub_url = upload_file(
+                    path_or_fileobj=saved_filepath,
+                    path_in_repo=repo_filepath,
+                    repo_id=repo_id,
+                    token=token,
+                    repo_type="space",
+                    revision=revision,
+                    identical_ok=identical_ok,
+                )
+                hub_urls.append(hub_url)
+        return hub_urls
 
     @classmethod
-    def load_from_gltf_file(cls, file_path: str, file_type: Optional[str] = None, **kwargs):
+    def load_from_file(cls, filepath: str, file_type: Optional[str] = None, **kwargs) -> "Scene":
         """Load a Scene from a GLTF file."""
-        nodes = load_gltf_as_tree(file_path, file_type=file_type)
+        nodes = load_gltf_as_tree(filepath, file_type=file_type)
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
             nodes = root.tree_children
@@ -112,13 +152,13 @@ class Scene(Asset):
             rotation=root.rotation,
             scaling=root.scaling,
             children=nodes,
-            created_from_file=file_path,
+            created_from_file=filepath,
             **kwargs,
         )
 
-    def save_to_gltf_file(self, file_path: str, file_type: Optional[str] = None, **kwargs):
-        """Save a Scene from a GLTF file."""
-        save_as_gltf_file(file_path, self)
+    def save_to_file(self, filepath: str, **kwargs) -> List[str]:
+        """Save a Scene as a GLTF file (with optional ressources in the same folder)."""
+        return save_tree_as_gltf_file(filepath, self)
 
     def clear(self):
         """ " Remove all assets in the scene."""
