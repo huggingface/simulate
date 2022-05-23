@@ -16,4 +16,5 @@ func _process(_delta : float) -> void:
 func execute() -> void:
 	var command_script = load("res://SimEnv/Bridge/Commands/" + type + ".gd")
 	var command = command_script.new()
+	add_child(command)
 	command.execute(content)
