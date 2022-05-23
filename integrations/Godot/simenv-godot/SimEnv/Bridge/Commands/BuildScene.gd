@@ -8,9 +8,10 @@ func _ready():
 
 
 # Called every frame. 'delta' is the elapsed time since the previous frame.
-func _process(delta):
+func _process(_delta : float):
 	pass
 
 
 func execute(content):
-	print("Command executed: ", content)
+	var decoded_content : String = Marshalls.base64_to_utf8(content["b64bytes"])
+	print("Command executed: ", decoded_content)

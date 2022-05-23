@@ -11,7 +11,7 @@ var _stream: StreamPeerTCP = StreamPeerTCP.new()
 func _ready() -> void:
 	_status = _stream.get_status()
 
-func _process(delta: float) -> void:
+func _process(_delta: float) -> void:
 	update_status()
 	read()
 
@@ -38,12 +38,12 @@ func read():
 		var available_bytes: int = _stream.get_available_bytes()
 		if available_bytes > 0:
 			print("available bytes: ", available_bytes)
-			var data: Array = _stream.get_partial_data(available_bytes)
-			if data[0] != OK:
-				print("Error getting data from stream: ", data[0])
+			var stream_data: Array = _stream.get_partial_data(available_bytes)
+			if stream_data[0] != OK:
+				print("Error getting data from stream: ", stream_data[0])
 				emit_signal("error")
 			else:
-				emit_signal("data", data[1])
+				emit_signal("data", stream_data[1])
 
 func connect_to_host(host: String, port: int) -> void:
 	print("Connecting to %s:%d" % [host, port])
@@ -52,12 +52,12 @@ func connect_to_host(host: String, port: int) -> void:
 		print("Error connecting to host.")
 		emit_signal("error")
 
-func send(data: PackedByteArray) -> bool:
+func send(out_data: PackedByteArray) -> bool:
 	if _status != _stream.STATUS_CONNECTED:
 		print("Error: Stream is not currently connected.")
 		return false
-	var error: int = _stream.put_data(data)
-	if error != OK:
+	var stream_error: int = _stream.put_data(out_data)
+	if stream_error != OK:
 		print("Error writing to stream: ", error)
 		return false
 	return true

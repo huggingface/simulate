@@ -2,14 +2,14 @@ extends Node
 
 
 var type : String
-var content : String
+var content : Variant
 
 
 func _ready() -> void:
 	pass
 
 
-func _process(delta : float) -> void:
+func _process(_delta : float) -> void:
 	pass
 
 
