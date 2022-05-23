@@ -182,7 +182,7 @@ void read_simpletiled_instance(xml_node<> *node,
 
   cout << name << " " << subset << " started!" << endl;
 
-  ifstream config_file("samples/" + name + "/data.xml");
+  ifstream config_file(current_dir + "/" + name + "/data.xml");
   vector<char> buffer((istreambuf_iterator<char>(config_file)),
                       istreambuf_iterator<char>());
   buffer.push_back('\0');
@@ -190,6 +190,7 @@ void read_simpletiled_instance(xml_node<> *node,
   data_document.parse<0>(&buffer[0]);
   xml_node<> *data_root_node = data_document.first_node("set");
   unsigned size = stoi(rapidxml::get_attribute(data_root_node, "size"));
+
 
   unordered_map<string, Tile<Color>> tiles_map =
       read_tiles(data_root_node, current_dir + "/" + name, subset, size);
@@ -225,22 +226,9 @@ void read_simpletiled_instance(xml_node<> *node,
     TilingWFC<Color> wfc(tiles, neighbors_ids, height, width, {periodic_output},
                          seed);
 
-    // For the summer tileset, place water on the borders, and land in the middle
-    if (name == "Summer") {
-      for(int i = 0; i < height; i++) {
-        wfc.set_tile(tiles_id["water_a"], 0, i, 0);
-        wfc.set_tile(tiles_id["water_a"], 0, i, width - 1);
-      }
-      for(int j = 0; j < width; j++) {
-        wfc.set_tile(tiles_id["water_a"], 0, 0, j);
-        wfc.set_tile(tiles_id["water_a"], 0, height -1, j);
-      }
-      wfc.set_tile(tiles_id["grass"], 0, width / 2, height / 2);
-    }
-
     std::optional<Array2D<Color>> success = wfc.run();
     if (success.has_value()) {
-      write_image_png("results/" + name + "_" + subset + ".png", *success);
+      write_image_png(current_dir + "/maps/" + name + ".png", *success);
       cout << name << " finished!" << endl;
       break;
     } else {
@@ -261,7 +249,9 @@ void read_config_file(const string &config_path) noexcept {
   document.parse<0>(&buffer[0]);
 
   xml_node<> *root_node = document.first_node("samples");
-  string dir_path = get_dir(config_path) + "/" + "samples";
+  
+  string dir_path = get_dir(config_path);
+
   for (xml_node<> *node = root_node->first_node("simpletiled"); node;
        node = node->next_sibling("simpletiled")) {
     read_simpletiled_instance(node, dir_path);
@@ -278,7 +268,7 @@ int main() {
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  // read_config_file(".gen_files/samples.xml");
+  read_config_file(".gen_files/samples.xml");
 
   end = std::chrono::system_clock::now();
   int elapsed_s =
