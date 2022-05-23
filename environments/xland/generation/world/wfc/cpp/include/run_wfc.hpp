@@ -6,4 +6,4 @@
 using namespace std;
 using namespace rapidxml;
 
-int main();
+int main(unsigned width, unsigned height);

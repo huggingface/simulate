@@ -5,7 +5,6 @@
 #include <string>
 #include "time.h"
 
-// TODO: Review if imports work properly
 #include "include/run_wfc.hpp"
 #include "fastwfc/tiling_wfc.hpp"
 #include "fastwfc/utils/array3D.hpp"
@@ -171,14 +170,12 @@ read_neighbors(xml_node<> *root_node) {
 /**
  * Read an instance of a tiling WFC problem.
  */
-void read_simpletiled_instance(xml_node<> *node,
+void read_simpletiled_instance(unsigned width, unsigned height,
                                const string &current_dir) noexcept {
-  string name = rapidxml::get_attribute(node, "name");
-  string subset = rapidxml::get_attribute(node, "subset", "tiles");
-  bool periodic_output =
-      (rapidxml::get_attribute(node, "periodic", "False") == "True");
-  unsigned width = stoi(rapidxml::get_attribute(node, "width", "48"));
-  unsigned height = stoi(rapidxml::get_attribute(node, "height", "48"));
+  string name = "tiles";
+  string subset = "tiles";
+  bool periodic_output = false;
+  // (rapidxml::get_attribute(node, "periodic", "False") == "True");
 
   cout << name << " " << subset << " started!" << endl;
 
@@ -240,25 +237,11 @@ void read_simpletiled_instance(xml_node<> *node,
 /**
  * Read a configuration file containing multiple wfc problems
  */
-void read_config_file(const string &config_path) noexcept {
-  ifstream config_file(config_path);
-  vector<char> buffer((istreambuf_iterator<char>(config_file)),
-                      istreambuf_iterator<char>());
-  buffer.push_back('\0');
-  xml_document<> document;
-  document.parse<0>(&buffer[0]);
-
-  xml_node<> *root_node = document.first_node("samples");
-  
-  string dir_path = get_dir(config_path);
-
-  for (xml_node<> *node = root_node->first_node("simpletiled"); node;
-       node = node->next_sibling("simpletiled")) {
-    read_simpletiled_instance(node, dir_path);
-  }
+void read_config_file(unsigned width, unsigned height, const string &dir_path) noexcept {
+  read_simpletiled_instance(width, height, dir_path);
 }
 
-int main() {
+int main(unsigned width, unsigned height) {
 
   // Initialize rand for non-linux targets
   #ifndef __linux__
@@ -268,7 +251,7 @@ int main() {
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  read_config_file(".gen_files/samples.xml");
+  read_config_file(width, height, ".gen_files");
 
   end = std::chrono::system_clock::now();
   int elapsed_s =

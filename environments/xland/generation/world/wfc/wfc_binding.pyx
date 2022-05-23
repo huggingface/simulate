@@ -3,5 +3,5 @@
 from wfcbinding cimport main
 
 
-def py_main():
-    main()
+def py_main(unsigned width, unsigned height):
+    main(width, height)
