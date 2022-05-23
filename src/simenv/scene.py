@@ -79,7 +79,7 @@ class Scene(Asset):
 
     def get_agents(self):
         # search all nodes for agents classes and then return in list
-        return self._get_decendants_of_class_type(sm.RL_Agent)
+        return self._get_decendants_of_class_type(sm.RLAgent)
 
     def show(self):
         """Render the Scene using the engine if provided."""
@@ -89,18 +89,36 @@ class Scene(Asset):
         self.engine.show()
         self._built = True
 
-    def step(self, action):
-        """Step the Scene using the engine if provided."""
-
+    def _check_backend(self):
         if not self._built:
             raise SceneNotBuiltError()
-
         if self.engine is None:
             raise UnsetRendererError()
 
-        obs = self.engine.step(action)
+    def reset(self):
+        """Reset the environment / episode"""
+        self._check_backend()
+        return self.engine.reset()
 
-        return obs
+    def get_done(self):
+        """Find out if the episode has ended"""
+        self._check_backend()
+        return self.engine.get_done()
+
+    def get_reward(self):
+        """Get the reward from the agent"""
+        self._check_backend()
+        return self.engine.get_reward()
+
+    def step(self, action):
+        """Step the Scene using the engine if provided."""
+        self._check_backend()
+        return self.engine.step(action)
+
+    def get_observation(self):
+        """Step the Scene using the engine if provided."""
+        self._check_backend()
+        return self.engine.get_observation()
 
     def __repr__(self):
         return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}')\n{RenderTree(self).print_tree()}"

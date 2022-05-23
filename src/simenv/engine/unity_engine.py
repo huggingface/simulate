@@ -2,6 +2,7 @@ import base64
 import json
 import socket
 from urllib import response
+import atexit
 
 from ..gltf_export import tree_as_glb_bytes
 
@@ -26,6 +27,7 @@ class UnityEngine:
         self.host = "127.0.0.1"
         self.port = 55000
         self._initialize_server()
+        atexit.register(self._close)
 
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -67,13 +69,44 @@ class UnityEngine:
 
     def step(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
+        return self.run_command(command)
+
+    def get_reward(self):
+        command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
+        return self.run_command(command)
+
+    def get_done(self):
+        command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
+        return self.run_command(command)
+
+    def reset(self):
+        command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command)
+
+    def get_observation(self):
+        command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
+
+        encoded_obs = self.run_command(command)
+        decoded_obs = json.loads(encoded_obs)
+
+        return decoded_obs
 
     def run_command(self, command):
         message = json.dumps(command)
-        print(f"Sending command: {message}")
+        # print(f"Sending command: {message}")
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
-        self._send_bytes(message_bytes)
+        return self._send_bytes(message_bytes)
+
+    def _close(self):
+        print("exit was not clean, using atexit to close env")
+        self.close()
 
     def close(self):
+        command = {"type": "Close", "contents": json.dumps({"message": "close"})}
+        self.run_command(command)
         self.client.close()
+
+        try:
+            atexit.unregister(self._close)
+        except Exception as e:
+            print("exception unregistering close method", e)
