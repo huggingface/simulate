@@ -26,7 +26,6 @@ scene += agent
 
 
 scene.show()
-scene.show()
 plt.ion()
 fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(agent.camera_height, agent.camera_width, 3), dtype=np.uint8)
