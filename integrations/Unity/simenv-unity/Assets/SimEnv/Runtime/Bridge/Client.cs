@@ -45,7 +45,7 @@ namespace SimEnv {
 
                     Debug.Assert(dataReceived == messageLength);
                     string message = Encoding.ASCII.GetString(data, 0, messageLength);
-                    Debug.Log("Received message: " + message);
+                    //Debug.Log("Received message: " + message);
                     if (TryParseCommand(message, out ICommand command, out string error)) {
                         command.Execute(response => WriteMessage(response));
                     } else {
@@ -64,7 +64,7 @@ namespace SimEnv {
                 if (stream.CanWrite) {
                     byte[] buffer = Encoding.ASCII.GetBytes(message);
                     stream.Write(buffer, 0, buffer.Length);
-                    Debug.Log("Sent message: " + message);
+                    //Debug.Log("Sent message: " + message);
                 }
             } catch (Exception e) {
                 Debug.Log("Socket error: " + e);

@@ -344,6 +344,8 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
 
 
 def add_agent_to_model(node: RLAgent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
+
+    # TODO: Split ActionDistribution and RewardFunction into separate GLTF extensions
     agent = gl.HF_RL_Agent(
         color=node.color,
         height=node.height,
@@ -354,6 +356,13 @@ def add_agent_to_model(node: RLAgent, gltf_model: gl.GLTFModel, buffer_data: Byt
         action_name=node.actions.name,
         action_dist=node.actions.dist,
         available_actions=node.actions.available_actions,
+        reward_functions=[rf.function for rf in node.reward_functions],
+        reward_entity1s=[rf.entity1 for rf in node.reward_functions],
+        reward_entity2s=[rf.entity2 for rf in node.reward_functions],
+        reward_distance_metrics=[rf.distance_metric for rf in node.reward_functions],
+        reward_scalars=[rf.scalar for rf in node.reward_functions],
+        reward_thresholds=[rf.threshold for rf in node.reward_functions],
+        reward_is_terminals=[rf.is_terminal for rf in node.reward_functions],
     )
 
     if gltf_model.extensions.HF_RL_agents is None:

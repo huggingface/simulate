@@ -40,7 +40,7 @@ class UnityEngine:
             data = self.client.recv(65535)
             if data:
                 response = data.decode()
-                print(f"Received response: {response}")
+                #print(f"Received response: {response}")
                 return response
 
     def _send_gltf(self, bytes):
@@ -63,6 +63,18 @@ class UnityEngine:
         command = {"type": "Step", "contents": json.dumps({"action": action})}
         return self.run_command(command)
 
+    def get_reward(self):
+        command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
+        return self.run_command(command)
+
+    def get_done(self):
+        command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
+        return self.run_command(command)
+
+    def reset(self):
+        command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
+        self.run_command(command)
+
     def get_observation(self):
         command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
 
@@ -73,7 +85,7 @@ class UnityEngine:
 
     def run_command(self, command):
         message = json.dumps(command)
-        print(f"Sending command: {message}")
+        # print(f"Sending command: {message}")
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         return self._send_bytes(message_bytes)
 
