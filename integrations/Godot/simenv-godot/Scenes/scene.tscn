@@ -4,3 +4,9 @@
 
 [node name="Root" type="Node"]
 script = ExtResource( "1_oo243" )
+
+[node name="BaseWorld" type="Node3D" parent="."]
+
+[node name="Camera3D" type="Camera3D" parent="BaseWorld"]
+transform = Transform3D(1, 0, 0, 0, 0.673167, -0.73949, 0, 0.73949, 0.673167, 0, 0, 1.80155)
+current = true
