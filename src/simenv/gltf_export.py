@@ -30,7 +30,7 @@ except:
     pass
 
 from . import gltflib as gl
-from .assets import Asset, Camera, Capsule, Cube, Light, Material, Object3D, RL_Agent, Sphere
+from .assets import Asset, Camera, Capsule, Cube, Light, Material, Object3D, RLAgent, Sphere
 from .gltflib.enums.collider_type import ColliderType
 from .gltflib.utils import padbytes
 
