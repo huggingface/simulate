@@ -7,8 +7,7 @@ import numpy as np
 import os
 
 
-def generate_xml(width, height, 
-                names_xml, neighbors_xml, 
+def generate_xml(names_xml, neighbors_xml, 
                 tile_size, tiles_folder, 
                 gen_folder):
     """
@@ -44,13 +43,6 @@ def generate_xml(width, height,
 
         f.write('</set>')
 
-    # Now, the samples file 
-    # TODO: might not be necessary to create two different files
-    sample_xml_file = os.path.join(gen_folder, 'samples.xml')
-    with open(sample_xml_file, 'w') as f:
-        f.write('<samples>\n')
-        f.write('\t<simpletiled name="tiles" width="{}" height="{}" periodic="False"/>\n'.format(width, height))
-        f.write('</samples>')
 
 def add_tile_name(xml_str, tile_name, weight, symmetry="L"):
     """
@@ -64,6 +56,7 @@ def add_tile_name(xml_str, tile_name, weight, symmetry="L"):
         xml_str: xml string with the tile name.
     """
     return xml_str + '\t\t<tile name="{}" symmetry="{}" weight="{}"/>\n'.format(tile_name, symmetry, weight)
+
 
 def add_neighbor(xml_str, left, right, left_or=0, right_or=0):
     """
@@ -83,11 +76,13 @@ def add_neighbor(xml_str, left, right, left_or=0, right_or=0):
     """
     return xml_str + '\t\t<neighbor left="{} {}" right="{} {}"/>\n'.format(left, left_or, right, right_or)
 
+
 def img_from_tiles():
     """
     Transform tiles into an unique image for tile visualization.
     """
     raise NotImplementedError
+
 
 def generate_tiles(width=9,
                   height=9,
@@ -198,6 +193,6 @@ def generate_tiles(width=9,
 
     # Create xml file
     if save:
-        generate_xml(width, height, names_xml, neighbors_xml, tile_size, tiles_folder, gen_folder)
+        generate_xml(names_xml, neighbors_xml, tile_size, tiles_folder, gen_folder)
     
     print("Done generating tiles.")

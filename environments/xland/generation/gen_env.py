@@ -2,18 +2,41 @@
 Python file to call map, game and agents generation.
 """
 
-from world import generate_map
+import os
+from world import generate_map, generate_tiles
 from game import generate_game
 
 
-def generate_env(seed):
+def gen_setup(gen_folder=".gen_files"):
+    """
+    Setup the generation.
+    """
+    # Check if tiles exist
+    # Create the folder that stores tiles and maps if it doesn't exist.
+    if not os.path.exists(gen_folder):
+        os.makedirs(gen_folder)
+    
+    # Create the maps and tiles folder if necessary
+    maps_folder = os.path.join(gen_folder, "maps")
+    tiles_folder = os.path.join(gen_folder, 'tiles')
+
+    if not os.path.exists(maps_folder):
+        os.makedirs(maps_folder)
+
+    if os.path.exists(tiles_folder):
+        print("Tiles folder already exists. Using existing tiles... (delete folder to regenerate)")
+    
+    else:
+        os.makedirs(tiles_folder)
+        generate_tiles()
+
+
+def generate_env(seed, width, height):
     """
     Generate the environment.
     """
 
     # TODO: choose width and height randomly from a set of predefined values
-    width = 9
-    height = 9
 
     # Generate the map
     generate_map(seed=seed, width=width, height=height)
@@ -25,4 +48,10 @@ def generate_env(seed):
 
 
 if __name__ == '__main__':
-    generate_env(seed=0)
+    seed = 0
+    size = 10
+    width = 50
+    height = size
+
+    gen_setup()
+    generate_env(seed, width, height)

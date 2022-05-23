@@ -12,27 +12,28 @@ from PIL import Image
 import wfc_binding
 
 
-def generate_2d_map(seed, gen_folder):
+def generate_2d_map(seed, width, height, gen_folder):
     """
     TODO: implement this function to have a binding with c++
     """
     # TODO: Open image if it's cached
 
     # Otherwise, generate it:
-    wfc_binding.py_main()
+    wfc_binding.py_main(width, height)
     img_path = os.path.join(gen_folder, 'maps/tiles.png')
 
     # Read file
     img = Image.open(img_path) 
     return img
 
-def generate_3d_map(seed, 
+
+def generate_map(seed, 
                 width, 
                 height, 
-                tile_size=16, 
+                tile_size=10, 
                 gen_folder=".gen_files",
                 or_tile_size=2,
-                height_constant=0.1):
+                height_constant=0.2):
     """
     Generate the map.
 
@@ -47,7 +48,7 @@ def generate_3d_map(seed,
     NOTE: This is a draft.
     """
 
-    img = generate_2d_map(seed, gen_folder)
+    img = generate_2d_map(seed, width, height, gen_folder)
 
     img_np = np.array(img)
     img_np = img_np[:,:,0] * height_constant
@@ -58,11 +59,13 @@ def generate_3d_map(seed,
     # Let's say we want tiles of tile_size x tile_size pixels, and a certain "size" on number
     # of tiles:
     # TODO: change variables and make this clearer
-    size = width
-    real_size = 60
+    # TODO: make rectangular shapes possible
 
-    x = np.arange(-real_size // 2, real_size // 2, real_size / (tile_size * size))
-    y = np.arange(-real_size // 2, real_size // 2, real_size / (tile_size * size))
+    # Number of divisions for each tile on the mesh
+    granularity = 10
+
+    x = np.arange(- width * tile_size // 2, width * tile_size // 2, tile_size / granularity)
+    y = np.arange(- height * tile_size // 2, height * tile_size // 2, tile_size / granularity)
 
     x, y = np.meshgrid(x, y)
 
@@ -70,40 +73,18 @@ def generate_3d_map(seed,
     z_grid = np.zeros(x.shape)
 
     # TODO: improve performance of this loop
-    for i in range(width):
-        for j in range(height):
+    for i in range(height):
+        for j in range(width):
             img_val = img_np[i * or_tile_size:(i + 1) * or_tile_size, j * or_tile_size:(j + 1) * or_tile_size]
-            
+
             # generating for one axis
-            grid = np.transpose(np.linspace(img_val[0], img_val[1], tile_size))
+            grid = np.transpose(np.linspace(img_val[0], img_val[1], granularity))
 
             # now for other
-            grid = np.transpose(np.linspace(grid[0], grid[1], tile_size))
+            grid = np.transpose(np.linspace(grid[0], grid[1], granularity))
 
-            z_grid[i * tile_size:(i + 1) * tile_size, j * tile_size:(j + 1) * tile_size] = grid
+            z_grid[i * granularity:(i + 1) * granularity, j * granularity:(j + 1) * granularity] = grid
 
     floor = sm.StructuredGrid(x=x, y=y, z=z_grid)
     floor.plot()
-
-def generate_map(seed, width, height, gen_folder=".gen_files"):
-    """
-    Builds map using Wave Function Collapse.
-    """
-    # Check if tiles exist
-    # Create the folder that stores tiles and maps if it doesn't exist.
-    if not os.path.exists(gen_folder):
-        os.makedirs(gen_folder)
-    
-    # Create the tiles folder
-    tiles_folder = os.path.join(gen_folder, 'tiles')
-
-    if os.path.exists(tiles_folder):
-        print("Tiles folder already exists. Using existing tiles... (delete folder to regenerate)")
-    
-    else:
-        os.makedirs(tiles_folder)
-        generate_tiles()
-
-    # Build map
-    generate_3d_map(seed, width, height)
 
