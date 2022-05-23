@@ -346,7 +346,7 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
     return light_id
 
 
-def add_agent_to_model(node: RLAgent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
+def add_agent_to_model(node: RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
 
     # TODO: Split ActionDistribution and RewardFunction into separate GLTF extensions
     agent = gl.HF_RL_Agent(
@@ -398,7 +398,7 @@ def add_node_to_scene(
         light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
 
-    elif isinstance(node, RLAgent):
+    elif isinstance(node, RL_Agent):
         agent_id = add_agent_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(HF_RL_agents=gl.HF_RL_Agents(agent=agent_id))
 

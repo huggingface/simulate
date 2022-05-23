@@ -139,14 +139,7 @@ class Plane(Object3D):
             i_resolution=i_resolution,
             j_resolution=j_resolution,
         )
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Sphere(Object3D):
@@ -235,13 +228,7 @@ class Sphere(Object3D):
             )
 
         super().__init__(
-            name=name,
-            mesh=mesh,
-            position=position,
-            parent=parent,
-            children=children,
-            collider=collider,
-            **kwargs
+            name=name, mesh=mesh, position=position, parent=parent, children=children, collider=collider, **kwargs
         )
 
 
@@ -322,13 +309,7 @@ class Capsule(Object3D):
             )
 
         super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-            collider=collider,
-            **kwargs
+            mesh=mesh, name=name, position=position, parent=parent, children=children, collider=collider, **kwargs
         )
 
 
@@ -381,14 +362,7 @@ class Cylinder(Object3D):
             direction = (0, 1, 0)
         mesh = pv.Cylinder(direction=direction, radius=radius, height=height, resolution=resolution, capping=capping)
 
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Cube(Object3D):
@@ -455,13 +429,7 @@ class Cube(Object3D):
             collider = Collider(type=ColliderType.BOX, bounding_box=bounding_box, offset=offset)
 
         super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-            collider=collider,
-            **kwargs
+            mesh=mesh, name=name, position=position, parent=parent, children=children, collider=collider, **kwargs
         )
 
 
@@ -510,14 +478,7 @@ class Cone(Object3D):
         if direction is None:
             direction = (0, 1, 0)
         mesh = pv.Cone(direction=direction, height=height, radius=radius, resolution=resolution)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Line(Object3D):
@@ -558,13 +519,7 @@ class Line(Object3D):
             pointb = [1.0, 0.0, 0.0]
         mesh = pv.Line(pointa=pointa, pointb=pointb, resolution=resolution)
 
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 
 class MultipleLines(Object3D):
@@ -595,13 +550,7 @@ class MultipleLines(Object3D):
             points = [[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]
         mesh = pv.MultipleLines(points=points)
 
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 
 class Tube(Object3D):
@@ -649,13 +598,7 @@ class Tube(Object3D):
         if pointb is None:
             pointb = [1.0, 0.0, 0.0]
         mesh = pv.Tube(pointa=pointa, pointb=pointb, radius=radius, resolution=resolution, n_sides=n_sides)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 
 class Polygon(Object3D):
@@ -699,14 +642,7 @@ class Polygon(Object3D):
         if direction is None:
             direction = (0, 1, 0)
         mesh = pv.Polygon(radius=radius, normal=direction, n_sides=n_sides)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Disc(Object3D):
@@ -763,14 +699,7 @@ class Disc(Object3D):
         if direction is None:
             direction = (0, 1, 0)
         mesh = pv.Disc(inner=inner, outer=outer, normal=direction, r_res=r_res, c_res=c_res)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Text3D(Object3D):
@@ -817,14 +746,7 @@ class Text3D(Object3D):
             direction = (0, 0, -1)
         pv.translate(mesh, (0, 0, 0), direction)
 
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Triangle(Object3D):
@@ -853,13 +775,7 @@ class Triangle(Object3D):
         **kwargs,
     ):
         mesh = pv.Triangle(points=points)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 
 class Rectangle(Object3D):
@@ -887,13 +803,7 @@ class Rectangle(Object3D):
         **kwargs,
     ):
         mesh = pv.Rectangle(points=points)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 
 class Circle(Object3D):
@@ -939,14 +849,7 @@ class Circle(Object3D):
         if direction is None:
             direction = (0, 1, 0)
         pv.translate(mesh, (0, 0, 0), direction)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class StructuredGrid(Object3D):
@@ -988,10 +891,4 @@ class StructuredGrid(Object3D):
         if not isinstance(z, np.ndarray):
             z = np.array(z)
         mesh = pv.StructuredGrid(x, y, z)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-            **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
