@@ -86,7 +86,7 @@ namespace SimEnv.GLTF {
                     result[i] = new GLTFNode.ImportResult();
                     result[i].transform = new GameObject().transform;
                     result[i].transform.gameObject.name = nodes[i].name;
-                    if(Application.isPlaying) {
+                    if (Application.isPlaying) {
                         SimObjectBase simObject = result[i].transform.gameObject.AddComponent<SimObjectBase>();
                         simObject.Initialize();
                     }
@@ -184,20 +184,20 @@ namespace SimEnv.GLTF {
                         if(nodes[i].extensions.HF_collider != null) {
                             Debug.Log("not null " + i + " " + nodes[i].name + " " + nodes[i].extensions);
                             HF_collider collider = nodes[i].extensions.HF_collider;
-                            if(collider.mesh.HasValue) {
+                            if (collider.mesh.HasValue) {
                                 Debug.LogWarning("Ignoring collider mesh value");
                             }
-                            if(collider.type == ColliderType.BOX) {
+                            if (collider.type == ColliderType.BOX) {
                                 BoxCollider col = result[i].transform.gameObject.AddComponent<BoxCollider>();
                                 col.size = collider.boundingBox;
                                 col.center = collider.offset;
                                 col.isTrigger = collider.intangible;
-                            } else if(collider.type == ColliderType.SPHERE) {
+                            } else if (collider.type == ColliderType.SPHERE) {
                                 SphereCollider col = result[i].transform.gameObject.AddComponent<SphereCollider>();
                                 col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[1], collider.boundingBox[2]);
                                 col.center = collider.offset;
                                 col.isTrigger = collider.intangible;
-                            } else if(collider.type == ColliderType.CAPSULE) {
+                            } else if (collider.type == ColliderType.CAPSULE) {
                                 CapsuleCollider col = result[i].transform.gameObject.AddComponent<CapsuleCollider>();
                                 col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[2]);
                                 col.height = collider.boundingBox[1];
@@ -225,7 +225,7 @@ namespace SimEnv.GLTF {
                                     result[i].transform
                                 );
 
-                                if(Application.isPlaying)
+                                if (Application.isPlaying)
                                     agent.Initialize(agentData);
 
                                 result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);

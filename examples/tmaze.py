@@ -29,12 +29,10 @@ agent += sm.Camera(
 scene += agent
 
 scene.show()
-
 plt.ion()
 fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(agent.camera_height, agent.camera_width, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
-
 env = RLEnv(scene)
 for i in range(1000):
     action = env.action_space.sample()
