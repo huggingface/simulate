@@ -1,7 +1,7 @@
 import base64
 import json
 import socket
-
+import atexit
 from ..gltf_export import tree_as_glb_bytes
 
 
@@ -25,6 +25,7 @@ class UnityEngine:
         self.host = "127.0.0.1"
         self.port = 55000
         self._initialize_server()
+        atexit.register(self._close)
 
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -89,5 +90,16 @@ class UnityEngine:
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         return self._send_bytes(message_bytes)
 
+    def _close(self):
+        print("exit was not clean, using atexit to close env")
+        self.close()
+
     def close(self):
+        command = {"type": "Close", "contents": json.dumps({"message": "close"})}
+        self.run_command(command)
         self.client.close()
+
+        try:
+            atexit.unregister(self._close)
+        except Exception as e:
+            print("exception unregistering close method", e)

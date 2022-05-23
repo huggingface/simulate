@@ -46,7 +46,15 @@ namespace SimEnv {
                 }
             Physics.Simulate(FRAME_INTERVAL);
         }
-
+        public static void Close() {
+#if UNITY_EDITOR
+            // Application.Quit() does not work in the editor so
+            // UnityEditor.EditorApplication.isPlaying need to be set to false to end the game
+            UnityEditor.EditorApplication.isPlaying = false;
+#else
+         Application.Quit();
+#endif
+        }
 
         public static void GetObservation(UnityAction<string> callback) {
             // Calculate the agent's observation and send to python with callback
@@ -91,7 +99,6 @@ namespace SimEnv {
                 Debug.LogWarning("Attempting to get observation without an Agent");
             }
         }
-
 
         #endregion
 
