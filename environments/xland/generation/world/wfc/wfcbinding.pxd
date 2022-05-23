@@ -1,7 +1,7 @@
 # distutils: language=c++
 
-cdef extern from "cpp/src/run_wfc.cpp":
+cdef extern from "cpp/run_wfc.cpp":
     pass
 
-cdef extern from "cpp/include/run_wfc.hpp" namespace "wfc":
+cdef extern from "cpp/include/run_wfc.hpp":
     cdef int main()
