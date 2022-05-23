@@ -6,14 +6,14 @@
 #include "time.h"
 
 // TODO: Review if imports work properly
-#include "run_wfc.hpp"
+#include "include/run_wfc.hpp"
 #include "fastwfc/tiling_wfc.hpp"
 #include "fastwfc/utils/array3D.hpp"
 #include "fastwfc/wfc.hpp"
-#include "external/rapidxml.hpp"
-#include "image.hpp"
-#include "rapidxml_utils.hpp"
-#include "utils.hpp"
+#include "include/external/rapidxml.hpp"
+#include "include/image.hpp"
+#include "include/rapidxml_utils.hpp"
+#include "include/utils.hpp"
 #include <unordered_set>
 
 using namespace rapidxml;
@@ -278,7 +278,7 @@ int main() {
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  read_config_file("samples.xml");
+  // read_config_file(".gen_files/samples.xml");
 
   end = std::chrono::system_clock::now();
   int elapsed_s =
