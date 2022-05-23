@@ -28,7 +28,7 @@ except:
     pass
 
 from . import gltflib as gl
-from .assets import Asset, Camera, Light, Material, Object3D, RL_Agent
+from .assets import Asset, Camera, Light, Material, Object3D, RLAgent
 from .gltflib.utils import padbytes
 
 
@@ -343,22 +343,33 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
     return light_id
 
 
-def add_agent_to_model(node: RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
-    agent = gl.GLTF_RL_Agent(
+def add_agent_to_model(node: RLAgent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
+
+    # TODO: Split ActionDistribution and RewardFunction into separate GLTF extensions
+    agent = gl.HF_RL_Agent(
         color=node.color,
         height=node.height,
         move_speed=node.move_speed,
         turn_speed=node.turn_speed,
+        camera_width=node.camera_width,
+        camera_height=node.camera_height,
         action_name=node.actions.name,
         action_dist=node.actions.dist,
         available_actions=node.actions.available_actions,
+        reward_functions=[rf.function for rf in node.reward_functions],
+        reward_entity1s=[rf.entity1 for rf in node.reward_functions],
+        reward_entity2s=[rf.entity2 for rf in node.reward_functions],
+        reward_distance_metrics=[rf.distance_metric for rf in node.reward_functions],
+        reward_scalars=[rf.scalar for rf in node.reward_functions],
+        reward_thresholds=[rf.threshold for rf in node.reward_functions],
+        reward_is_terminals=[rf.is_terminal for rf in node.reward_functions],
     )
 
-    if gltf_model.extensions.GLTF_agents is None:
-        gltf_model.extensions.GLTF_agents = gl.GLTF_RL_Agents(agents=[agent])
+    if gltf_model.extensions.HF_RL_agents is None:
+        gltf_model.extensions.HF_RL_agents = gl.HF_RL_Agents(agents=[agent])
     else:
-        gltf_model.extensions.GLTF_agents.agents.append(agent)
-    agent_id = len(gltf_model.extensions.GLTF_agents.agents) - 1
+        gltf_model.extensions.HF_RL_agents.agents.append(agent)
+    agent_id = len(gltf_model.extensions.HF_RL_agents.agents) - 1
 
     return agent_id
 
@@ -384,9 +395,9 @@ def add_node_to_scene(
         light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
 
-    elif isinstance(node, RL_Agent):
+    elif isinstance(node, RLAgent):
         agent_id = add_agent_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
-        gl_node.extensions = gl.Extensions(GLTF_agents=gl.GLTF_RL_Agents(agent=agent_id))
+        gl_node.extensions = gl.Extensions(HF_RL_agents=gl.HF_RL_Agents(agent=agent_id))
 
     elif isinstance(node, Object3D):
         gl_node.mesh = add_mesh_to_model(

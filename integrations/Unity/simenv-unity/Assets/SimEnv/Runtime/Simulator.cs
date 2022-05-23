@@ -7,7 +7,7 @@ using System.Reflection;
 using ISimEnv;
 using System.Collections.Generic;
 using SimEnv.GLTF;
-
+using UnityEngine.Events;
 namespace SimEnv {
     /// <summary>
     /// Master Simulator component, required to use SimEnv
@@ -40,7 +40,11 @@ namespace SimEnv {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
             for (int i = 0; i < FRAME_SKIP; i++)
-                Physics.Simulate(FRAME_INTERVAL);
+                if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                    Agent agent = ISimulator.Agent as Agent;
+                    agent.AgentUpdate();
+                }
+            Physics.Simulate(FRAME_INTERVAL);
         }
         public static void Close() {
 #if UNITY_EDITOR
@@ -51,6 +55,51 @@ namespace SimEnv {
          Application.Quit();
 #endif
         }
+
+        public static void GetObservation(UnityAction<string> callback) {
+            // Calculate the agent's observation and send to python with callback
+            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                Agent agent = ISimulator.Agent as Agent;
+                agent.ObservationCoroutine(callback);
+            } else {
+                Debug.LogWarning("Attempting to get observation without an Agent");
+            }
+
+        }
+        public static float GetReward() {
+            // Calculate the agent's reward for the current timestep 
+            // TODO: this should be caculated for each action repeat and averaged.
+            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                Agent agent = ISimulator.Agent as Agent;
+                return agent.CalculateReward();
+            } else {
+                Debug.LogWarning("Attempting to get observation without an Agent");
+            }
+            return 0.0f;
+        }
+        public static bool GetDone() {
+            // Check if the agent is in a terminal state 
+            // TODO: add option for auto reset
+            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                Agent agent = ISimulator.Agent as Agent;
+                return agent.IsDone();
+            } else {
+                Debug.LogWarning("Attempting to get observation without an Agent");
+            }
+            return false;
+        }
+
+        public static void Reset() {
+            // Reset the Agent & the environment # 
+            // TODO add the environment reset!
+            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                Agent agent = ISimulator.Agent as Agent;
+                agent.Reset();
+            } else {
+                Debug.LogWarning("Attempting to get observation without an Agent");
+            }
+        }
+
         #endregion
 
         #region Initialization
