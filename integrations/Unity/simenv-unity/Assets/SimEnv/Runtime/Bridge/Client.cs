@@ -23,15 +23,15 @@ namespace SimEnv {
         public IEnumerator Listen() {
             try {
                 client = new TcpClient(host, port);
-            } catch(Exception e) {
+            } catch (Exception e) {
                 Debug.LogError("Connection failed: " + e.ToString());
                 yield break;
             }
             int chunk_size = 1024;
             byte[] buffer = new byte[chunk_size];
-            while(true) {
+            while (true) {
                 NetworkStream stream = client.GetStream();
-                if(stream.DataAvailable) {
+                if (stream.DataAvailable) {
                     byte[] lengthBuffer = new byte[4];
                     stream.Read(lengthBuffer, 0, 4);
 
@@ -39,14 +39,14 @@ namespace SimEnv {
                     byte[] data = new byte[messageLength];
                     int dataReceived = 0;
 
-                    while(dataReceived < messageLength) {
+                    while (dataReceived < messageLength) {
                         dataReceived += stream.Read(data, dataReceived, Math.Min(chunk_size, messageLength - dataReceived));
                     }
 
                     Debug.Assert(dataReceived == messageLength);
                     string message = Encoding.ASCII.GetString(data, 0, messageLength);
                     Debug.Log("Received message: " + message);
-                    if(TryParseCommand(message, out ICommand command, out string error)) {
+                    if (TryParseCommand(message, out ICommand command, out string error)) {
                         command.Execute(response => WriteMessage(response));
                     } else {
                         Debug.LogWarning(error);
@@ -58,21 +58,21 @@ namespace SimEnv {
         }
 
         public void WriteMessage(string message) {
-            if(client == null) return;
+            if (client == null) return;
             try {
                 NetworkStream stream = client.GetStream();
-                if(stream.CanWrite) {
+                if (stream.CanWrite) {
                     byte[] buffer = Encoding.ASCII.GetBytes(message);
                     stream.Write(buffer, 0, buffer.Length);
                     Debug.Log("Sent message: " + message);
                 }
-            } catch(Exception e) {
+            } catch (Exception e) {
                 Debug.Log("Socket error: " + e);
             }
         }
 
         public void Close() {
-            if(client != null && client.Connected)
+            if (client != null && client.Connected)
                 client.Close();
         }
 
@@ -84,7 +84,7 @@ namespace SimEnv {
                 .SelectMany(x => x.GetTypes())
                 .Where(x => x.IsSubclassOf(typeof(ICommand)))
                 .FirstOrDefault(x => x.ToString().EndsWith(commandWrapper.type));
-            if(commandType == null) {
+            if (commandType == null) {
                 error = "Unknown Command " + commandWrapper.type;
                 return false;
             }
