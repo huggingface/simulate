@@ -9,17 +9,18 @@ from .gen_tiles import generate_tiles
 import numpy as np
 import simenv as sm
 from PIL import Image
+import wfc_binding
 
 
 def generate_2d_map(seed, gen_folder):
     """
     TODO: implement this function to have a binding with c++
     """
-    # Open image if it's cached
-    img_path = os.path.join(gen_folder, 'maps/tiles.png')
+    # TODO: Open image if it's cached
 
     # Otherwise, generate it:
-    # TODO
+    wfc_binding.py_main()
+    img_path = os.path.join(gen_folder, 'maps/tiles.png')
 
     # Read file
     img = Image.open(img_path) 
