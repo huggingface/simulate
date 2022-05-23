@@ -46,6 +46,7 @@ namespace SimEnv {
                 }
             Physics.Simulate(FRAME_INTERVAL);
         }
+        
         public static void Close() {
 #if UNITY_EDITOR
             // Application.Quit() does not work in the editor so
@@ -66,6 +67,7 @@ namespace SimEnv {
             }
 
         }
+
         public static float GetReward() {
             // Calculate the agent's reward for the current timestep 
             // TODO: this should be caculated for each action repeat and averaged.
@@ -77,6 +79,7 @@ namespace SimEnv {
             }
             return 0.0f;
         }
+
         public static bool GetDone() {
             // Check if the agent is in a terminal state 
             // TODO: add option for auto reset
@@ -145,6 +148,8 @@ namespace SimEnv {
                 .SelectMany(x => x.GetTypes())
                 .Where(x => x.GetInterfaces().Contains(typeof(ISimObjectExtension)))
                 .ToArray();
+            if(simObjectExtensions == null)
+                simObjectExtensions = new Type[0];
             simObjectExtensions.ToList().ForEach(x => Debug.Log(x));
             Debug.Log(string.Format("Loaded {0} extensions", simObjectExtensions.Length));
         }

@@ -19,7 +19,7 @@ for i in range(20):
     scene += sm.Cube(name=f"cube{i}", position=[random.uniform(-9,9), 0.5, random.uniform(-9,9)])
 
 
-agent = sm.RLAgent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
+agent = sm.RL_Agent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
 
 reward_function = sm.RLAgentRewardFunction(
     function="dense",

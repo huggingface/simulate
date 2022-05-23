@@ -1,8 +1,8 @@
+import atexit
 import base64
 import json
 import socket
 from urllib import response
-import atexit
 
 from ..gltf_export import tree_as_glb_bytes
 
@@ -42,13 +42,13 @@ class UnityEngine:
         while True:
             data_length = self.client.recv(4)
             data_length = int.from_bytes(data_length, "little")
-            
-            if data_length:
-                response = "" #  TODO: string concatenation may be slow
-                while len(response) < data_length:
-                    response += self.client.recv(data_length-len(response)).decode()
 
-                #print(f"Received response: {response}")
+            if data_length:
+                response = ""  #  TODO: string concatenation may be slow
+                while len(response) < data_length:
+                    response += self.client.recv(data_length - len(response)).decode()
+
+                # print(f"Received response: {response}")
                 return response
 
     def _send_gltf(self, bytes):

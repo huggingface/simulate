@@ -21,6 +21,8 @@ from typing import ByteString, List, Optional, Set, Tuple
 import numpy as np
 import pyvista as pv
 
+from simenv.gltflib.models.extensions.hf_collider import HF_Collider
+
 
 try:
     import PIL.Image
@@ -28,7 +30,8 @@ except:
     pass
 
 from . import gltflib as gl
-from .assets import Asset, Camera, Light, Material, Object3D, RLAgent
+from .assets import Asset, Camera, Light, Material, Object3D, RL_Agent
+from .gltflib.enums.collider_type import ColliderType
 from .gltflib.utils import padbytes
 
 
@@ -343,7 +346,7 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
     return light_id
 
 
-def add_agent_to_model(node: RLAgent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
+def add_agent_to_model(node: RL_Agent, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
 
     # TODO: Split ActionDistribution and RewardFunction into separate GLTF extensions
     agent = gl.HF_RL_Agent(
@@ -395,7 +398,7 @@ def add_node_to_scene(
         light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
 
-    elif isinstance(node, RLAgent):
+    elif isinstance(node, RL_Agent):
         agent_id = add_agent_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(HF_RL_agents=gl.HF_RL_Agents(agent=agent_id))
 
@@ -403,6 +406,20 @@ def add_node_to_scene(
         gl_node.mesh = add_mesh_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
         )
+
+    # Add collider if node has one
+    if node.collider is not None:
+        hf_collider = HF_Collider(
+            type=node.collider.type,
+            boundingBox=node.collider.bounding_box,
+            mesh=node.collider.mesh,
+            offset=node.collider.offset,
+            intangible=node.collider.intangible,
+        )
+        if gl_node.extensions is None:
+            gl_node.extensions = gl.Extensions(HF_collider=hf_collider)
+        else:
+            gl_node.extensions.HF_collider = hf_collider
 
     # Add the new node
     gltf_model.nodes.append(gl_node)
