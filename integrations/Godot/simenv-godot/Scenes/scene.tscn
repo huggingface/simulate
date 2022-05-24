@@ -1,4 +1,4 @@
-[gd_scene load_steps=6 format=3 uid="uid://bgnttgpwmbh5q"]
+[gd_scene load_steps=6 format=3 uid="uid://j1yeymhr3stf"]
 
 [ext_resource type="Script" path="res://SimEnv/Environment.gd" id="1_oo243"]
 
@@ -24,12 +24,12 @@ script = ExtResource( "1_oo243" )
 
 [node name="BaseWorld" type="Node3D" parent="."]
 
-[node name="Camera3D" type="Camera3D" parent="BaseWorld"]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.817)
+[node name="DirectionalLight" type="DirectionalLight3D" parent="BaseWorld"]
+transform = Transform3D(0.760067, -0.481713, 0.436177, -0.516399, -0.0402534, 0.855402, -0.394501, -0.875404, -0.279351, 0, 0, 0)
+shadow_enabled = true
+
+[node name="Camera" type="Camera3D" parent="BaseWorld"]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.836979, 1.817)
 environment = SubResource( "Environment_ss83i" )
 effects = SubResource( "CameraEffects_noyl2" )
 current = true
-
-[node name="d" type="DirectionalLight3D" parent="BaseWorld"]
-transform = Transform3D(0.760067, -0.481713, 0.436177, -0.516399, -0.0402534, 0.855402, -0.394501, -0.875404, -0.279351, 0, 0, 0)
-shadow_enabled = true
