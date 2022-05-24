@@ -13,6 +13,7 @@ background_mode = 2
 sky = SubResource( "Sky_g27ud" )
 ssr_enabled = true
 ssao_enabled = true
+ssil_enabled = true
 sdfgi_enabled = true
 glow_enabled = true
 
@@ -24,11 +25,11 @@ script = ExtResource( "1_oo243" )
 [node name="BaseWorld" type="Node3D" parent="."]
 
 [node name="Camera3D" type="Camera3D" parent="BaseWorld"]
-transform = Transform3D(1, 0, 0, 0, 0.999992, -0.00397956, 0, 0.00397956, 0.999992, 0, 0, 1.80155)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1, 1.817)
 environment = SubResource( "Environment_ss83i" )
 effects = SubResource( "CameraEffects_noyl2" )
 current = true
 
-[node name="DirectionalLight3D" type="DirectionalLight3D" parent="BaseWorld"]
-transform = Transform3D(1, 0, 0, 0, 0, 1, 0, -1, 0, 0, 0, 0)
+[node name="d" type="DirectionalLight3D" parent="BaseWorld"]
+transform = Transform3D(0.760067, -0.481713, 0.436177, -0.516399, -0.0402534, 0.855402, -0.394501, -0.875404, -0.279351, 0, 0, 0)
 shadow_enabled = true

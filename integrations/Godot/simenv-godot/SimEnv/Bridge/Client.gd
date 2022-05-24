@@ -47,6 +47,10 @@ func read():
 
 func connect_to_host(host: String, port: int) -> void:
 	print("Connecting to %s:%d" % [host, port])
+	
+	if _status == _stream.STATUS_CONNECTED:
+		_stream.disconnect_from_host()
+	
 	_status = _stream.STATUS_NONE
 	if _stream.connect_to_host(host, port) != OK:
 		print("Error connecting to host.")
