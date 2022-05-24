@@ -451,6 +451,7 @@ class GLTF:
             if isinstance(resource, FileResource):
                 file_name_ressource = resource.export(basepath)
                 file_names += file_name_ressource
+        return file_names
 
     def _load_glb(self, f: BinaryIO, json_encoding: str = None) -> None:
         self.resources = []

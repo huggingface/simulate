@@ -15,7 +15,8 @@
 # Lint as: python3
 """ A simenv Material."""
 import itertools
-from dataclasses import dataclass
+import uuid
+from dataclasses import InitVar, dataclass
 from typing import ClassVar, List, Optional
 
 import numpy as np
@@ -87,6 +88,7 @@ class Material:
     """
 
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
+    _uuid: Optional[int] = None
 
     base_color: Optional[List[float]] = None
     base_color_texture: Optional[pyvista.Texture] = None
@@ -137,6 +139,11 @@ class Material:
             id = next(self.__class__.__NEW_ID)
             self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
 
+        self._uuid = uuid.uuid4().int
+
     def __repr__(self) -> str:
         texture_str = f" with texture" if self.base_color_texture is not None else ""
         return f"Material({self.name}{texture_str})"
+
+    def __hash__(self):
+        return self._uuid

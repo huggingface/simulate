@@ -16,9 +16,10 @@
 """ A simenv Scene - Host a level or Scene."""
 import os
 import tempfile
+from fileinput import filename
 from typing import List, Optional
 
-from huggingface_hub import hf_hub_download, upload_file
+from huggingface_hub import hf_hub_download, logging, upload_file
 from isort import file
 
 import simenv as sm
@@ -28,6 +29,10 @@ from .assets.anytree import RenderTree
 from .engine import PyVistaEngine, UnityEngine
 from .gltf_export import save_tree_as_gltf_file
 from .gltf_import import load_gltf_as_tree
+
+
+# Set Hugging Face hub debug verbosity (TODO remove)
+logging.set_verbosity_debug()
 
 
 class UnsetRendererError(Exception):
@@ -62,24 +67,33 @@ class Scene(Asset):
     @classmethod
     def load(
         cls,
-        repo_id_or_local_filepath: str,
-        repo_filepath: str = "scene.gltf",
+        hub_or_local_filepath: str,
         use_auth_token: Optional[str] = None,
         revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
         **kwargs,
     ) -> "Scene":
-        """Load a Scene from the HuggingFace hub or from a local GLTF file on the drive or on the hub.
+        """Load a Scene from the HuggingFace hub or from a local GLTF file.
 
-        First argument is either a repository id on the HuggingFace hub or a path to an existing local file on the drive.
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
 
-        If the first argument is a repository id, the path of the file inside the hub repository can be provided as `repo_filepath`.
+        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
-        if os.path.exists(repo_id_or_local_filepath) and os.path.isfile(repo_id_or_local_filepath):
-            return cls.load_from_file(filepath=repo_id_or_local_filepath, **kwargs)
+        if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and not is_local is False:
+            return cls.load_from_file(filepath=hub_or_local_filepath, **kwargs)
 
-        subfolder, filename = os.path.split(repo_filepath)
+        splitted_hub_path = hub_or_local_filepath.split("/")
+        repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
+        filename = splitted_hub_path[-1]
+        subfolder = "/".join(splitted_hub_path[2:-1])
         gltf_file = hf_hub_download(
-            repo_id=repo_id_or_local_filepath,
+            repo_id=repo_id,
             filename=filename,
             subfolder=subfolder,
             revision=revision,
@@ -88,7 +102,7 @@ class Scene(Asset):
             force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
             **kwargs,
         )
-        nodes = load_gltf_as_tree(gltf_file, repo_id=repo_id_or_local_filepath, subfolder=subfolder, revision=revision)
+        nodes = load_gltf_as_tree(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
             nodes = root.tree_children
@@ -156,7 +170,7 @@ class Scene(Asset):
             **kwargs,
         )
 
-    def save_to_file(self, filepath: str, **kwargs) -> List[str]:
+    def save(self, filepath: str, **kwargs) -> List[str]:
         """Save a Scene as a GLTF file (with optional ressources in the same folder)."""
         return save_tree_as_gltf_file(filepath, self)
 

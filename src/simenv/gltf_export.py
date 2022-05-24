@@ -63,9 +63,16 @@ def is_data_cached(data: Any, cache: Dict) -> Optional[int]:
     if not isinstance(cache, dict):
         raise ValueError("Cache should be a dict")
 
-    h = xxhash.xxh64()
-    h.update(data)
-    intdigest = h.intdigest()
+    if isinstance(data, Material):
+        intdigest = hash(data)
+    else:
+        h = xxhash.xxh64()
+        if isinstance(data, pv.Texture):
+            data_pointer = np.ascontiguousarray(data.to_array())
+        else:
+            data_pointer = data
+        h.update(data_pointer)
+        intdigest = h.intdigest()
 
     if intdigest in cache:
         return cache[intdigest]
@@ -77,9 +84,12 @@ def cache_data(data: Any, data_id: int, cache: Dict) -> dict:
     if not isinstance(cache, dict):
         raise ValueError("Cache should be a dict")
 
-    h = xxhash.xxh64()
-    h.update(data)
-    intdigest = h.intdigest()
+    if isinstance(data, Material):
+        intdigest = hash(data)
+    else:
+        h = xxhash.xxh64()
+        h.update(data)
+        intdigest = h.intdigest()
 
     cache[intdigest] = data_id
 
@@ -158,7 +168,7 @@ def add_numpy_to_gltf(
 
     new_data = np_array.tobytes()
     buffer_view_id = add_data_to_gltf(
-        new_data=new_data, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+        new_data=new_data, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
     )
 
     # Create and add a new Accessor
@@ -224,6 +234,65 @@ def add_image_to_gltf(
     return texture_id
 
 
+def add_texture_to_gltf(
+    texture: pv.Texture,
+    gltf_model: gl.GLTFModel,
+    buffer_data: bytearray,
+    buffer_id: int = 0,
+    cache: Optional[Dict] = None,
+) -> int:
+    """Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and add the numpy array in the buffer_data."""
+
+    inp = texture.GetInput()  # Get a UniformGrid - safety check
+    if not inp or not inp.GetPointData().GetScalars():
+        raise NotImplementedError("Cannot cast texture")
+
+    # Is the data already cached?
+    cached_buffer = bytearray(memoryview(inp.GetPointData().GetScalars()).tobytes())
+    cached_id = is_data_cached(data=cached_buffer, cache=cache)
+    if cached_id is not None:
+        return cached_id
+
+    # This is some dark vtk magic inspired by https://github.com/Kitware/VTK/blob/0718b3697bf4bd81c155a20d4f12bf5665ebe7c4/IO/Geometry/vtkGLTFWriter.cxx#L192
+    from vtkmodules.vtkCommonExecutionModel import vtkTrivialProducer
+    from vtkmodules.vtkIOImage import vtkPNGWriter
+
+    triv = vtkTrivialProducer()
+    triv.SetOutput(inp)  # To get an output port
+
+    writer = vtkPNGWriter()
+    writer.SetCompressionLevel(5)
+    writer.SetInputConnection(triv.GetOutputPort())
+    # writer.SetFileName('test.png')
+    writer.WriteToMemoryOn()
+    writer.Write()
+    data = writer.GetResult()
+
+    # # get the image data into a bytes object
+    # with BytesIO() as f:
+    #     image.save(f, format=save_as)
+    #     f.seek(0)
+    #     data = f.read()
+
+    mem_view = memoryview(data)
+    byte_array = bytearray(mem_view.tobytes())
+
+    buffer_view_id = add_data_to_gltf(
+        new_data=byte_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+    )
+
+    gltf_image = gl.Image(bufferView=buffer_view_id, mimeType="image/png")
+    gltf_model.images.append(gltf_image)
+    image_id = len(gltf_model.images) - 1
+
+    gltf_model.textures.append(gl.Texture(source=image_id))
+    texture_id = len(gltf_model.textures) - 1
+
+    cache_data(data=cached_buffer, data_id=texture_id, cache=cache)
+
+    return texture_id
+
+
 def add_material_to_gltf(
     material: Material,
     gltf_model: gl.GLTFModel,
@@ -238,7 +307,7 @@ def add_material_to_gltf(
         return cached_id
 
     # Store keys of the PBRMaterial which are images
-    images_to_add = {
+    textures_to_add = {
         "baseColorTexture": material.base_color_texture,
         "emissiveTexture": material.emissive_texture,
         "normalTexture": material.normal_texture,
@@ -247,11 +316,11 @@ def add_material_to_gltf(
     }
 
     textures_ids = {}
-    for key, image in images_to_add.items():
+    for key, texture in textures_to_add.items():
         textures_ids[key] = None
-        if image is not None:
-            texture_id = add_image_to_gltf(
-                image=image, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+        if texture is not None:
+            texture_id = add_texture_to_gltf(
+                texture=texture, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
             )
             textures_ids[key] = gl.TextureInfo(index=texture_id)
 
@@ -263,7 +332,7 @@ def add_material_to_gltf(
         metallicRoughnessTexture=textures_ids["metallicRoughnessTexture"],
     )
 
-    material = gl.Material(
+    gl_material = gl.Material(
         name=material.name,
         pbrMetallicRoughness=pbr_metallic_roughness,
         normalTexture=textures_ids["normalTexture"],
@@ -276,7 +345,7 @@ def add_material_to_gltf(
     )
 
     # Add the new material
-    gltf_model.materials.append(material)
+    gltf_model.materials.append(gl_material)
     material_id = len(gltf_model.materials) - 1
 
     cache_data(data=material, data_id=material_id, cache=cache)
