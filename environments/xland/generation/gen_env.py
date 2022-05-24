@@ -31,15 +31,15 @@ def gen_setup(gen_folder=".gen_files"):
         generate_tiles()
 
 
-def generate_env(seed, width, height):
+def generate_env(seed, width, height, periodic_output=False, specific_map=None):
     """
     Generate the environment.
     """
 
     # TODO: choose width and height randomly from a set of predefined values
+    # Generate the map if no specific map is passed
+    generate_map(seed=seed, width=width, height=height, specific_map=specific_map)
 
-    # Generate the map
-    generate_map(seed=seed, width=width, height=height)
 
     # Generate the game
     generate_game()
@@ -49,9 +49,11 @@ def generate_env(seed, width, height):
 
 if __name__ == '__main__':
     seed = 0
-    size = 10
-    width = 50
-    height = size
+    width = 12
+    height = 8
+    periodic_output = True
+    specific_map = "test_map.png"
+    sample_from = None
 
     gen_setup()
-    generate_env(seed, width, height)
+    generate_env(seed, width, height, periodic_output=periodic_output, specific_map=specific_map)

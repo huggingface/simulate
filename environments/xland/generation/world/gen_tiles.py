@@ -111,9 +111,11 @@ def generate_tiles(width=9,
 
     # TODO: which should be default weights?
     if weights is None:
-        weights = [1.0] * max_height # np.exp(np.linspace(1.0, -0.5, max_height))
+        weights = np.exp(np.linspace(1.0, -4.0, max_height))
 
-    ramp_weights = [0.5] * max_height
+    print(weights)
+
+    ramp_weights = [0.1] * max_height
 
     print("Generating tiles with max height: {}".format(max_height))
     
@@ -145,6 +147,8 @@ def generate_tiles(width=9,
             # as the letter
             names_xml = add_tile_name(names_xml, plain_tile_names[h], weights[h], symmetry="X")
             neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h], plain_tile_names[h])
+            if h < max_height - 2:
+                neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h], plain_tile_names[h+1])
 
         # If i == max_height - 1, then we don't add more ramps
         if h < max_height - 1:
