@@ -116,7 +116,7 @@ unordered_map<string, Tile<Color>> read_tiles(xml_node<> *root_node,
           throw "Error while loading " + image_path;
         }
         if ((image->width != size) || (image->height != size)) {
-          throw "Image " + image_path + " has wrond size";
+          throw "Image " + image_path + " has wrong size";
         }
         images.push_back(*image);
       }
@@ -170,12 +170,10 @@ read_neighbors(xml_node<> *root_node) {
 /**
  * Read an instance of a tiling WFC problem.
  */
-void read_simpletiled_instance(unsigned width, unsigned height,
+void read_simpletiled_instance(unsigned width, unsigned height, bool periodic_output,
                                const string &current_dir) noexcept {
   string name = "tiles";
   string subset = "tiles";
-  bool periodic_output = false;
-  // (rapidxml::get_attribute(node, "periodic", "False") == "True");
 
   cout << name << " " << subset << " started!" << endl;
 
@@ -237,11 +235,11 @@ void read_simpletiled_instance(unsigned width, unsigned height,
 /**
  * Read a configuration file containing multiple wfc problems
  */
-void read_config_file(unsigned width, unsigned height, const string &dir_path) noexcept {
-  read_simpletiled_instance(width, height, dir_path);
+void read_config_file(unsigned width, unsigned height, bool periodic_output, const string &dir_path) noexcept {
+  read_simpletiled_instance(width, height, periodic_output, dir_path);
 }
 
-int main(unsigned width, unsigned height) {
+int main(unsigned width, unsigned height, bool periodic_output) {
 
   // Initialize rand for non-linux targets
   #ifndef __linux__
@@ -251,7 +249,7 @@ int main(unsigned width, unsigned height) {
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  read_config_file(width, height, ".gen_files");
+  read_config_file(width, height, periodic_output, ".gen_files");
 
   end = std::chrono::system_clock::now();
   int elapsed_s =
