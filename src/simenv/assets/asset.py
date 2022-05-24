@@ -55,6 +55,7 @@ class Asset(NodeMixin, object):
         parent=None,
         children=None,
     ):
+        self._uuid = uuid.uuid4()
         id = next(self.__class__.__NEW_ID)
         if name is None:
             name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
@@ -74,6 +75,11 @@ class Asset(NodeMixin, object):
         self.collider = collider
         if transformation_matrix is not None:
             self.transformation_matrix = transformation_matrix
+
+    @property
+    def uuid(self):
+        """A unique identifier of the node if needed."""
+        return self._uuid
 
     def get(self, name: str):
         """Return the first children tree node with the given name."""

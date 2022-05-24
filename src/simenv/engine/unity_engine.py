@@ -64,7 +64,7 @@ class UnityEngine:
     def recreate_scene(self):
         pass
 
-    def show(self):
+    def show(self, **engine_kwargs):
         self._send_gltf(tree_as_glb_bytes(self._scene))
 
     def step(self, action):
