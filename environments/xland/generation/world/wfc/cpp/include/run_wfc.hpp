@@ -6,4 +6,4 @@
 using namespace std;
 using namespace rapidxml;
 
-int main(unsigned width, unsigned height);
+int main(unsigned width, unsigned height, bool periodic_output);

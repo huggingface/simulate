@@ -8,4 +8,4 @@ is licensed under the MIT license.
 # cython_test.py
 from wfc_binding import py_main
 
-py_main(9, 9)
+py_main(9, 9, False)
