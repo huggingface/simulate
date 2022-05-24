@@ -253,7 +253,8 @@ def add_texture_to_gltf(
     if cached_id is not None:
         return cached_id
 
-    # This is some dark vtk magic inspired by https://github.com/Kitware/VTK/blob/0718b3697bf4bd81c155a20d4f12bf5665ebe7c4/IO/Geometry/vtkGLTFWriter.cxx#L192
+    # This is some dark vtk magic inspired by
+    # https://github.com/Kitware/VTK/blob/0718b3697bf4bd81c155a20d4f12bf5665ebe7c4/IO/Geometry/vtkGLTFWriter.cxx#L192
     from vtkmodules.vtkCommonExecutionModel import vtkTrivialProducer
     from vtkmodules.vtkIOImage import vtkPNGWriter
 
@@ -267,12 +268,6 @@ def add_texture_to_gltf(
     writer.WriteToMemoryOn()
     writer.Write()
     data = writer.GetResult()
-
-    # # get the image data into a bytes object
-    # with BytesIO() as f:
-    #     image.save(f, format=save_as)
-    #     f.seek(0)
-    #     data = f.read()
 
     mem_view = memoryview(data)
     byte_array = bytearray(mem_view.tobytes())

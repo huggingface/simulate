@@ -19,7 +19,7 @@ import tempfile
 from fileinput import filename
 from typing import List, Optional
 
-from huggingface_hub import hf_hub_download, logging, upload_file
+from huggingface_hub import create_repo, hf_hub_download, logging, upload_file
 from isort import file
 
 import simenv as sm
@@ -120,21 +120,38 @@ class Scene(Asset):
 
     def push_to_hub(
         self,
-        repo_id: str,
-        repo_filepath: str = "glTF/scene.gltf",
+        hub_filepath: str,
         token: Optional[str] = None,
         revision: Optional[str] = None,
         identical_ok: bool = True,
+        private: bool = False,
         **kwargs,
     ) -> List[str]:
         """Push a GLTF Scene to the hub.
 
-        For now the file should be a GLTF-Embedded file (single file) named 'scene.gltf' at the root of the repo.
+        First argument is a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        Return the url on the hub of the file.
+
+        Example:
+        - scene.push_to_hub('simenv-tests/Box/glTF-Embedded/Box.gltf')
         """
-        hub_subfolder, hub_filename = os.path.split(repo_filepath)
+        splitted_hub_path = hub_filepath.split("/")
+        hub_repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
+        hub_filename = splitted_hub_path[-1]
+        hub_subfolder = "/".join(splitted_hub_path[2:-1])
+
+        repo_url = create_repo(
+            repo_id=hub_repo_id,
+            token=token,
+            private=private,
+            repo_type="space",
+            space_sdk="gradio",
+            exist_ok=identical_ok,
+        )
+
         with tempfile.TemporaryDirectory() as tmpdirname:
             full_filename = os.path.join(tmpdirname, hub_filename)
-            saved_filepaths = self.save_to_gltf_file(full_filename)
+            saved_filepaths = self.save(full_filename)
             hub_urls = []
             for saved_filepath in saved_filepaths:
                 saved_filename = os.path.basename(saved_filepath)
@@ -142,14 +159,14 @@ class Scene(Asset):
                 hub_url = upload_file(
                     path_or_fileobj=saved_filepath,
                     path_in_repo=repo_filepath,
-                    repo_id=repo_id,
+                    repo_id=hub_repo_id,
                     token=token,
                     repo_type="space",
                     revision=revision,
                     identical_ok=identical_ok,
                 )
                 hub_urls.append(hub_url)
-        return hub_urls
+        return repo_url
 
     @classmethod
     def load_from_file(cls, filepath: str, file_type: Optional[str] = None, **kwargs) -> "Scene":
