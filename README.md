@@ -18,6 +18,20 @@ The Python API is located in src/simenv. It allows creation and loading of scene
 
 The backend, currently just Unity, is located in integrations/Unity. This is currently a Unity editor project, which must be opened in Unity 2021.3.2f1. In the future, this will be built as an executable, and spawned by the Python API.
 
+## Loading a scene from the hub or a local file
+
+Loading a scene from a local file or the hu is done with `Scene.load()`, saving or pushing to the hub with `scene.save()` or `scene.push_to_hub()`:
+
+```
+from simenv import Scene
+
+scene = Scene.load('simenv-tests/Box/glTF/Box.gltf')  # either local (priority) or on the hub with full path to file
+scene = Scene.load('simenv-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the hub file
+
+scene.save('local_dir')  # Save to a local file
+scene.push_to_hub('simenv-tests/Debug/glTF/Box.gltf')  # Save to the hub
+```
+
 ## Creating a Scene and adding/managing Objects in the scene
 
 Basic example of creating a scene with a plane and a sphere above it:

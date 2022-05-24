@@ -3,23 +3,23 @@ import os
 
 scene = Scene.load('simenv-tests/Lantern/glTF/Lantern.gltf')
 
-# print("===== BEFORE ====")
-# print(scene)
-# print(scene._created_from_file)
-# scene.show(in_background=False)
+print("===== BEFORE ====")
+print(scene)
+print(scene._created_from_file)
+scene.show(in_background=False)
 
-# # Save in the gitgnored output
-# from pathlib import Path
-# save_path = Path(__file__).parent.parent.absolute() / 'output' / 'scene' / 'scene.gltf'
+# Save in the gitgnored output
+from pathlib import Path
+save_path = Path(__file__).parent.parent.absolute() / 'output' / 'scene' / 'scene.gltf'
 
-# save_path_returned = scene.save(save_path)
+save_path_returned = scene.save(save_path)
 
-# scene = Scene.load(save_path_returned[0])
+scene = Scene.load(save_path_returned[0])
 
-# print("===== AFTER SAVING LOCALLY ====")
-# print(scene)
-# print(scene._created_from_file)
-# scene.show(in_background=False)
+print("===== AFTER SAVING LOCALLY ====")
+print(scene)
+print(scene._created_from_file)
+scene.show(in_background=False)
 
 # Push to hub
 path_on_hub = 'simenv-tests/Debug-2/glTF/Box.gltf'
