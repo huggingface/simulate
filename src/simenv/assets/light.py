@@ -4,6 +4,7 @@ from typing import List, Optional, Union
 import numpy as np
 
 from .asset import Asset
+from .collider import Collider
 from .utils import quat_from_degrees
 
 
@@ -35,11 +36,18 @@ class Light(Asset):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
         super().__init__(
-            name=name, position=position, rotation=rotation, scaling=scaling, parent=parent, children=children
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            parent=parent,
+            children=children,
+            collider=collider,
         )
         self.intensity = intensity
         self.color = color

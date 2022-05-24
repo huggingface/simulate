@@ -14,14 +14,14 @@
 
 # Lint as: python3
 """ A simenv Scene Object."""
-import itertools
-from optparse import Option
 from typing import List, Optional, Union
 
 import numpy as np
 import pyvista as pv
 
+from ..gltflib.enums.collider_type import ColliderType
 from .asset import Asset
+from .collider import Collider
 from .material import Material
 
 
@@ -45,11 +45,12 @@ class Object3D(Asset):
         material: Optional[Material] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        super().__init__(name=name, position=position, parent=parent, children=children, **kwargs)
+        super().__init__(name=name, position=position, parent=parent, children=children, collider=collider, **kwargs)
         self.mesh = mesh if mesh is not None else pv.PolyData()
         self.material = material if material is not None else Material()
 
@@ -127,6 +128,7 @@ class Plane(Object3D):
         direction: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if direction is None:
             direction = (0, -1, 0)
@@ -137,13 +139,7 @@ class Plane(Object3D):
             i_resolution=i_resolution,
             j_resolution=j_resolution,
         )
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Sphere(Object3D):
@@ -190,6 +186,7 @@ class Sphere(Object3D):
         self,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         radius: Optional[float] = 1.0,
         theta_resolution: Optional[int] = 30,
         phi_resolution: Optional[int] = 30,
@@ -201,6 +198,7 @@ class Sphere(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if sphere_type not in ["uv", "ico"]:
             raise ValueError("Sphere type should be one of 'uv' or 'ico'.")
@@ -223,12 +221,14 @@ class Sphere(Object3D):
             direction = (0, 1, 0)
         pv.translate(mesh, (0, 0, 0), direction)
 
+        if collider is None:
+            collider = Collider(
+                type=ColliderType.SPHERE,
+                bounding_box=(radius, radius, radius),
+            )
+
         super().__init__(
-            name=name,
-            mesh=mesh,
-            position=position,
-            parent=parent,
-            children=children,
+            name=name, mesh=mesh, position=position, parent=parent, children=children, collider=collider, **kwargs
         )
 
 
@@ -272,6 +272,7 @@ class Capsule(Object3D):
         self,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         height: Optional[float] = 1.0,
         radius: Optional[float] = 1.0,
         theta_resolution: Optional[int] = 10,
@@ -280,6 +281,7 @@ class Capsule(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if sphere_type not in ["uv", "ico"]:
             raise ValueError("Sphere type should be one of 'uv' or 'ico'.")
@@ -288,7 +290,7 @@ class Capsule(Object3D):
 
         capsule = vtkCapsuleSource()  # TODO pyvista capsules are aranged on the side
         capsule.SetRadius(radius)
-        capsule.SetCylinderLength(height)
+        capsule.SetCylinderLength(max(0, height - radius * 2))
         capsule.SetThetaResolution(theta_resolution)
         capsule.SetPhiResolution(phi_resolution)
         capsule.SetLatLongTessellation(bool(sphere_type == "uv"))
@@ -300,12 +302,14 @@ class Capsule(Object3D):
             direction = (0, 1, 0)
         pv.translate(mesh, (0, 0, 0), direction)
 
+        if collider is None:
+            collider = Collider(
+                type=ColliderType.CAPSULE,
+                bounding_box=(radius, height, radius),
+            )
+
         super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
+            mesh=mesh, name=name, position=position, parent=parent, children=children, collider=collider, **kwargs
         )
 
 
@@ -352,18 +356,13 @@ class Cylinder(Object3D):
         direction: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if direction is None:
             direction = (0, 1, 0)
         mesh = pv.Cylinder(direction=direction, radius=radius, height=height, resolution=resolution, capping=capping)
 
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Cube(Object3D):
@@ -406,23 +405,31 @@ class Cube(Object3D):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if bounds is None:
-            bounds = 1.0
+            bounds = (-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)
         if isinstance(bounds, (float, int)):
             bounds = (-bounds, bounds, -bounds, bounds, -bounds, bounds)  # Make it a list
+
         mesh = pv.Box(bounds=bounds, level=level, quads=quads)
         if direction is not None:
             pv.translate(mesh, (0, 0, 0), direction)
 
+        if collider is None:
+            bounding_box = (bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
+            offset = (
+                (bounds[0] + bounds[1]) / 2.0,
+                (bounds[2] + bounds[3]) / 2.0,
+                (bounds[4] + bounds[5]) / 2.0,
+            )
+            collider = Collider(type=ColliderType.BOX, bounding_box=bounding_box, offset=offset)
+
         super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
+            mesh=mesh, name=name, position=position, parent=parent, children=children, collider=collider, **kwargs
         )
 
 
@@ -466,17 +473,12 @@ class Cone(Object3D):
         direction: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if direction is None:
             direction = (0, 1, 0)
         mesh = pv.Cone(direction=direction, height=height, radius=radius, resolution=resolution)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Line(Object3D):
@@ -509,6 +511,7 @@ class Line(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if pointa is None:
             pointa = [-1.0, 0.0, 0.0]
@@ -516,12 +519,7 @@ class Line(Object3D):
             pointb = [1.0, 0.0, 0.0]
         mesh = pv.Line(pointa=pointa, pointb=pointb, resolution=resolution)
 
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 
 class MultipleLines(Object3D):
@@ -546,17 +544,13 @@ class MultipleLines(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if points is None:
             points = [[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]
         mesh = pv.MultipleLines(points=points)
 
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 
 class Tube(Object3D):
@@ -597,18 +591,14 @@ class Tube(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if pointa is None:
             pointa = [-1.0, 0.0, 0.0]
         if pointb is None:
             pointb = [1.0, 0.0, 0.0]
         mesh = pv.Tube(pointa=pointa, pointb=pointb, radius=radius, resolution=resolution, n_sides=n_sides)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 
 class Polygon(Object3D):
@@ -647,17 +637,12 @@ class Polygon(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if direction is None:
             direction = (0, 1, 0)
         mesh = pv.Polygon(radius=radius, normal=direction, n_sides=n_sides)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Disc(Object3D):
@@ -709,17 +694,12 @@ class Disc(Object3D):
         direction: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if direction is None:
             direction = (0, 1, 0)
         mesh = pv.Disc(inner=inner, outer=outer, normal=direction, r_res=r_res, c_res=c_res)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Text3D(Object3D):
@@ -758,6 +738,7 @@ class Text3D(Object3D):
         direction: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         mesh = pv.Text3D(string=string, depth=depth)
         mesh.rotate_y(-90, inplace=True)
@@ -765,13 +746,7 @@ class Text3D(Object3D):
             direction = (0, 0, -1)
         pv.translate(mesh, (0, 0, 0), direction)
 
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Triangle(Object3D):
@@ -797,14 +772,10 @@ class Triangle(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         mesh = pv.Triangle(points=points)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 
 class Rectangle(Object3D):
@@ -829,14 +800,10 @@ class Rectangle(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         mesh = pv.Rectangle(points=points)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 
 class Circle(Object3D):
@@ -875,19 +842,14 @@ class Circle(Object3D):
         direction: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         mesh = pv.Circle(radius=radius, resolution=resolution)
         mesh.rotate_y(-90, inplace=True)
         if direction is None:
             direction = (0, 1, 0)
         pv.translate(mesh, (0, 0, 0), direction)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            position=position,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class StructuredGrid(Object3D):
@@ -920,6 +882,7 @@ class StructuredGrid(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         if not isinstance(x, np.ndarray):
             x = np.array(x)
@@ -928,9 +891,4 @@ class StructuredGrid(Object3D):
         if not isinstance(z, np.ndarray):
             z = np.array(z)
         mesh = pv.StructuredGrid(x, y, z)
-        super().__init__(
-            mesh=mesh,
-            name=name,
-            parent=parent,
-            children=children,
-        )
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)

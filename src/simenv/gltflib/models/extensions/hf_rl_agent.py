@@ -8,7 +8,7 @@ from dataclasses_json import dataclass_json
 
 @dataclass_json
 @dataclass
-class GLTF_RL_Agent:
+class HF_RL_Agent:
     """
     A GTLF RL Agent
     """
@@ -19,15 +19,24 @@ class GLTF_RL_Agent:
     turn_speed: Optional[float] = None
     action_name: Optional[str] = None
     action_dist: Optional[str] = None
+    camera_width: Optional[int] = None
+    camera_height: Optional[int] = None
     available_actions: Optional[List[str]] = None
+    reward_functions: Optional[List[str]] = None
+    reward_entity1s: Optional[List[str]] = None
+    reward_entity2s: Optional[List[str]] = None
+    reward_distance_metrics: Optional[List[str]] = None
+    reward_scalars: Optional[List[float]] = None
+    reward_thresholds: Optional[List[float]] = None
+    reward_is_terminals: Optional[List[bool]] = None
 
 
 @dataclass_json
 @dataclass
-class GLTF_RL_Agents:
+class HF_RL_Agents:
     """
     A collection of GLTFAgents
     """
 
-    agents: Optional[List[GLTF_RL_Agent]] = None
+    agents: Optional[List[HF_RL_Agent]] = None
     agent: Optional[int] = None
