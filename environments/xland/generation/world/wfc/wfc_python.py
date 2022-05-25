@@ -1,11 +1,7 @@
 """
-Util functions for Wave Function Collapse.
-
-Mainly based on the repository https://github.com/ikarth/wfc_2019f which
-is licensed under the MIT license.
+Test for wfc binding with c++.
 """
 
-# cython_test.py
-from wfc_binding import py_main
+from wfc_binding import run_wfc
 
-py_main(9, 9, False)
+run_wfc(20, 20, 1, periodic_output=True, symmetry=4, nb_samples=1, ground=False, periodic_input=False, N=3)

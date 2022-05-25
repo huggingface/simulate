@@ -6,6 +6,7 @@
 #include "time.h"
 
 #include "include/run_wfc.hpp"
+#include "fastwfc/overlapping_wfc.hpp"
 #include "fastwfc/tiling_wfc.hpp"
 #include "fastwfc/utils/array3D.hpp"
 #include "fastwfc/wfc.hpp"
@@ -30,6 +31,47 @@ int get_random_seed() {
   #else
     return rand();
   #endif
+}
+
+/**
+ * Read the overlapping wfc problem.
+ */
+void read_overlapping_instance(bool use_seed, int seed, unsigned width, unsigned height, bool periodic_output, unsigned N,
+                              bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry, string input_img,
+                              const string &current_dir) {
+                                
+  string name = "sampled_image";
+  cout << name << " started!" << endl;
+  // Stop hardcoding samples
+  const std::string image_path = current_dir + "/maps/" + input_img + ".png";
+  std::optional<Array2D<Color>> m = read_image(image_path);
+  cout << image_path << endl;
+  if (!m.has_value()) {
+    throw "Error while loading " + image_path;
+  }
+
+  int u_seed;
+
+  OverlappingWFCOptions options = {
+      periodic_input, periodic_output, height, width, symmetry, ground, N};
+  for (unsigned i = 0; i < nb_samples; i++) {
+    for (unsigned test = 0; test < 10; test++) {
+      if (use_seed) {
+        u_seed = seed + test;
+      }
+
+      else u_seed = get_random_seed();
+      OverlappingWFC<Color> wfc(*m, options, u_seed);
+      std::optional<Array2D<Color>> success = wfc.run();
+      if (success.has_value()) {
+        write_image_png(current_dir + "/maps/" + name + to_string(i) + ".png", *success);
+        cout << name << " finished!" << endl;
+        break;
+      } else {
+        cout << "failed!" << endl;
+      }
+    }
+  }
 }
 
 /**
@@ -170,7 +212,7 @@ read_neighbors(xml_node<> *root_node) {
 /**
  * Read an instance of a tiling WFC problem.
  */
-void read_simpletiled_instance(unsigned width, unsigned height, bool periodic_output,
+void read_simpletiled_instance(bool use_seed, int seed, unsigned width, unsigned height, bool periodic_output,
                                const string &current_dir) noexcept {
   string name = "tiles";
   string subset = "tiles";
@@ -216,10 +258,18 @@ void read_simpletiled_instance(unsigned width, unsigned height, bool periodic_ou
                                        tiles_id[neighbor2], orientation2));
   }
 
+  int u_seed;
+
   for (unsigned test = 0; test < 10; test++) {
-    int seed = get_random_seed();
+    if (use_seed) {
+      u_seed = seed + test;
+    }
+    else {
+      u_seed = get_random_seed();
+    }
+    
     TilingWFC<Color> wfc(tiles, neighbors_ids, height, width, {periodic_output},
-                         seed);
+                         u_seed);
 
     std::optional<Array2D<Color>> success = wfc.run();
     if (success.has_value()) {
@@ -235,21 +285,53 @@ void read_simpletiled_instance(unsigned width, unsigned height, bool periodic_ou
 /**
  * Read a configuration file containing multiple wfc problems
  */
-void read_config_file(unsigned width, unsigned height, bool periodic_output, const string &dir_path) noexcept {
-  read_simpletiled_instance(width, height, periodic_output, dir_path);
+
+void read_config_file(bool use_seed, int seed, unsigned width, unsigned height, bool periodic_output, unsigned N, 
+                      bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry, const string &dir_path, 
+                      string &sample_type, string &input_img) noexcept {
+  if(sample_type.compare("simpletiled") == 0) {
+    read_simpletiled_instance(use_seed, seed, width, height, periodic_output, dir_path);
+  } 
+
+  else if(sample_type.compare("overlapping") == 0) {
+    read_overlapping_instance(use_seed, seed, width, height, periodic_output, N, periodic_input, ground, 
+                  nb_samples, symmetry, input_img, dir_path);
+  }
+  
+  else {
+    cout << "Unable to run WFC with the option selected. Please set overlapping or simpletiled as sample_type" << endl;
+  }
 }
 
-int main(unsigned width, unsigned height, bool periodic_output) {
+int main(bool use_seed, int seed, unsigned width, unsigned height, int sample_type, bool periodic_output,
+        unsigned N, bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry){
 
   // Initialize rand for non-linux targets
   #ifndef __linux__
     srand(time(nullptr));
   #endif
 
+  string sample_type_str = "";
+
+  if (sample_type == 0) {
+    sample_type_str = "simpletiled";
+  }
+
+  else if (sample_type == 1) {
+    sample_type_str = "overlapping";
+  }
+
+  else {
+    throw "choose 0 (simpletiled) or 1 (overlapping) on sample_type";
+  }
+  string input_img="test_map";
+
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  read_config_file(width, height, periodic_output, ".gen_files");
+  read_config_file(use_seed, seed, width, height, periodic_output, N,
+                  periodic_input, ground, nb_samples, symmetry,
+                  ".gen_files", sample_type_str, input_img);
 
   end = std::chrono::system_clock::now();
   int elapsed_s =

@@ -9,10 +9,14 @@ from .gen_tiles import generate_tiles
 import numpy as np
 import simenv as sm
 from PIL import Image
-import wfc_binding
+from wfc_binding import run_wfc
 
 
 def get_back(x, y, z, down, base=0):
+    """
+    Get a base for the structured grid.
+    """
+    # TODO: reduce code necessary to do this
 
     xx_0 = x[0,:]
     yx_0 = [y[0,0]] * 2
@@ -48,36 +52,58 @@ def get_back(x, y, z, down, base=0):
         sm.StructuredGrid(x=xx_1, y=yx_1, z=zx_1),
         sm.StructuredGrid(x=xy_0, y=yy_0, z=zy_0),
         sm.StructuredGrid(x=xy_1, y=yy_1, z=zy_1),
-
     ]
 
+    # TODO: in the structure of the scene, structures 1, 2, 3 and 4 become children of 0, 
+    # which is not what we want
     return structures[0] + structures[1] + structures[2] + structures[3] + structures[4]
 
 
-def generate_2d_map(seed, width, height, gen_folder, periodic_output=False):
+def generate_2d_map(width, height, gen_folder, periodic_output=True, N=3,
+                    periodic_input=False, ground=False, nb_samples=1, 
+                    symmetry=4, sample_from=None, seed=None):
     """
-    TODO: implement this function to have a binding with c++
+    Generate 2d map.
     """
     # TODO: Open image if it's cached
 
-    # Otherwise, generate it:
-    wfc_binding.py_main(width, height, periodic_output)
-    img_path = os.path.join(gen_folder, 'maps/tiles.png')
+    # Check if seed should be used
+    if seed is not None:
+        use_seed = True
+    else:
+        use_seed = False
+        seed = 0
+
+    # Otherwise, generate it
+    # TODO: fix names, pass name of the file to the c++ function
+    if sample_from is not None:
+        # overlapping
+        run_wfc(2 * width, 2 * height, 1, periodic_output=periodic_output,
+                N=N, periodic_input=periodic_input, ground=ground, 
+                nb_samples=nb_samples, symmetry=symmetry, use_seed=use_seed, 
+                seed=seed)
+        img_path = os.path.join(gen_folder, 'maps/sampled_image0.png')
+    
+    else:    
+        # simpletiled
+        run_wfc(width, height, 0, periodic_output=periodic_output, use_seed=use_seed, seed=seed)
+        img_path = os.path.join(gen_folder, 'maps/tiles.png')
 
     # Read file
     img = Image.open(img_path) 
     return img
 
 
-def generate_map(seed, 
-                width, 
+def generate_map(width, 
                 height, 
                 periodic_output=False,
                 tile_size=10, 
                 gen_folder=".gen_files",
                 or_tile_size=2,
                 height_constant=0.2,
-                specific_map=None):
+                specific_map=None,
+                sample_from=None,
+                seed=None):
     """
     Generate the map.
 
@@ -92,12 +118,12 @@ def generate_map(seed,
     NOTE: This is a draft.
     """
 
-    if specific_map is None:
-        img = generate_2d_map(seed, width, height, gen_folder)
-    else:
+    if specific_map is not None:
         img = Image.open(os.path.join(gen_folder, "maps", specific_map))
         width = img.width // or_tile_size
         height = img.height // or_tile_size
+    else:
+        img = generate_2d_map(width, height, gen_folder, sample_from=sample_from, seed=seed)
 
     img_np = np.array(img)
     img_np = img_np[:,:,0] * height_constant
@@ -126,15 +152,9 @@ def generate_map(seed,
     scene = sm.Scene()
     scene += sm.StructuredGrid(x=x, y=y, z=z_grid)
     scene += get_back(x, y, z_grid, down=-10)
-
-    # scene += sm.Rectangle(points=
-    #                         [[min_x, min_y, ]])
-    # scene += sm.StructuredGrid(x=np.full(np.min(x), x.shape), y=y, z=np.full(x.shape, -10))
-
     
     print(scene)
     scene.show(in_background=False)
-    # scene.engine.show(interactive=True, auto_close=False, interactive_update=True, screenshow=True)
 
     
 
