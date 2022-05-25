@@ -1,5 +1,6 @@
 import simenv as sm
 import simenv.assets.utils as utils
+from simenv.assets import material
 import os, time
 from simenv.rl_env import RLEnv
 import matplotlib.pyplot as plt
@@ -8,16 +9,39 @@ import random
 scene = sm.Scene(engine="Unity")
 
 
-scene += sm.Light(name="sun", position=[0, 20, 0], rotation=utils.quat_from_degrees(60, -30, 0), intensity=3.5)
-scene += sm.Cube(name="floor",  position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50])
-scene += sm.Cube(name="wall1", position=[-10, 0.0, 0], bounds=[0, 0.1, 0,1, -10, 10])
-scene += sm.Cube(name="wall2",  position=[10, 0.5, 0], bounds=[0, 0.1, 0,1, -10, 10])
-scene += sm.Cube(name="wall3", position=[0, 0.5, 10], bounds=[-10, 10, 0,1, 0, 0.1])
-scene += sm.Cube(name="wall4", position=[0, 0.5, -10], bounds=[-10, 10, 0,1, 0, 0.1])
+mat_purple = material.Material(name="purple", base_color=[0.3,0.3,0.4], metallic_factor=1.0, roughness_factor=0.0)
+mat_dark = material.Material(name="gray", base_color=[0.1,0.1,0.1], metallic_factor=1.0, roughness_factor=0.0)
+mat_red = material.Material(name="red", base_color=[0.8,0.2,0.2], metallic_factor=1.0, roughness_factor=0.0)
+mat_white = material.Material(name="white", base_color=[0.8,0.8,0.8], metallic_factor=1.0, roughness_factor=0.0)
 
-for i in range(20):
-    scene += sm.Cube(name=f"cube{i}", position=[random.uniform(-9,9), 0.5, random.uniform(-9,9)])
+scene += sm.Light(name="sun", position=[0, 20, 0], rotation=utils.quat_from_degrees(-60, -30, 0), intensity=2.0)
+scene += sm.Cube(name="floor", material=mat_dark,  position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50])
+scene += sm.Cube(name="wall1", material=mat_purple, position=[-6, 0.0, 0], bounds=[0, 0.1, 0, 1, -6, 6])
+scene += sm.Cube(name="wall2", material=mat_purple,  position=[6, 0.0, 0], bounds=[0, 0.1, 0,1, -6, 6])
+scene += sm.Cube(name="wall3", material=mat_purple, position=[0, 0.0, 6], bounds=[-6, 6, 0,1, 0, 0.1])
+scene += sm.Cube(name="wall4", material=mat_purple, position=[0, 0.0, -6], bounds=[-6, 6, 0,1, 0, 0.1])
 
+
+positions_cube = [
+    [-2,.5,2],
+    [2,.5,2],
+
+]
+
+for i, position in enumerate(positions_cube):
+    scene += sm.Cube(name=f"cube{i}",material=mat_red, position=position)
+
+position_sphere = [
+    [-3.0,.5,-2.5],
+    [-2.25,.5,-3.4],
+    [-1.17,.5,-3.9],
+    [0,.5,-4],
+    [1.17,.5,-3.9],
+    [2.25,.5,-3.4],
+    [3.0,.5,-2.5],
+]
+for i, position in enumerate(position_sphere):
+    scene += sm.Sphere(name=f"sphere{i}", material=mat_white, position=position, radius=0.5)
 
 agent = sm.RL_Agent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
 
