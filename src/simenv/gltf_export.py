@@ -354,13 +354,21 @@ def add_material_to_gltf(
 def add_mesh_to_model(
     node: Object3D, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
-    mesh = node.mesh
+    mesh = node.mesh.triangulate()
     material = node.material
     if mesh.n_verts == 0 and mesh.n_lines == 0 and mesh.n_faces == 0:
         raise NotImplementedError()
 
     # Store points in gltf
     np_array = mesh.points.astype(NP_FLOAT32)
+
+    if mesh.n_faces:
+        indices = (
+            mesh.faces.copy().reshape((-1, 4))[:, 1:].reshape(-1, 1).astype(NP_UINT32)
+        )  # We drop the number of indices per face
+        np_array = np.take(np_array, indices.flatten(), axis=0) #  we are going to see all vertices as triangles
+
+
     point_accessor = add_numpy_to_gltf(
         np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
     )
@@ -420,10 +428,8 @@ def add_mesh_to_model(
     if mesh.n_faces:
         primitive = gl.Primitive(mode=gl.PrimitiveMode.TRIANGLES.value, attributes=attributes)
         # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
-        tri_mesh = mesh.triangulate()  # Triangulate the mesh (gltf can nly store triangulated meshes)
-        np_array = (
-            tri_mesh.faces.copy().reshape((-1, 4))[:, 1:].reshape(-1, 1).astype(NP_UINT32)
-        )  # We drop the number of indices per face
+        indices = mesh.faces.copy().reshape((-1, 4))[:, 1:].reshape(-1, 1).astype(NP_UINT32)
+        np_array = np.arange(len(indices.flatten()), dtype=np.uint32).reshape(indices.shape)
         primitive.indices = add_numpy_to_gltf(
             np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
