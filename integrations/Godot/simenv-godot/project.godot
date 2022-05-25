@@ -14,3 +14,7 @@ config/name="simenv-godot"
 run/main_scene="res://Scenes/Scene.tscn"
 config/icon="res://icon.png"
 config/features=PackedStringArray("4.0", "Vulkan Clustered")
+
+[rendering]
+
+anti_aliasing/quality/msaa=1
