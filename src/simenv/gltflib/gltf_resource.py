@@ -73,6 +73,10 @@ class FileResource(GLTFResource):
     def mimetype(self):
         return self._mimetype
 
+    @property
+    def fullpath(self):
+        return path.join(self._basepath, self._filename) if self._basepath is not None else self._filename
+
     def load(self, force_reload=False):
         if self._loaded and not force_reload:
             return
@@ -84,7 +88,7 @@ class FileResource(GLTFResource):
             self._mimetype = self._mimetype or mimetypes.guess_type(filename)[0]
         self._loaded = True
 
-    def export(self, basepath: str = None) -> None:
+    def export(self, basepath: str = None) -> str:
         if not self._filename:
             raise ValueError("Attempted to export FileResource without filename")
         self.load()
@@ -95,6 +99,7 @@ class FileResource(GLTFResource):
         create_parent_dirs(filename)
         with open(filename, "wb") as f:
             f.write(self._data)
+        return filename
 
     def clone(self) -> "FileResource":
         return FileResource(self._filename, self._basepath, False, self._data, self._mimetype)

@@ -14,66 +14,136 @@
 
 # Lint as: python3
 """ A simenv Material."""
-from dataclasses import dataclass
-from typing import List, Optional
+import itertools
+import uuid
+from dataclasses import InitVar, dataclass
+from typing import ClassVar, List, Optional
 
-from pyvista import Texture
+import numpy as np
+import pyvista
+
+from .utils import camelcase_to_snakecase
 
 
-# TODO thom this is a very basic PBR Metrial class, mostly here to be able to load a gltf
+# TODO thom this is a very basic PBR Metrial class, mostly here to be able to load a gltf - strongly base on GLTF definitions
 # To be revamped and improved later
 
 
-@dataclass
-class PBRMetallicRoughness:
-    """
-    A set of parameter values that are used to define the metallic-roughness material model from Physically-Based
-    Rendering (PBR) methodology.
-
-    Properties:
-    """
-
-
-@dataclass
+@dataclass(repr=False)
 class Material:
     """
     The material appearance of a primitive.
 
-    Properties:
-    name (string) The user-defined name of this object. (Optional)
+    Parameters
+    ----------
+    name : string, optional
+        The user-defined name of this material
 
-    [pbrMetallicRoughness properties]: A set of parameter values that are used to define the metallic-roughness material
-        model from Physically-Based Rendering (PBR) methodology. When not specified, all the default values of
-        pbrMetallicRoughness apply. (Optional)
-    baseColorFactor (number[4]) The material's base color factor. (Optional, default: [1,1,1,1])
-    baseColorTexture (object) The base color texture. (Optional)
-    metallicFactor (number) The metalness of the material. (Optional, default: 1)
-    roughnessFactor (number) The roughness of the material. (Optional, default: 1)
-    metallicRoughnessTexture (object) The metallic-roughness texture. (Optional)
-    extensions (object) Dictionary object with extension-specific objects. (Optional)
-    extras (any) Application-specific data. (Optional)
+    base_color : np.ndarray or list with 3 (RGB) or 4 (RGBA) components, optional
+        The material's base RGB or RGBA color.
+        The factors for the base color of the material. This value defines linear multipliers for the sampled texels of the base color texture.
+        Default: [1,1,1,1]. If provided as RGB, Alpha is assumed to be 1.
 
-    normalTexture (object) The normal map texture. (Optional)
-    occlusionTexture (object) The occlusion map texture. (Optional)
-    emissiveTexture (object) The emissive map texture. (Optional)
-    emissiveFactor (number[3]) The emissive color of the material. (Optional, default: [0,0,0])
-    alphaMode (string) The alpha rendering mode of the material. (Optional, default: "OPAQUE")
-    alphaCutoff (number) The alpha cutoff value of the material. (Optional, default: 0.5)
-    doubleSided (boolean) Specifies whether the material is double sided. (Optional, default: false)
+    base_color_texture : PIL.Image, optional
+        A base color texture.
+
+    metallic_factor : float, optional
+        The metalness of the material.
+        Default: 1.0
+
+    roughness_factor : float, optional
+        The roughness of the material.
+        Default: 1.0
+
+    metallic_roughness_texture : PIL.Image, optional
+        The metallic-roughness texture.
+
+    normal_texture : PIL.Image, optional
+        The normal map texture.
+
+    occlusion_texture : PIL.Image, optional
+        The occlusion map texture.
+
+    emissive_texture : PIL.Image, optional
+        The emissive map texture.
+
+    emissive_factor : np.ndarray or list with 3 (RGB) components, optional
+        The emissive color of the material.
+        Default: [0,0,0]
+
+    alpha_mode : string selected in ["OPAQUE", "MASK" and "BLEND"]
+        The alpha rendering mode of the material.
+            "OPAQUE": The alpha value is ignored, and the rendered output is fully opaque.
+            "MASK": The rendered output is either fully opaque or fully transparent depending on the alpha value and the specified alpha_cutoff value.
+            "BLEND": The alpha value is used to composite the source and destination areas. The rendered output is combined with the background using the normal painting operation (i.e. the Porter and Duff over operator).
+        Default: "OPAQUE"
+
+    alpha_cutoff: float, optional
+        The alpha cutoff value of the material.
+        Default: 0.5
+
+    double_sided: boolean, optional
+        Specifies whether the material is double sided.
+        Default: false
     """
+
+    __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
+    _uuid: Optional[int] = None
+
+    base_color: Optional[List[float]] = None
+    base_color_texture: Optional[pyvista.Texture] = None
+    metallic_factor: Optional[float] = None
+    roughness_factor: Optional[float] = None
+    metallic_roughness_texture: Optional[pyvista.Texture] = None
+
+    normal_texture: Optional[pyvista.Texture] = None
+    occlusion_texture: Optional[pyvista.Texture] = None
+    emissive_texture: Optional[pyvista.Texture] = None
+    emissive_factor: Optional[List[float]] = None
+    alpha_mode: Optional[str] = None
+    alpha_cutoff: Optional[float] = None
+    double_sided: Optional[bool] = None
 
     name: Optional[str] = None
 
-    baseColorFactor: Optional[List[float]] = None
-    baseColorTexture: Optional[Texture] = None
-    metallicFactor: Optional[float] = None
-    roughnessFactor: Optional[float] = None
-    metallicRoughnessTexture: Optional[Texture] = None
+    def __post_init__(self):
+        # Setup all our default values
+        if self.base_color is None:
+            self.base_color = [1.0, 1.0, 1.0, 1.0]
+        if isinstance(self.base_color, np.ndarray):
+            self.base_color = self.base_color.tolist()
+        if len(self.base_color) == 3:
+            self.base_color = self.base_color + [1.0]
 
-    normalTexture: Optional[Texture] = None
-    occlusionTexture: Optional[Texture] = None
-    emissiveTexture: Optional[Texture] = None
-    emissiveFactor: Optional[List[float]] = None
-    alphaMode: Optional[str] = None
-    alphaCutoff: Optional[float] = None
-    doubleSided: Optional[bool] = None
+        if self.metallic_factor is None:
+            self.metallic_factor = 1.0
+
+        if self.roughness_factor is None:
+            self.roughness_factor = 1.0
+
+        if self.emissive_factor is None:
+            self.emissive_factor = [0.0, 0.0, 0.0, 0.0]
+        elif isinstance(self.emissive_factor, np.ndarray):
+            self.emissive_factor = self.emissive_factor.tolist()
+
+        if self.alpha_mode is None:
+            self.alpha_mode = "OPAQUE"
+
+        if self.alpha_cutoff is None:
+            self.alpha_cutoff = 0.5
+
+        if self.double_sided is None:
+            self.double_sided = False
+
+        if self.name is None:
+            id = next(self.__class__.__NEW_ID)
+            self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+
+        self._uuid = uuid.uuid4().int
+
+    def __repr__(self) -> str:
+        texture_str = f" with texture" if self.base_color_texture is not None else ""
+        return f"Material({self.name}{texture_str})"
+
+    def __hash__(self):
+        return self._uuid
