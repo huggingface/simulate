@@ -4,6 +4,8 @@ import os, time
 from simenv.rl_env import RLEnv
 import matplotlib.pyplot as plt
 import numpy as np
+from stable_baselines3 import PPO
+from stable_baselines3.common.env_checker import check_env
 
 
 def create_tmaze():
@@ -24,7 +26,7 @@ def create_tmaze():
     scene += sm.Cube(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
 
-    agent = sm.RLAgent(name="agent", turn_speed=5.0,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
+    agent = sm.RLAgent(name="agent", turn_speed=5.0,camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
     scene += sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
 
     reward_function = reward_function = sm.RLAgentRewardFunction(
@@ -50,44 +52,14 @@ def create_tmaze():
 
 
 scene = create_tmaze()
-
-PLOT=True
-
 scene.show()
+
 env = RLEnv(scene)
 
+obs = env.reset()
 
-if PLOT:
-    plt.ion()
-    fig1, ax1 = plt.subplots()
-    dummy_obs = np.zeros(shape=(scene.agent.camera_height, scene.agent.camera_width, 3), dtype=np.uint8)
-    axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
-
-
-for episode in range(5):
-    obs = env.reset()
-
-    done = False
-    i=0
-    while not done:
-        print(i)
-        i += 1
-        action = env.action_space.sample()
-        if type(action) == int: # discrete are ints, continuous are numpy arrays
-            action = [action]
-        else:
-            action = action.tolist()
-
-        obs, reward, done, info = env.step(action)
-        print(reward, done, info)
-
-        if PLOT:
-            axim1.set_data(obs)
-            fig1.canvas.flush_events()
-        
-        #time.sleep(0.1)
-
-    
-
+#check_env(env)
+model = PPO("CnnPolicy", env, verbose=2)
+model.learn(total_timesteps=10000)
 
 env.close()

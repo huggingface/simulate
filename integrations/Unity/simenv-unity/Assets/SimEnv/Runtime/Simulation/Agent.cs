@@ -41,7 +41,7 @@ namespace SimEnv {
 
         public override void SetAction(List<float> stepAction) {
             Debug.Assert(dist == "discrete");
-            Debug.Assert(stepAction.Count == 1, "in the discrete case step action must be of length 1");
+            Debug.Assert(stepAction.Count == 1, "in the discrete case step action must be of length 1" + stepAction.Count.ToString());
 
             // in the case of discrete actions, this list is just one value
             // the value is casted to an int, this is a bit hacky and I am sure there is a more elegant way to do this.
@@ -117,6 +117,8 @@ namespace SimEnv {
         public float turn_speed = 1f;
         public float height = 1f;
         private const bool HUMAN = false;
+
+        private float accumReward = 0f;
 
         public Color color = Color.white;
 
@@ -245,6 +247,9 @@ namespace SimEnv {
                 // RL control
                 Vector3 move = transform.right * actions.moveRight + transform.forward * actions.forward;
                 controller.Move(move * move_speed * Time.deltaTime);
+                // // this hacky bit with the parent is to make the character controlled move to parent agent object not the child Agent prefab
+                // transform.parent.transform.position = transform.position;
+                // transform.position = Vector3.zero;
                 float rotate = actions.turnRight;
                 transform.Rotate(Vector3.up * rotate * turn_speed);
             }
@@ -266,6 +271,7 @@ namespace SimEnv {
             foreach (RewardFunction rewardFunction in rewardFunctions) {
                 reward += rewardFunction.CalculateReward();
             }
+
             return reward;
         }
 

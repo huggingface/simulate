@@ -1,3 +1,4 @@
+from pickletools import uint8
 import gym
 import numpy as np
 from gym import spaces
@@ -24,25 +25,33 @@ class RLEnv(gym.Env):
         camera_width = self.agents[0].camera_width
         camera_height = self.agents[0].camera_height
 
-        self.observation_space = spaces.Box(low=0, high=255, shape=[camera_height, camera_width, 3])
+        self.observation_space = spaces.Box(low=0, high=255, shape=[camera_height, camera_width, 3], dtype=np.uint8)
 
     def reset(self):
         self.scene.reset()
         obs = self.scene.get_observation()
         # TODO: remove np.flip for training (the agent does not care the world is upside-down
-        obs = np.flip(np.array(obs["Items"]).reshape(*self.observation_space.shape), 0)
+        obs = np.flip(np.array(obs["Items"], dtype=np.uint8).reshape(*self.observation_space.shape), 0)
 
         return obs
 
     def step(self, action):
+        if type(action) in [int, np.int64]: # discrete are ints, continuous are numpy arrays
+            action = [int(action)]
+        else:
+            action = action.tolist()
+
         self.scene.step(action)
 
         obs = self.scene.get_observation()
         # TODO: remove np.flip for training (the agent does not care the world is upside-down
-        obs = np.flip(np.array(obs["Items"]).reshape(*self.observation_space.shape), 0)
+        obs = np.flip(np.array(obs["Items"], dtype=np.uint8).reshape(*self.observation_space.shape), 0)
 
         reward = self.scene.get_reward()
         done = self.scene.get_done()
         info = {}  # TODO: Add info to the backend, if we require it
 
-        return obs, reward, done, info
+        return obs, float(reward), done, info
+
+    def close(self):
+        self.scene.close()

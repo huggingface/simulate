@@ -24,11 +24,14 @@ namespace SimEnv {
         static readonly float FRAME_INTERVAL = 1f / FRAME_RATE;
 
         static GameObject root;
+        static byte[] sceneBytes;
 
         public static void BuildSceneFromBytes(byte[] bytes) {
             if (root != null)
                 GameObject.DestroyImmediate(root);
             root = Importer.LoadFromBytes(bytes);
+            sceneBytes = bytes;
+
         }
 
         public static void Step(List<float> action) {
@@ -91,7 +94,11 @@ namespace SimEnv {
 
         public static void Reset() {
             // Reset the Agent & the environment # 
-            // TODO add the environment reset!
+            // TODO extend the environment reset with various object locations.
+            if (sceneBytes != null) {
+                BuildSceneFromBytes(sceneBytes);
+                Debug.Log("resetting environment");
+            }
             if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
                 Agent agent = ISimulator.Agent as Agent;
                 agent.Reset();
@@ -145,7 +152,7 @@ namespace SimEnv {
                 .SelectMany(x => x.GetTypes())
                 .Where(x => x.GetInterfaces().Contains(typeof(ISimObjectExtension)))
                 .ToArray();
-            if(simObjectExtensions == null)
+            if (simObjectExtensions == null)
                 simObjectExtensions = new Type[0];
             simObjectExtensions.ToList().ForEach(x => Debug.Log(x));
             Debug.Log(string.Format("Loaded {0} extensions", simObjectExtensions.Length));
