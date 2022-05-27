@@ -7,7 +7,7 @@ from world import generate_map, generate_tiles
 from game import generate_game
 
 
-def gen_setup(gen_folder=".gen_files"):
+def gen_setup(max_height, gen_folder=".gen_files"):
     """
     Setup the generation.
     """
@@ -28,34 +28,45 @@ def gen_setup(gen_folder=".gen_files"):
     
     else:
         os.makedirs(tiles_folder)
-        generate_tiles()
+        generate_tiles(max_height=max_height)
 
 
-def generate_env(width, height, periodic_output=False, specific_map=None, sample_from=None, seed=None):
+def generate_env(width, height, periodic_output=False, specific_map=None, sample_from=None, seed=None,
+                    max_height=8, N=2, periodic_input=False, ground=False, nb_samples=1, symmetry=1):
     """
     Generate the environment.
     """
 
     # TODO: choose width and height randomly from a set of predefined values
     # Generate the map if no specific map is passed
-    generate_map(width=width, height=height, specific_map=specific_map, 
-                sample_from=sample_from, seed=seed)
-
+    generated_map, map_2d, scene = generate_map(width=width, height=height, periodic_output=periodic_output,
+                specific_map=specific_map, sample_from=sample_from, seed=seed, max_height=max_height, N=N, 
+                periodic_input=periodic_input, ground=ground, nb_samples=nb_samples, symmetry=symmetry)
 
     # Generate the game
-    generate_game()
+    # generate_game(generated_map, scene)
 
     # TODO: generation of agents
 
+    print(scene)
+    scene.show(in_background=False)
+
 
 if __name__ == '__main__':
-    width = 12
-    height = 8
+    width = 5
+    height = 5
     periodic_output = True
-    specific_map = None
+    specific_map = None # "test_map.png"
     sample_from = "test_map.png"
     seed = None
+    max_height = 8
+    symmetry = 1
+    N = 2
+    periodic_input = True
+    ground = False
+    nb_samples = 1
 
-    gen_setup()
+    gen_setup(max_height)
     generate_env(width, height, periodic_output=periodic_output, specific_map=specific_map,
-                sample_from=sample_from, seed=seed)
+                sample_from=sample_from, seed=seed, max_height=max_height, N=N, periodic_input=periodic_input,
+                ground=ground, nb_samples=nb_samples, symmetry=symmetry)

@@ -46,8 +46,14 @@ def get_back(x, y, z, down, base=0):
     zy_1[:, 0] = z[:,-1]
     zy_1[:, 1] = down
 
+    # Down base
+    x_down = [x[0,0], x[0,-1]]
+    y_down = [y[0,0], y[-1,0]]
+    x_down, y_down = np.meshgrid(x_down, y_down)
+    z_down = np.full(x_down.shape, down)
+
     structures = [
-        sm.StructuredGrid(x=x, y=y, z=np.full(x.shape, down)),
+        sm.StructuredGrid(x=x_down, y=y_down, z=z_down),
         sm.StructuredGrid(x=xx_0, y=yx_0, z=zx_0),
         sm.StructuredGrid(x=xx_1, y=yx_1, z=zx_1),
         sm.StructuredGrid(x=xy_0, y=yy_0, z=zy_0),
@@ -59,9 +65,43 @@ def get_back(x, y, z, down, base=0):
     return structures[0] + structures[1] + structures[2] + structures[3] + structures[4]
 
 
-def generate_2d_map(width, height, gen_folder, periodic_output=True, N=3,
+def decode_rgb(img, height_constant, sample_from=None, max_height=8):
+    
+    img_np = np.array(img)
+    
+    if sample_from is None:
+        map_2d = img_np[:,:,0] * height_constant
+    else:
+        height_level = None
+        # Create the map
+        map_2d = np.zeros((2 * img_np.shape[0], 2 * img_np.shape[1]))
+
+        # TODO: optimize this decoding
+        for i in range(img_np.shape[0]):
+            for j in range(img_np.shape[1]):
+                if img_np[i,j,1] == 0:
+                    map_2d[2*i: 2*(i+1), 2*j:2*(j+1)] = img_np[i,j,0]
+                elif img_np[i,j,1] == 1:
+                    map_2d[2*i, 2*j:2*(j+1)] = img_np[i,j,0]
+                    map_2d[2*i+1, 2*j:2*(j+1)] = img_np[i,j,0] + 1
+                elif img_np[i,j,1] == 2:
+                    map_2d[2*i: 2*(i+1), 2*j] = img_np[i,j,0]
+                    map_2d[2*i: 2*(i+1), 2*j+1] = img_np[i,j,0]+1
+                elif img_np[i,j,1] == 3:
+                    map_2d[2*i, 2*j:2*(j+1)] = img_np[i,j,0] + 1
+                    map_2d[2*i+1, 2*j:2*(j+1)] = img_np[i,j,0]
+                elif img_np[i,j,1] == 4:
+                    map_2d[2*i: 2*(i+1), 2*j] = img_np[i,j,0] + 1
+                    map_2d[2*i: 2*(i+1), 2*j+1] = img_np[i,j,0]
+        
+        map_2d = map_2d * (255. * height_constant * 1 / max_height)
+
+    return map_2d
+
+
+def generate_2d_map(width, height, gen_folder, periodic_output=True, N=2,
                     periodic_input=False, ground=False, nb_samples=1, 
-                    symmetry=4, sample_from=None, seed=None):
+                    symmetry=1, sample_from=None, seed=None):
     """
     Generate 2d map.
     """
@@ -78,7 +118,7 @@ def generate_2d_map(width, height, gen_folder, periodic_output=True, N=3,
     # TODO: fix names, pass name of the file to the c++ function
     if sample_from is not None:
         # overlapping
-        run_wfc(2 * width, 2 * height, 1, periodic_output=periodic_output,
+        run_wfc(width, height, 1, periodic_output=periodic_output,
                 N=N, periodic_input=periodic_input, ground=ground, 
                 nb_samples=nb_samples, symmetry=symmetry, use_seed=use_seed, 
                 seed=seed)
@@ -103,6 +143,12 @@ def generate_map(width,
                 height_constant=0.2,
                 specific_map=None,
                 sample_from=None,
+                max_height=8,
+                N=2,
+                periodic_input=False, 
+                ground=False, 
+                nb_samples=1, 
+                symmetry=1,
                 seed=None):
     """
     Generate the map.
@@ -119,14 +165,17 @@ def generate_map(width,
     """
 
     if specific_map is not None:
+        # TODO: deal with images with tiles 2x2
         img = Image.open(os.path.join(gen_folder, "maps", specific_map))
-        width = img.width // or_tile_size
-        height = img.height // or_tile_size
+        width = img.width
+        height = img.height
     else:
-        img = generate_2d_map(width, height, gen_folder, sample_from=sample_from, seed=seed)
+        img = generate_2d_map(width, height, gen_folder, sample_from=sample_from, periodic_output=periodic_output,
+                                N=N, periodic_input=periodic_input, ground=ground, nb_samples=nb_samples, symmetry=symmetry,
+                                seed=seed)
 
-    img_np = np.array(img)
-    img_np = img_np[:,:,0] * height_constant
+    img_np = decode_rgb(img, height_constant, sample_from=sample_from, max_height=max_height)
+    map_2d = img_np.copy()
 
     # First we will just extract the map and plot
     z_grid = img_np 
@@ -149,12 +198,11 @@ def generate_map(width,
     z_grid = np.linspace(z_grid[:,:,:,0], z_grid[:,:,:,1], granularity)
     z_grid = np.transpose(z_grid, (2, 0, 3, 1)).reshape((height * granularity, width * granularity), order='A')
 
-    scene = sm.Scene()
+    scene = sm.Scene() # engine="Unity"
     scene += sm.StructuredGrid(x=x, y=y, z=z_grid)
     scene += get_back(x, y, z_grid, down=-10)
-    
-    print(scene)
-    scene.show(in_background=False)
+
+    return (x,y,z_grid), map_2d, scene
 
     
 
