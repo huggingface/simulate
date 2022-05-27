@@ -84,10 +84,8 @@ def img_from_tiles():
     raise NotImplementedError
 
 
-def generate_tiles(width=9,
-                  height=9,
+def generate_tiles(max_height=8,
                   weights=None,
-                  max_height=8,
                   gen_folder='.gen_files',
                   tile_size=2,
                   save=True,
@@ -124,8 +122,8 @@ def generate_tiles(width=9,
 
     # Step for the height (which is represented by the intensity of the color)
     color_step = 256 // max_height
-    names_xml = ''
-    neighbors_xml = ''
+    names_xml = ""
+    neighbors_xml = ""
     tiles = []
     plain_tile_names = ['{}0'.format(h) for h in range(max_height)]
 
