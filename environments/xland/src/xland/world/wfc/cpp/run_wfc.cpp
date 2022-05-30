@@ -304,7 +304,8 @@ void read_config_file(bool use_seed, int seed, unsigned width, unsigned height, 
 }
 
 int main(bool use_seed, int seed, unsigned width, unsigned height, int sample_type, bool periodic_output,
-        unsigned N, bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry){
+        unsigned N, bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry,
+        string input_img) {
 
   // Initialize rand for non-linux targets
   #ifndef __linux__
@@ -324,7 +325,6 @@ int main(bool use_seed, int seed, unsigned width, unsigned height, int sample_ty
   else {
     throw "choose 0 (simpletiled) or 1 (overlapping) on sample_type";
   }
-  string input_img="test_map";
 
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();

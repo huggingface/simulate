@@ -1,7 +1,5 @@
 """
 Builds map using Wave Function Collapse.
-
-NOTE: This file is still a draft.
 """
 
 import os
@@ -10,6 +8,7 @@ import numpy as np
 import simenv as sm
 from PIL import Image
 from wfc_binding import run_wfc
+from pyvista import examples
 
 
 def get_back(x, y, z, down, base=0):
@@ -65,11 +64,11 @@ def get_back(x, y, z, down, base=0):
     return structures[0] + structures[1] + structures[2] + structures[3] + structures[4]
 
 
-def decode_rgb(img, height_constant, sample_from=None, max_height=8):
+def decode_rgb(img, height_constant, specific_map=None, sample_from=None, max_height=8):
     
     img_np = np.array(img)
     
-    if sample_from is None:
+    if sample_from is None and specific_map is None:
         map_2d = img_np[:,:,0] * height_constant
     else:
         height_level = None
@@ -115,17 +114,19 @@ def generate_2d_map(width, height, gen_folder, periodic_output=True, N=2,
         seed = 0
 
     # Otherwise, generate it
-    # TODO: fix names, pass name of the file to the c++ function
     if sample_from is not None:
-        # overlapping
-        run_wfc(width, height, 1, periodic_output=periodic_output,
+        # Overlapping routine
+        # Creates a new map from a previous one by sampling patterns from it
+        # Need to transform string into bytes for the c++ function
+        run_wfc(width, height, 1, input_img=sample_from.encode('utf-8'), periodic_output=periodic_output,
                 N=N, periodic_input=periodic_input, ground=ground, 
                 nb_samples=nb_samples, symmetry=symmetry, use_seed=use_seed, 
                 seed=seed)
         img_path = os.path.join(gen_folder, 'maps/sampled_image0.png')
     
     else:    
-        # simpletiled
+        # Simpletiled routine
+        # Builds map from generated tiles and respective constraints
         run_wfc(width, height, 0, periodic_output=periodic_output, use_seed=use_seed, seed=seed)
         img_path = os.path.join(gen_folder, 'maps/tiles.png')
 
@@ -134,8 +135,8 @@ def generate_2d_map(width, height, gen_folder, periodic_output=True, N=2,
     return img
 
 
-def generate_map(width, 
-                height, 
+def generate_map(width=None, 
+                height=None, 
                 periodic_output=False,
                 tile_size=10, 
                 gen_folder=".gen_files",
@@ -166,7 +167,7 @@ def generate_map(width,
 
     if specific_map is not None:
         # TODO: deal with images with tiles 2x2
-        img = Image.open(os.path.join(gen_folder, "maps", specific_map))
+        img = Image.open(os.path.join(gen_folder, "maps", specific_map + ".png"))
         width = img.width
         height = img.height
     else:
@@ -174,7 +175,7 @@ def generate_map(width,
                                 N=N, periodic_input=periodic_input, ground=ground, nb_samples=nb_samples, symmetry=symmetry,
                                 seed=seed)
 
-    img_np = decode_rgb(img, height_constant, sample_from=sample_from, max_height=max_height)
+    img_np = decode_rgb(img, height_constant, specific_map=specific_map, sample_from=sample_from, max_height=max_height)
     map_2d = img_np.copy()
 
     # First we will just extract the map and plot
@@ -186,8 +187,8 @@ def generate_map(width,
     # Number of divisions for each tile on the mesh
     granularity = 10
 
-    x = np.arange(- width * tile_size // 2, width * tile_size // 2, tile_size / granularity)
-    y = np.arange(- height * tile_size // 2, height * tile_size // 2, tile_size / granularity)
+    x = np.linspace(- width * tile_size // 2, width * tile_size // 2, granularity * width)
+    y = np.linspace(- height * tile_size // 2, height * tile_size // 2, granularity * height)
 
     x, y = np.meshgrid(x, y)
 
@@ -198,8 +199,9 @@ def generate_map(width,
     z_grid = np.linspace(z_grid[:,:,:,0], z_grid[:,:,:,1], granularity)
     z_grid = np.transpose(z_grid, (2, 0, 3, 1)).reshape((height * granularity, width * granularity), order='A')
 
-    scene = sm.Scene() # engine="Unity"
-    scene += sm.StructuredGrid(x=x, y=y, z=z_grid)
+    # Create the mesh
+    scene = sm.Scene()
+    scene += sm.StructuredGrid(x=x, y=y, z=z_grid, name="top_surface")
     scene += get_back(x, y, z_grid, down=-10)
 
     return (x,y,z_grid), map_2d, scene

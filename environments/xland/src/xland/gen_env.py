@@ -3,8 +3,8 @@ Python file to call map, game and agents generation.
 """
 
 import os
-from world import generate_map, generate_tiles
-from game import generate_game
+from .world import generate_map, generate_tiles
+from .game import generate_game
 
 
 def gen_setup(max_height, gen_folder=".gen_files"):
@@ -32,7 +32,8 @@ def gen_setup(max_height, gen_folder=".gen_files"):
 
 
 def generate_env(width, height, periodic_output=False, specific_map=None, sample_from=None, seed=None,
-                    max_height=8, N=2, periodic_input=False, ground=False, nb_samples=1, symmetry=1):
+                    max_height=8, N=2, periodic_input=False, ground=False, nb_samples=1, symmetry=1,
+                    show=False, **kwargs):
     """
     Generate the environment.
     """
@@ -48,25 +49,7 @@ def generate_env(width, height, periodic_output=False, specific_map=None, sample
 
     # TODO: generation of agents
 
-    print(scene)
-    scene.show(in_background=False)
-
-
-if __name__ == '__main__':
-    width = 5
-    height = 5
-    periodic_output = True
-    specific_map = None # "test_map.png"
-    sample_from = "test_map.png"
-    seed = None
-    max_height = 8
-    symmetry = 1
-    N = 2
-    periodic_input = True
-    ground = False
-    nb_samples = 1
-
-    gen_setup(max_height)
-    generate_env(width, height, periodic_output=periodic_output, specific_map=specific_map,
-                sample_from=sample_from, seed=seed, max_height=max_height, N=N, periodic_input=periodic_input,
-                ground=ground, nb_samples=nb_samples, symmetry=symmetry)
+    if show:
+        scene.show(in_background=False)
+    
+    return scene
