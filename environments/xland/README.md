@@ -8,17 +8,24 @@ For now, we are building the procedural generation using [Wave Function Collapse
 
 ## Installation
 
-First, install the WFC:
+First, install the Wave Function Collapse C++ library:
 
 ```
 git clone https://github.com/math-fehr/fast-wfc && cd fast-wfc && cmake . && make install
-cd .. && git clone https://github.com/huggingface/simenv.git && cd simenv/environments/xland
+```
+
+Then create a virtual env, activate it, and then install `simenv`:
+
+```
+cd .. && git clone https://github.com/huggingface/simenv.git
+cd simenv
 pip install -e ".[dev]"
 ```
 
-Create a virtual env and then install the code style/quality tools as well as the code base locally:
+Then install the `xland` package:
 
 ```
+cd environments/xland
 pip install -e ".[dev]"
 ```
 
