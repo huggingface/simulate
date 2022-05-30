@@ -1,1 +1,1 @@
-from .gen_env import generate_env, gen_setup
+from .gen_env import gen_setup, generate_env

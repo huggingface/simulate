@@ -53,16 +53,17 @@ To create the package for pypi.
    Then push the change with a message 'set dev version'
 """
 
-from setuptools import find_packages, setup
 import os
-from Cython.Build import cythonize
 from distutils.extension import Extension
+
+from Cython.Build import cythonize
+from setuptools import find_packages, setup
 
 
 REQUIRED_PKGS = [
-   "dataclasses_json",  # For GLTF export/imports
-   "numpy>=1.17", # We use numpy>=1.17 to have np.random.Generator
-   "simenv", 
+    "dataclasses_json",  # For GLTF export/imports
+    "numpy>=1.17",  # We use numpy>=1.17 to have np.random.Generator
+    "simenv",
 ]
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
@@ -86,7 +87,7 @@ ext_modules = [
         extra_link_args=["-std=c++17"],
         libraries=["fastwfc"],
         include_dirs=[os.path.join(os.getcwd(), "src/xland/world/wfc/cpp/include")],  # path to .h file(s)
-   )
+    )
 ]
 
 ext_modules = cythonize(ext_modules)

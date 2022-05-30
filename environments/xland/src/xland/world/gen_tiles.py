@@ -2,17 +2,16 @@
 Generate tiles for debugging purposes, and for generating maps on the prototype.
 """
 
-from PIL import Image
-import numpy as np
 import os
 
+import numpy as np
+from PIL import Image
 
-def generate_xml(names_xml, neighbors_xml, 
-                tile_size, tiles_folder, 
-                gen_folder):
+
+def generate_xml(names_xml, neighbors_xml, tile_size, tiles_folder, gen_folder):
     """
     Generate xml file for debugging purposes.
-    
+
     Constraints: ramps must start on a certain height and
     go to the next height of the map or go to the same ramp.
 
@@ -25,23 +24,23 @@ def generate_xml(names_xml, neighbors_xml,
         None
     """
 
-    xml_file = os.path.join(tiles_folder, 'data.xml')
+    xml_file = os.path.join(tiles_folder, "data.xml")
 
     # First generate the file with names and neighbors
-    with open(xml_file, 'w') as f:
+    with open(xml_file, "w") as f:
         f.write('<set size="{}" unique="True">\n'.format(tile_size))
 
         # Write tile names
-        f.write('\t<tiles>\n')
+        f.write("\t<tiles>\n")
         f.write(names_xml)
-        f.write('\t</tiles>\n')
+        f.write("\t</tiles>\n")
 
         # Write neighbors
-        f.write('\t<neighbors>\n')
+        f.write("\t<neighbors>\n")
         f.write(neighbors_xml)
-        f.write('\t</neighbors>\n')
+        f.write("\t</neighbors>\n")
 
-        f.write('</set>')
+        f.write("</set>")
 
 
 def add_tile_name(xml_str, tile_name, weight, symmetry="L"):
@@ -84,12 +83,7 @@ def img_from_tiles():
     raise NotImplementedError
 
 
-def generate_tiles(max_height=8,
-                  weights=None,
-                  gen_folder='.gen_files',
-                  tile_size=2,
-                  save=True,
-                  double_ramp=False):
+def generate_tiles(max_height=8, weights=None, gen_folder=".gen_files", tile_size=2, save=True, double_ramp=False):
     """
     Generate tiles for the procedural generation.
     NOTE: So far, we are using these values to get used to how to use the algorithm.
@@ -116,8 +110,8 @@ def generate_tiles(max_height=8,
     ramp_weights = [0.1] * max_height
 
     print("Generating tiles with max height: {}".format(max_height))
-    
-    tiles_folder = os.path.join(gen_folder, 'tiles')
+
+    tiles_folder = os.path.join(gen_folder, "tiles")
     print("Saving tiles to {}".format(tiles_folder))
 
     # Step for the height (which is represented by the intensity of the color)
@@ -125,7 +119,7 @@ def generate_tiles(max_height=8,
     names_xml = ""
     neighbors_xml = ""
     tiles = []
-    plain_tile_names = ['{}0'.format(h) for h in range(max_height)]
+    plain_tile_names = ["{}0".format(h) for h in range(max_height)]
 
     # Generate tiles
     for h in range(max_height):
@@ -133,20 +127,20 @@ def generate_tiles(max_height=8,
         color_above = (h + 1) * color_step
 
         # Generate plain tile
-        tile = Image.new('RGB', size=(tile_size, tile_size), color=(color, color, color))
+        tile = Image.new("RGB", size=(tile_size, tile_size), color=(color, color, color))
         tiles.append(tile)
 
         # TODO: should we always save the tiles?
         # Saving the tiles could be helpful to resume training, etc
         if save:
             tile.save(os.path.join(tiles_folder, plain_tile_names[h] + ".png"))
-            
+
             # Symmetry of a certain letter means that it has the sames symmetric properties
             # as the letter
             names_xml = add_tile_name(names_xml, plain_tile_names[h], weights[h], symmetry="X")
             neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h], plain_tile_names[h])
             if h < max_height - 2:
-                neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h], plain_tile_names[h+1])
+                neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h], plain_tile_names[h + 1])
 
         # If i == max_height - 1, then we don't add more ramps
         if h < max_height - 1:
@@ -159,24 +153,24 @@ def generate_tiles(max_height=8,
             for i in range(0, 2):
                 for ax in range(0, 2):
 
-                    tile = Image.new('RGB', size=(tile_size, tile_size), color=(color_above, color_above, color_above))
+                    tile = Image.new("RGB", size=(tile_size, tile_size), color=(color_above, color_above, color_above))
                     tile_np = np.array(tile)
-                    
+
                     begin = i * tile_size // 2
-                    end = (i+1) * tile_size // 2
+                    end = (i + 1) * tile_size // 2
 
                     if ax == 0:
-                        tile_np[begin:end,:,:] = color
+                        tile_np[begin:end, :, :] = color
                     else:
-                        tile_np[:,begin:end,:] = color
-    
+                        tile_np[:, begin:end, :] = color
+
                     tile_np = np.reshape(tile_np, (tile_size * tile_size, 3))
                     tile.putdata([tuple(tile_np[i]) for i in range(tile_size * tile_size)])
                     tiles.append(tile)
 
                     if save:
-                        next_ramp_name = '{}{}'.format(h + 1, i * 2 + ax + 1)
-                        ramp_name = '{}{}'.format(h, i * 2 + ax + 1)
+                        next_ramp_name = "{}{}".format(h + 1, i * 2 + ax + 1)
+                        ramp_name = "{}{}".format(h, i * 2 + ax + 1)
 
                         tile.save(os.path.join(tiles_folder, ramp_name + ".png"))
                         names_xml = add_tile_name(names_xml, ramp_name, ramp_weights[h], symmetry="L")
@@ -187,7 +181,7 @@ def generate_tiles(max_height=8,
                         # And we add a rotation to fix that and keep the ramps in the right place
                         ramp_or = i * 2 + ax
                         neighbors_xml = add_neighbor(neighbors_xml, ramp_name, plain_tile_names[h], ramp_or, 0)
-                        neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h+1], ramp_name, 0, ramp_or)
+                        neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h + 1], ramp_name, 0, ramp_or)
 
                         # Adding ramp to going upwards
                         if h < max_height - 2 and double_ramp:
@@ -196,5 +190,5 @@ def generate_tiles(max_height=8,
     # Create xml file
     if save:
         generate_xml(names_xml, neighbors_xml, tile_size, tiles_folder, gen_folder)
-    
+
     print("Done generating tiles.")
