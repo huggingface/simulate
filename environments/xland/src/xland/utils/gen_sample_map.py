@@ -9,7 +9,7 @@ import numpy as np
 from PIL import Image
 
 
-def create_2d_map(name, gen_folder=".gen_files", benchmarks="benchmark/examples", map_format="2x2"):
+def create_2d_map(name, gen_folder=".gen_files", benchmarks="benchmark/examples", map_format="rgb"):
     # Create the map
     m = []
 

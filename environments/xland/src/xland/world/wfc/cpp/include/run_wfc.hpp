@@ -7,4 +7,5 @@ using namespace std;
 using namespace rapidxml;
 
 void run_wfc_cpp(bool use_seed, int seed, unsigned width, unsigned height, int sample_type, bool periodic_output,
-        unsigned N, bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry, string input_img);
+        unsigned N, bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry, string input_img,
+        bool verbose, unsigned nb_tries, string dir_path);

@@ -7,7 +7,7 @@ import os
 from .world import generate_map, generate_tiles
 
 
-def gen_setup(max_height, gen_folder=".gen_files"):
+def gen_setup(max_height=8, gen_folder=".gen_files"):
     """
     Setup the generation.
     """

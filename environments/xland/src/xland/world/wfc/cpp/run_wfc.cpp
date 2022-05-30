@@ -38,14 +38,15 @@ int get_random_seed() {
  */
 void read_overlapping_instance(bool use_seed, int seed, unsigned width, unsigned height, bool periodic_output, unsigned N,
                               bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry, string input_img,
-                              const string &current_dir) {
+                              const string &current_dir, bool verbose, unsigned nb_tries) {
                                 
-  string name = "sampled_image";
-  cout << name << " started!" << endl;
+  string name = "sample_";
+  if (verbose) {
+    cout << "Started!" << endl;
+  }
   // Stop hardcoding samples
   const std::string image_path = current_dir + "/maps/" + input_img + ".png";
   std::optional<Array2D<Color>> m = read_image(image_path);
-  cout << image_path << endl;
   if (!m.has_value()) {
     throw "Error while loading " + image_path;
   }
@@ -55,7 +56,7 @@ void read_overlapping_instance(bool use_seed, int seed, unsigned width, unsigned
   OverlappingWFCOptions options = {
       periodic_input, periodic_output, height, width, symmetry, ground, N};
   for (unsigned i = 0; i < nb_samples; i++) {
-    for (unsigned test = 0; test < 10; test++) {
+    for (unsigned test = 0; test < nb_tries; test++) {
       if (use_seed) {
         u_seed = seed + test;
       }
@@ -65,10 +66,14 @@ void read_overlapping_instance(bool use_seed, int seed, unsigned width, unsigned
       std::optional<Array2D<Color>> success = wfc.run();
       if (success.has_value()) {
         write_image_png(current_dir + "/maps/" + name + to_string(i) + ".png", *success);
-        cout << name << " finished!" << endl;
+        if (verbose) {
+          cout << "Finished!" << endl;
+        }
         break;
       } else {
-        cout << "failed!" << endl;
+        if (verbose) {
+          cout << "Failed to generate!" << endl;
+        }
       }
     }
   }
@@ -213,11 +218,13 @@ read_neighbors(xml_node<> *root_node) {
  * Read an instance of a tiling WFC problem.
  */
 void read_simpletiled_instance(bool use_seed, int seed, unsigned width, unsigned height, bool periodic_output,
-                               const string &current_dir) noexcept {
+                               const string &current_dir, bool verbose, unsigned nb_tries) noexcept {
   string name = "tiles";
   string subset = "tiles";
 
-  cout << name << " " << subset << " started!" << endl;
+  if (verbose) {
+    cout << "Started!" << endl;
+  }
 
   ifstream config_file(current_dir + "/" + name + "/data.xml");
   vector<char> buffer((istreambuf_iterator<char>(config_file)),
@@ -274,10 +281,14 @@ void read_simpletiled_instance(bool use_seed, int seed, unsigned width, unsigned
     std::optional<Array2D<Color>> success = wfc.run();
     if (success.has_value()) {
       write_image_png(current_dir + "/maps/" + name + ".png", *success);
-      cout << name << " finished!" << endl;
+      if (verbose) {
+        cout << "Finished!" << endl;
+      }
       break;
     } else {
-      cout << "failed!" << endl;
+      if (verbose) {
+        cout << "Failed!" << endl;
+      }
     }
   }
 }
@@ -288,14 +299,14 @@ void read_simpletiled_instance(bool use_seed, int seed, unsigned width, unsigned
 
 void read_config_file(bool use_seed, int seed, unsigned width, unsigned height, bool periodic_output, unsigned N, 
                       bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry, const string &dir_path, 
-                      string &sample_type, string &input_img) noexcept {
+                      string &sample_type, string &input_img, bool verbose, unsigned nb_tries) noexcept {
   if(sample_type.compare("simpletiled") == 0) {
-    read_simpletiled_instance(use_seed, seed, width, height, periodic_output, dir_path);
+    read_simpletiled_instance(use_seed, seed, width, height, periodic_output, dir_path, verbose, nb_tries);
   } 
 
   else if(sample_type.compare("overlapping") == 0) {
     read_overlapping_instance(use_seed, seed, width, height, periodic_output, N, periodic_input, ground, 
-                  nb_samples, symmetry, input_img, dir_path);
+                  nb_samples, symmetry, input_img, dir_path, verbose, nb_tries);
   }
   
   else {
@@ -305,7 +316,7 @@ void read_config_file(bool use_seed, int seed, unsigned width, unsigned height, 
 
 void run_wfc_cpp(bool use_seed, int seed, unsigned width, unsigned height, int sample_type, bool periodic_output,
         unsigned N, bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry,
-        string input_img) {
+        string input_img, bool verbose, unsigned nb_tries, string dir_path) {
 
   // Initialize rand for non-linux targets
   #ifndef __linux__
@@ -331,7 +342,7 @@ void run_wfc_cpp(bool use_seed, int seed, unsigned width, unsigned height, int s
 
   read_config_file(use_seed, seed, width, height, periodic_output, N,
                   periodic_input, ground, nb_samples, symmetry,
-                  ".gen_files", sample_type_str, input_img);
+                  dir_path, sample_type_str, input_img, verbose, nb_tries);
 
   end = std::chrono::system_clock::now();
   int elapsed_s =
@@ -339,6 +350,8 @@ void run_wfc_cpp(bool use_seed, int seed, unsigned width, unsigned height, int s
   int elapsed_ms =
       std::chrono::duration_cast<std::chrono::milliseconds>(end - start)
           .count();
-  std::cout << "All samples done in " << elapsed_s << "s, " << elapsed_ms % 1000
+  if (verbose) {
+    std::cout << "All samples done in " << elapsed_s << "s, " << elapsed_ms % 1000
             << "ms.\n";
+  }
 }

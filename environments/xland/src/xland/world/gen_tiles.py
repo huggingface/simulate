@@ -105,8 +105,6 @@ def generate_tiles(max_height=8, weights=None, gen_folder=".gen_files", tile_siz
     if weights is None:
         weights = np.exp(np.linspace(1.0, -4.0, max_height))
 
-    print(weights)
-
     ramp_weights = [0.1] * max_height
 
     print("Generating tiles with max height: {}".format(max_height))
