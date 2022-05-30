@@ -231,8 +231,6 @@ def generate_map(
     # Create the mesh
     scene = sm.Scene()
     scene += sm.StructuredGrid(x=x, y=y, z=z_grid, name="top_surface")
-    structures = get_sides_and_bottom(x, y, z_grid, down=-10)
-    for structure in structures:
-        scene += structure
+    scene += get_sides_and_bottom(x, y, z_grid, down=-10)
 
     return (x, y, z_grid), map_2d, scene
