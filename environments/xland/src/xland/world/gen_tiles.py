@@ -18,7 +18,9 @@ def generate_xml(names_xml, neighbors_xml, tile_size, tiles_folder, gen_folder):
     Args:
         names_xml: names of tiles
         neighbors_xml: which tiles can be neighbors
+        tile_size: size of the tiles (in general, 2).
         tiles_folder: folder where tiles are saved.
+        gen_folder: folder where generation files and maps are saved.
 
     Returns:
         None
@@ -89,13 +91,15 @@ def generate_tiles(max_height=8, weights=None, gen_folder=".gen_files", tile_siz
     NOTE: So far, we are using these values to get used to how to use the algorithm.
 
     Args:
+        max_height: can be any integer between 1 and 256 (and it's advisable to use a power of 2, to avoid
+            approximation errors).
         weights: weights for each of the levels of height. If none, defaults for a linear decay between [10, 0.2]
-        max_height: must be a power of 2 and less than 256 for now.
         gen_folder: folder where generation elements are saved.
         tile_size: size of the tiles.
         save: if True, tiles are saved in gen_folder/tiles.
             TODO: Optionally, we could pass directly the generated map instead of saving
             intermediary tiles.
+        double_ramp: whether double ramps should be allowed or not.
 
     Returns:
         None

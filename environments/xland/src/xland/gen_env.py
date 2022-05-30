@@ -10,6 +10,10 @@ from .world import generate_map, generate_tiles
 def gen_setup(max_height=8, gen_folder=".gen_files"):
     """
     Setup the generation.
+
+    Args:
+        max_height: The maximum height of the map.
+        gen_folder: The folder to store the generation files.
     """
     # Check if tiles exist
     # Create the folder that stores tiles and maps if it doesn't exist.
@@ -45,10 +49,29 @@ def generate_env(
     nb_samples=1,
     symmetry=1,
     show=False,
-    **kwargs,
-):
+    **kwargs):
     """
-    Generate the environment.
+    Generate the environment: map, game and agents.
+
+    Args:
+        width: The width of the map.
+        height: The height of the map.
+        periodic_output: Whether the output should be toric.
+        specific_map: A specific map to be plotted.
+        sample_from: The name of the map to sample from.
+        seed: The seed to use for the generation of the map.
+        max_height: The maximum height of the map. Max height of 8 means 8 different levels.
+        N: Size of patterns.
+        periodic_input: Whether the input is toric.
+        ground: Whether to use the lowest middle pattern to initialize the bottom of the map.
+        nb_samples: Number of samples to generate at once.
+        symmetry: Levels of symmetry to be used when sampling from a map. Values
+            larger than one might imply in new tiles, which might be a unwanted behaviour.
+        show: Whether to show the map.
+        **kwargs: Additional arguments. Handles unused args as well.
+
+    Returns:
+        scene: the generated scene in simenv format.
     """
 
     # TODO: choose width and height randomly from a set of predefined values

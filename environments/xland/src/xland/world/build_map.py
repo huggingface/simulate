@@ -16,9 +16,20 @@ from ..utils import decode_rgb
 def get_sides_and_bottom(x, y, z, down):
     """
     Get a bottom basis for the structured grid.
+
+    The main goal of this function is to avoid having a surface
+    floating. So, we add a ground a side meshs.
+
+    Args:
+        x: x coordinates
+        y: y coordinates
+        z: z coordinates
+        down: z coordinates of the bottom
     """
     # TODO: generate 3d mesh with all of this
-
+    # TODO: all of this is being done by hand. Ideally, we want a function
+    # that handles all the cases without writing too much code.
+    # We calculate the coordinates for each of the sides:
     xx_0 = x[0, :]
     yx_0 = [y[0, 0]] * 2
     xx_0, yx_0 = np.meshgrid(xx_0, yx_0)
@@ -53,6 +64,7 @@ def get_sides_and_bottom(x, y, z, down):
     x_down, y_down = np.meshgrid(x_down, y_down)
     z_down = np.full(x_down.shape, down)
 
+    # We get each of the extra structures
     structures = [
         sm.StructuredGrid(x=x_down, y=y_down, z=z_down, name="bottom_surface"),
         sm.StructuredGrid(x=xx_0, y=yx_0, z=zx_0),
@@ -79,6 +91,12 @@ def generate_2d_map(
 ):
     """
     Generate 2d map.
+
+    Args:
+        More information on the Args can be found on generate_map below.
+
+    Returns:
+        image: PIL image
     """
     # TODO: Open image if it's cached
 
@@ -127,6 +145,7 @@ def generate_2d_map(
 
     # Read file
     img = Image.open(img_path)
+
     return img
 
 
@@ -134,7 +153,7 @@ def generate_map(
     width=None,
     height=None,
     periodic_output=False,
-    tile_size=10,
+    final_tile_size=10,
     gen_folder=".gen_files",
     height_constant=0.2,
     specific_map=None,
@@ -151,13 +170,25 @@ def generate_map(
     Generate the map.
 
     Args:
-        seed: The seed to use for the generation of the map.
         width: The width of the map.
         height: The height of the map.
-        tile_size: The size of the resulting tiles.
-        gen_folder: where to find all generation-necessary files.
-
-    NOTE: This is a draft.
+        periodic_output: Whether the output should be toric (WFC param).
+        final_tile_size: The size of the resulting tiles.
+        gen_folder: where to find all generation necessary files.
+        height_constant: height to be multiplied by the rgb values contained in the image.
+            TODO: should be changed to something more agnostic w.r.t. to the maximum height.
+        specific_map: if not None, use this map instead of generating one.
+        sample_from: if not None, use this map as a sample from.
+        max_height: maximum height of the map. For example, max_height=8 means that the map has
+            8 different heights.
+        N: size of patterns to be used by WFC.
+        periodic_input: Whether the input is toric (WFC param).
+        ground: Whether to use the lowest middle pattern to initialize the bottom of the map (WFC param).
+        nb_samples: Number of samples to generate at once (WFC param).
+        symmetry: Levels of symmetry to be used when sampling from a map. Values
+            larger than one might imply in new tiles, which might be a unwanted behaviour
+            (WFC param).
+        seed: The seed to use for the generation of the map.
     """
 
     if specific_map is not None:
@@ -165,6 +196,7 @@ def generate_map(
         img = Image.open(os.path.join(gen_folder, "maps", specific_map + ".png"))
         width = img.width
         height = img.height
+    
     else:
         img = generate_2d_map(
             width,
@@ -188,20 +220,30 @@ def generate_map(
     # First we will just extract the map and plot
     z_grid = img_np
 
-    # Let's say we want tiles of tile_size x tile_size pixels, and a certain "size" on number
-    # of tiles:
+    # Let's say we want tiles of final_tile_size x final_tile_size pixels
     # TODO: change variables and make this clearer
     # Number of divisions for each tile on the mesh
     granularity = 10
 
-    x = np.linspace(-width * tile_size // 2, width * tile_size // 2, granularity * width)
-    y = np.linspace(-height * tile_size // 2, height * tile_size // 2, granularity * height)
+    # We create the mesh centered in (0,0)
+    x = np.linspace(-width * final_tile_size // 2, width * final_tile_size // 2, granularity * width)
+    y = np.linspace(-height * final_tile_size // 2, height * final_tile_size // 2, granularity * height)
 
+    # Create mesh grid
     x, y = np.meshgrid(x, y)
 
-    # create z_grid
+    # Nowm we create the z coordinates
+    # First we split the procedurally generated image into tiles a format (:,:,2,2) in order to
+    # do the interpolation and get the z values on our grid
+    # TODO: this considers tiles of different sizes?
     img_np = np.array(np.hsplit(np.array(np.hsplit(img_np, width)), height))
 
+    # Here, we create the mesh
+    # As we are using tiles of two by two, first we have to find a interpolation on
+    # the x axis for each tile
+    # and then on the y axis for each tile
+    # In order to do so, we can use np.linspace, and then transpose the tensor and
+    # get the right order
     z_grid = np.linspace(img_np[:, :, :, 0], img_np[:, :, :, 1], granularity)
     z_grid = np.linspace(z_grid[:, :, :, 0], z_grid[:, :, :, 1], granularity)
     z_grid = np.transpose(z_grid, (2, 0, 3, 1)).reshape((height * granularity, width * granularity), order="A")

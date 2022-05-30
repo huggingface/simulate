@@ -107,14 +107,21 @@ def create_gif(folder_path, counter):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
+    # Check generate_env for more information about the arguments where
+    # `help`` is not provided
     parser.add_argument("--periodic_output", type=bool, default=True)
     parser.add_argument("--periodic_input", type=bool, default=True)
     parser.add_argument("--ground", type=bool, default=False)
-    parser.add_argument("--gen_from_tiles", type=bool, default=False)
+    parser.add_argument("--gen_from_tiles", type=bool, default=False,
+                        help="If true, generate maps from tiles instead of using \
+                        a pre-built map")
 
-    parser.add_argument("--min_width", type=int, default=5)
-    parser.add_argument("--max_width", type=int, default=21)
-    parser.add_argument("--interval_width", type=int, default=2)
+    parser.add_argument("--min_width", type=int, default=5, 
+                        help="Minimum width of maps generated for the gif.")
+    parser.add_argument("--max_width", type=int, default=21,
+                        help="Maximum width of maps generated for the gif.")
+    parser.add_argument("--interval_width", type=int, default=2,
+                        help="Step when increasing size of maps.")
     parser.add_argument("--seed", type=int, default=0)
     parser.add_argument("--max_height", type=int, default=8)
     parser.add_argument("--symmetry", type=int, default=1)

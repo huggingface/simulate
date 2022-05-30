@@ -11,6 +11,8 @@ from xland.utils import create_2d_map
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
+    # Check generate_env for more information about the arguments where
+    # `help`` is not provided
     parser.add_argument("--periodic_output", type=bool, default=True)
     parser.add_argument("--periodic_input", type=bool, default=True)
     parser.add_argument("--ground", type=bool, default=False)

@@ -10,6 +10,18 @@ from PIL import Image
 
 
 def create_2d_map(name, gen_folder=".gen_files", benchmarks="benchmark/examples", map_format="rgb"):
+    """
+    Create a 2D map from a CSV file with the tiles that should be used in each position.
+
+    Args:
+        name: name of the map.
+        gen_folder: folder where generation files and maps are saved.
+        benchmarks: folder where the benchmark / example files are saved.
+        map_format: format of the map. If 2x2, it will be saved as a PNG file
+            with 2x2 tiles. If rgb, it will be saved as 1x1 tiles, and the
+            information of on which height level it is, and whether it is a 
+            ramp or a plain tile, is in the RGB channels.
+    """
     # Create the map
     m = []
 
