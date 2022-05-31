@@ -86,7 +86,8 @@ ext_modules = [
         extra_compile_args=["-std=c++17"],
         extra_link_args=["-std=c++17"],
         libraries=["fastwfc"],
-        include_dirs=[os.path.join(os.getcwd(), "src/xland/world/wfc/cpp/include")],  # path to .h file(s)
+        include_dirs=[os.path.join(os.getcwd(), "src/xland/world/wfc/cpp/include"), 
+                     "/usr/local/include"],  # path to .h file(s)
     )
 ]
 
