@@ -115,7 +115,7 @@ def generate_2d_map(
         run_wfc(
             width,
             height,
-            1,
+            sample_type=1,
             input_img=sample_from.encode("utf-8"),
             periodic_output=periodic_output,
             N=N,
@@ -127,7 +127,7 @@ def generate_2d_map(
             seed=seed,
             dir_path=gen_folder.encode("utf-8"),
         )
-        img_path = os.path.join(gen_folder, "maps/sampled_image0.png")
+        img_path = os.path.join(gen_folder, "maps/sample_0.png")
 
     else:
         # Simpletiled routine
@@ -135,7 +135,7 @@ def generate_2d_map(
         run_wfc(
             width,
             height,
-            0,
+            sample_type=0,
             periodic_output=periodic_output,
             use_seed=use_seed,
             seed=seed,
