@@ -53,20 +53,24 @@ def generate_env(
     """
     Generate the environment: map, game and agents.
 
+    Notice that all parameters with the tag WFC param means that they passed
+    to the C++ implementation of Wave Function Collapse.
+
     Args:
         width: The width of the map.
         height: The height of the map.
-        periodic_output: Whether the output should be toric.
+        periodic_output: Whether the output should be toric (WFC param).
         specific_map: A specific map to be plotted.
         sample_from: The name of the map to sample from.
         seed: The seed to use for the generation of the map.
         max_height: The maximum height of the map. Max height of 8 means 8 different levels.
-        N: Size of patterns.
-        periodic_input: Whether the input is toric.
-        ground: Whether to use the lowest middle pattern to initialize the bottom of the map.
-        nb_samples: Number of samples to generate at once.
+        N: Size of patterns (WFC param).
+        periodic_input: Whether the input is toric (WFC param).
+        ground: Whether to use the lowest middle pattern to initialize the bottom of the map (WFC param).
+        nb_samples: Number of samples to generate at once (WFC param).
         symmetry: Levels of symmetry to be used when sampling from a map. Values
-            larger than one might imply in new tiles, which might be a unwanted behaviour.
+            larger than one might imply in new tiles, which might be a unwanted behaviour
+            (WFC param).
         show: Whether to show the map.
         **kwargs: Additional arguments. Handles unused args as well.
 
