@@ -17,7 +17,6 @@
 import itertools
 import math
 import uuid
-from turtle import position
 from typing import List, Optional, Sequence, Union
 
 import numpy as np
