@@ -46,7 +46,7 @@ namespace SimEnv {
                 }
             Physics.Simulate(FRAME_INTERVAL);
         }
-        
+
         public static void Close() {
 #if UNITY_EDITOR
             // Application.Quit() does not work in the editor so
@@ -121,16 +121,33 @@ namespace SimEnv {
         void Awake() {
             Instance = this;
             Physics.autoSimulation = false;
-            client = new Client();
+
+            var portArg = GetArg("port");
+            int clientPort = 55000;
+
+            if (portArg is not null) clientPort = int.Parse(portArg);
+
+            Debug.Log("starting Client on Port " + clientPort.ToString());
+            client = new Client(port: clientPort);
             modPath = Application.dataPath + "/" + modPath;
         }
 
         void Start() {
+            Debug.Log("Starting Simulator");
             LoadMods();
             LoadExtensions();
             StartClient();
         }
-
+        // Helper function for getting the command line arguments
+        private static string GetArg(string name) {
+            var args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++) {
+                if (args[i] == name && args.Length > i + 1) {
+                    return args[i + 1];
+                }
+            }
+            return null;
+        }
         void LoadMods() {
             DirectoryInfo modDirectory = new DirectoryInfo(modPath);
             if (modDirectory.Exists) {
@@ -150,7 +167,7 @@ namespace SimEnv {
                 .SelectMany(x => x.GetTypes())
                 .Where(x => x.GetInterfaces().Contains(typeof(ISimObjectExtension)))
                 .ToArray();
-            if(simObjectExtensions == null)
+            if (simObjectExtensions == null)
                 simObjectExtensions = new Type[0];
             simObjectExtensions.ToList().ForEach(x => Debug.Log(x));
             Debug.Log(string.Format("Loaded {0} extensions", simObjectExtensions.Length));
