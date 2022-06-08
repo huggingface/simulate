@@ -246,4 +246,4 @@ def generate_map(
     scene += sm.StructuredGrid(x=x, y=y, z=z_grid, name="top_surface")
     scene += get_sides_and_bottom(x, y, z_grid, down=-10)
 
-    return (x, y, z_grid), map_2d, scene
+    return (x, y, z_grid), np.array(img), scene

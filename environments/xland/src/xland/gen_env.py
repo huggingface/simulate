@@ -3,8 +3,10 @@ Python file to call map, game and agents generation.
 """
 
 import os
+import sys
 
-from .world import generate_map, generate_tiles
+from .world import generate_map, generate_tiles, get_object_pos, create_objects
+from .utils import convert_to_actual_pos
 
 
 def gen_setup(max_height=8, gen_folder=".gen_files"):
@@ -81,11 +83,16 @@ def generate_env(
 
     # TODO: choose width and height randomly from a set of predefined values
     # Generate the map if no specific map is passed
-    nb_tries = 1
+    nb_tries = 5
     success = False
     curr_try = 0
 
+    scene = None
+
     while not success and curr_try < nb_tries:
+        
+        print("Try {}".format(curr_try + 1))
+
         # TODO: add sucess variable to be returned below
         generated_map, map_2d, scene = generate_map(
             width=width,
@@ -104,24 +111,26 @@ def generate_env(
 
         # Get objects position
         # TODO: implement convert_to_actual_pos and create_object
-        # obj_pos, sucess = get_object_pos(scene, generated_map, map_2d)
-        sucess = True
+        obj_pos, success = get_object_pos(map_2d, 2, threshold=0.3)
+
         # If there is no enough area, we should try again and continue the loop
         # TODO: improve quality of this code
-        if not success:
+        if success:
+            # Set objects in scene:
+            obj_pos = convert_to_actual_pos(obj_pos, generated_map)
+            scene += create_objects(obj_pos)
+
+            # Generate the game
+            # generate_game(generated_map, scene)
+
+            # TODO: generation of agents
+
+        else:
             curr_try += 1
-            continue
-
-        # Set objects in scene:
-        # obj_pos = convert_to_actual_pos(obj_pos, generated_map)
-        # scene += create_object(obj_pos)
-
-        # Generate the game
-        # generate_game(generated_map, scene)
-
-        # TODO: generation of agents
+            if seed is not None:
+                seed += 1
 
     if show and success:
         scene.show(in_background=False)
 
-    return scene, sucess
+    return scene, success

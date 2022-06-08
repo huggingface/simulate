@@ -8,7 +8,7 @@ import numpy as np
 
 import simenv as sm
 
-from ..utils import constants, get_connected_components
+from ..utils import constants, get_connected_components, get_bounds, COLORS
 
 
 def get_connectivity_graph(z):
@@ -161,15 +161,18 @@ def sample_index(n, p):
     return np.unravel_index(i, p.shape)
 
 
-def create_objects(positions, object_type=None):
+def create_objects(positions, object_type="Cube", object_size=5):
     """
     Create objects in simenv.
     """
     if object_type is not None:
         # Generate this type of object
-        colors = np.random.choice(COLORS, size=len(positions))
+        # idxs = np.random.choice(np.arange(len(COLORS), dtype=int), size=len(positions))
+        # colors = [COLORS[idx] for idx in idxs]
 
-        return [simenv.Cube(position=pos, color=color) for pos, color in zip(positions, colors)]
+        # TODO: add colors
+        return [sm.Cube(position=pos, 
+                bounds=get_bounds(object_type="Cube", object_size=object_size)) for pos in positions]
 
     else:
         # Choose among options of objects
@@ -192,7 +195,8 @@ def get_object_pos(z, n_objects, threshold=0.5, distribution="uniform"):
     probabilities = get_distribution(
         get_mask_connected_components(playable_nodes, final_shp=z.shape[:-1]), distribution=distribution
     )
-    obj_pos = sample_index(n_objects, probabilities)
+
+    obj_pos = np.array(sample_index(n_objects, probabilities))
 
     # Return True showing that object placement was successful
     return obj_pos, True

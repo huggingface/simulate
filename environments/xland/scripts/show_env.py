@@ -3,6 +3,7 @@ Minimal script for generating a map, and then randomly sampling from it.
 """
 
 import argparse
+import sys
 
 from xland import gen_setup, generate_env
 from xland.utils import create_2d_map
