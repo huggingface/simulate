@@ -10,7 +10,7 @@ from wfc_binding import run_wfc
 
 import simenv as sm
 
-from ..utils import decode_rgb
+from ..utils import decode_rgb, GRANULARITY
 
 
 def get_sides_and_bottom(x, y, z, down):
@@ -155,7 +155,6 @@ def generate_map(
     periodic_output=False,
     final_tile_size=10,
     gen_folder=".gen_files",
-    height_constant=0.2,
     specific_map=None,
     sample_from=None,
     max_height=8,
@@ -175,8 +174,6 @@ def generate_map(
         periodic_output: Whether the output should be toric (WFC param).
         final_tile_size: The size of the resulting tiles.
         gen_folder: where to find all generation necessary files.
-        height_constant: height to be multiplied by the rgb values contained in the image.
-            TODO: should be changed to something more agnostic w.r.t. to the maximum height.
         specific_map: if not None, use this map instead of generating one.
         sample_from: if not None, use this map as a sample from.
         max_height: maximum height of the map. For example, max_height=8 means that the map has
@@ -196,7 +193,7 @@ def generate_map(
         img = Image.open(os.path.join(gen_folder, "maps", specific_map + ".png"))
         width = img.width
         height = img.height
-
+    
     else:
         img = generate_2d_map(
             width,
@@ -213,7 +210,7 @@ def generate_map(
         )
 
     img_np = decode_rgb(
-        img, height_constant, specific_map=specific_map, sample_from=sample_from, max_height=max_height
+        img, specific_map=specific_map, sample_from=sample_from, max_height=max_height
     )
     map_2d = img_np.copy()
 
@@ -222,12 +219,10 @@ def generate_map(
 
     # Let's say we want tiles of final_tile_size x final_tile_size pixels
     # TODO: change variables and make this clearer
-    # Number of divisions for each tile on the mesh
-    granularity = 10
 
     # We create the mesh centered in (0,0)
-    x = np.linspace(-width * final_tile_size // 2, width * final_tile_size // 2, granularity * width)
-    y = np.linspace(-height * final_tile_size // 2, height * final_tile_size // 2, granularity * height)
+    x = np.linspace(-width * final_tile_size // 2, width * final_tile_size // 2, GRANULARITY * width)
+    y = np.linspace(-height * final_tile_size // 2, height * final_tile_size // 2, GRANULARITY * height)
 
     # Create mesh grid
     x, y = np.meshgrid(x, y)
@@ -244,9 +239,9 @@ def generate_map(
     # and then on the y axis for each tile
     # In order to do so, we can use np.linspace, and then transpose the tensor and
     # get the right order
-    z_grid = np.linspace(img_np[:, :, :, 0], img_np[:, :, :, 1], granularity)
-    z_grid = np.linspace(z_grid[:, :, :, 0], z_grid[:, :, :, 1], granularity)
-    z_grid = np.transpose(z_grid, (2, 0, 3, 1)).reshape((height * granularity, width * granularity), order="A")
+    z_grid = np.linspace(img_np[:, :, :, 0], img_np[:, :, :, 1], GRANULARITY)
+    z_grid = np.linspace(z_grid[:, :, :, 0], z_grid[:, :, :, 1], GRANULARITY)
+    z_grid = np.transpose(z_grid, (2, 0, 3, 1)).reshape((height * GRANULARITY, width * GRANULARITY), order="A")
 
     # Create the mesh
     scene = sm.Scene()

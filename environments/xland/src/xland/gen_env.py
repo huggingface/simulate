@@ -49,8 +49,7 @@ def generate_env(
     nb_samples=1,
     symmetry=1,
     show=False,
-    **kwargs,
-):
+    **kwargs):
     """
     Generate the environment: map, game and agents.
 
@@ -81,27 +80,47 @@ def generate_env(
 
     # TODO: choose width and height randomly from a set of predefined values
     # Generate the map if no specific map is passed
-    generated_map, map_2d, scene = generate_map(
-        width=width,
-        height=height,
-        periodic_output=periodic_output,
-        specific_map=specific_map,
-        sample_from=sample_from,
-        seed=seed,
-        max_height=max_height,
-        N=N,
-        periodic_input=periodic_input,
-        ground=ground,
-        nb_samples=nb_samples,
-        symmetry=symmetry,
-    )
+    nb_tries = 1
+    success = False
+    curr_try = 0
 
-    # Generate the game
-    # generate_game(generated_map, scene)
+    while not success and curr_try < nb_tries:
+        # TODO: add sucess variable to be returned below
+        generated_map, map_2d, scene = generate_map(
+            width=width,
+            height=height,
+            periodic_output=periodic_output,
+            specific_map=specific_map,
+            sample_from=sample_from,
+            seed=seed,
+            max_height=max_height,
+            N=N,
+            periodic_input=periodic_input,
+            ground=ground,
+            nb_samples=nb_samples,
+            symmetry=symmetry,
+        )
 
-    # TODO: generation of agents
+        # Get objects position
+        # TODO: implement convert_to_actual_pos and create_object
+        # obj_pos, sucess = get_object_pos(scene, generated_map, map_2d)
+        sucess = True
+        # If there is no enough area, we should try again and continue the loop
+        # TODO: improve quality of this code
+        if not success:
+            curr_try += 1
+            continue
 
-    if show:
+        # Set objects in scene:
+        # obj_pos = convert_to_actual_pos(obj_pos, generated_map)
+        # scene += create_object(obj_pos)
+
+        # Generate the game
+        # generate_game(generated_map, scene)
+
+        # TODO: generation of agents
+
+    if show and success:
         scene.show(in_background=False)
 
-    return scene
+    return scene, sucess
