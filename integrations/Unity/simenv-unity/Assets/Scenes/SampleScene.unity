@@ -179,6 +179,7 @@ GameObject:
   - component: {fileID: 1960643508}
   - component: {fileID: 1960643507}
   - component: {fileID: 1960643506}
+  - component: {fileID: 1960643509}
   m_Layer: 0
   m_Name: DebugCam
   m_TagString: Untagged
@@ -252,3 +253,20 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 31.272, y: 0, z: 0}
+--- !u!114 &1960643509
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1960643505}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: f6c349ad118ab985cb036921d8dccbb8, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  acceleration: 50
+  accSprintMultiplier: 4
+  lookSensitivity: 1
+  dampingCoefficient: 5
+  focusOnEnable: 1
