@@ -196,7 +196,7 @@ def generate_map(
         img = Image.open(os.path.join(gen_folder, "maps", specific_map + ".png"))
         width = img.width
         height = img.height
-    
+
     else:
         img = generate_2d_map(
             width,

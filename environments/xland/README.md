@@ -8,11 +8,17 @@ For now, we are building the procedural generation using [Wave Function Collapse
 
 ## Installation
 
-First, install the Wave Function Collapse C++ library:
+First, install the Wave Function Collapse C++ library (you will need cmake which can be installed with `sudo apt install cmake` (Linux) or `brew install cmake` (MacOS)):
 
 ```
-git clone https://github.com/math-fehr/fast-wfc && cd fast-wfc && cmake . && make install
+git clone https://github.com/math-fehr/fast-wfc && cd fast-wfc && cmake . && sudo make install
 ```
+
+Troubleshooting w.r.t. to C++ external library installation: 
+
+* When installing an external library in C++, you might need to create the links to `usr/local/lib`, and other usual paths for C++ library installation. The installation of this particular external library doesn't update the links, so you might need to run `sudo ldconfig` in Linux.
+
+* On MacOS, you might face the same issue. If that's the case, please follow this next extra step: for a temporary solution, run `export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH` on the terminal you will be using to run the code. If you want changes to be persistent, add the export command on your profile file (e.g. `~/.zprofile`). It's possible to make it work without this extra step (but not as easy as in Linux, unfortunately), however we are still working on identifying the exact solution (one non-ideal solution is to install another C++ library that updates the links in MacOS).
 
 Then create a virtual env, activate it, and then install `simenv`:
 
@@ -29,7 +35,7 @@ cd environments/xland
 pip install -e ".[dev]"
 ```
 
-Notice that when installing on MacOS, you might face issues. If that's the case, please follow this next extra step: for a temporary solution, run `export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH` on the terminal you will be using to run the code. If you want changes to be persistent, add the export command on your profile file (e.g. `~/.zprofile`).
+So far, the environment was not tested on Windows.
 
 ### Style
 

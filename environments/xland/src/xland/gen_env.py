@@ -49,7 +49,8 @@ def generate_env(
     nb_samples=1,
     symmetry=1,
     show=False,
-    **kwargs):
+    **kwargs,
+):
     """
     Generate the environment: map, game and agents.
 

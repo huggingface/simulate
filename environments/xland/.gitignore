@@ -6,3 +6,6 @@
 
 # ignore cache
 cache/
+
+# ignore generated cpp file
+wfc_binding.cpp
