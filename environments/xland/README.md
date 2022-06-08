@@ -29,6 +29,8 @@ cd environments/xland
 pip install -e ".[dev]"
 ```
 
+Notice that when installing on MacOS, you might face issues. If that's the case, please follow this next extra step: for a temporary solution, run `export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH` on the terminal you will be using to run the code. If you want changes to be persistent, add the export command on your profile file (e.g. `~/.zprofile`).
+
 ### Style
 
 Before you merge a PR, fix the style (we use `isort` + `black`)
