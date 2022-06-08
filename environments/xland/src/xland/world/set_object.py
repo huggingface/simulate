@@ -2,12 +2,13 @@
 Main functions for setting objects on the map.
 """
 
-import numpy as np
 from collections import defaultdict, deque
+
+import numpy as np
 
 import simenv as sm
 
-from ..utils import get_connected_components, constants
+from ..utils import constants, get_connected_components
 
 
 def get_connectivity_graph(z):
@@ -33,16 +34,18 @@ def get_connectivity_graph(z):
 
             neighborhood = z[min_x:max_x, min_y:max_y]
             sub_nodes = nodes[min_x:max_x, min_y:max_y]
-            non_diagonal_connections = np.array([[0,1,0], [1,0,1], [0,1,0]])[min_x - x + 1: max_x - x + 1, min_y - y + 1: max_y - y + 1]
+            non_diagonal_connections = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])[
+                min_x - x + 1 : max_x - x + 1, min_y - y + 1 : max_y - y + 1
+            ]
 
-            # Going down            
-            going_down = z[x, y, 0] > neighborhood[:,:,0]
+            # Going down
+            going_down = z[x, y, 0] > neighborhood[:, :, 0]
             going_down = np.logical_and(going_down, non_diagonal_connections)
-            
+
             # Same level tiles
-            same_level = np.logical_and(z[x, y, 0] == neighborhood[:,:,0], neighborhood[:,:,1] == 0)
+            same_level = np.logical_and(z[x, y, 0] == neighborhood[:, :, 0], neighborhood[:, :, 1] == 0)
             same_level = np.logical_and(same_level, non_diagonal_connections)
-            
+
             # Connection with ramp
             neigh_shp = neighborhood.shape
             going_ramp = np.zeros(neigh_shp[:-1], dtype=bool)
@@ -60,29 +63,43 @@ def get_connectivity_graph(z):
                 idx_x = neigh_shp[0] - 1
 
                 # Get if we going to other level
-                going_ramp[idx_x,center_y] = np.logical_and(z[x, y, 0] == neighborhood[idx_x,center_y,0], neighborhood[idx_x,center_y,1] == 1)
-                
+                going_ramp[idx_x, center_y] = np.logical_and(
+                    z[x, y, 0] == neighborhood[idx_x, center_y, 0], neighborhood[idx_x, center_y, 1] == 1
+                )
+
                 # Get going_up as well from a ramp going down
-                going_up[idx_x,center_y] = np.logical_and(z[x, y, 0] + 1 == neighborhood[idx_x,center_y,0], z[x,y,1] == 1)
-    
+                going_up[idx_x, center_y] = np.logical_and(
+                    z[x, y, 0] + 1 == neighborhood[idx_x, center_y, 0], z[x, y, 1] == 1
+                )
+
             # 2. Going left from a ramp
             if y < M - 1:
                 idx_y = neigh_shp[1] - 1
-                going_ramp[center_x,idx_y] = np.logical_and(z[x, y, 0] == neighborhood[center_x,idx_y,0], neighborhood[center_x,idx_y,1] == 2)
-                going_up[center_x,idx_y] = np.logical_and(z[x, y, 0] + 1 == neighborhood[center_x,idx_y,0], z[x,y,1] == 2)
+                going_ramp[center_x, idx_y] = np.logical_and(
+                    z[x, y, 0] == neighborhood[center_x, idx_y, 0], neighborhood[center_x, idx_y, 1] == 2
+                )
+                going_up[center_x, idx_y] = np.logical_and(
+                    z[x, y, 0] + 1 == neighborhood[center_x, idx_y, 0], z[x, y, 1] == 2
+                )
 
-            # 3. Going up from a ramp 
+            # 3. Going up from a ramp
             if x > 0:
-                going_ramp[0,center_y] = np.logical_and(z[x, y, 0] == neighborhood[0,center_y,0], neighborhood[0,center_y,1] == 3)
-                going_up[0,center_y] = np.logical_and(z[x, y, 0] + 1 == neighborhood[0,center_y,0], z[x,y,1] == 3)
+                going_ramp[0, center_y] = np.logical_and(
+                    z[x, y, 0] == neighborhood[0, center_y, 0], neighborhood[0, center_y, 1] == 3
+                )
+                going_up[0, center_y] = np.logical_and(z[x, y, 0] + 1 == neighborhood[0, center_y, 0], z[x, y, 1] == 3)
 
             # 4. Going right from a ramp
             if y > 0:
-                going_ramp[center_x,0] = np.logical_and(z[x, y, 0] == neighborhood[center_x,0,0], neighborhood[center_x,0,1] == 4) 
-                going_up[center_x,0] = np.logical_and(z[x, y, 0] + 1 == neighborhood[center_x,0,0], z[x,y,1] == 4)
+                going_ramp[center_x, 0] = np.logical_and(
+                    z[x, y, 0] == neighborhood[center_x, 0, 0], neighborhood[center_x, 0, 1] == 4
+                )
+                going_up[center_x, 0] = np.logical_and(z[x, y, 0] + 1 == neighborhood[center_x, 0, 0], z[x, y, 1] == 4)
 
             # Add edges
-            edges[y + M * x] = np.concatenate([sub_nodes[going_down], sub_nodes[going_up], sub_nodes[going_ramp], sub_nodes[same_level]])
+            edges[y + M * x] = np.concatenate(
+                [sub_nodes[going_down], sub_nodes[going_up], sub_nodes[going_ramp], sub_nodes[same_level]]
+            )
 
     return nodes, edges
 
@@ -113,7 +130,7 @@ def get_playable_area(z):
     # Return indexes of the playable area and if the playable area is larger than
     # the threshold.
     return largest_connected_component, len(largest_connected_component) / n_nodes
-    
+
 
 def get_mask_connected_components(component, final_shp):
     """
@@ -130,10 +147,11 @@ def get_distribution(playable_area, distribution="uniform"):
     """
     if distribution == "uniform":
         int_values = playable_area.astype(float)
-        return int_values / np.sum(int_values)  
-    
+        return int_values / np.sum(int_values)
+
     else:
         raise NotImplementedError
+
 
 def sample_index(n, p):
     """
@@ -142,6 +160,7 @@ def sample_index(n, p):
     i = np.random.choice(np.arange(p.size), p=p.ravel(), size=n, replace=False)
     return np.unravel_index(i, p.shape)
 
+
 def create_objects(positions, object_type=None):
     """
     Create objects in simenv.
@@ -149,16 +168,13 @@ def create_objects(positions, object_type=None):
     if object_type is not None:
         # Generate this type of object
         colors = np.random.choice(COLORS, size=len(positions))
-        
-        return [
-            simenv.Cube(position=pos, color=color) for pos, color in zip(positions, colors)
-        ]
+
+        return [simenv.Cube(position=pos, color=color) for pos, color in zip(positions, colors)]
 
     else:
         # Choose among options of objects
         # TODO: do this as soon as we see how to deal with colliders
         raise NotImplementedError()
-    
 
 
 def get_object_pos(z, n_objects, threshold=0.5, distribution="uniform"):
@@ -166,14 +182,16 @@ def get_object_pos(z, n_objects, threshold=0.5, distribution="uniform"):
     Returns None if there is not a playable area.
     """
     playable_nodes, area = get_playable_area(z)
-    
+
     if area < threshold:
         print("Unsufficient playable area: {} when minimum is {}".format(area, threshold))
         return None, False
-    
+
     # Get probabilities to where to place objects
     # TODO: add option to do the same as it's done in XLand from Deepmind
-    probabilities = get_distribution(get_mask_connected_components(playable_nodes, final_shp=z.shape[:-1]), distribution=distribution)
+    probabilities = get_distribution(
+        get_mask_connected_components(playable_nodes, final_shp=z.shape[:-1]), distribution=distribution
+    )
     obj_pos = sample_index(n_objects, probabilities)
 
     # Return True showing that object placement was successful

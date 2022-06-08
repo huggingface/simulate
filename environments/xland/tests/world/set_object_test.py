@@ -2,20 +2,22 @@
 Tests for setting objects on the map.
 """
 
-import numpy as np
 import unittest
 
-from xland.world.set_object import get_connectivity_graph, get_playable_area, get_object_pos
+import numpy as np
+from xland.world.set_object import get_connectivity_graph, get_object_pos, get_playable_area
 
 
 class TestGraphBuilding(unittest.TestCase):
-
     def test_simple_graph(self):
-        z = np.array([
-                    [[0,0,0], [0,0,0], [0,0,0], [0,0,0]], 
-                    [[0,0,0], [0,2,0], [1,0,0], [1,0,0]], 
-                    [[0,0,0], [0,0,0], [2,0,0], [2,0,0]]])
-    
+        z = np.array(
+            [
+                [[0, 0, 0], [0, 0, 0], [0, 0, 0], [0, 0, 0]],
+                [[0, 0, 0], [0, 2, 0], [1, 0, 0], [1, 0, 0]],
+                [[0, 0, 0], [0, 0, 0], [2, 0, 0], [2, 0, 0]],
+            ]
+        )
+
         true_edges = {
             0: [1, 4],
             1: [0, 2],
@@ -33,15 +35,14 @@ class TestGraphBuilding(unittest.TestCase):
 
         nodes, edges = get_connectivity_graph(z)
         edges = {n: sorted(e) for n, e in edges.items()}
-        
+
         # Check values
         self.assertTrue(expr=np.array_equal(edges, true_edges))
 
     def test_ramps(self):
-        z = np.array([
-                    [[0,0,0], [0,2,0], [1,0,0]], 
-                    [[3,3,0], [0,0,0], [1,1,0]], 
-                    [[3,0,0], [2,4,0], [2,0,0]]])
+        z = np.array(
+            [[[0, 0, 0], [0, 2, 0], [1, 0, 0]], [[3, 3, 0], [0, 0, 0], [1, 1, 0]], [[3, 0, 0], [2, 4, 0], [2, 0, 0]]]
+        )
 
         true_edges = {
             0: [1],
@@ -56,19 +57,17 @@ class TestGraphBuilding(unittest.TestCase):
         }
 
         nodes, edges = get_connectivity_graph(z)
-        edges = {n:sorted(e) for n, e in edges.items()}
-        
+        edges = {n: sorted(e) for n, e in edges.items()}
+
         # Check values
-        self.assertTrue(expr=np.array_equal(edges, true_edges))        
+        self.assertTrue(expr=np.array_equal(edges, true_edges))
 
 
 class TestGetPlayableArea(unittest.TestCase):
-    
     def test_playable_area(self):
-        z = np.array([
-                    [[0,0,0], [0,2,0], [1,0,0]], 
-                    [[3,3,0], [0,0,0], [1,1,0]], 
-                    [[3,0,0], [2,4,0], [2,0,0]]])
+        z = np.array(
+            [[[0, 0, 0], [0, 2, 0], [1, 0, 0]], [[3, 3, 0], [0, 0, 0], [1, 1, 0]], [[3, 0, 0], [2, 4, 0], [2, 0, 0]]]
+        )
         true_area = 8 / 9
 
         playable_nodes, area = get_playable_area(z)
@@ -76,17 +75,15 @@ class TestGetPlayableArea(unittest.TestCase):
 
 
 class TestSetObject(unittest.TestCase):
-
     def test_set_object(self):
-        z = np.array([
-                    [[0,0,0], [0,2,0], [1,0,0]], 
-                    [[3,3,0], [0,0,0], [1,1,0]], 
-                    [[3,0,0], [2,4,0], [2,0,0]]])
-        
+        z = np.array(
+            [[[0, 0, 0], [0, 2, 0], [1, 0, 0]], [[3, 3, 0], [0, 0, 0], [1, 1, 0]], [[3, 0, 0], [2, 4, 0], [2, 0, 0]]]
+        )
+
         obj_pos, success = get_object_pos(z, 8)
         self.assertTrue(success)
-        self.assertTrue(not (1,1) in zip(*obj_pos))
+        self.assertTrue(not (1, 1) in zip(*obj_pos))
 
-        
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     unittest.main()

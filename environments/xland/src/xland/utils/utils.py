@@ -3,6 +3,7 @@ Util functions.
 """
 
 import numpy as np
+
 from .constants import GRANULARITY, HEIGHT_CONSTANT
 
 

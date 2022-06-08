@@ -10,7 +10,7 @@ from wfc_binding import run_wfc
 
 import simenv as sm
 
-from ..utils import decode_rgb, GRANULARITY
+from ..utils import GRANULARITY, decode_rgb
 
 
 def get_sides_and_bottom(x, y, z, down):
@@ -193,7 +193,7 @@ def generate_map(
         img = Image.open(os.path.join(gen_folder, "maps", specific_map + ".png"))
         width = img.width
         height = img.height
-    
+
     else:
         img = generate_2d_map(
             width,
@@ -209,9 +209,7 @@ def generate_map(
             seed=seed,
         )
 
-    img_np = decode_rgb(
-        img, specific_map=specific_map, sample_from=sample_from, max_height=max_height
-    )
+    img_np = decode_rgb(img, specific_map=specific_map, sample_from=sample_from, max_height=max_height)
     map_2d = img_np.copy()
 
     # First we will just extract the map and plot
