@@ -86,11 +86,11 @@ class UnityEngine:
 
     def get_reward(self):
         command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
-        return self.run_command(command)
+        return float(self.run_command(command))
 
     def get_done(self):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
-        return self.run_command(command)
+        return self.run_command(command) == "true"
 
     def reset(self):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}

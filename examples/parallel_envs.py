@@ -7,7 +7,8 @@ import matplotlib.pyplot as plt
 import numpy as np
 import random
 from stable_baselines3.common.vec_env import SubprocVecEnv
-
+from stable_baselines3 import PPO
+from stable_baselines3.common.env_checker import check_env
 
 def create_env(executable=None, port=None):
     scene = sm.Scene(engine="Unity", executable=executable, port=port)
@@ -60,22 +61,25 @@ if __name__ == "__main__":
     def make_env(executable, rank, seed=0):
         def _make_env():
             print("rank", rank)
-            env = create_env(executable=executable, port=55100+rank)
+            env = create_env(executable=executable, port=55000+rank)
             return env
 
         return _make_env
 
-    n_envs = 4
+    n_envs = 16
 
     envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i) for i in range(n_envs)])
-    envs.reset()
-    for i in range(1000):
-        action = [[envs.action_space.sample()] for _ in range(n_envs)]
-        print(action)
-        obs, reward, done, info = envs.step(action)
-        print(done, reward)
-        #time.sleep(0.1)
-    
+
+    obs = envs.reset()
+    # envs.reset()
+    # for i in range(1000):
+    #     action = [[envs.action_space.sample()] for _ in range(n_envs)]
+    #     print(action)
+    #     obs, reward, done, info = envs.step(action)
+    #     print(done, reward)
+    #     #time.sleep(0.1)
+    model = PPO("CnnPolicy", envs, verbose=3)
+    model.learn(total_timesteps=100000)
     
     envs.close()
 
