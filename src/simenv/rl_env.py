@@ -46,3 +46,6 @@ class RLEnv(gym.Env):
         info = {}  # TODO: Add info to the backend, if we require it
 
         return obs, reward, done, info
+
+    def close(self):
+        self.scene.close()
