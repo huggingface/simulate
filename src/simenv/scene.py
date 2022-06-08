@@ -52,6 +52,8 @@ class Scene(Asset):
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
         children=None,
+        executable: Optional[str] = None,
+        port: Optional[int] = None,
         **kwargs,
     ):
         super().__init__(
@@ -68,7 +70,7 @@ class Scene(Asset):
         if engine is not None:
             engine = engine.lower()
         if engine == "unity":
-            self.engine = UnityEngine(self, **kwargs)
+            self.engine = UnityEngine(self, executable=executable, port=port)
         elif engine == "blender":
             raise NotImplementedError()
         elif engine == "pyvista" or engine is None:
