@@ -91,7 +91,8 @@ class UnityEngine:
 
     def get_done(self):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
-        return self.run_command(command) == "true"
+
+        return self.run_command(command) == "True"
 
     def reset(self):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
