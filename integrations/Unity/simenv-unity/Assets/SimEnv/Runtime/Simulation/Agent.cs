@@ -116,6 +116,8 @@ namespace SimEnv {
 
     public class Agent : SimAgentBase {
         public float move_speed = 1f;
+
+        private Vector3 originalPosition;
         public float turn_speed = 1f;
         public float height = 1f;
 
@@ -151,9 +153,7 @@ namespace SimEnv {
 
         public void SetProperties(HF_RL_agents.HF_RL_Agent agentData) {
             Debug.Log("Setting Agent properties");
-
-            Debug.Log(agentData.action_dist);
-
+            originalPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
             color = agentData.color;
             height = agentData.height;
             move_speed = agentData.move_speed;
@@ -296,8 +296,14 @@ namespace SimEnv {
         public void Reset() {
             accumReward = 0.0f;
             // Reset the agent
+            controller.enabled = false; // the Character Controller takes control of the tranform and must be disabled
+            transform.position = originalPosition;
+            controller.enabled = true;
+
+
             // Reset reward objects?
             // Reset reward functions
+
             foreach (RewardFunction rewardFunction in rewardFunctions) {
                 rewardFunction.Reset();
             }
