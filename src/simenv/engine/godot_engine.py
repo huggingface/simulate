@@ -2,7 +2,6 @@ import atexit
 import base64
 import json
 import socket
-from urllib import response
 
 from ..gltf_export import tree_as_glb_bytes
 
@@ -48,7 +47,7 @@ class GodotEngine:
                 while len(response) < data_length:
                     response += self.client.recv(data_length - len(response)).decode()
 
-                # print(f"Received response: {response}")
+                print(f"Received response: {response}")
                 return response
 
     def _send_gltf(self, bytes):
@@ -68,23 +67,23 @@ class GodotEngine:
         self._send_gltf(tree_as_glb_bytes(self._scene))
 
     def step(self, action):
-        command = {"type": "Step", "contents": json.dumps({"action": action})}
+        command = {"type": "Step", "contents": {"action": action}}
         return self.run_command(command)
 
     def get_reward(self):
-        command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
+        command = {"type": "GetReward", "contents": {"message": "message"}}
         return self.run_command(command)
 
     def get_done(self):
-        command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
+        command = {"type": "GetDone", "contents": {"message": "message"}}
         return self.run_command(command)
 
     def reset(self):
-        command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
+        command = {"type": "Reset", "contents": {"message": "message"}}
         self.run_command(command)
 
     def get_observation(self):
-        command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
+        command = {"type": "GetObservation", "contents": {"message": "message"}}
 
         encoded_obs = self.run_command(command)
         decoded_obs = json.loads(encoded_obs)
@@ -93,7 +92,7 @@ class GodotEngine:
 
     def run_command(self, command):
         message = json.dumps(command)
-        # print(f"Sending command: {message}")
+        print(f"Sending command: {message}")
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         return self._send_bytes(message_bytes)
 
