@@ -37,7 +37,7 @@ func read():
 	if _status == _stream.STATUS_CONNECTED:
 		var available_bytes: int = _stream.get_available_bytes()
 		if available_bytes > 0:
-			print("available bytes: ", available_bytes)
+			print("Available bytes: ", available_bytes)
 			var stream_data: Array = _stream.get_partial_data(available_bytes)
 			if stream_data[0] != OK:
 				print("Error getting data from stream: ", stream_data[0])
