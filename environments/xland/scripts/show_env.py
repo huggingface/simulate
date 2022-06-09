@@ -3,7 +3,6 @@ Minimal script for generating a map, and then randomly sampling from it.
 """
 
 import argparse
-import sys
 
 from xland import gen_setup, generate_env
 from xland.utils import create_2d_map
@@ -39,6 +38,6 @@ if __name__ == "__main__":
 
     else:
         name = args.specific_map or args.sample_from
-        map_2d = create_2d_map(name, map_format="rgb")
+        create_2d_map(name, map_format="rgb")
 
     _ = generate_env(**vars(args))

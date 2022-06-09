@@ -210,7 +210,6 @@ def generate_map(
         )
 
     img_np = decode_rgb(img, specific_map=specific_map, sample_from=sample_from, max_height=max_height)
-    map_2d = img_np.copy()
 
     # First we will just extract the map and plot
     z_grid = img_np

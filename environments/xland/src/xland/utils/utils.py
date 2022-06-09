@@ -48,7 +48,7 @@ def decode_rgb(img, specific_map=None, sample_from=None, max_height=8):
 def convert_to_actual_pos(obj_pos, generated_map):
     # Unpack values
     x, y, z = generated_map
-    
+
     # Get true heights and weights
     # TODO: should we pass it in the function, or add atributes to a class?
     true_width, true_height = x.shape
@@ -75,7 +75,7 @@ def get_bounds(object_type, object_size):
     """
     if object_type == "Cube":
         # Assign x, y, z coordinates
-        min_v, max_v = - object_size / 2, object_size / 2
+        min_v, max_v = -object_size / 2, object_size / 2
 
         # xMin, xMax, yMin, yMax, zMin, zMax
         return {"bounds": (min_v, max_v, min_v, max_v, min_v, max_v)}

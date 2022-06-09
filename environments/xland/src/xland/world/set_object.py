@@ -2,13 +2,13 @@
 Main functions for setting objects on the map.
 """
 
-from collections import defaultdict, deque
+from collections import defaultdict
 
 import numpy as np
 
 import simenv as sm
 
-from ..utils import constants, get_connected_components, get_bounds, COLORS, OBJECTS
+from ..utils import COLORS, OBJECTS, get_bounds, get_connected_components
 
 
 def get_connectivity_graph(z):
@@ -36,7 +36,7 @@ def get_connectivity_graph(z):
 
             if z[x, y, 1] == 0:
                 plain_tiles.append(y + M * x)
-            
+
             min_x, max_x, min_y, max_y = max(0, x - 1), min(N, x + 2), max(0, y - 1), min(M, y + 2)
 
             neighborhood = z[min_x:max_x, min_y:max_y]
@@ -138,7 +138,7 @@ def get_playable_area(z):
     component_lens = [len(c) for c in connected_components]
     largest_connected_component = connected_components[np.argmax(component_lens)]
     total_area = len(largest_connected_component)
-    
+
     # Avoid putting objects in ramps
     plain_idxs = [plain_tiles[i] in largest_connected_component for i in range(len(plain_tiles))]
     largest_connected_component = plain_tiles[plain_idxs]
@@ -176,6 +176,7 @@ def sample_index(n, p):
     i = np.random.choice(np.arange(p.size), p=p.ravel(), size=n, replace=False)
     return np.unravel_index(i, p.shape)
 
+
 def get_object_fn(obj):
     """
     Returns classes depending on the object.
@@ -188,7 +189,7 @@ def get_object_fn(obj):
 
     elif obj == "Sphere":
         return sm.Sphere
-    
+
     else:
         raise ValueError
 
@@ -212,10 +213,14 @@ def create_objects(positions, object_type=None, object_size=5):
         obj_idxs = np.random.choice(np.arange(len(COLORS), dtype=int), size=len(positions))
         objects = [OBJECTS[idx] for idx in obj_idxs]
 
-    return [get_object_fn(obj)(position=pos,
+    return [
+        get_object_fn(obj)(
+            position=pos,
             material=sm.Material(base_color=color),
-            **get_bounds(object_type=obj, object_size=object_size)) for pos, color, obj in zip(positions, colors, objects)]
-        
+            **get_bounds(object_type=obj, object_size=object_size),
+        )
+        for pos, color, obj in zip(positions, colors, objects)
+    ]
 
 
 def get_object_pos(z, n_objects, threshold=None, distribution="uniform"):
@@ -223,9 +228,9 @@ def get_object_pos(z, n_objects, threshold=None, distribution="uniform"):
     Returns None if there is not a playable area.
     """
 
-    if threshold == None:
+    if threshold is None:
         threshold = 0.5
-    
+
     playable_nodes, area = get_playable_area(z)
 
     if area < threshold:

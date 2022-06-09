@@ -5,7 +5,7 @@ Tests for graph utils.
 import unittest
 
 import numpy as np
-from xland.utils import GRANULARITY, convert_to_actual_pos
+from xland.utils import convert_to_actual_pos
 
 
 class TestConvertToActualPos(unittest.TestCase):
@@ -26,7 +26,7 @@ class TestConvertToActualPos(unittest.TestCase):
 
         # Calculated positions
         new_pos = convert_to_actual_pos(positions, (x, y, z))
-        
+
         for i in range(len(idxs)):
             for j in range(3):
                 self.assertAlmostEqual(true_pos[j, i], new_pos[j, i])

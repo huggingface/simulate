@@ -3,10 +3,9 @@ Python file to call map, game and agents generation.
 """
 
 import os
-import sys
 
-from .world import generate_map, generate_tiles, get_object_pos, create_objects
 from .utils import convert_to_actual_pos
+from .world import create_objects, generate_map, generate_tiles, get_object_pos
 
 
 def gen_setup(max_height=8, gen_folder=".gen_files"):
@@ -94,7 +93,7 @@ def generate_env(
     curr_try = 0
 
     while not success and curr_try < nb_tries:
-        
+
         if verbose:
             print("Try {}".format(curr_try + 1))
 

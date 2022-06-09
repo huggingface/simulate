@@ -32,7 +32,7 @@ class TestGraphBuilding(unittest.TestCase):
             10: [6, 9, 11],
             11: [7, 10],
         }
-        
+
         n_plain_tiles = 11
 
         nodes, edges, plain_tiles = get_connectivity_graph(z)
@@ -67,6 +67,7 @@ class TestGraphBuilding(unittest.TestCase):
         # Check values
         self.assertTrue(expr=np.array_equal(edges, true_edges))
         self.assertEqual(len(plain_tiles), n_plain_tiles)
+
 
 class TestGetPlayableArea(unittest.TestCase):
     def test_playable_area(self):
