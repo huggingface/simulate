@@ -17,10 +17,11 @@ if __name__ == "__main__":
     parser.add_argument("--periodic_output", type=bool, default=True)
     parser.add_argument("--periodic_input", type=bool, default=True)
     parser.add_argument("--ground", type=bool, default=False)
-    parser.add_argument("--show", type=bool, default=True)
+    parser.add_argument("--show", type=bool, default=False)
 
     parser.add_argument("--width", type=int, default=8)
     parser.add_argument("--height", type=int, default=10)
+    parser.add_argument("--n_objects", type=int, default=3)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--max_height", type=int, default=8)
     parser.add_argument("--symmetry", type=int, default=1)

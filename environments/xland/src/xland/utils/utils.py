@@ -73,9 +73,18 @@ def get_bounds(object_type, object_size):
     """
     Returns bounds for certain objects construction.
     """
-    if object_type == 'Cube':
-        xMin, xMax, yMin, yMax, zMin, zMax = 0, object_size, 0, object_size, 0, object_size
-        return xMin, xMax, yMin, yMax, zMin, zMax
+    if object_type == "Cube":
+        # Assign x, y, z coordinates
+        min_v, max_v = - object_size / 2, object_size / 2
+
+        # xMin, xMax, yMin, yMax, zMin, zMax
+        return {"bounds": (min_v, max_v, min_v, max_v, min_v, max_v)}
+
+    elif object_type == "Cone":
+        return {"radius": object_size / 2, "height": object_size, "direction": (0, 0, 1)}
+
+    elif object_type == "Sphere":
+        return {"radius": object_size / 2}
 
     else:
-        raise NotImplementedError
+        raise ValueError

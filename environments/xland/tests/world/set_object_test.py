@@ -32,12 +32,15 @@ class TestGraphBuilding(unittest.TestCase):
             10: [6, 9, 11],
             11: [7, 10],
         }
+        
+        n_plain_tiles = 11
 
-        nodes, edges = get_connectivity_graph(z)
+        nodes, edges, plain_tiles = get_connectivity_graph(z)
         edges = {n: sorted(e) for n, e in edges.items()}
 
         # Check values
         self.assertTrue(expr=np.array_equal(edges, true_edges))
+        self.assertEqual(len(plain_tiles), n_plain_tiles)
 
     def test_ramps(self):
         z = np.array(
@@ -56,12 +59,14 @@ class TestGraphBuilding(unittest.TestCase):
             8: [5, 7],
         }
 
-        nodes, edges = get_connectivity_graph(z)
+        n_plain_tiles = 5
+
+        nodes, edges, plain_tiles = get_connectivity_graph(z)
         edges = {n: sorted(e) for n, e in edges.items()}
 
         # Check values
         self.assertTrue(expr=np.array_equal(edges, true_edges))
-
+        self.assertEqual(len(plain_tiles), n_plain_tiles)
 
 class TestGetPlayableArea(unittest.TestCase):
     def test_playable_area(self):
@@ -80,7 +85,7 @@ class TestSetObject(unittest.TestCase):
             [[[0, 0, 0], [0, 2, 0], [1, 0, 0]], [[3, 3, 0], [0, 0, 0], [1, 1, 0]], [[3, 0, 0], [2, 4, 0], [2, 0, 0]]]
         )
 
-        obj_pos, success = get_object_pos(z, 8)
+        obj_pos, success = get_object_pos(z, 4)
         self.assertTrue(success)
         self.assertTrue(not (1, 1) in zip(*obj_pos))
 

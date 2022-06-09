@@ -40,6 +40,7 @@ def gen_setup(max_height=8, gen_folder=".gen_files"):
 def generate_env(
     width,
     height,
+    n_objects=3,
     periodic_output=False,
     specific_map=None,
     sample_from=None,
@@ -50,6 +51,7 @@ def generate_env(
     ground=False,
     nb_samples=1,
     symmetry=1,
+    verbose=False,
     show=False,
     **kwargs,
 ):
@@ -62,6 +64,7 @@ def generate_env(
     Args:
         width: The width of the map.
         height: The height of the map.
+        n_objects: number of objects to be set in the map.
         periodic_output: Whether the output should be toric (WFC param).
         specific_map: A specific map to be plotted.
         sample_from: The name of the map to sample from.
@@ -74,6 +77,7 @@ def generate_env(
         symmetry: Levels of symmetry to be used when sampling from a map. Values
             larger than one might imply in new tiles, which might be a unwanted behaviour
             (WFC param).
+        verbose: whether to print logs or not
         show: Whether to show the map.
         **kwargs: Additional arguments. Handles unused args as well.
 
@@ -83,15 +87,16 @@ def generate_env(
 
     # TODO: choose width and height randomly from a set of predefined values
     # Generate the map if no specific map is passed
-    nb_tries = 5
+    nb_tries = kwargs["nb_tries"] if "nb_tries" in kwargs else 10
+
+    # Initialize success and curr_try variables
     success = False
     curr_try = 0
 
-    scene = None
-
     while not success and curr_try < nb_tries:
         
-        print("Try {}".format(curr_try + 1))
+        if verbose:
+            print("Try {}".format(curr_try + 1))
 
         # TODO: add sucess variable to be returned below
         generated_map, map_2d, scene = generate_map(
@@ -110,8 +115,9 @@ def generate_env(
         )
 
         # Get objects position
-        # TODO: implement convert_to_actual_pos and create_object
-        obj_pos, success = get_object_pos(map_2d, 2, threshold=0.3)
+        threshold = kwargs["threshold"] if "threshold" in kwargs else None
+        threshold = 0.1
+        obj_pos, success = get_object_pos(map_2d, n_objects=n_objects, threshold=threshold)
 
         # If there is no enough area, we should try again and continue the loop
         # TODO: improve quality of this code
@@ -128,9 +134,12 @@ def generate_env(
         else:
             curr_try += 1
             if seed is not None:
+                # Change to seed to test other maps
                 seed += 1
 
+    # If we want to show the map and we were successful
     if show and success:
+        # TODO: set camera properly
         scene.show(in_background=False)
 
     return scene, success

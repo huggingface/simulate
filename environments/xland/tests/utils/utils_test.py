@@ -22,7 +22,7 @@ class TestConvertToActualPos(unittest.TestCase):
 
         # Answer
         idxs = ([4, 14, 24], [24, 34, 44])
-        true_pos = np.array([x[idxs], y[idxs], z[idxs]])
+        true_pos = np.array([x[idxs], y[idxs], z[idxs]]).transpose()
 
         # Calculated positions
         new_pos = convert_to_actual_pos(positions, (x, y, z))
