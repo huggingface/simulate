@@ -1,6 +1,8 @@
+import atexit
 import base64
 import json
 import socket
+from urllib import response
 
 from ..gltf_export import tree_as_glb_bytes
 
@@ -17,14 +19,15 @@ PRIMITIVE_TYPE_MAPPING = {
 
 class GodotEngine:
     def __init__(self, scene, start_frame=0, end_frame=500, frame_rate=24):
-        self._scene = scene
         self.start_frame = start_frame
         self.end_frame = end_frame
         self.frame_rate = frame_rate
+        self._scene = scene
 
         self.host = "127.0.0.1"
         self.port = 55000
         self._initialize_server()
+        atexit.register(self._close)
 
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -37,35 +40,73 @@ class GodotEngine:
     def _send_bytes(self, bytes):
         self.client.sendall(bytes)
         while True:
-            data = self.client.recv(65535)
-            if data:
-                response = data.decode()
-                print(f"Received response: {response}")
+            data_length = self.client.recv(4)
+            data_length = int.from_bytes(data_length, "little")
+
+            if data_length:
+                response = ""  #  TODO: string concatenation may be slow
+                while len(response) < data_length:
+                    response += self.client.recv(data_length - len(response)).decode()
+
+                # print(f"Received response: {response}")
                 return response
 
     def _send_gltf(self, bytes):
         b64_bytes = base64.b64encode(bytes).decode("ascii")
-        command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
+        command = {"type": "BuildScene", "contents": {"b64bytes": b64_bytes}}
         self.run_command(command)
 
     def update_asset_in_scene(self, root_node):
+        # TODO update and make this API more consistent with all the
+        # update_asset_in_scene, recreate_scene, show
         pass
 
     def recreate_scene(self):
         pass
 
-    def show(self):
+    def show(self, **engine_kwargs):
         self._send_gltf(tree_as_glb_bytes(self._scene))
 
     def step(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
+        return self.run_command(command)
+
+    def get_reward(self):
+        command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
+        return self.run_command(command)
+
+    def get_done(self):
+        command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
+        return self.run_command(command)
+
+    def reset(self):
+        command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command)
+
+    def get_observation(self):
+        command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
+
+        encoded_obs = self.run_command(command)
+        decoded_obs = json.loads(encoded_obs)
+
+        return decoded_obs
 
     def run_command(self, command):
         message = json.dumps(command)
-        print(f"Sending command: {message}")
+        # print(f"Sending command: {message}")
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
-        self._send_bytes(message_bytes)
+        return self._send_bytes(message_bytes)
+
+    def _close(self):
+        print("exit was not clean, using atexit to close env")
+        self.close()
 
     def close(self):
+        command = {"type": "Close", "contents": json.dumps({"message": "close"})}
+        self.run_command(command)
         self.client.close()
+
+        try:
+            atexit.unregister(self._close)
+        except Exception as e:
+            print("exception unregistering close method", e)
