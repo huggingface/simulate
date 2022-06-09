@@ -226,6 +226,10 @@ namespace SimEnv {
                         rewardFunction = new SparseRewardFunction(
                             entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
                         break;
+                    case "timeout":
+                        rewardFunction = new TimeoutRewardFunction(
+                            entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
+                        break;
 
                     default:
                         Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
@@ -325,6 +329,7 @@ namespace SimEnv {
                     done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);
                 }
             }
+
             return done;
         }
 

@@ -31,7 +31,7 @@ def create_env(executable=None, port=None):
     agent = sm.RL_Agent(name="agent", turn_speed=5.0,camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
     scene += sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
 
-    reward_function = reward_function = sm.RLAgentRewardFunction(
+    reward_function = sm.RLAgentRewardFunction(
         function="dense",
         entity1="agent",
         entity2="collectable",
@@ -43,11 +43,21 @@ def create_env(executable=None, port=None):
         entity1="agent",
         entity2="collectable",
         distance_metric="euclidean",
-        threshold=3.0,
+        threshold=1.0,
         is_terminal=True
+    )
+    timeout_reward_function = sm.RLAgentRewardFunction(
+        function="timeout",
+        entity1="agent",
+        entity2="agent",
+        distance_metric="euclidean",
+        threshold=20,
+        is_terminal=True,
+        scalar=-1.0,
     )
     agent.add_reward_function(reward_function)
     agent.add_reward_function(reward_function2)
+    agent.add_reward_function(timeout_reward_function)
     scene += agent
     scene.show()
 
@@ -61,12 +71,12 @@ if __name__ == "__main__":
     def make_env(executable, rank, seed=0):
         def _make_env():
             print("rank", rank)
-            env = create_env(executable=executable, port=55000+rank)
+            env = create_env(executable=None, port=55000)
             return env
 
         return _make_env
 
-    n_envs = 16
+    n_envs = 1
 
     envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i) for i in range(n_envs)])
 
