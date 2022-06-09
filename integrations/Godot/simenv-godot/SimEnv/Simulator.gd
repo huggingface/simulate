@@ -29,23 +29,20 @@ func _handle_client_connected() -> void:
 	print("Client connected to server.")
 
 func _handle_client_data(data: PackedByteArray) -> void:
-	var sliced_data : PackedByteArray = data.slice(3)
 	var str_data : String = ""
 	
-	for character in sliced_data:
+	for character in data:
 		str_data += char(character)
+	
+	str_data = str_data.lstrip(str_data.left(2))
+	print("Start: ", str_data.left(60), "...", str_data.right(30))
 	
 	var json_object : JSON = JSON.new() 
 	if json_object.parse(str_data) == OK:
 		var json_data : Variant = json_object.get_data()
 		_command.type = json_data["type"]
-
-		if json_object.parse(json_data["contents"]) == OK:
-			json_data = json_object.get_data()
-			_command.content = json_data
-			_command.execute()
-		else:
-			print("Error parsing content.")
+		_command.content = json_data["contents"]
+		_command.execute()
 	else:
 		print("Error parsing data.")
 	

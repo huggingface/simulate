@@ -1,6 +1,6 @@
-[gd_scene load_steps=7 format=3 uid="uid://dbodccvnrb02i"]
+[gd_scene load_steps=7 format=3 uid="uid://be2x0vyuibsqr"]
 
-[ext_resource type="Script" path="res://SimEnv/Environment.gd" id="1_oo243"]
+[ext_resource type="Script" path="res://SimEnv/Simulator.gd" id="1_oo243"]
 [ext_resource type="Script" path="res://SimEnv/Camera.gd" id="2_wa3b4"]
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_tieyq"]
@@ -33,5 +33,5 @@ current = true
 script = ExtResource( "2_wa3b4" )
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="BaseWorld"]
-transform = Transform3D(-0.7429, 0.534335, -0.40322, 3.08852e-08, 0.602358, 0.798226, 0.669403, 0.593002, -0.447492, 0, 0, 0)
+transform = Transform3D(-0.991239, 0.105432, -0.0795614, -0.0232084, 0.453958, 0.890721, 0.130028, 0.884763, -0.447534, 0, 0, 0)
 shadow_enabled = true
