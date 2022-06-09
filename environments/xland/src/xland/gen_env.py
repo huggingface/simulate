@@ -40,6 +40,7 @@ def generate_env(
     width,
     height,
     n_objects=3,
+    engine=None,
     periodic_output=False,
     specific_map=None,
     sample_from=None,
@@ -65,6 +66,7 @@ def generate_env(
         height: The height of the map.
         n_objects: number of objects to be set in the map.
         periodic_output: Whether the output should be toric (WFC param).
+        engine: which engine to use.
         specific_map: A specific map to be plotted.
         sample_from: The name of the map to sample from.
         seed: The seed to use for the generation of the map.
@@ -111,6 +113,7 @@ def generate_env(
             ground=ground,
             nb_samples=nb_samples,
             symmetry=symmetry,
+            engine=engine,
         )
 
         # Get objects position

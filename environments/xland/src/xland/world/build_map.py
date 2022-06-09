@@ -164,6 +164,7 @@ def generate_map(
     nb_samples=1,
     symmetry=1,
     seed=None,
+    engine=None,
 ):
     """
     Generate the map.
@@ -186,6 +187,7 @@ def generate_map(
             larger than one might imply in new tiles, which might be a unwanted behaviour
             (WFC param).
         seed: The seed to use for the generation of the map.
+        engine: which engine to use on the scene.
     """
 
     if specific_map is not None:
@@ -241,7 +243,7 @@ def generate_map(
     z_grid = np.transpose(z_grid, (2, 0, 3, 1)).reshape((height * GRANULARITY, width * GRANULARITY), order="A")
 
     # Create the mesh
-    scene = sm.Scene()
+    scene = sm.Scene(engine=engine)
     scene += sm.StructuredGrid(x=x, y=y, z=z_grid, name="top_surface")
     scene += get_sides_and_bottom(x, y, z_grid, down=-10)
 

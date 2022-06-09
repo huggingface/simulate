@@ -30,6 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("--sample_from", type=str, default=None)
     parser.add_argument("--specific_map", type=str, default=None)
     parser.add_argument("--folder_path", type=str, default=".gen_files")
+    parser.add_argument("--engine", type=str, default=None)
 
     args = parser.parse_args()
 
