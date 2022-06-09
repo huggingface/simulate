@@ -43,7 +43,7 @@ def create_env(executable=None, port=None):
         entity1="agent",
         entity2="collectable",
         distance_metric="euclidean",
-        threshold=1.0,
+        threshold=0.2,
         is_terminal=True
     )
     timeout_reward_function = sm.RLAgentRewardFunction(
@@ -51,7 +51,7 @@ def create_env(executable=None, port=None):
         entity1="agent",
         entity2="agent",
         distance_metric="euclidean",
-        threshold=20,
+        threshold=200,
         is_terminal=True,
         scalar=-1.0,
     )
@@ -71,12 +71,12 @@ if __name__ == "__main__":
     def make_env(executable, rank, seed=0):
         def _make_env():
             print("rank", rank)
-            env = create_env(executable=None, port=55000)
+            env = create_env(executable=executable, port=55000+rank)
             return env
 
         return _make_env
 
-    n_envs = 1
+    n_envs = 16
 
     envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i) for i in range(n_envs)])
 
