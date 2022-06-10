@@ -131,7 +131,7 @@ def generate_env(
 
             if engine is not None:
                 # Set camera and etc
-                scene += sm.Camera()
+                scene += sm.Camera(position=[0, 5, -10], rotation=[0, 1, 0.25, 0])
 
             # Generate the game
             # generate_game(generated_map, scene)
