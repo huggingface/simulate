@@ -137,3 +137,5 @@ dmypy.json
 .vscode
 *omnisharp.json
 .idea
+
+.gen_files
