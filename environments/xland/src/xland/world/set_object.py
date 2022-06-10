@@ -229,7 +229,7 @@ def get_object_pos(z, n_objects, threshold=None, distribution="uniform"):
     """
 
     if threshold is None:
-        threshold = 0.5
+        threshold = 0.2
 
     playable_nodes, area = get_playable_area(z)
 

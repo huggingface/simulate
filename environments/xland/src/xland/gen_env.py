@@ -118,7 +118,6 @@ def generate_env(
 
         # Get objects position
         threshold = kwargs["threshold"] if "threshold" in kwargs else None
-        threshold = 0.1
         obj_pos, success = get_object_pos(map_2d, n_objects=n_objects, threshold=threshold)
 
         # If there is no enough area, we should try again and continue the loop
