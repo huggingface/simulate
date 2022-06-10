@@ -41,4 +41,8 @@ if __name__ == "__main__":
         name = args.specific_map or args.sample_from
         create_2d_map(name, map_format="rgb")
 
-    _ = generate_env(**vars(args))
+    success = generate_env(**vars(args))
+    if success:
+        print("Successful generation!")
+    else:
+        print("Failed to generate!")

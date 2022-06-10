@@ -37,7 +37,7 @@ def decode_rgb(img, specific_map=None, sample_from=None, max_height=8):
                 map_2d[2 * i : 2 * (i + 1), 2 * j] = img_np[i, j, 0] + 1
                 map_2d[2 * i : 2 * (i + 1), 2 * j + 1] = img_np[i, j, 0]
 
-    map_2d = map_2d * (255.0 * HEIGHT_CONSTANT * 1 / max_height)
+    map_2d = map_2d * HEIGHT_CONSTANT
 
     return map_2d
 

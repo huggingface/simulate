@@ -147,4 +147,4 @@ def generate_env(
     elif not show:
         scene.close()
 
-    return scene, success
+    return success

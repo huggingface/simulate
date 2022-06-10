@@ -121,7 +121,7 @@ def generate_tiles(max_height=8, weights=None, gen_folder=".gen_files", double_r
     for h in range(max_height):
 
         # Generate plain tile
-        tile = Image.new("RGB", size=(1,1), color=(h, 0, 0))
+        tile = Image.new("RGB", size=(1, 1), color=(h, 0, 0))
         tiles.append(tile)
 
         # Saving plain tiles
@@ -131,7 +131,7 @@ def generate_tiles(max_height=8, weights=None, gen_folder=".gen_files", double_r
         # as the letter
         names_xml = add_tile_name(names_xml, plain_tile_names[h], weights[h], symmetry="X")
         neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h], plain_tile_names[h])
-        
+
         if h < max_height - 2:
             neighbors_xml = add_neighbor(neighbors_xml, plain_tile_names[h], plain_tile_names[h + 1])
 

@@ -5,7 +5,7 @@ COLORS = [[255, 0, 0], [0, 255, 0], [0, 0, 255]]
 GRANULARITY = 10
 
 # Constant to multiply by the values in the height map to get the actual height
-HEIGHT_CONSTANT = 0.2
+HEIGHT_CONSTANT = 6.375
 
 # Set of objects that can be placed
 OBJECTS = ["Cube", "Sphere", "Cone"]
