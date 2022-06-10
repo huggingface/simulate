@@ -191,7 +191,6 @@ def generate_map(
     """
 
     if specific_map is not None:
-        # TODO: deal with images with tiles 2x2
         img = Image.open(os.path.join(gen_folder, "maps", specific_map + ".png"))
         width = img.width
         height = img.height
@@ -212,9 +211,6 @@ def generate_map(
         )
 
     img_np = decode_rgb(img, specific_map=specific_map, sample_from=sample_from, max_height=max_height)
-
-    # First we will just extract the map and plot
-    z_grid = img_np
 
     # Let's say we want tiles of final_tile_size x final_tile_size pixels
     # TODO: change variables and make this clearer

@@ -134,6 +134,8 @@ def generate_env(
 
         else:
             curr_try += 1
+            scene.close()
+
             if seed is not None:
                 # Change to seed to test other maps
                 seed += 1
@@ -142,5 +144,7 @@ def generate_env(
     if show and success:
         # TODO: set camera properly
         scene.show(in_background=False)
+    elif not show:
+        scene.close()
 
     return scene, success
