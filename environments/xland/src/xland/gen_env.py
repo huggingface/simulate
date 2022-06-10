@@ -4,6 +4,8 @@ Python file to call map, game and agents generation.
 
 import os
 
+import simenv as sm
+
 from .utils import convert_to_actual_pos
 from .world import create_objects, generate_map, generate_tiles, get_object_pos
 
@@ -127,6 +129,10 @@ def generate_env(
             obj_pos = convert_to_actual_pos(obj_pos, generated_map)
             scene += create_objects(obj_pos)
 
+            if engine is not None:
+                # Set camera and etc
+                scene += sm.Camera()
+
             # Generate the game
             # generate_game(generated_map, scene)
 
@@ -142,8 +148,12 @@ def generate_env(
 
     # If we want to show the map and we were successful
     if show and success:
-        # TODO: set camera properly
         scene.show(in_background=False)
+        if engine is not None:
+            input("Press Enter to continue...")
+
+        scene.close()
+
     elif not show:
         scene.close()
 

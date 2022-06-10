@@ -194,7 +194,7 @@ def get_object_fn(obj):
         raise ValueError
 
 
-def create_objects(positions, object_type=None, object_size=5):
+def create_objects(positions, object_type=None, object_size=0.5):
     """
     Create objects in simenv.
     """
@@ -212,6 +212,9 @@ def create_objects(positions, object_type=None, object_size=5):
         # Choose among options of objects
         obj_idxs = np.random.choice(np.arange(len(COLORS), dtype=int), size=len(positions))
         objects = [OBJECTS[idx] for idx in obj_idxs]
+
+    # Swap axis to match the convention of the simulator
+    positions = positions[:, [0, 2, 1]]
 
     return [
         get_object_fn(obj)(

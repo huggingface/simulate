@@ -10,10 +10,10 @@ from wfc_binding import run_wfc
 
 import simenv as sm
 
-from ..utils import GRANULARITY, decode_rgb
+from ..utils import GRANULARITY, HEIGHT_CONSTANT, decode_rgb
 
 
-def get_sides_and_bottom(x, y, z, down):
+def get_sides_and_bottom(x, y, z):
     """
     Get a bottom basis for the structured grid.
 
@@ -24,7 +24,6 @@ def get_sides_and_bottom(x, y, z, down):
         x: x coordinates
         y: y coordinates
         z: z coordinates
-        down: z coordinates of the bottom
     """
     # TODO: generate 3d mesh with all of this
     # TODO: all of this is being done by hand. Ideally, we want a function
@@ -35,42 +34,43 @@ def get_sides_and_bottom(x, y, z, down):
     xx_0, yx_0 = np.meshgrid(xx_0, yx_0)
     zx_0 = np.zeros(xx_0.shape)
     zx_0[0, :] = z[0, :]
-    zx_0[1, :] = down
+    zx_0[1, :] = -HEIGHT_CONSTANT
 
     xx_1 = x[-1, :]
     yx_1 = [y[-1, 0]] * 2
     xx_1, yx_1 = np.meshgrid(xx_1, yx_1)
     zx_1 = np.zeros(xx_1.shape)
     zx_1[0, :] = z[-1, :]
-    zx_1[1, :] = down
+    zx_1[1, :] = -HEIGHT_CONSTANT
 
     yy_0 = y[:, 0]
     xy_0 = [x[0, 0]] * 2
     xy_0, yy_0 = np.meshgrid(xy_0, yy_0)
     zy_0 = np.zeros(xy_0.shape)
     zy_0[:, 0] = z[:, 0]
-    zy_0[:, 1] = down
+    zy_0[:, 1] = -HEIGHT_CONSTANT
 
     yy_1 = y[:, -1]
     xy_1 = [x[0, -1]] * 2
     xy_1, yy_1 = np.meshgrid(xy_1, yy_1)
     zy_1 = np.zeros(xy_1.shape)
     zy_1[:, 0] = z[:, -1]
-    zy_1[:, 1] = down
+    zy_1[:, 1] = -HEIGHT_CONSTANT
 
     # Down base
     x_down = [x[0, 0], x[0, -1]]
     y_down = [y[0, 0], y[-1, 0]]
     x_down, y_down = np.meshgrid(x_down, y_down)
-    z_down = np.full(x_down.shape, down)
+    z_down = np.full(x_down.shape, -HEIGHT_CONSTANT)
 
     # We get each of the extra structures
+    # We use z as y since it's the way it is in most game engines:
     structures = [
-        sm.StructuredGrid(x=x_down, y=y_down, z=z_down, name="bottom_surface"),
-        sm.StructuredGrid(x=xx_0, y=yx_0, z=zx_0),
-        sm.StructuredGrid(x=xx_1, y=yx_1, z=zx_1),
-        sm.StructuredGrid(x=xy_0, y=yy_0, z=zy_0),
-        sm.StructuredGrid(x=xy_1, y=yy_1, z=zy_1),
+        sm.StructuredGrid(x=x_down, y=z_down, z=y_down, name="bottom_surface"),
+        sm.StructuredGrid(x=xx_0, y=zx_0, z=yx_0),
+        sm.StructuredGrid(x=xx_1, y=zx_1, z=yx_1),
+        sm.StructuredGrid(x=xy_0, y=zy_0, z=yy_0),
+        sm.StructuredGrid(x=xy_1, y=zy_1, z=yy_1),
     ]
 
     return structures
@@ -153,7 +153,7 @@ def generate_map(
     width=None,
     height=None,
     periodic_output=False,
-    final_tile_size=10,
+    final_tile_size=1,
     gen_folder=".gen_files",
     specific_map=None,
     sample_from=None,
@@ -216,8 +216,8 @@ def generate_map(
     # TODO: change variables and make this clearer
 
     # We create the mesh centered in (0,0)
-    x = np.linspace(-width * final_tile_size // 2, width * final_tile_size // 2, GRANULARITY * width)
-    y = np.linspace(-height * final_tile_size // 2, height * final_tile_size // 2, GRANULARITY * height)
+    x = np.linspace(-width / 2, width / 2, GRANULARITY * width)
+    y = np.linspace(-height / 2, height / 2, GRANULARITY * height)
 
     # Create mesh grid
     x, y = np.meshgrid(x, y)
@@ -240,7 +240,9 @@ def generate_map(
 
     # Create the mesh
     scene = sm.Scene(engine=engine)
-    scene += sm.StructuredGrid(x=x, y=y, z=z_grid, name="top_surface")
-    scene += get_sides_and_bottom(x, y, z_grid, down=-10)
+
+    # We use z as y since it's the way it is in most game engines:
+    scene += sm.StructuredGrid(x=x, y=z_grid, z=y, name="top_surface")
+    scene += get_sides_and_bottom(x, y, z_grid)
 
     return (x, y, z_grid), np.array(img), scene
