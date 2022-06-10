@@ -16,10 +16,11 @@ if __name__ == "__main__":
     parser.add_argument("--periodic_output", type=bool, default=True)
     parser.add_argument("--periodic_input", type=bool, default=True)
     parser.add_argument("--ground", type=bool, default=False)
-    parser.add_argument("--show", type=bool, default=True)
+    parser.add_argument("--show", type=bool, default=False)
 
     parser.add_argument("--width", type=int, default=8)
     parser.add_argument("--height", type=int, default=10)
+    parser.add_argument("--n_objects", type=int, default=3)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--max_height", type=int, default=8)
     parser.add_argument("--symmetry", type=int, default=1)
@@ -29,6 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("--sample_from", type=str, default=None)
     parser.add_argument("--specific_map", type=str, default=None)
     parser.add_argument("--folder_path", type=str, default=".gen_files")
+    parser.add_argument("--engine", type=str, default=None)
 
     args = parser.parse_args()
 
@@ -37,6 +39,10 @@ if __name__ == "__main__":
 
     else:
         name = args.specific_map or args.sample_from
-        map_2d = create_2d_map(name, map_format="rgb")
+        create_2d_map(name, map_format="rgb")
 
-    _ = generate_env(**vars(args))
+    success = generate_env(**vars(args))
+    if success:
+        print("Successful generation!")
+    else:
+        print("Failed to generate!")
