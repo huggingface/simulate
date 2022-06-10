@@ -243,6 +243,11 @@ def get_object_pos(z, n_objects, threshold=None, distribution="uniform"):
         get_mask_connected_components(playable_nodes, final_shp=z.shape[:-1]), distribution=distribution
     )
 
+    non_null_nodes = np.sum(probabilities > 0)
+    if non_null_nodes < n_objects:
+        print("Unsufficient nodes to set objects: {} when number of objects is {}".format(non_null_nodes, n_objects))
+        return None, False
+
     obj_pos = np.array(sample_index(n_objects, probabilities))
 
     # Return True showing that object placement was successful
