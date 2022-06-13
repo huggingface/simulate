@@ -69,15 +69,17 @@ namespace SimEnv {
         }
 
         public static float GetReward() {
+            float reward = 0.0f;
+
             // Calculate the agent's reward for the current timestep 
-            // TODO: this should be caculated for each action repeat and averaged.
             if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
                 Agent agent = ISimulator.Agent as Agent;
-                return agent.CalculateReward();
+                reward += agent.GetReward();
+                agent.ZeroReward();
             } else {
                 Debug.LogWarning("Attempting to get observation without an Agent");
             }
-            return 0.0f;
+            return reward;
         }
 
         public static bool GetDone() {

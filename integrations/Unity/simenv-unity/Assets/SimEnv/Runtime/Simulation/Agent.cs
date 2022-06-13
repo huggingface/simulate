@@ -53,7 +53,7 @@ namespace SimEnv {
             forward = 0.0f;
             moveRight = 0.0f;
             turnRight = 0.0f;
-            switch(available[iStepAction]) {
+            switch (available[iStepAction]) {
                 case "move_forward":
                     forward = 1.0f;
                     break;
@@ -84,8 +84,8 @@ namespace SimEnv {
             Debug.Assert(dist == "continuous");
             Debug.Assert(stepAction.Count == available.Count, "step action and avaiable count mismatch");
 
-            for(int i = 0; i < stepAction.Count; i++) {
-                switch(available[i]) {
+            for (int i = 0; i < stepAction.Count; i++) {
+                switch (available[i]) {
                     case "move_forward_backward":
                         forward = stepAction[i];
                         break;
@@ -108,7 +108,7 @@ namespace SimEnv {
             Debug.Log("name: " + name);
             Debug.Log("dist: " + dist);
             Debug.Log("name: " + name);
-            foreach(var avail in available) {
+            foreach (var avail in available) {
                 Debug.Log("type: " + avail);
             }
         }
@@ -121,6 +121,8 @@ namespace SimEnv {
         public float height = 1f;
         private const bool HUMAN = false;
 
+        private float accumReward = 0.0f;
+
         public Color color = Color.white;
 
         private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
@@ -131,7 +133,7 @@ namespace SimEnv {
         void Awake() {
             controller = GetComponent<CharacterController>();
             agent_camera = GetComponentInChildren<Camera>();
-            if(HUMAN) {
+            if (HUMAN) {
                 agent_camera.targetTexture = new RenderTexture(32, 32, 24); // for debugging
             }
         }
@@ -143,7 +145,7 @@ namespace SimEnv {
         }
 
         void Update() {
-            if(HUMAN) {
+            if (HUMAN) {
                 AgentUpdate();
                 ObservationCoroutine(null);
             }
@@ -161,7 +163,7 @@ namespace SimEnv {
             move_speed = agentData.move_speed;
             turn_speed = agentData.turn_speed;
 
-            switch(agentData.action_dist) {
+            switch (agentData.action_dist) {
                 case "discrete":
                     actions = new DiscreteActions();
                     break;
@@ -180,7 +182,7 @@ namespace SimEnv {
             agent_camera.targetTexture = new RenderTexture(agentData.camera_width, agentData.camera_height, 24);
 
             // add the reward functions to the agent
-            for(int i = 0; i < agentData.reward_functions.Count; i++) {
+            for (int i = 0; i < agentData.reward_functions.Count; i++) {
                 Debug.Log("Creating reward function");
                 // get the shared properties
                 Debug.Log("Finding entity1 " + agentData.reward_entity1s[i]);
@@ -188,16 +190,16 @@ namespace SimEnv {
                 GameObject entity1 = GameObject.Find(agentData.reward_entity1s[i]);
 
                 GameObject entity2 = GameObject.Find(agentData.reward_entity2s[i]);
-                if(entity1 == null) {
+                if (entity1 == null) {
                     Debug.Log("Failed to find entity1 " + agentData.reward_entity1s[i]);
                 }
-                if(entity2 == null) {
+                if (entity2 == null) {
                     Debug.Log("Failed to find entity2 " + agentData.reward_entity2s[i]);
                 }
                 IDistanceMetric distanceMetric = null; // refactor this to a reward factory?
                 RewardFunction rewardFunction = null;
 
-                switch(agentData.reward_distance_metrics[i]) {
+                switch (agentData.reward_distance_metrics[i]) {
                     case "euclidean":
                         distanceMetric = new EuclideanDistance();
                         break;
@@ -209,7 +211,7 @@ namespace SimEnv {
                         break;
                 }
 
-                switch(agentData.reward_functions[i]) {
+                switch (agentData.reward_functions[i]) {
                     case "dense":
                         rewardFunction = new DenseRewardFunction(
                             entity1, entity2, distanceMetric, agentData.reward_scalars[i]
@@ -231,7 +233,12 @@ namespace SimEnv {
         }
         public void AgentUpdate() {
 
-            if(HUMAN) {
+            UpdateMovement();
+            UpdateReward();
+        }
+        public void UpdateMovement() {
+
+            if (HUMAN) {
                 // Human control
                 float x = Input.GetAxis("Horizontal");
                 float z = Input.GetAxis("Vertical");
@@ -240,7 +247,7 @@ namespace SimEnv {
                 Vector3 move = transform.right * x + transform.forward * z;
 
                 transform.Rotate(Vector3.up * r);
-                if(Input.GetKeyUp("r")) {
+                if (Input.GetKeyUp("r")) {
                     Debug.Log("Agent reset");
                     transform.position = new Vector3(0.0f, 0.0f, 0.0f);
                 }
@@ -253,11 +260,16 @@ namespace SimEnv {
             }
         }
 
+        public void UpdateReward() {
+            accumReward += CalculateReward();
+        }
+
         public void Reset() {
+            accumReward = 0.0f;
             // Reset the agent
             // Reset reward objects?
             // Reset reward functions
-            foreach(RewardFunction rewardFunction in rewardFunctions) {
+            foreach (RewardFunction rewardFunction in rewardFunctions) {
                 rewardFunction.Reset();
             }
 
@@ -266,17 +278,25 @@ namespace SimEnv {
         public float CalculateReward() {
             float reward = 0.0f;
 
-            foreach(RewardFunction rewardFunction in rewardFunctions) {
+            foreach (RewardFunction rewardFunction in rewardFunctions) {
                 reward += rewardFunction.CalculateReward();
             }
             return reward;
         }
 
+        public float GetReward() {
+            return accumReward;
+        }
+        public void ZeroReward() {
+            accumReward = 0.0f;
+        }
+
         public bool IsDone() {
             // TODO: currently the reward functions identify which objects correspond to terminal states
+            // Implement: episode termination
             bool done = false;
-            foreach(RewardFunction rewardFunction in rewardFunctions) {
-                if(rewardFunction is SparseRewardFunction) {
+            foreach (RewardFunction rewardFunction in rewardFunctions) {
+                if (rewardFunction is SparseRewardFunction) {
                     var sparseRewardFunction = rewardFunction as SparseRewardFunction;
                     done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);
                 }
@@ -310,7 +330,7 @@ namespace SimEnv {
 
             uint[] pixel_values = new uint[pixels.Length * 3];
 
-            for(int i = 0; i < pixels.Length; i++) {
+            for (int i = 0; i < pixels.Length; i++) {
                 pixel_values[i * 3] += pixels[i].r;
                 pixel_values[i * 3 + 1] += pixels[i].g;
                 pixel_values[i * 3 + 2] += pixels[i].b;
@@ -318,13 +338,15 @@ namespace SimEnv {
             }
 
             string string_array = JsonHelper.ToJson(pixel_values);
-            if(callback != null)
+            if (callback != null)
                 callback(string_array);
         }
 
         public void SetAction(List<float> step_action) {
             actions.SetAction(step_action);
         }
+
+
     }
 
 

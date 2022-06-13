@@ -222,13 +222,18 @@ namespace SimEnv.GLTF {
                                     Resources.Load<Agent>("Agent"),
                                     result[i].transform.position,
                                     result[i].transform.rotation,
-                                    result[i].transform
+                                    result[i].transform.parent
                                 );
+
+                                agent.transform.SetSiblingIndex(result[i].transform.GetSiblingIndex());
+                                agent.name = result[i].transform.gameObject.name;
+                                agent.transform.localRotation *= Quaternion.Euler(0, 180, 0);
+                                GameObject.Destroy(result[i].transform.gameObject);
+
 
                                 if (Application.isPlaying)
                                     agent.Initialize(agentData);
 
-                                result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                             }
                         }
                     }
