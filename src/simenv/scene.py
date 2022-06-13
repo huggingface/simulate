@@ -51,6 +51,7 @@ class Scene(Asset):
         created_from_file: Optional[str] = None,
         executable: Optional[str] = None,
         port: Optional[int] = None,
+        headless: Optional[bool] = None,
         **kwargs,
     ):
         super().__init__(name=name, **kwargs)
@@ -58,7 +59,7 @@ class Scene(Asset):
         self._built = False
         self._created_from_file = created_from_file
         if engine == "Unity":
-            self.engine = UnityEngine(self, executable=executable, port=port)
+            self.engine = UnityEngine(self, executable=executable, port=port, headless=headless)
         elif engine == "Blender":
             raise NotImplementedError()
         elif engine == "pyvista" or engine is None:

@@ -20,7 +20,7 @@ PRIMITIVE_TYPE_MAPPING = {
 
 
 class UnityEngine:
-    def __init__(self, scene, executable=None, start_frame=0, end_frame=500, frame_rate=24, port=55000):
+    def __init__(self, scene, executable=None, headless=None, start_frame=0, end_frame=500, frame_rate=24, port=55000):
         self.start_frame = start_frame
         self.end_frame = end_frame
         self.frame_rate = frame_rate
@@ -28,16 +28,21 @@ class UnityEngine:
 
         self.host = "127.0.0.1"
         self.port = port
+
         if executable is not None:
-            self._launch_executable(executable, port)
+            self._launch_executable(executable, port, headless)
 
         self._initialize_server()
         atexit.register(self._close)
         
         
-    def _launch_executable(self, executable, port):
+    def _launch_executable(self, executable, port, headless):
 
-        launch_command = f"{executable} --args port {port}".split(" ")
+        if headless:
+            print("launching env headless")
+            launch_command = f"{executable} -batchmode -nographics --args port {port}".split(" ")
+        else:
+            launch_command = f"{executable} --args port {port}".split(" ")
         self.proc = subprocess.Popen(
             launch_command,
             start_new_session=False,
