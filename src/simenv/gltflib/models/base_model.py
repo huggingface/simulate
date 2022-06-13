@@ -5,6 +5,7 @@ from dataclasses_json import dataclass_json
 
 from .extensions.hf_collider import HF_Collider
 from .extensions.hf_rl_agent import HF_RL_Agents
+from .extensions.hf_collider import HF_Collider
 from .extensions.khr_lights_ponctual import KHRLightsPunctual
 
 
