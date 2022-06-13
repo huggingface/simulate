@@ -15,8 +15,7 @@
 # Lint as: python3
 """ A simenv Material."""
 import itertools
-import uuid
-from dataclasses import InitVar, dataclass
+from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
 import numpy as np

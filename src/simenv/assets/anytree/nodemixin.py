@@ -1,6 +1,5 @@
 # -*- coding: utf-8 -*-
 
-import warnings
 from typing import Sequence, Union
 
 from .exceptions import LoopError, TreeError

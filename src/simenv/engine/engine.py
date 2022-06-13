@@ -14,7 +14,6 @@
 
 # Lint as: python3
 """ A generic engine."""
-from typing import Optional
 
 
 class Engine:

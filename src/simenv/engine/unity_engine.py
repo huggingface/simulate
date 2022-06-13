@@ -2,7 +2,6 @@ import atexit
 import base64
 import json
 import socket
-from urllib import response
 
 from ..gltf_export import tree_as_glb_bytes
 
@@ -44,7 +43,7 @@ class UnityEngine:
             data_length = int.from_bytes(data_length, "little")
 
             if data_length:
-                response = ""  #  TODO: string concatenation may be slow
+                response = ""  # TODO: string concatenation may be slow
                 while len(response) < data_length:
                     response += self.client.recv(data_length - len(response)).decode()
 

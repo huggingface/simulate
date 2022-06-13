@@ -15,9 +15,8 @@
 # Lint as: python3
 """ A simenv Asset - Objects in the scene (mesh, primitives, camera, lights)."""
 import itertools
-import math
 import uuid
-from typing import List, Optional, Sequence, Union
+from typing import List, Optional, Union
 
 import numpy as np
 
