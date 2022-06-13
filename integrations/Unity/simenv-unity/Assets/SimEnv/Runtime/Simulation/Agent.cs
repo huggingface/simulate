@@ -283,9 +283,6 @@ namespace SimEnv {
             foreach (RewardFunction rewardFunction in rewardFunctions) {
                 rewardFunction.Reset();
             }
-
-
-
         }
 
         public float CalculateReward() {
@@ -325,7 +322,6 @@ namespace SimEnv {
         IEnumerator RenderCoroutine(UnityAction<string> callback) {
             yield return new WaitForEndOfFrame();
             GetObservation(callback);
-            Debug.Log("Finished rendering");
         }
 
         public void GetObservation(UnityAction<string> callback) {
