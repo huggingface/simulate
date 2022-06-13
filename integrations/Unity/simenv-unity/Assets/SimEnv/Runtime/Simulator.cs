@@ -20,8 +20,9 @@ namespace SimEnv {
 
         #region Simulation
         static readonly int FRAME_RATE = 30;
+        static readonly float TIME_SCALE = 50.0f;
         static readonly int FRAME_SKIP = 4;
-        static readonly float FRAME_INTERVAL = 1f / FRAME_RATE;
+        static readonly float FRAME_INTERVAL = 1f / (FRAME_RATE * TIME_SCALE);
 
         static GameObject root;
 
@@ -33,7 +34,6 @@ namespace SimEnv {
 
         public static void Step(List<float> action) {
             if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
-                Debug.Log("Stepping agent");
                 Agent agent = ISimulator.Agent as Agent;
                 agent.SetAction(action);
             } else {
@@ -140,6 +140,7 @@ namespace SimEnv {
 
         void Start() {
             Debug.Log("Starting Simulator");
+            Time.timeScale = TIME_SCALE;
             LoadMods();
             LoadExtensions();
             StartClient();
