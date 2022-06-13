@@ -251,6 +251,50 @@ namespace SimEnv {
                 float rotate = actions.turnRight;
                 transform.Rotate(Vector3.up * rotate * turn_speed);
             }
+
+
+        }
+
+        public void ObservationCoroutine(UnityAction<string> callback) {
+            StartCoroutine(RenderCoroutine(callback));
+        }
+
+        IEnumerator RenderCoroutine(UnityAction<string> callback) {
+
+            yield return new WaitForEndOfFrame();
+            GetObservation(callback);
+            Debug.Log("Finished rendering");
+
+        }
+
+        public void GetObservation(UnityAction<string> callback) {
+
+            RenderTexture activeRenderTexture = RenderTexture.active;
+            RenderTexture.active = agent_camera.targetTexture;
+            agent_camera.Render();
+            int width = agent_camera.pixelWidth;
+            int height = agent_camera.pixelHeight;
+            Texture2D image = new Texture2D(width, height);
+            image.ReadPixels(new Rect(0, 0, width, height), 0, 0);
+            image.Apply();
+
+            Color32[] pixels = image.GetPixels32();
+            RenderTexture.active = activeRenderTexture;
+
+            uint[] pixel_values = new uint[pixels.Length * 4];
+
+            for (int i = 0; i < pixels.Length; i++) {
+                pixel_values[i * 4] += pixels[i].r;
+                pixel_values[i * 4 + 1] += pixels[i].g;
+                pixel_values[i * 4 + 2] += pixels[i].b;
+                pixel_values[i * 4 + 3] += pixels[i].a;
+            }
+
+            string string_array = JsonHelper.ToJson(pixel_values);
+            Debug.Log(string_array);
+            if (callback != null)
+                callback(string_array);
+
         }
 
         public void Reset() {
