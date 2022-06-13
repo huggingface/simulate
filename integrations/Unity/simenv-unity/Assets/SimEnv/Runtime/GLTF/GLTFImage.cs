@@ -2,11 +2,11 @@
 using UnityEngine;
 using System.Collections;
 using System;
-using UnityEngine.Networking;
 using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Linq;
+using Newtonsoft.Json;
 
 namespace SimEnv.GLTF {
     public class GLTFImage {
@@ -14,6 +14,12 @@ namespace SimEnv.GLTF {
         public string mimeType;
         public int? bufferView;
         public string name;
+
+        public class ExportResult : GLTFImage {
+            [JsonIgnore] public byte[] bytes;
+            [JsonIgnore] public string path;
+            [JsonIgnore] public int index;
+        }
 
         public class ImportResult {
             public byte[] bytes;

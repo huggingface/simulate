@@ -229,6 +229,9 @@ namespace SimEnv.GLTF {
             public float scale = 1;
             public Extensions extensions;
 
+            public bool ShouldSerializetexCoord() => texCoord != 0;
+            public bool ShouldSerializescale() => scale != 1;
+
             public class Extensions {
                 public KHR_texture_transform KHR_texture_transform;
 
@@ -292,6 +295,7 @@ namespace SimEnv.GLTF {
                     ExportResult result;
                     if(!results.TryGetValue(material, out result)) {
                         result = new ExportResult() {
+                            name = material.name,
                             material = material,
                             index = results.Count
                         };
