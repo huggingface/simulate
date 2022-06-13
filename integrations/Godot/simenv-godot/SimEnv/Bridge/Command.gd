@@ -25,4 +25,7 @@ func load_commands():
 	directory.list_dir_end()
 
 func execute(type: String) -> void:
-	commands[type].execute(content)
+	if type in commands:
+		commands[type].execute(content)
+	else:
+		print("Unknown command.")
