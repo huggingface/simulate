@@ -198,7 +198,7 @@ class Scene(Asset):
         self.position = root.position
         self.rotation = root.rotation
         self.scaling = root.scaling
-        self.children = nodes
+        self.tree_children = nodes
         self.created_from_file = gltf_file
 
     def push_to_hub(
