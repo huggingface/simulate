@@ -1,4 +1,5 @@
 extends Node
+class_name Client
 
 signal connected
 signal data

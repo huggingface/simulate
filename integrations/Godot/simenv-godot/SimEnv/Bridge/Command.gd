@@ -1,16 +1,28 @@
 extends Node
-
+class_name Command
 
 var type : String
 var content : Variant
+var command
+var commands : Dictionary
 
-
-func execute() -> void:
+func load_commands():
 	var directory: Directory = Directory.new()
-	if directory.file_exists("res://SimEnv/Commands/" + type + ".gd"):
-		var command_script = load("res://SimEnv/Commands/" + type + ".gd")
-		var command = command_script.new()
-		add_child(command)
-		command.execute(content)
-	else:
-		print("Command not found.")
+	var com_path : String = "res://SimEnv/Commands"
+	directory.open(com_path)
+	directory.list_dir_begin()
+
+	while true:
+		var file = directory.get_next()
+		if file == "":
+			break
+
+		var command_name = file.split(".")[0]
+		var command_script = load(com_path + "/" + file)
+		commands[command_name] = command_script.new()
+		add_child(commands[command_name])
+
+	directory.list_dir_end()
+
+func execute(type: String) -> void:
+	commands[type].execute(content)

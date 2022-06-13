@@ -4,9 +4,6 @@ const HOST : String = "127.0.0.1"
 const PORT : int = 55000
 const RECONNECT_TIMEOUT: float = 3.0
 
-const Client = preload("res://SimEnv/Bridge/Client.gd")
-const Command = preload("res://SimEnv/Bridge/Command.gd")
-
 var _client : Client = Client.new()
 var _command : Command = Command.new()
 
@@ -19,6 +16,7 @@ func _ready() -> void:
 	add_child(_client)
 	add_child(_command)
 	
+	_command.load_commands()
 	_client.connect_to_host(HOST, PORT)
 
 func _connect_after_timeout(timeout: float) -> void:
@@ -42,7 +40,7 @@ func _handle_client_data(data: PackedByteArray) -> void:
 		var json_data : Variant = json_object.get_data()
 		_command.type = json_data["type"]
 		_command.content = json_data["contents"]
-		_command.execute()
+		_command.execute(json_data["type"])
 	else:
 		print("Error parsing data.")
 	

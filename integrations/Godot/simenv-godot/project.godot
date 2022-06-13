@@ -8,6 +8,22 @@
 
 config_version=5
 
+_global_script_classes=[{
+"base": "Node",
+"class": &"Client",
+"language": &"GDScript",
+"path": "res://SimEnv/Bridge/Client.gd"
+}, {
+"base": "Node",
+"class": &"Command",
+"language": &"GDScript",
+"path": "res://SimEnv/Bridge/Command.gd"
+}]
+_global_script_class_icons={
+"Client": "",
+"Command": ""
+}
+
 [application]
 
 config/name="simenv-godot"
