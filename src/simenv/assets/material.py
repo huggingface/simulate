@@ -29,7 +29,7 @@ from .utils import camelcase_to_snakecase
 # To be revamped and improved later
 
 
-@dataclass(repr=False)
+@dataclass()
 class Material:
     """
     The material appearance of a primitive.
@@ -88,7 +88,6 @@ class Material:
     """
 
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
-    _uuid: Optional[int] = None
 
     base_color: Optional[List[float]] = None
     base_color_texture: Optional[pyvista.Texture] = None
@@ -116,7 +115,7 @@ class Material:
             self.base_color = self.base_color + [1.0]
 
         if self.metallic_factor is None:
-            self.metallic_factor = 1.0
+            self.metallic_factor = 0.0
 
         if self.roughness_factor is None:
             self.roughness_factor = 1.0
@@ -139,11 +138,9 @@ class Material:
             id = next(self.__class__.__NEW_ID)
             self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
 
-        self._uuid = uuid.uuid4().int
-
-    def __repr__(self) -> str:
-        texture_str = f" with texture" if self.base_color_texture is not None else ""
-        return f"Material({self.name}{texture_str})"
+    # def __repr__(self) -> str:
+    #     texture_str = f" with texture" if self.base_color_texture is not None else ""
+    #     return f"Material({self.name}{texture_str})"
 
     def __hash__(self):
-        return self._uuid
+        return id(self)

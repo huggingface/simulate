@@ -56,12 +56,12 @@ class UnityEngine:
         command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
         self.run_command(command)
 
-    def update_asset_in_scene(self, root_node):
+    def update_asset(self, root_node):
         # TODO update and make this API more consistent with all the
-        # update_asset_in_scene, recreate_scene, show
+        # update_asset, update, show
         pass
 
-    def recreate_scene(self):
+    def update_all_assets(self):
         pass
 
     def show(self, **engine_kwargs):

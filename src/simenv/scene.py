@@ -16,11 +16,9 @@
 """ A simenv Scene - Host a level or Scene."""
 import os
 import tempfile
-from fileinput import filename
-from typing import List, Optional
+from typing import List, Optional, Union
 
 from huggingface_hub import create_repo, hf_hub_download, logging, upload_file
-from isort import file
 
 import simenv as sm
 
@@ -46,26 +44,80 @@ class SceneNotBuiltError(Exception):
 class Scene(Asset):
     def __init__(
         self,
-        engine: Optional[str] = None,
+        engine: Optional[str] = "pyvista",
         name: Optional[str] = None,
         created_from_file: Optional[str] = None,
+        position: Optional[List[float]] = None,
+        rotation: Optional[List[float]] = None,
+        scaling: Optional[Union[float, List[float]]] = None,
+        transformation_matrix=None,
+        children=None,
         **kwargs,
     ):
-        super().__init__(name=name, **kwargs)
+        super().__init__(
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            transformation_matrix=transformation_matrix,
+            children=children,
+        )
         self.engine = None
         self._built = False
         self._created_from_file = created_from_file
         if engine == "Unity":
-            self.engine = UnityEngine(self)
+            self.engine = UnityEngine(self, **kwargs)
         elif engine == "Blender":
             raise NotImplementedError()
-        elif engine == "pyvista" or engine is None:
-            self.engine = PyVistaEngine(self)
-        else:
+        elif engine == "pyvista":
+            self.engine = PyVistaEngine(self, **kwargs)
+        elif engine is not None:
             raise ValueError("engine should be selected ()")
 
+    @staticmethod
+    def _get_node_tree_from_hub_or_local(
+        hub_or_local_filepath: str,
+        use_auth_token: Optional[str] = None,
+        revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
+        file_type: Optional[str] = None,
+        **kwargs,
+    ):
+        """Return a root tree loaded from the HuggingFace hub or from a local GLTF file.
+
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
+
+        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
+        """
+        if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and is_local is not False:
+            nodes = load_gltf_as_tree(hub_or_local_filepath, file_type=file_type)
+            return nodes, hub_or_local_filepath
+
+        splitted_hub_path = hub_or_local_filepath.split("/")
+        repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
+        filename = splitted_hub_path[-1]
+        subfolder = "/".join(splitted_hub_path[2:-1])
+        gltf_file = hf_hub_download(
+            repo_id=repo_id,
+            filename=filename,
+            subfolder=subfolder,
+            revision=revision,
+            repo_type="space",
+            use_auth_token=use_auth_token,
+            force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
+            **kwargs,
+        )
+        nodes = load_gltf_as_tree(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
+        return nodes, gltf_file
+
     @classmethod
-    def load(
+    def create_from(
         cls,
         hub_or_local_filepath: str,
         use_auth_token: Optional[str] = None,
@@ -85,24 +137,13 @@ class Scene(Asset):
         - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
-        if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and not is_local is False:
-            return cls.load_from_file(filepath=hub_or_local_filepath, **kwargs)
-
-        splitted_hub_path = hub_or_local_filepath.split("/")
-        repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
-        filename = splitted_hub_path[-1]
-        subfolder = "/".join(splitted_hub_path[2:-1])
-        gltf_file = hf_hub_download(
-            repo_id=repo_id,
-            filename=filename,
-            subfolder=subfolder,
-            revision=revision,
-            repo_type="space",
+        nodes, gltf_file = Scene._get_node_tree_from_hub_or_local(
+            hub_or_local_filepath=hub_or_local_filepath,
             use_auth_token=use_auth_token,
-            force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
+            revision=revision,
+            is_local=is_local,
             **kwargs,
         )
-        nodes = load_gltf_as_tree(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
             nodes = root.tree_children
@@ -117,6 +158,48 @@ class Scene(Asset):
             created_from_file=gltf_file,
             **kwargs,
         )
+
+    def load(
+        self,
+        hub_or_local_filepath: str,
+        use_auth_token: Optional[str] = None,
+        revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
+        **kwargs,
+    ) -> "Scene":
+        """Load a Scene from the HuggingFace hub or from a local GLTF file.
+
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
+
+        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
+        """
+        nodes, gltf_file = Scene._get_node_tree_from_hub_or_local(
+            hub_or_local_filepath=hub_or_local_filepath,
+            use_auth_token=use_auth_token,
+            revision=revision,
+            is_local=is_local,
+            **kwargs,
+        )
+
+        if len(nodes) == 1:
+            root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
+            nodes = root.tree_children
+        else:
+            root = Asset(name="Scene")  # Otherwise we build a main root node
+
+        self.clear()
+        self.name = root.name
+        self.position = root.position
+        self.rotation = root.rotation
+        self.scaling = root.scaling
+        self.children = nodes
+        self.created_from_file = gltf_file
 
     def push_to_hub(
         self,
@@ -168,25 +251,6 @@ class Scene(Asset):
                 hub_urls.append(hub_url)
         return repo_url
 
-    @classmethod
-    def load_from_file(cls, filepath: str, file_type: Optional[str] = None, **kwargs) -> "Scene":
-        """Load a Scene from a GLTF file."""
-        nodes = load_gltf_as_tree(filepath, file_type=file_type)
-        if len(nodes) == 1:
-            root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
-            nodes = root.tree_children
-        else:
-            root = Asset(name="Scene")  # Otherwise we build a main root node
-        return cls(
-            name=root.name,
-            position=root.position,
-            rotation=root.rotation,
-            scaling=root.scaling,
-            children=nodes,
-            created_from_file=filepath,
-            **kwargs,
-        )
-
     def save(self, filepath: str, **kwargs) -> List[str]:
         """Save a Scene as a GLTF file (with optional ressources in the same folder)."""
         return save_tree_as_gltf_file(filepath, self)
@@ -208,12 +272,12 @@ class Scene(Asset):
         # search all nodes for agents classes and then return in list
         return self._get_decendants_of_class_type(sm.RL_Agent)
 
-    def show(self, in_background: Optional[bool] = None, **engine_kwargs):
+    def show(self, **engine_kwargs):
         """Render the Scene using the engine if provided."""
         if self.engine is None:
             raise UnsetRendererError()
 
-        self.engine.show(in_background=in_background, **engine_kwargs)
+        self.engine.show(**engine_kwargs)
         self._built = True
 
     def _check_backend(self):
@@ -246,6 +310,9 @@ class Scene(Asset):
         """Step the Scene using the engine if provided."""
         self._check_backend()
         return self.engine.get_observation()
+
+    def __len__(self):
+        return len(self.tree_descendants)
 
     def __repr__(self):
         return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}')\n{RenderTree(self).print_tree()}"

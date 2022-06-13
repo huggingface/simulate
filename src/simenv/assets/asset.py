@@ -49,8 +49,8 @@ class Asset(NodeMixin, object):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        collider: Optional[Collider] = None,
         transformation_matrix=None,
+        collider: Optional[Collider] = None,
         parent=None,
         children=None,
     ):
@@ -323,7 +323,7 @@ class Asset(NodeMixin, object):
         self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
         if getattr(self.tree_root, "engine", None) is not None:
-            self.tree_root.engine.update_asset_in_scene(self)
+            self.tree_root.engine.update_asset(self)
 
     @rotation.setter
     def rotation(self, value):
@@ -340,7 +340,7 @@ class Asset(NodeMixin, object):
         self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
         if getattr(self.tree_root, "engine", None) is not None:
-            self.tree_root.engine.update_asset_in_scene(self)
+            self.tree_root.engine.update_asset(self)
 
     @scaling.setter
     def scaling(self, value):
@@ -357,7 +357,7 @@ class Asset(NodeMixin, object):
         self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
         if getattr(self.tree_root, "engine", None) is not None:
-            self.tree_root.engine.update_asset_in_scene(self)
+            self.tree_root.engine.update_asset(self)
 
     @transformation_matrix.setter
     def transformation_matrix(self, value):
@@ -374,17 +374,18 @@ class Asset(NodeMixin, object):
         self._rotation = None
         self._scaling = None
 
-        if getattr(self.tree_root, "engine", None) is not None:
-            self.tree_root.engine.update_asset_in_scene(self)
+        self._post_asset_modification()
 
-    def _post_attach(self, parent):
-        if getattr(parent.tree_root, "engine", None) is not None:
-            parent.tree_root.engine.update_asset_in_scene(self)
+    def _post_asset_modification(self):
+        if getattr(self.tree_root, "engine", None) is not None and self.tree_root.tree_root.engine.auto_update:
+            self.tree_root.engine.update_asset(self)
 
-    def _pre_detach(self, parent):
-        if getattr(parent.tree_root, "engine", None) is not None:
-            parent.tree_root.engine.recreate_scene()
+    def _post_attach_parent(self, parent):
+        """NodeMixing nethod call after attaching to a `parent`."""
+        if getattr(parent.tree_root, "engine", None) is not None and parent.tree_root.engine.auto_update:
+            parent.tree_root.engine.update_asset(self)
 
-    def _pre_attach_children(self, children):
-        if getattr(self.tree_root, "engine", None) is not None:
-            self.tree_root.engine.recreate_scene()
+    def _post_detach_parent(self, parent):
+        """NodeMixing nethod call after detaching from a `parent`."""
+        if getattr(parent.tree_root, "engine", None) is not None and parent.tree_root.engine.auto_update:
+            parent.tree_root.engine.remove_asset(self)

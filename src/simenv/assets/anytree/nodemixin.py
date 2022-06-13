@@ -163,25 +163,39 @@ class NodeMixin(object):
 
     def __detach(self, parent):
         if parent is not None:
-            self._pre_detach(parent)
+            self._pre_detach_parent(parent)
             parentchildren = parent.__children_or_empty
             assert any(child is self for child in parentchildren), "Tree is corrupt."  # pragma: no cover
+
             # ATOMIC START
             parent.__children = [child for child in parentchildren if child is not self]
             self.__parent = None
             # ATOMIC END
-            self._post_detach(parent)
+
+            # We remove the attributes associated to the previous parent if needed
+            if hasattr(self.tree_parent, self.name) and getattr(self.tree_parent, self.name) == self:
+                delattr(self.tree_parent, self.name)
+
+            self._post_detach_parent(parent)
 
     def __attach(self, parent):
         if parent is not None:
-            self._pre_attach(parent)
+            self._pre_attach_parent(parent)
             parentchildren = parent.__children_or_empty
-            assert not any(child is self for child in parentchildren), "Tree is corrupt."  # pragma: no cover
+
+            # Quite slow test
+            # assert not any(child is self for child in parentchildren), "Tree is corrupt."  # pragma: no cover
+
             # ATOMIC START
             parentchildren.append(self)
             self.__parent = parent
             # ATOMIC END
-            self._post_attach(parent)
+
+            # We add name attribute associated to the new children if there is no attribute of this name.
+            if not hasattr(parent, self.name):
+                setattr(parent, self.name, self)
+
+            self._post_attach_parent(parent)
 
     @property
     def __children_or_empty(self):
@@ -268,6 +282,12 @@ class NodeMixin(object):
             self._pre_attach_children(children)
             for child in children:
                 child.tree_parent = self
+
+            # We add name attributes associated to the children if there is no attribute of this name.
+            for child in children:
+                if not hasattr(self, child.name):
+                    setattr(self, child.name, child)
+
             self._post_attach_children(children)
             assert len(self.tree_children) == len(children)
         except Exception:
@@ -282,6 +302,12 @@ class NodeMixin(object):
         for child in self.tree_children:
             child.tree_parent = None
         assert len(self.tree_children) == 0
+
+        #  We remove the attributes associated to the children if needed.
+        for child in children:
+            if hasattr(self, child.name) and getattr(self, child.name) == child:
+                delattr(self, child.name)
+
         self._post_detach_children(children)
 
     def _pre_detach_children(self, children):
@@ -293,54 +319,43 @@ class NodeMixin(object):
         pass
 
     def _post_detach_children(self, children):
-        """After detaching `children`. We remove the attributes associated to the children if needed."""
-        for child in children:
-            if hasattr(self, child.name) and getattr(self, child.name) == child:
-                delattr(self, child.name)
+        """Method call after detaching `children`"""
+        pass
 
     def _post_attach_children(self, children):
-        """After attaching `children`. We add name attributes associated to the children if there is no attribute of this name."""
-        for child in children:
-            if not hasattr(self, child.name):
-                setattr(self, child.name, child)
+        """Method call after attaching `children`."""
+        pass
 
-    def _pre_detach(self, parent):
+    def _pre_detach_parent(self, parent):
         """Method call before detaching from `parent`."""
         pass
 
-    def _pre_attach(self, parent):
-        """When attaching to `parent`.  We add name attribute associated to the new children if there is no attribute of this name."""
-        if not hasattr(parent, self.name):
-            setattr(parent, self.name, self)
+    def _pre_attach_parent(self, parent):
+        """Method call when attaching to `parent`."""
+        pass
 
-    def _post_detach(self, parent):
-        """Before attaching to `parent`. We remove the attributes associated to the previous parent if needed."""
-        if hasattr(self.tree_parent, self.name) and getattr(self.tree_parent, self.name) == self:
-            delattr(self.tree_parent, self.name)
+    def _post_detach_parent(self, parent):
+        """Method call before attaching to `parent`."""
+        pass
 
-    def _post_attach(self, parent):
+    def _post_attach_parent(self, parent):
         """Method call after attaching to `parent`."""
         pass
 
     def remove(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
-        if not self.tree_children:
-            return self
-        if isinstance(assets, list):
-            assets = tuple(assets)
-        if not isinstance(assets, tuple):
-            assets = (assets,)
-        for asset in assets:
-            if asset in self.tree_children:
-                children = self.tree_children
-                self.tree_children = tuple(child for child in children if child is not asset)
+        if isinstance(assets, NodeMixin):
+            assets.tree_parent = None
+        else:
+            for asset in assets:
+                asset.tree_parent = None
         return self
 
     def add(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
-        if isinstance(assets, list):
-            assets = tuple(assets)
-        if not isinstance(assets, tuple):
-            assets = (assets,)
-        self.tree_children += assets
+        if isinstance(assets, NodeMixin):
+            assets.tree_parent = self
+        else:
+            for asset in assets:
+                asset.tree_parent = self
         return self
 
     def __iadd__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):

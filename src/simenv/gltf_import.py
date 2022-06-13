@@ -26,7 +26,6 @@ from typing import ByteString, List, Optional, Set, Union
 import numpy as np
 import PIL.Image
 import pyvista as pv
-import pyvistaqt
 from huggingface_hub import hf_hub_download
 
 from .assets import Asset, Camera, Collider, Light, Material, Object3D

@@ -80,10 +80,10 @@ except:
 
 
 class PyVistaEngine(Engine):
-    def __init__(self, scene, disable_background_plotter=False, **plotter_kwargs):
+    def __init__(self, scene, auto_update=False, **plotter_kwargs):
         self.plotter: pyvista.Plotter = None
         self.plotter_kwargs = plotter_kwargs
-        self._background_plotter = bool(CustomBackgroundPlotter is not None and not disable_background_plotter)
+        self.auto_update = bool(CustomBackgroundPlotter is not None and auto_update)
 
         self._scene: Asset = scene
         self._plotter_actors = {}
@@ -91,7 +91,7 @@ class PyVistaEngine(Engine):
     def _initialize_plotter(self):
         plotter_args = {"lighting": "none"}
         plotter_args.update(self.plotter_kwargs)
-        if self._background_plotter:
+        if self.auto_update:
             self.plotter: pyvista.Plotter = CustomBackgroundPlotter(**plotter_args)
         else:
             self.plotter: pyvista.Plotter = pyvista.Plotter(**plotter_args)
@@ -99,24 +99,44 @@ class PyVistaEngine(Engine):
         self.plotter.view_vector((1, 1, 1), (0, 1, 0))
         self.plotter.add_axes(box=True)
 
-    def update_asset_in_scene(self, root_node):
-        """Update the location of an asset and all its children in the scene"""
+    @staticmethod
+    def _get_node_transform(node) -> np.ndarray:
+        transforms = list(n.transformation_matrix for n in node.tree_path)
+        if len(transforms) > 1:
+            model_transform_matrix = np.linalg.multi_dot(transforms)  # Compute transform from the tree parents
+        else:
+            model_transform_matrix = transforms[0]
+        return model_transform_matrix
+
+    def remove_asset(self, asset_node):
+        """Remove an asset and all its children in the scene"""
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             return
 
-        for node in root_node:
+        for node in asset_node:
             if not isinstance(node, (Object3D, Camera, Light)):
                 continue
-
-            transforms = list(n.transformation_matrix for n in node.tree_path)
-            if len(transforms) > 1:
-                model_transform_matrix = np.linalg.multi_dot(transforms)  # Compute transform from the tree parents
-            else:
-                model_transform_matrix = transforms[0]
 
             actor = self._plotter_actors.get(node.uuid)
             if actor is not None:
                 self.plotter.remove_actor(actor)
+
+        self.plotter.reset_camera()
+
+    def update_asset(self, asset_node):
+        """Add an asset or update its location and all its children in the scene"""
+        if self.plotter is None or not hasattr(self.plotter, "ren_win"):
+            return
+
+        for node in asset_node:
+            if not isinstance(node, (Object3D, Camera, Light)):
+                continue
+
+            actor = self._plotter_actors.get(node.uuid)
+            if actor is not None:
+                self.plotter.remove_actor(actor)
+
+            model_transform_matrix = self._get_node_transform(node)
 
             self._add_asset_to_scene(node, model_transform_matrix)
 
@@ -156,7 +176,7 @@ class PyVistaEngine(Engine):
             light.transform_matrix = model_transform_matrix
             self._plotter_actors[node.uuid] = self.plotter.add_light(light)
 
-    def recreate_scene(self):
+    def regenerate_scene(self):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             self._initialize_plotter()
 
@@ -181,13 +201,13 @@ class PyVistaEngine(Engine):
 
         self.plotter.reset_camera()
 
-    def show(self, in_background: Optional[bool] = None, **pyvista_plotter_kwargs):
-        if in_background is not None and in_background != self._background_plotter:
+    def show(self, auto_update: Optional[bool] = None, **pyvista_plotter_kwargs):
+        if auto_update is not None and auto_update != self.auto_update:
             self.plotter = None
-            self._background_plotter = in_background
+            self.auto_update = auto_update
 
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
-            self.recreate_scene()
+            self.regenerate_scene()
             self.plotter.show(**pyvista_plotter_kwargs)
 
     def close(self):
