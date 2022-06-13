@@ -126,7 +126,7 @@ namespace SimEnv {
         private float accumReward = 0.0f;
 
         public Color color = Color.white;
-
+        private uint[] pixel_values;
         private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
 
         CharacterController controller;
@@ -182,6 +182,8 @@ namespace SimEnv {
             actions.available = agentData.available_actions;
 
             agent_camera.targetTexture = new RenderTexture(agentData.camera_width, agentData.camera_height, 24);
+
+            pixel_values = new uint[agentData.camera_width * agentData.camera_height * 3];
 
             // add the reward functions to the agent
             for (int i = 0; i < agentData.reward_functions.Count; i++) {
@@ -338,13 +340,13 @@ namespace SimEnv {
             Color32[] pixels = image.GetPixels32();
             RenderTexture.active = activeRenderTexture;
 
-            uint[] pixel_values = new uint[pixels.Length * 3];
+            //uint[] pixel_values = new uint[pixels.Length * 3];
 
             for (int i = 0; i < pixels.Length; i++) {
                 pixel_values[i * 3] += pixels[i].r;
                 pixel_values[i * 3 + 1] += pixels[i].g;
                 pixel_values[i * 3 + 2] += pixels[i].b;
-                // we do not include alpha, TODO: Add option to include Depth Buffer
+                // TODO: Add option to include Depth Buffer
             }
 
             string string_array = JsonHelper.ToJson(pixel_values);
