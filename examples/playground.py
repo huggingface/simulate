@@ -44,6 +44,7 @@ for i in range(1000):
     else:
         action = action.tolist()
 
+    print(action)
     obs, done, reward, info = env.step(action)
     print(done, reward, info)
     axim1.set_data(obs)

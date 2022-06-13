@@ -178,7 +178,6 @@ namespace SimEnv.GLTF {
                             }
                         }
                         if (nodes[i].extensions.HF_collider != null) {
-                            Debug.Log("not null " + i + " " + nodes[i].name + " " + nodes[i].extensions);
                             HF_collider collider = nodes[i].extensions.HF_collider;
                             if (collider.mesh.HasValue) {
                                 Debug.LogWarning("Ignoring collider mesh value");
@@ -204,7 +203,6 @@ namespace SimEnv.GLTF {
                             }
                         }
                         if (nodes[i].extensions.HF_RL_agents != null) {
-                            Debug.Log("not null2 " + i + " " + nodes[i].name + " " + nodes[i].extensions);
                             int agent_id = nodes[i].extensions.HF_RL_agents.agent;
                             if (extensions == null || extensions.HF_RL_agents == null || extensions.HF_RL_agents.agents == null || extensions.HF_RL_agents.agents.Count < agent_id) {
                                 Debug.LogWarning("Error importing agent");
