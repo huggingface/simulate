@@ -54,6 +54,7 @@ class Scene(Asset):
         children=None,
         executable: Optional[str] = None,
         port: Optional[int] = None,
+        headless: Optional[bool] = None,
         **kwargs,
     ):
         super().__init__(
@@ -70,7 +71,7 @@ class Scene(Asset):
         if engine is not None:
             engine = engine.lower()
         if engine == "unity":
-            self.engine = UnityEngine(self, executable=executable, port=port)
+            self.engine = UnityEngine(self, executable=executable, port=port, headless=headless)
         elif engine == "blender":
             raise NotImplementedError()
         elif engine == "pyvista" or engine is None:

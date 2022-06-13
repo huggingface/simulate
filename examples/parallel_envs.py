@@ -1,4 +1,5 @@
 
+from requests import head
 import simenv as sm
 import simenv.assets.utils as utils
 import os, time
@@ -10,8 +11,8 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
 
-def create_env(executable=None, port=None):
-    scene = sm.Scene(engine="Unity", executable=executable, port=port)
+def create_env(executable=None, port=None, headless=None):
+    scene = sm.Scene(engine="Unity", executable=executable, port=port, headless=headless)
 
 
     scene += sm.Light(
@@ -65,16 +66,16 @@ def create_env(executable=None, port=None):
 
     return env
 
+def make_env(executable, rank, seed=0, headless=None):
+    def _make_env():
+        print("rank", rank)
+        env = create_env(executable=executable, port=55000+rank, headless=headless)
+        return env
 
+    return _make_env
 
 if __name__ == "__main__":
-    def make_env(executable, rank, seed=0):
-        def _make_env():
-            print("rank", rank)
-            env = create_env(executable=executable, port=55000+rank)
-            return env
 
-        return _make_env
 
     n_envs = 16
 
