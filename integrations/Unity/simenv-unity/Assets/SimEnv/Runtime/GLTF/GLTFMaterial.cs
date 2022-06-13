@@ -131,9 +131,9 @@ namespace SimEnv.GLTF {
             public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, Shader shader, Action<Material> onFinish) {
                 Material mat = new Material(shader);
                 mat.color = baseColorFactor;
-                mat.SetFloat("_Mode", (float)alphaMode);
+                mat.SetFloat("_WorkflowMode", 1f);
                 mat.SetFloat("_Metallic", metallicFactor);
-                mat.SetFloat("_Roughness", roughnessFactor);
+                mat.SetFloat("_Smoothness", roughnessFactor);
 
                 if(textures != null) {
                     if(baseColorTexture != null && baseColorTexture.index >= 0) {
@@ -142,7 +142,7 @@ namespace SimEnv.GLTF {
                         } else {
                             IEnumerator coroutine = textures[baseColorTexture.index].GetTextureCached(false, tex => {
                                 if(tex != null)
-                                    mat.SetTexture("_MainTex", tex);
+                                    mat.mainTexture = tex;
                             });
                             while(coroutine.MoveNext())
                                 yield return null;
@@ -154,10 +154,8 @@ namespace SimEnv.GLTF {
                         Debug.LogWarning("Metallic texture index error");
                     } else {
                         IEnumerator coroutine = TryGetTexture(textures, metallicRoughnessTexture, true, tex => {
-                            if(tex != null) {
+                            if(tex != null)
                                 mat.SetTexture("_MetallicGlossMap", tex);
-                                mat.EnableKeyword("_METALLICGLOSSMAP");
-                            }
                         });
                         while(coroutine.MoveNext())
                             yield return null;
@@ -182,9 +180,9 @@ namespace SimEnv.GLTF {
             public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, Shader shader, Action<Material> onFinish) {
                 Material mat = new Material(shader);
                 mat.color = diffuseFactor;
-                mat.SetFloat("_Mode", (float)alphaMode);
+                mat.SetFloat("_WorkflowMode", 0f);
                 mat.SetColor("_SpecColor", specularFactor);
-                mat.SetFloat("_GlossyReflections", glossinessFactor);
+                mat.SetFloat("_Smoothness", glossinessFactor);
 
                 if(textures != null) {
                     if(diffuseTexture != null) {
@@ -193,9 +191,9 @@ namespace SimEnv.GLTF {
                         } else {
                             IEnumerator coroutine = textures[diffuseTexture.index].GetTextureCached(false, tex => {
                                 if(tex != null) {
-                                    mat.SetTexture("_MainTex", tex);
+                                    mat.mainTexture = tex;
                                     if(diffuseTexture.extensions != null)
-                                        diffuseTexture.extensions.Apply(diffuseTexture, mat, "_MainTex");
+                                        diffuseTexture.extensions.Apply(diffuseTexture, mat, "_BaseMap");
                                 }
                             });
                             while(coroutine.MoveNext()) yield return null;
@@ -205,11 +203,9 @@ namespace SimEnv.GLTF {
                         if(textures.Length <= specularGlossinessTexture.index) {
                             Debug.LogWarning("Failed to get specular glossiness texture at index");
                         } else {
-                            mat.EnableKeyword("_SPECGLOSSMAP");
                             IEnumerator coroutine = textures[specularGlossinessTexture.index].GetTextureCached(false, tex => {
                                 if(tex != null) {
                                     mat.SetTexture("_SpecGlossMap", tex);
-                                    mat.EnableKeyword("_SPECGLOSSMAP");
                                     if(specularGlossinessTexture.extensions != null)
                                         specularGlossinessTexture.extensions.Apply(specularGlossinessTexture, mat, "_SpecGlossMap");
                                 }
@@ -218,6 +214,11 @@ namespace SimEnv.GLTF {
                         }
                     }
                 }
+
+                if(mat.HasProperty("_BaseMap"))
+                    mat.SetTexture("_BaseMap", mat.mainTexture);
+                if(mat.HasProperty("_BaseColor"))
+                    mat.SetColor("_BaseColor", diffuseFactor);
                 onFinish(mat);
             }
         }

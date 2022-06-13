@@ -35,25 +35,15 @@ namespace SimEnv.GLTF {
                         yield break;
                     }
 #endif
-                    path = "File://" + path;
-                    using(UnityWebRequest uwr = UnityWebRequestTexture.GetTexture(path, true)) {
-                        UnityWebRequestAsyncOperation operation = uwr.SendWebRequest();
-                        float progress = 0;
-                        while(!operation.isDone) {
-                            if(progress != uwr.downloadProgress && onProgress != null)
-                                onProgress(uwr.downloadProgress);
-                            yield return null;
-                        }
-                        if(onProgress != null)
-                            onProgress(1f);
-                        if(uwr.result == UnityWebRequest.Result.ConnectionError || uwr.result == UnityWebRequest.Result.ProtocolError) {
-                            Debug.LogError(string.Format("GLTFImage to texture error: {0}", uwr.error));
-                        } else {
-                            Texture2D tex = DownloadHandlerTexture.GetContent(uwr);
-                            tex.name = Path.GetFileNameWithoutExtension(path);
-                            onFinish(tex);
-                        }
-                        uwr.Dispose();
+                    if(File.Exists(path)) {
+                        byte[] data = File.ReadAllBytes(path);
+                        Texture2D tex = new Texture2D(2, 2, TextureFormat.ARGB32, true);
+                        tex.LoadImage(data);
+                        tex.name = Path.GetFileNameWithoutExtension(path);
+                        onFinish(tex);
+                    } else {
+                        Debug.LogError("File not found at path: " + path);
+                        yield break;
                     }
                 } else {
                     Texture2D tex = new Texture2D(2, 2, TextureFormat.ARGB32, true, linear);

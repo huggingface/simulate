@@ -57,7 +57,7 @@ namespace SimEnv {
             // Calculate the agent's observation and send to python with callback
             if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
                 Agent agent = ISimulator.Agent as Agent;
-                agent.ObservationCoroutine(callback);
+                agent.Render(callback);
             } else {
                 Debug.LogWarning("Attempting to get observation without an Agent");
             }
