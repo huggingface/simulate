@@ -91,6 +91,7 @@ def generate_env(
 
     # TODO: choose width and height randomly from a set of predefined values
     # Generate the map if no specific map is passed
+    # TODO: create default kwargs to avoid having to do this below:
     nb_tries = kwargs["nb_tries"] if "nb_tries" in kwargs else 10
 
     # Initialize success and curr_try variables

@@ -119,7 +119,7 @@ def generate_2d_map(
             seed=seed,
             dir_path=gen_folder.encode("utf-8"),
         )
-        img_path = os.path.join(gen_folder, "maps/sample_0.png")
+        img_path = os.path.join(gen_folder, "maps/sample.png")
 
     else:
         # Simpletiled routine

@@ -54,7 +54,7 @@ void read_overlapping_instance(unsigned seed, unsigned width, unsigned height, b
                               bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry, string input_img,
                               const string &current_dir, bool verbose, unsigned nb_tries) {
                                 
-  string name = "sample_";
+  string name = "sample";
   if (verbose) {
     cout << "Started!" << endl;
   }
@@ -75,7 +75,7 @@ void read_overlapping_instance(unsigned seed, unsigned width, unsigned height, b
       OverlappingWFC<Color> wfc(*m, options, seed);
       std::optional<Array2D<Color>> success = wfc.run();
       if (success.has_value()) {
-        write_image_png(current_dir + "/maps/" + name + to_string(i) + ".png", *success);
+        write_image_png(current_dir + "/maps/" + name + ".png", *success);
         if (verbose) {
           cout << "Finished!" << endl;
         }
