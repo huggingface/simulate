@@ -1,0 +1,15 @@
+fileFormatVersion: 2
+<<<<<<<< HEAD:integrations/Unity/simenv-unity/Assets/Scenes/SampleScene/PostProcessing Profile.asset.meta
+guid: dd9a783c9c36ab444ba1088f8b7aa298
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 11400000
+========
+guid: c8cb67485c31ca940b6d83770c71c543
+NativeFormatImporter:
+  externalObjects: {}
+  mainObjectFileID: 2100000
+>>>>>>>> 9840753bd9dddefc5222dcc443ca65b9bdf1cbfe:integrations/Unity/simenv-unity/Assets/New Material.mat.meta
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 
