@@ -36,7 +36,6 @@ namespace SimEnv {
 
         public override void Reset() {
             bestDistance = distanceMetric.Calculate(entity1, entity2);
-            Debug.Log("resetting dense reward");
         }
         public DenseRewardFunction(GameObject entity1, GameObject entity2, IDistanceMetric distanceMetric, float rewardScalar) {
             this.entity1 = entity1;
@@ -78,9 +77,7 @@ namespace SimEnv {
         public override float CalculateReward() {
             float reward = 0.0f;
             float distance = distanceMetric.Calculate(entity1, entity2);
-            Debug.Log("Calculating sparse reward " + distance.ToString());
             if (!hasTriggered && (distance < threshold)) {
-                Debug.Log("Triggered");
                 hasTriggered = true;
                 reward += rewardScalar;
             }
@@ -95,7 +92,6 @@ namespace SimEnv {
         public TimeoutRewardFunction(GameObject entity1, GameObject entity2, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal) :
                 base(entity1, entity2, distanceMetric, rewardScalar, threshold, isTerminal) { }
         public override void Reset() {
-            Debug.Log("resetting timeout reward");
             hasTriggered = false;
             steps = 0;
         }
@@ -103,9 +99,7 @@ namespace SimEnv {
         public override float CalculateReward() {
             float reward = 0.0f;
             steps += 1;
-            Debug.Log("Calculating timeout reward " + steps.ToString() + " " + (steps > threshold).ToString() + " trig " + hasTriggered);
             if (!hasTriggered && (steps > threshold)) {
-                Debug.Log("Triggered");
                 hasTriggered = true;
                 reward += rewardScalar;
             }
