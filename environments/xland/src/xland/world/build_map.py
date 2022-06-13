@@ -10,7 +10,7 @@ from wfc_binding import run_wfc
 
 import simenv as sm
 
-from ..utils import GRANULARITY, HEIGHT_CONSTANT, decode_rgb
+from ..utils import GRANULARITY, HEIGHT_CONSTANT, decode_rgb, generate_seed
 
 
 def get_sides_and_bottom(x, y, z):
@@ -100,13 +100,6 @@ def generate_2d_map(
     """
     # TODO: Open image if it's cached
 
-    # Check if seed should be used
-    if seed is not None:
-        use_seed = True
-    else:
-        use_seed = False
-        seed = 0
-
     # Otherwise, generate it
     if sample_from is not None:
         # Overlapping routine
@@ -123,7 +116,6 @@ def generate_2d_map(
             ground=ground,
             nb_samples=nb_samples,
             symmetry=symmetry,
-            use_seed=use_seed,
             seed=seed,
             dir_path=gen_folder.encode("utf-8"),
         )
@@ -137,7 +129,6 @@ def generate_2d_map(
             height,
             sample_type=0,
             periodic_output=periodic_output,
-            use_seed=use_seed,
             seed=seed,
             dir_path=gen_folder.encode("utf-8"),
         )
@@ -163,7 +154,6 @@ def generate_map(
     ground=False,
     nb_samples=1,
     symmetry=1,
-    seed=None,
     engine=None,
 ):
     """
@@ -186,9 +176,11 @@ def generate_map(
         symmetry: Levels of symmetry to be used when sampling from a map. Values
             larger than one might imply in new tiles, which might be a unwanted behaviour
             (WFC param).
-        seed: The seed to use for the generation of the map.
         engine: which engine to use on the scene.
     """
+
+    # Generate seed for C++
+    seed = generate_seed()
 
     if specific_map is not None:
         img = Image.open(os.path.join(gen_folder, "maps", specific_map + ".png"))

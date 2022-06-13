@@ -226,13 +226,10 @@ def create_objects(positions, object_type=None, object_size=0.5):
     ]
 
 
-def get_object_pos(z, n_objects, threshold=None, distribution="uniform"):
+def get_object_pos(z, n_objects, threshold=0.5, distribution="uniform"):
     """
-    Returns None if there is not a playable area.
+    Returns None if there isn't enough playable area.
     """
-
-    if threshold is None:
-        threshold = 0.2
 
     playable_nodes, area = get_playable_area(z)
 

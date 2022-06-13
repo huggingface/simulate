@@ -6,7 +6,7 @@ import os
 
 import simenv as sm
 
-from .utils import convert_to_actual_pos
+from .utils import convert_to_actual_pos, seed_env
 from .world import create_objects, generate_map, generate_tiles, get_object_pos
 
 
@@ -87,6 +87,7 @@ def generate_env(
     Returns:
         scene: the generated scene in simenv format.
     """
+    seed_env(seed)
 
     # TODO: choose width and height randomly from a set of predefined values
     # Generate the map if no specific map is passed
@@ -108,7 +109,6 @@ def generate_env(
             periodic_output=periodic_output,
             specific_map=specific_map,
             sample_from=sample_from,
-            seed=seed,
             max_height=max_height,
             N=N,
             periodic_input=periodic_input,
@@ -119,8 +119,8 @@ def generate_env(
         )
 
         # Get objects position
-        threshold = kwargs["threshold"] if "threshold" in kwargs else None
-        obj_pos, success = get_object_pos(map_2d, n_objects=n_objects, threshold=threshold)
+        threshold_kwargs = {"threshold": kwargs["threshold"]} if "threshold" in kwargs else {}
+        obj_pos, success = get_object_pos(map_2d, n_objects=n_objects, **threshold_kwargs)
 
         # If there is no enough area, we should try again and continue the loop
         # TODO: improve quality of this code
