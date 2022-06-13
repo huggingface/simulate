@@ -117,6 +117,7 @@ def generate_env(
             nb_samples=nb_samples,
             symmetry=symmetry,
             engine=engine,
+            verbose=verbose,
         )
 
         # Get objects position

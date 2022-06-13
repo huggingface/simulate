@@ -17,6 +17,7 @@ if __name__ == "__main__":
     parser.add_argument("--periodic_input", type=bool, default=True)
     parser.add_argument("--ground", type=bool, default=False)
     parser.add_argument("--show", type=bool, default=False)
+    parser.add_argument("--verbose", type=bool, default=False)
 
     parser.add_argument("--width", type=int, default=8)
     parser.add_argument("--height", type=int, default=10)

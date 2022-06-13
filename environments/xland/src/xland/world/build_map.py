@@ -88,6 +88,7 @@ def generate_2d_map(
     symmetry=1,
     sample_from=None,
     seed=None,
+    verbose=False,
 ):
     """
     Generate 2d map.
@@ -118,6 +119,7 @@ def generate_2d_map(
             symmetry=symmetry,
             seed=seed,
             dir_path=gen_folder.encode("utf-8"),
+            verbose=verbose,
         )
         img_path = os.path.join(gen_folder, "maps/sample.png")
 
@@ -131,6 +133,7 @@ def generate_2d_map(
             periodic_output=periodic_output,
             seed=seed,
             dir_path=gen_folder.encode("utf-8"),
+            verbose=verbose,
         )
         img_path = os.path.join(gen_folder, "maps/tiles.png")
 
@@ -155,6 +158,7 @@ def generate_map(
     nb_samples=1,
     symmetry=1,
     engine=None,
+    verbose=False,
 ):
     """
     Generate the map.
@@ -200,6 +204,7 @@ def generate_map(
             nb_samples=nb_samples,
             symmetry=symmetry,
             seed=seed,
+            verbose=verbose,
         )
 
     img_np = decode_rgb(img, specific_map=specific_map, sample_from=sample_from, max_height=max_height)
