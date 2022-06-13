@@ -82,31 +82,7 @@ if __name__ == "__main__":
     envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i) for i in range(n_envs)])
 
     obs = envs.reset()
-    # envs.reset()
-    # for i in range(1000):
-    #     action = [[envs.action_space.sample()] for _ in range(n_envs)]
-    #     print(action)
-    #     obs, reward, done, info = envs.step(action)
-    #     print(done, reward)
-    #     #time.sleep(0.1)
     model = PPO("CnnPolicy", envs, verbose=3)
     model.learn(total_timesteps=100000)
     
     envs.close()
-
-
-    # env = create_env(executable="/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", port=55000)
-
-    # for i in range(1000):
-    #     action = env.action_space.sample()
-    #     if type(action) == int: # discrete are ints, continuous are numpy arrays
-    #         action = [action]
-    #     else:
-    #         action = action.tolist()
-
-    #     obs, reward, done, info = env.step(action)
-    #     print(done, reward, info)
-        
-    #     #time.sleep(0.1)
-
-    #     env.close()
