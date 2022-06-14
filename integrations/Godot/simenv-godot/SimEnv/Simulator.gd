@@ -27,12 +27,8 @@ func _handle_client_connected() -> void:
 	print("Client connected to server.")
 
 func _handle_client_data(data: PackedByteArray) -> void:
-	var str_data : String = ""
-	
-	for character in data:
-		str_data += char(character)
-	
-	str_data = str_data.lstrip(str_data.left(2))
+	# The first 4 bytes are the message length TODO: remove slice when chunking is implemented
+	var str_data : String = data.slice(4).get_string_from_utf8()
 	print("Start: ", str_data.left(60), "...", str_data.right(30))
 	
 	var json_object : JSON = JSON.new() 
