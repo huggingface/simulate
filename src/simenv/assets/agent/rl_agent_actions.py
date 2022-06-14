@@ -1,8 +1,6 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-import numpy as np
-
 
 @dataclass
 class RLAgentActions:
