@@ -21,8 +21,8 @@ class RLEnv(gym.Env):
         else:
             self.action_space = spaces.Box(low=-1, high=1, shape=[len(agent_actions.types)])
 
-        camera_width = self.agents[0].camera_width
-        camera_height = self.agents[0].camera_height
+        camera_width = self.agents[0].camera.width
+        camera_height = self.agents[0].camera.height
 
         self.observation_space = spaces.Box(low=0, high=255, shape=[camera_height, camera_width, 3])
 

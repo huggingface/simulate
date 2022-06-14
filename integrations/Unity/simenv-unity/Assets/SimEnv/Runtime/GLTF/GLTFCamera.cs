@@ -7,6 +7,8 @@ namespace SimEnv.GLTF {
         public Perspective perspective;
         [JsonProperty(Required = Required.Always), JsonConverter(typeof(EnumConverter))] public CameraType type;
         public string name;
+        [JsonProperty(Required = Required.Always)] public int width;
+        [JsonProperty(Required = Required.Always)] public int height;
 
         public class Orthographic {
             [JsonProperty(Required = Required.Always)] public float xmag;

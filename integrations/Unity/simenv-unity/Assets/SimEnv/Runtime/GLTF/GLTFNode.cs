@@ -131,6 +131,8 @@ namespace SimEnv.GLTF {
                     if (nodes[i].camera.HasValue) {
                         GLTFCamera cameraData = cameras[nodes[i].camera.Value];
                         Camera camera = result[i].transform.gameObject.AddComponent<Camera>();
+                        camera.targetTexture = new RenderTexture(cameraData.width, cameraData.height, 24, RenderTextureFormat.Default);
+                        camera.targetTexture.name = "RenderTexture";
                         result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                         switch (cameraData.type) {
                             case CameraType.orthographic:
@@ -213,18 +215,7 @@ namespace SimEnv.GLTF {
                                 HF_RL_agents.HF_RL_Agent agentData = extensions.HF_RL_agents.agents[agent_id];
 
                                 Debug.Log("color" + agentData.color.ToString());
-                                Agent agent = GameObject.Instantiate(
-                                    Resources.Load<Agent>("Agent"),
-                                    result[i].transform.position,
-                                    result[i].transform.rotation,
-                                    result[i].transform.parent
-                                );
-
-                                agent.transform.SetSiblingIndex(result[i].transform.GetSiblingIndex());
-                                agent.name = result[i].transform.gameObject.name;
-                                agent.transform.localRotation *= Quaternion.Euler(0, 180, 0);
-                                GameObject.Destroy(result[i].transform.gameObject);
-
+                                Agent agent = result[i].transform.gameObject.AddComponent<Agent>();
 
                                 if (Application.isPlaying)
                                     agent.Initialize(agentData);
