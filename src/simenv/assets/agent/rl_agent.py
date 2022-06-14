@@ -22,8 +22,8 @@ class RL_Agent(Asset):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
-        camera_width=None,
-        camera_height=None,
+        camera_width: Optional[int] = None,
+        camera_height: Optional[int] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -46,8 +46,10 @@ class RL_Agent(Asset):
         self.turn_speed = turn_speed
         self.actions = actions
         self.reward_functions = reward_functions
-        self.camera = Camera(position=[0.0, height * 0.7, 0.0], height=camera_height, width=camera_width)
-        self.add(self.camera)
+        self.camera_width = camera_width
+        self.camera_height = camera_height
+        camera = Camera(position=[0.0, height * 0.7, 0.0], width=camera_width, height=camera_height)
+        self.add(camera)
 
     def add_reward_function(self, reward_function: RLAgentRewardFunction) -> None:
         self.reward_functions.append(reward_function)
