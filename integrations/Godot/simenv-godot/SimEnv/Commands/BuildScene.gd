@@ -10,5 +10,5 @@ func execute(content):
 	gltf_doc.append_from_buffer(content_bytes, "", gltf_state)
 	var gltf_scene = gltf_doc.generate_scene(gltf_state)
 	
-	add_child(gltf_scene)
+	get_tree().current_scene.add_child(gltf_scene)
 	print("glTF scene built!")
