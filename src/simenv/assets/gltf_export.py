@@ -21,18 +21,14 @@ import numpy as np
 import pyvista as pv
 import xxhash
 
-from simenv.gltflib.models.extensions.hf_collider import HF_Collider
-
 
 try:
     import PIL.Image
 except:
     pass
 
+from . import Asset, Camera, Light, Material, Object3D, RL_Agent
 from . import gltflib as gl
-from .assets import Asset, Camera, Light, Material, Object3D, RL_Agent
-from .gltflib.enums.collider_type import ColliderType
-from .gltflib.utils import padbytes
 
 
 # Conversion of Numnpy dtype and shapes in GLTF equivalents
@@ -111,10 +107,10 @@ def add_data_to_gltf(
         return cached_id
 
     # Pad the current buffer to a multiple of 4 bytes for GLTF alignement
-    byte_offset = padbytes(buffer_data, 4)
+    byte_offset = gl.padbytes(buffer_data, 4)
 
     # Pad new data to a multiple of 4 bytes as well
-    byte_length = padbytes(new_data, 4)
+    byte_length = gl.padbytes(new_data, 4)
 
     # Add our binary data to the end of the buffer
     buffer_data.extend(new_data)
@@ -544,7 +540,7 @@ def add_node_to_scene(
 
     # Add collider if node has one
     if node.collider is not None:
-        hf_collider = HF_Collider(
+        hf_collider = gl.HF_Collider(
             type=node.collider.type,
             boundingBox=node.collider.bounding_box,
             mesh=node.collider.mesh,
@@ -632,7 +628,7 @@ def tree_as_glb_bytes(root_node: Asset) -> bytes:
     return gltf.as_glb_bytes()
 
 
-def save_tree_as_gltf_file(file_path: str, root_node: Asset) -> List[str]:
+def save_tree_to_gltf_file(file_path: str, root_node: Asset) -> List[str]:
     """Save the tree in a GLTF file + additional (binary) ressource files if if shoulf be the case.
     Return the list of all the path to the saved files (glTF file + ressource files)
     """

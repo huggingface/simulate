@@ -24,7 +24,7 @@ import PIL.Image
 import pyvista as pv
 from huggingface_hub import hf_hub_download
 
-from .assets import Asset, Camera, Collider, Light, Material, Object3D
+from . import Asset, Camera, Collider, Light, Material, Object3D
 from .gltflib import GLTF, FileResource, TextureInfo
 from .gltflib.enums import AccessorType, ComponentType
 

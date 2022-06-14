@@ -22,6 +22,8 @@ import numpy as np
 
 from .anytree import NodeMixin
 from .collider import Collider
+from .gltf_export import save_tree_to_gltf_file, tree_as_glb_bytes
+from .gltf_import import load_gltf_as_tree
 from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler
 
 
@@ -88,6 +90,38 @@ class Asset(NodeMixin, object):
     def copy(self):
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
         return Asset(name=None, position=self.position, rotation=self.rotation, scaling=self.scaling)
+
+    @classmethod
+    def create_from_gltf_file(
+        cls,
+        file_path: str,
+        file_type: Optional[str] = None,
+        repo_id: Optional[str] = None,
+        subfolder: Optional[str] = None,
+        revision: Optional[str] = None,
+    ):
+        """Loading function to create a tree of asset nodes from a GLTF file.
+        Return a tree with a root nodes in the GLTF files.
+        The tree can be walked from the root nodes.
+        If the glTF file has several root node a root node is added to it.
+        """
+        nodes = load_gltf_as_tree(
+            file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
+        )
+        if len(nodes) == 1:
+            root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
+        else:
+            root = cls(name="Scene", children=nodes)  # Otherwise we build a main root node
+        return root
+
+    def save_to_gltf_file(self, file_path: str) -> List[str]:
+        """Save the tree in a GLTF file + additional (binary) ressource files if if shoulf be the case.
+        Return the list of all the path to the saved files (glTF file + ressource files)
+        """
+        return save_tree_to_gltf_file(file_path=file_path, root_node=self)
+
+    def as_glb_bytes(self) -> bytes:
+        return tree_as_glb_bytes(self)
 
     def translate(self, vector: Optional[List[float]] = None):
         """Translate the asset from a given translation vector

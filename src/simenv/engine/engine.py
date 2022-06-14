@@ -15,9 +15,15 @@
 # Lint as: python3
 """ A generic engine."""
 
+import typing
+
+
+if typing.TYPE_CHECKING:
+    from .. import Scene
+
 
 class Engine:
-    def __init__(self, scene, auto_update=True):
+    def __init__(self, scene: Scene, auto_update=True):
         self._scene = scene
         self.auto_update = auto_update
 

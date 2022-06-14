@@ -25,8 +25,6 @@ import simenv as sm
 from .assets import Asset
 from .assets.anytree import RenderTree
 from .engine import PyVistaEngine, UnityEngine
-from .gltf_export import save_tree_as_gltf_file
-from .gltf_import import load_gltf_as_tree
 
 
 # Set Hugging Face hub debug verbosity (TODO remove)
@@ -98,7 +96,7 @@ class Scene(Asset):
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and is_local is not False:
-            nodes = load_gltf_as_tree(hub_or_local_filepath, file_type=file_type)
+            nodes = Asset.create_from_gltf_file(hub_or_local_filepath, file_type=file_type)
             return nodes, hub_or_local_filepath
 
         splitted_hub_path = hub_or_local_filepath.split("/")
@@ -115,7 +113,7 @@ class Scene(Asset):
             force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
             **kwargs,
         )
-        nodes = load_gltf_as_tree(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
+        nodes = Asset.create_from_gltf_file(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
         return nodes, gltf_file
 
     @classmethod
@@ -254,9 +252,9 @@ class Scene(Asset):
                 hub_urls.append(hub_url)
         return repo_url
 
-    def save(self, filepath: str, **kwargs) -> List[str]:
+    def save(self, filepath: str) -> List[str]:
         """Save a Scene as a GLTF file (with optional ressources in the same folder)."""
-        return save_tree_as_gltf_file(filepath, self)
+        return self.save_to_gltf_file(filepath)
 
     def clear(self):
         """ " Remove all assets in the scene."""
