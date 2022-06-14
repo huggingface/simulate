@@ -10,11 +10,14 @@ scene = sm.Scene(engine="Unity")
 
 
 scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
-scene += sm.Cube(name="floor",  position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material(base_color=(0, 0, 0.8)))
-scene += sm.Cube(name="wall1", position=[-10, 0.0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material(base_color=(0.8, 0, 0)))
-scene += sm.Cube(name="wall2",  position=[10, 0.0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material(base_color=(0.8, 0, 0)))
-scene += sm.Cube(name="wall3", position=[0, 0.0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material(base_color=(0.8, 0, 0)))
-scene += sm.Cube(name="wall4", position=[0, 0.0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material(base_color=(0.8, 0, 0)))
+
+blue_material = sm.Material(base_color=(0, 0, 0.8))
+red_material = sm.Material(base_color=(0.8, 0, 0))
+scene += sm.Cube(name="floor",  position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=blue_material)
+scene += sm.Cube(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=red_material)
+scene += sm.Cube(name="wall2",  position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=red_material)
+scene += sm.Cube(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=red_material)
+scene += sm.Cube(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=red_material)
 
 for i in range(20):
     material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
