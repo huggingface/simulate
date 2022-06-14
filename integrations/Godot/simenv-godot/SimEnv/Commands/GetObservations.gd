@@ -1,5 +1,5 @@
 extends Node
 
 
-func execute(content):
+func execute(_content):
 	pass
