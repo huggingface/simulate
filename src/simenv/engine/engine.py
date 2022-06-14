@@ -14,12 +14,24 @@
 
 # Lint as: python3
 """ A generic engine."""
-from typing import Optional
 
 
 class Engine:
-    def __init__(self, scene):
+    def __init__(self, scene, auto_update=True):
         self._scene = scene
+        self.auto_update = auto_update
+
+    def update_asset(self, asset_node):
+        """Add an asset or update its location and all its children in the scene"""
+        pass
+
+    def remove_asset(self, asset_node):
+        """Remove an asset and all its children in the scene"""
+        pass
+
+    def regenerate_scene(self):
+        """Recreate all the assets in the scene (recreate the scene)"""
+        pass
 
     def __repr__(self):
         return f"{self.__class__.__name__}"

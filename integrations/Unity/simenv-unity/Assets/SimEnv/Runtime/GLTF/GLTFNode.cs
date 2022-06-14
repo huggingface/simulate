@@ -164,7 +164,8 @@ namespace SimEnv.GLTF {
                                 light.color = lightData.color;
                                 light.intensity = lightData.intensity;
                                 light.range = lightData.range;
-                                switch (lightData.type) {
+                                light.shadows = LightShadows.Soft;
+                                switch(lightData.type) {
                                     case LightType.directional:
                                         light.type = UnityEngine.LightType.Directional;
                                         break;

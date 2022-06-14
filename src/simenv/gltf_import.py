@@ -17,24 +17,20 @@
 import io
 import os
 import tempfile
-from copy import deepcopy
-from dataclasses import asdict
-from email.mime import base
-from tempfile import tempdir
-from typing import ByteString, List, Optional, Set, Union
+from typing import ByteString, List, Optional
 
 import numpy as np
 import PIL.Image
 import pyvista as pv
-import pyvistaqt
 from huggingface_hub import hf_hub_download
 
 from .assets import Asset, Camera, Collider, Light, Material, Object3D
-from .gltflib import GLTF, FileResource, GLTFModel, TextureInfo
-from .gltflib.enums import AccessorType, ComponentType, PrimitiveMode
+from .gltflib import GLTF, FileResource, TextureInfo
+from .gltflib.enums import AccessorType, ComponentType
 
 
 UNSUPPORTED_REQUIRED_EXTENSIONS = ["KHR_draco_mesh_compression"]
+
 
 # TODO remove this GLTFReader once the new version of pyvista is released 0.34+ (included in it)
 class GLTFReader(pv.utilities.reader.BaseReader):

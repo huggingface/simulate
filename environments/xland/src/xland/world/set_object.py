@@ -194,7 +194,7 @@ def get_object_fn(obj):
         raise ValueError
 
 
-def create_objects(positions, object_type=None, object_size=5):
+def create_objects(positions, object_type=None, object_size=0.5):
     """
     Create objects in simenv.
     """
@@ -213,6 +213,9 @@ def create_objects(positions, object_type=None, object_size=5):
         obj_idxs = np.random.choice(np.arange(len(COLORS), dtype=int), size=len(positions))
         objects = [OBJECTS[idx] for idx in obj_idxs]
 
+    # Swap axis to match the convention of the simulator
+    positions = positions[:, [0, 2, 1]]
+
     return [
         get_object_fn(obj)(
             position=pos,
@@ -223,13 +226,10 @@ def create_objects(positions, object_type=None, object_size=5):
     ]
 
 
-def get_object_pos(z, n_objects, threshold=None, distribution="uniform"):
+def get_object_pos(z, n_objects, threshold=0.5, distribution="uniform"):
     """
-    Returns None if there is not a playable area.
+    Returns None if there isn't enough playable area.
     """
-
-    if threshold is None:
-        threshold = 0.2
 
     playable_nodes, area = get_playable_area(z)
 
