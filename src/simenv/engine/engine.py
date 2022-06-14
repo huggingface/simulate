@@ -17,7 +17,7 @@
 
 
 class Engine:
-    def __init__(self, scene, auto_update=False):
+    def __init__(self, scene, auto_update=True):
         self._scene = scene
         self.auto_update = auto_update
 

@@ -109,8 +109,11 @@ class Material:
         # Setup all our default values
         if self.base_color is None:
             self.base_color = [1.0, 1.0, 1.0, 1.0]
-        if isinstance(self.base_color, np.ndarray):
+        elif isinstance(self.base_color, np.ndarray):
             self.base_color = self.base_color.tolist()
+        else:
+            self.base_color = list(self.base_color)
+
         if len(self.base_color) == 3:
             self.base_color = self.base_color + [1.0]
 
@@ -124,6 +127,8 @@ class Material:
             self.emissive_factor = [0.0, 0.0, 0.0, 0.0]
         elif isinstance(self.emissive_factor, np.ndarray):
             self.emissive_factor = self.emissive_factor.tolist()
+        else:
+            self.emissive_factor = list(self.emissive_factor)
 
         if self.alpha_mode is None:
             self.alpha_mode = "OPAQUE"

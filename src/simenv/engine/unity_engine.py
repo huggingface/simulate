@@ -4,6 +4,7 @@ import json
 import socket
 
 from ..gltf_export import tree_as_glb_bytes
+from .engine import Engine
 
 
 PRIMITIVE_TYPE_MAPPING = {
@@ -16,12 +17,13 @@ PRIMITIVE_TYPE_MAPPING = {
 }
 
 
-class UnityEngine:
-    def __init__(self, scene, start_frame=0, end_frame=500, frame_rate=24):
+class UnityEngine(Engine):
+    def __init__(self, scene, auto_update=True, start_frame=0, end_frame=500, frame_rate=24):
+        super().__init__(scene=scene, auto_update=auto_update)
+
         self.start_frame = start_frame
         self.end_frame = end_frame
         self.frame_rate = frame_rate
-        self._scene = scene
 
         self.host = "127.0.0.1"
         self.port = 55000

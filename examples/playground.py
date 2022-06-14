@@ -1,4 +1,5 @@
 import simenv as sm
+from simenv.assets import material
 import simenv.assets.utils as utils
 import os, time
 from simenv.rl_env import RLEnv
@@ -8,15 +9,16 @@ import random
 scene = sm.Scene(engine="Unity")
 
 
-scene += sm.Light(name="sun", position=[0, 20, 0], rotation=utils.quat_from_degrees(60, -30, 0), intensity=3.5)
-scene += sm.Cube(name="floor",  position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50])
-scene += sm.Cube(name="wall1", position=[-10, 0.0, 0], bounds=[0, 0.1, 0,1, -10, 10])
-scene += sm.Cube(name="wall2",  position=[10, 0.5, 0], bounds=[0, 0.1, 0,1, -10, 10])
-scene += sm.Cube(name="wall3", position=[0, 0.5, 10], bounds=[-10, 10, 0,1, 0, 0.1])
-scene += sm.Cube(name="wall4", position=[0, 0.5, -10], bounds=[-10, 10, 0,1, 0, 0.1])
+scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
+scene += sm.Cube(name="floor",  position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material(base_color=(0, 0, 0.8)))
+scene += sm.Cube(name="wall1", position=[-10, 0.0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material(base_color=(0.8, 0, 0)))
+scene += sm.Cube(name="wall2",  position=[10, 0.0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material(base_color=(0.8, 0, 0)))
+scene += sm.Cube(name="wall3", position=[0, 0.0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material(base_color=(0.8, 0, 0)))
+scene += sm.Cube(name="wall4", position=[0, 0.0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material(base_color=(0.8, 0, 0)))
 
 for i in range(20):
-    scene += sm.Cube(name=f"cube{i}", position=[random.uniform(-9,9), 0.5, random.uniform(-9,9)])
+    material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
+    scene += sm.Cube(name=f"cube{i}", position=[random.uniform(-9,9), 0.5, random.uniform(-9,9)], material=material)
 
 
 agent = sm.RL_Agent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])

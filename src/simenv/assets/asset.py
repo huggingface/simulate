@@ -128,7 +128,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        self.position += np.array((amount, 0.0, 0.0))
+        self.position += np.array((float(amount), 0.0, 0.0))
         return self
 
     def translate_y(self, amount: Optional[float] = 0.0):
@@ -148,7 +148,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        self.position += np.array((0.0, amount, 0.0))
+        self.position += np.array((0.0, float(amount), 0.0))
         return self
 
     def translate_z(self, amount: Optional[float] = 0.0):
@@ -168,7 +168,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        self.position += np.array((0.0, 0.0, amount))
+        self.position += np.array((0.0, 0.0, float(amount)))
         return self
 
     def rotate(self, rotation: Optional[List[float]] = None):
@@ -316,6 +316,8 @@ class Asset(NodeMixin, object):
                 value = [0.0, 0.0, 0.0]
             elif len(value) != 3:
                 raise ValueError("position should be of size 3 (X, Y, Z)")
+            else:
+                value = [float(v) for v in value]
         elif self.dimensionality == 2:
             raise NotImplementedError()
         self._position = np.array(value)
@@ -333,6 +335,8 @@ class Asset(NodeMixin, object):
                 value = quat_from_euler(*value)
             elif len(value) != 4:
                 raise ValueError("rotation should be of size 3 (Euler angles) or 4 (Quaternions")
+            else:
+                value = [float(v) for v in value]
         elif self.dimensionality == 2:
             raise NotImplementedError()
         self._rotation = np.array(value)
@@ -350,6 +354,8 @@ class Asset(NodeMixin, object):
                 value = [value, value, value]
             elif len(value) != 3:
                 raise ValueError("Scale should be of size 1 (Uniform scale) or 3 (X, Y, Z)")
+            else:
+                value = [float(v) for v in value]
         elif self.dimensionality == 2:
             raise NotImplementedError()
         self._scaling = np.array(value)

@@ -79,7 +79,7 @@ except:
 
 
 class PyVistaEngine(Engine):
-    def __init__(self, scene, auto_update=False, **plotter_kwargs):
+    def __init__(self, scene, auto_update=True, **plotter_kwargs):
         self.plotter: pyvista.Plotter = None
         self.plotter_kwargs = plotter_kwargs
         self.auto_update = bool(CustomBackgroundPlotter is not None and auto_update)
