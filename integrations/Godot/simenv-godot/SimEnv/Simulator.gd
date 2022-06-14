@@ -38,7 +38,6 @@ func _handle_client_data(data: PackedByteArray) -> void:
 	var json_object : JSON = JSON.new() 
 	if json_object.parse(str_data) == OK:
 		var json_data : Variant = json_object.get_data()
-		_command.type = json_data["type"]
 		_command.content = json_data["contents"]
 		_command.execute(json_data["type"])
 	else:
