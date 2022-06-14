@@ -54,11 +54,11 @@ To create the package for pypi.
 """
 
 import os
+import sys
 from distutils.extension import Extension
 
 from Cython.Build import cythonize
 from setuptools import find_packages, setup
-
 
 REQUIRED_PKGS = [
     "dataclasses_json",  # For GLTF export/imports
@@ -78,7 +78,38 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
 }
 
-ext_modules = [
+# We build fastwfc
+BUILD_CYTHON = True
+
+if sys.platform == 'win32':
+    # TODO: Work in progress
+    pass
+
+elif sys.platform == 'darwin':
+   PROFILE_FILE = "~/.zprofile"
+   VARIABLE_NAME = "DLYD_LIBRARY_PATH"
+
+elif sys.platform.startswith('linux'):   # 'linux' on Py3, 'linux2' on Py2
+   PROFILE_FILE = "~/.bashrc"
+   VARIABLE_NAME = "LD_LIBRARY_PATH"
+   
+else:
+   BUILD_CYTHON = False
+   print("Unsupported platform. Skipping cython generation...")
+
+if BUILD_CYTHON:
+   try:
+      print("Building fastwfc...")
+      assert os.system("cmake src/xland/world/wfc/cpp/fastwfc/. -Bsrc/xland/world/wfc/cpp/fastwfc/.") == 0
+      assert os.system("make -C src/xland/world/wfc/cpp/fastwfc/") == 0
+      print("Done!")
+
+   except:
+      if not os.path.exists("src/xland/world/wfc/cpp/fastwfc/lib"):
+         print("Error building external library, please create fastwfc manually.")
+         sys.exit(1)
+
+   ext_modules = [
     Extension(
         name="wfc_binding",
         sources=["src/xland/world/wfc/wfc_binding.pyx"],
@@ -86,15 +117,18 @@ ext_modules = [
         extra_compile_args=["-std=c++17"],
         extra_link_args=["-std=c++17"],
         libraries=["fastwfc"],
-        library_dirs=["/usr/local/lib"],
+        library_dirs=["src/xland/world/wfc/cpp/fastwfc/lib"],
         include_dirs=[
-            "/usr/local/include",
+            "src/xland/world/wfc/cpp/fastwfc/src/include",
             os.path.join(os.getcwd(), "src/xland/world/wfc/cpp/include"),
         ],  # path to .h file(s)
-    )
-]
+      )
+   ]
 
-ext_modules = cythonize(ext_modules, force=True)
+   ext_modules = cythonize(ext_modules, force=True)
+
+else:
+   ext_modules = None
 
 setup(
     name="xland",
@@ -113,3 +147,14 @@ setup(
     keywords="simulation environments procedural generation reinforcement machine learning",
     zip_safe=False,
 )
+
+# Add the path to the library to the environment variable
+export_command = "export {}=src/xland/world/wfc/cpp/fastwfc/lib:${}".format(
+            VARIABLE_NAME, VARIABLE_NAME)
+
+# Set bashrc
+assert os.system("echo \"{} \">>{}".format(
+            export_command, PROFILE_FILE)) == 0
+
+# You should run export in current session and avoid using source / exec
+print("Run {} for updating current shell.".format(export_command))
