@@ -65,14 +65,16 @@ class Scene(Asset):
         self.engine = None
         self._built = False
         self._created_from_file = created_from_file
-        if engine == "Unity":
+        if engine is not None:
+            engine = engine.lower()
+        if engine == "unity":
             self.engine = UnityEngine(self, **kwargs)
-        elif engine == "Blender":
+        elif engine == "blender":
             raise NotImplementedError()
         elif engine == "pyvista":
             self.engine = PyVistaEngine(self, **kwargs)
         elif engine is not None:
-            raise ValueError("engine should be selected ()")
+            raise ValueError("engine should be selected in the list [None, 'unity', 'blender', 'pyvista']")
 
     @staticmethod
     def _get_node_tree_from_hub_or_local(
@@ -123,6 +125,7 @@ class Scene(Asset):
         use_auth_token: Optional[str] = None,
         revision: Optional[str] = None,
         is_local: Optional[bool] = None,
+        hf_hub_kwargs: Optional[dict] = None,
         **kwargs,
     ) -> "Scene":
         """Load a Scene from the HuggingFace hub or from a local GLTF file.
@@ -142,7 +145,7 @@ class Scene(Asset):
             use_auth_token=use_auth_token,
             revision=revision,
             is_local=is_local,
-            **kwargs,
+            **(hf_hub_kwargs if hf_hub_kwargs is not None else {}),
         )
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene

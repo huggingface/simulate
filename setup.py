@@ -66,7 +66,7 @@ REQUIRED_PKGS = [
    "pyvistaqt",  # For having a background vizualization capabilities (could be optional - note than some Qt backend can have GPL license)
    "PySide6",
    "xxhash",
-   "git+https://github.com/huggingface/huggingface_hub.git",
+   "huggingface_hub",
 ]
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]

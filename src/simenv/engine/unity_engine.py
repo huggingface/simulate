@@ -99,7 +99,7 @@ class UnityEngine(Engine):
         return self._send_bytes(message_bytes)
 
     def _close(self):
-        print("exit was not clean, using atexit to close env")
+        # print("exit was not clean, using atexit to close env")
         self.close()
 
     def close(self):

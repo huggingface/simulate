@@ -81,11 +81,12 @@ class Object3D(Asset):
     def __repr__(self):
         mesh_str = ""
         if self.mesh is not None:
-            mesh_str = f" - Mesh: {self.mesh.n_points} points, {self.mesh.n_cells} cells"
+            mesh_str = f"Mesh(points={self.mesh.n_points}, cells={self.mesh.n_cells})"
         material_str = ""
         if self.material is not None:
-            material_str = f" - Material: {self.material.name} base_color {self.material.base_color}"
-        return f"{self.name} ({self.__class__.__name__}{mesh_str}{material_str})"
+            base_color_str = ", ".join(f"{val:.1f}" for val in self.material.base_color)
+            material_str = f", Material('{self.material.name}', base color=[{base_color_str}])"
+        return f"{self.name}: {self.__class__.__name__}({mesh_str}{material_str})"
 
     def plot(self, **kwargs):
         self.mesh.plot(**kwargs)

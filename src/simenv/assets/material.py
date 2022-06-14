@@ -143,10 +143,6 @@ class Material:
             id = next(self.__class__.__NEW_ID)
             self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
 
-    # def __repr__(self) -> str:
-    #     texture_str = f" with texture" if self.base_color_texture is not None else ""
-    #     return f"Material({self.name}{texture_str})"
-
     def __hash__(self):
         return id(self)
 
