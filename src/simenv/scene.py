@@ -71,7 +71,7 @@ class Scene(Asset):
             self.engine = UnityEngine(self, **kwargs)
         elif engine == "blender":
             raise NotImplementedError()
-        elif engine == "pyvista":
+        elif engine == "pyvista" or engine is None:
             self.engine = PyVistaEngine(self, **kwargs)
         elif engine is not None:
             raise ValueError("engine should be selected in the list [None, 'unity', 'blender', 'pyvista']")
