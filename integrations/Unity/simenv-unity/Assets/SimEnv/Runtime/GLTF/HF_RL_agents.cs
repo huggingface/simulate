@@ -2,7 +2,6 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-
 namespace SimEnv.GLTF {
     public class HF_RL_agents {
         public List<HF_RL_Agent> agents;
@@ -18,7 +17,6 @@ namespace SimEnv.GLTF {
 
             public List<string> available_actions = new List<string>();
 
-
             // reward function definitions
             public List<string> reward_functions = new List<string>();
             public List<string> reward_entity1s = new List<string>();
@@ -27,8 +25,6 @@ namespace SimEnv.GLTF {
             public List<float> reward_scalars = new List<float>();
             public List<float> reward_thresholds = new List<float>();
             public List<bool> reward_is_terminals = new List<bool>();
-
-
         }
     }
 }

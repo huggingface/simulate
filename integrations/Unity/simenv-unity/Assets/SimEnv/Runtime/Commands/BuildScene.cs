@@ -6,9 +6,9 @@ namespace SimEnv {
     public class BuildScene : ICommand {
         public string b64bytes;
 
-        public override void Execute(UnityAction<string> callback) {
+        public void Execute(UnityAction<string> callback) {
             byte[] bytes = Convert.FromBase64String(b64bytes);
-            Simulator.BuildSceneFromBytes(bytes);
+            LoadingManager.instance.LoadSceneFromBytes(bytes);
             callback("ack");
         }
     }

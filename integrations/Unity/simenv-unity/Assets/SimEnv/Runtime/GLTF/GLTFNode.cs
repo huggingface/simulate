@@ -43,6 +43,7 @@ namespace SimEnv.GLTF {
             public int? parent;
             public int[] children;
             public Transform transform;
+            public Node node;
 
             public bool IsRoot => !parent.HasValue;
         }
@@ -82,10 +83,8 @@ namespace SimEnv.GLTF {
                     result[i] = new GLTFNode.ImportResult();
                     result[i].transform = new GameObject().transform;
                     result[i].transform.gameObject.name = nodes[i].name;
-                    if (Application.isPlaying) {
-                        SimObjectBase simObject = result[i].transform.gameObject.AddComponent<SimObjectBase>();
-                        simObject.Initialize();
-                    }
+                    result[i].node = result[i].transform.gameObject.AddComponent<Node>();
+                    result[i].node.Initialize();
                 }
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].children != null) {
@@ -129,11 +128,9 @@ namespace SimEnv.GLTF {
                     }
 
                     if (nodes[i].camera.HasValue) {
+                        result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                         GLTFCamera cameraData = cameras[nodes[i].camera.Value];
-
-                        SimCameraBase camera = result[i].transform.gameObject.AddComponent<SimCameraBase>();
-                        if(Application.isPlaying)
-                            camera.Initialize(cameraData);                        
+                        new RenderCamera(result[i].node, cameraData);
                     }
                     if (nodes[i].extensions != null) {
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
@@ -193,15 +190,8 @@ namespace SimEnv.GLTF {
                             if (extensions == null || extensions.HF_RL_agents == null || extensions.HF_RL_agents.agents == null || extensions.HF_RL_agents.agents.Count < agent_id) {
                                 Debug.LogWarning("Error importing agent");
                             } else {
-                                Debug.Log("Creating Agent");
-
                                 HF_RL_agents.HF_RL_Agent agentData = extensions.HF_RL_agents.agents[agent_id];
-
-                                Debug.Log("color" + agentData.color.ToString());
-                                Agent agent = result[i].transform.gameObject.AddComponent<Agent>();
-                                if (Application.isPlaying)
-                                    agent.Initialize(agentData);
-
+                                new Agent(result[i].node, agentData);
                             }
                         }
                     }

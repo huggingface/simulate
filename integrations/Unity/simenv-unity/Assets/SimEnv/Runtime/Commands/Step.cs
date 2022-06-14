@@ -7,9 +7,10 @@ namespace SimEnv {
     public class Step : ICommand {
         public float[] action;
 
-        public override void Execute(UnityAction<string> callback) {
-            Debug.Log("Stepping " + action.ToString());
-            Simulator.Step(action.ToList());
+        public void Execute(UnityAction<string> callback) {
+            Debug.Log("step");
+            AgentManager.instance.SetAction(action.ToList());
+            SimulationManager.instance.Step();
             callback("ack");
         }
     }
