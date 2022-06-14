@@ -436,7 +436,7 @@ def add_mesh_to_model(
 
 
 def add_camera_to_model(camera: Camera, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
-    gl_camera = gl.Camera(type=camera.camera_type)
+    gl_camera = gl.Camera(type=camera.camera_type, width=camera.width, height=camera.height)
 
     if camera.camera_type == "perspective":
         gl_camera.perspective = gl.PerspectiveCameraInfo(
@@ -486,8 +486,6 @@ def add_agent_to_model(node: RL_Agent, gltf_model: gl.GLTFModel, buffer_data: By
         height=node.height,
         move_speed=node.move_speed,
         turn_speed=node.turn_speed,
-        camera_width=node.camera_width,
-        camera_height=node.camera_height,
         action_name=node.actions.name,
         action_dist=node.actions.dist,
         available_actions=node.actions.available_actions,
@@ -527,6 +525,7 @@ def add_node_to_scene(
         gl_node.camera = add_camera_to_model(
             camera=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
         )
+        print(gl_node.camera)
     elif isinstance(node, Light):
         light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
