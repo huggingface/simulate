@@ -20,9 +20,9 @@ namespace SimEnv {
 
         #region Simulation
         static readonly int FRAME_RATE = 30;
-        static readonly float TIME_SCALE = 50.0f;
+        static readonly float TIME_SCALE = 1.0f;
         static readonly int FRAME_SKIP = 4;
-        static readonly float FRAME_INTERVAL = 1f / (FRAME_RATE * TIME_SCALE);
+        static readonly float FRAME_INTERVAL = 1f / (FRAME_RATE);
 
         static GameObject root;
 
@@ -126,6 +126,7 @@ namespace SimEnv {
 
         void Awake() {
             Instance = this;
+            Time.timeScale = TIME_SCALE;
             Physics.autoSimulation = false;
 
             var portArg = GetArg("port");
@@ -140,7 +141,7 @@ namespace SimEnv {
 
         void Start() {
             Debug.Log("Starting Simulator");
-            Time.timeScale = TIME_SCALE;
+
             LoadMods();
             LoadExtensions();
             StartClient();

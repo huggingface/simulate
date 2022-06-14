@@ -15,7 +15,8 @@ from parallel_envs import make_env
 
 if __name__ == "__main__":
     n_envs = 16
-    bench_index = 40 # used to ensure unique ports
+    #
+    bench_index = 200 # used to ensure unique ports
     envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i + bench_index, headless=True) for i in range(n_envs)])
     obs = envs.reset()
 
