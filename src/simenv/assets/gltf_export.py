@@ -525,7 +525,6 @@ def add_node_to_scene(
         gl_node.camera = add_camera_to_model(
             camera=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
         )
-        print(gl_node.camera)
     elif isinstance(node, Light):
         light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))

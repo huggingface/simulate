@@ -128,10 +128,10 @@ namespace SimEnv {
 
         private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
 
-        Camera _cam;
-        Camera cam {
+        SimCameraBase _cam;
+        SimCameraBase cam {
             get {
-                _cam ??= GetComponentInChildren<Camera>();
+                _cam ??= GetComponentInChildren<SimCameraBase>();
                 return _cam;
             }
         }
@@ -142,7 +142,6 @@ namespace SimEnv {
 
         void Update() {
             AgentUpdate();
-            Render(null);
         }
 
         public void Initialize(HF_RL_agents.HF_RL_Agent agentData) {
@@ -329,44 +328,12 @@ namespace SimEnv {
             return done;
         }
 
-        public void Render(UnityAction<string> callback) {
-            StartCoroutine(RenderCoroutine(callback));
-        }
-
-        IEnumerator RenderCoroutine(UnityAction<string> callback) {
-            yield return new WaitForEndOfFrame();
-            GetObservation(callback);
-            Debug.Log("Finished rendering");
-        }
-
         public void GetObservation(UnityAction<string> callback) {
-            RenderTexture activeRenderTexture = RenderTexture.active;
-            RenderTexture.active = cam.targetTexture;
-            Texture2D image = new Texture2D(cam.targetTexture.width, cam.targetTexture.height);
-            image.ReadPixels(new Rect(0, 0, image.width, image.height), 0, 0);
-            image.Apply();
-            Color32[] pixels = image.GetPixels32();
-            RenderTexture.active = activeRenderTexture;
-
-            uint[] pixel_values = new uint[pixels.Length * 3];
-            for (int i = 0; i < pixels.Length; i++) {
-                pixel_values[i * 3] += pixels[i].r;
-                pixel_values[i * 3 + 1] += pixels[i].g;
-                pixel_values[i * 3 + 2] += pixels[i].b;
-                // we do not include alpha, TODO: Add option to include Depth Buffer
-            }
-
-            string string_array = JsonHelper.ToJson(pixel_values);
-            if (callback != null)
-                callback(string_array);
+            cam.Render(callback);
         }
 
         public void SetAction(List<float> step_action) {
             actions.SetAction(step_action);
         }
-
-
     }
-
-
 }
