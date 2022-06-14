@@ -21,7 +21,7 @@ func _ready() -> void:
 
 func _connect_after_timeout(timeout: float) -> void:
 	await get_tree().create_timer(timeout).timeout
-	# _client.connect_to_host(HOST, PORT)
+	_client.connect_to_host(HOST, PORT)
 
 func _handle_client_connected() -> void:
 	print("Client connected to server.")

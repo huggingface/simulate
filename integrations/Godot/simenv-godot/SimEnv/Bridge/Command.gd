@@ -1,9 +1,7 @@
 extends Node
 class_name Command
 
-var type : String
 var content : Variant
-var command
 var commands : Dictionary
 
 func load_commands():
