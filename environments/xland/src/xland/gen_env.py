@@ -4,7 +4,9 @@ Python file to call map, game and agents generation.
 
 import os
 
-from .utils import convert_to_actual_pos
+import simenv as sm
+
+from .utils import convert_to_actual_pos, seed_env
 from .world import create_objects, generate_map, generate_tiles, get_object_pos
 
 
@@ -85,9 +87,11 @@ def generate_env(
     Returns:
         scene: the generated scene in simenv format.
     """
+    seed_env(seed)
 
     # TODO: choose width and height randomly from a set of predefined values
     # Generate the map if no specific map is passed
+    # TODO: create default kwargs to avoid having to do this below:
     nb_tries = kwargs["nb_tries"] if "nb_tries" in kwargs else 10
 
     # Initialize success and curr_try variables
@@ -106,7 +110,6 @@ def generate_env(
             periodic_output=periodic_output,
             specific_map=specific_map,
             sample_from=sample_from,
-            seed=seed,
             max_height=max_height,
             N=N,
             periodic_input=periodic_input,
@@ -114,11 +117,12 @@ def generate_env(
             nb_samples=nb_samples,
             symmetry=symmetry,
             engine=engine,
+            verbose=verbose,
         )
 
         # Get objects position
-        threshold = kwargs["threshold"] if "threshold" in kwargs else None
-        obj_pos, success = get_object_pos(map_2d, n_objects=n_objects, threshold=threshold)
+        threshold_kwargs = {"threshold": kwargs["threshold"]} if "threshold" in kwargs else {}
+        obj_pos, success = get_object_pos(map_2d, n_objects=n_objects, **threshold_kwargs)
 
         # If there is no enough area, we should try again and continue the loop
         # TODO: improve quality of this code
@@ -126,6 +130,10 @@ def generate_env(
             # Set objects in scene:
             obj_pos = convert_to_actual_pos(obj_pos, generated_map)
             scene += create_objects(obj_pos)
+
+            if engine is not None:
+                # Set camera and etc
+                scene += sm.Camera(position=[0, 5, -10], rotation=[0, 1, 0.25, 0])
 
             # Generate the game
             # generate_game(generated_map, scene)
@@ -142,8 +150,12 @@ def generate_env(
 
     # If we want to show the map and we were successful
     if show and success:
-        # TODO: set camera properly
         scene.show(in_background=False)
+        if engine is not None:
+            input("Press Enter to continue...")
+
+        scene.close()
+
     elif not show:
         scene.close()
 
