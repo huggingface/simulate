@@ -12,9 +12,10 @@ var _stream: StreamPeerTCP = StreamPeerTCP.new()
 func _ready() -> void:
 	_status = _stream.get_status()
 
-func _process(_delta: float) -> void:
+func _physics_process(delta):
+	# this is called at a fixed rate
 	update_status()
-	read()
+	read()	
 
 func update_status():
 	_stream.poll()
