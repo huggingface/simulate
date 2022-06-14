@@ -14,6 +14,7 @@
 
 # Lint as: python3
 """ A simenv Material."""
+import copy
 import itertools
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
@@ -143,3 +144,6 @@ class Material:
 
     def __hash__(self):
         return id(self)
+
+    def copy(self):
+        return copy.deepcopy(self)
