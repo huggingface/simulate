@@ -356,10 +356,6 @@ def add_mesh_to_model(
     mesh = node.mesh
     material = node.material
 
-    # If it is a structured grid, extract the surface mesh (PolyData)
-    if isinstance(mesh, pv.StructuredGrid):
-        mesh = mesh.extract_surface()
-
     if mesh.n_verts == 0 and mesh.n_lines == 0 and mesh.n_faces == 0:
         raise NotImplementedError()
 
