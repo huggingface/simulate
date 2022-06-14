@@ -142,7 +142,6 @@ def generate_env(
 
         else:
             curr_try += 1
-            scene.close()
 
             if seed is not None:
                 # Change to seed to test other maps
@@ -150,13 +149,9 @@ def generate_env(
 
     # If we want to show the map and we were successful
     if show and success:
-        scene.show(in_background=False)
-        if engine is not None:
-            input("Press Enter to continue...")
+        scene.show()
+        input("Press Enter to continue...")
 
-        scene.close()
-
-    elif not show:
         scene.close()
 
     return success
