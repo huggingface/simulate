@@ -2,7 +2,7 @@
 
 from libcpp cimport bool
 from libcpp.string cimport string
-from wfcbinding cimport Color, run_wfc_cpp
+from wfcbinding cimport Color, run_wfc_cpp, Neighbor
 
 import numpy as np
 
@@ -27,10 +27,14 @@ ctypedef np.int_t DTYPE_t
 def run_wfc(unsigned width, unsigned height, int sample_type, list input_img=None, 
             unsigned input_width=0, unsigned input_height=0, bool periodic_output=True, unsigned N=3,
             bool periodic_input=False, bool ground=False, unsigned nb_samples=1, unsigned symmetry=8, unsigned seed=0, 
-             bool verbose=False, unsigned nb_tries=10, string dir_path=".gen_files"):
+             bool verbose=False, unsigned nb_tries=10, string dir_path=".gen_files", list tiles=[],
+             list neighbors=[]):
+                    
+#     if input_img == None:
+#         input_img = []
 
-    if input_img == None:
-        input_img = []
+    if neighbors == None:
+        neighbors = []
 
     else:
         for i in range(len(input_img)):
@@ -40,7 +44,8 @@ def run_wfc(unsigned width, unsigned height, int sample_type, list input_img=Non
     # The same applies to the input image.
     result = run_wfc_cpp(seed, height, width, sample_type, periodic_output, N, periodic_input, ground, 
                 nb_samples, symmetry, input_img, input_height, input_width,
-                verbose, nb_tries, dir_path)
+                verbose, nb_tries, dir_path, tiles, neighbors)
 
     cdef np.ndarray np_results = np.array([list(r.values()) for r in result], dtype=DTYPE).reshape(width, height, -1)
+
     return np_results

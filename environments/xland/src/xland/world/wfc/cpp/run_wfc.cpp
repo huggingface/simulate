@@ -70,8 +70,6 @@ std::optional<std::vector<Color>> read_overlapping_instance(unsigned seed, unsig
     cout << "Started!" << endl;
   }
 
-  // const std::string image_path = current_dir + "/maps/example_map_01.png";
-  // std::optional<Array2D<Color>> m = read_image(image_path);
   // Stop hardcoding samples
   std::optional<Array2D<Color>> m = array2d_from_vector(input_img, input_width, input_height);
   if (!m.has_value()) {
@@ -310,10 +308,17 @@ std::optional<std::vector<Color>> read_simpletiled_instance(unsigned seed, unsig
 }
 
 // TODO: try adding &
-std::vector<Color> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, int sample_type, bool periodic_output,
-        unsigned N, bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry,
+/**
+ * Valid tiles corresponds to array with the tiles, size of tiles, names, symmetries, and weights.
+ * For neighbors: vector of tuples (left, orientation, right, orientation).
+ */
+std::vector<Color> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, int sample_type, 
+        bool periodic_output, unsigned N, bool periodic_input, bool ground, 
+        unsigned nb_samples, unsigned symmetry,
         std::vector<Color> input_img, unsigned input_width, unsigned input_height, 
-        bool verbose, unsigned nb_tries, string dir_path) {
+        bool verbose, unsigned nb_tries, string dir_path, 
+        std::vector<PyTile> tiles,
+        std::vector<Neighbor> neighbors) {
 
   // Initialize rand for non-linux targets
   #ifndef __linux__
