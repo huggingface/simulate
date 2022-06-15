@@ -1,10 +1,9 @@
 from dataclasses import dataclass
-from typing import Any, Optional
+from typing import Any, List, Optional
 
 from dataclasses_json import dataclass_json
 
 from .extensions.hf_collider import HF_Collider
-from .extensions.hf_rl_agent import HF_RL_Agents
 from .extensions.khr_lights_ponctual import KHRLightsPunctual
 
 
@@ -16,8 +15,8 @@ class Extensions:
     """
 
     KHR_lights_punctual: Optional[KHRLightsPunctual] = None
-    HF_RL_agents: Optional[HF_RL_Agents] = None
     HF_collider: Optional[HF_Collider] = None
+    HF_custom: Optional[List[str]] = None
 
 
 @dataclass_json
