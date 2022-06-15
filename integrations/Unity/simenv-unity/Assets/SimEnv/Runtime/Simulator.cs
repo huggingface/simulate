@@ -1,8 +1,9 @@
 using UnityEngine;
-using System.IO;
-using System.Reflection;
 
 namespace SimEnv {
+    /// <summary>
+    /// Initializes the SimEnv backend. Required for all scenes.
+    /// </summary>
     public class Simulator : MonoBehaviour {
         static Simulator _instance;
         public static Simulator instance {
@@ -16,37 +17,27 @@ namespace SimEnv {
             }
         }
 
-        public string modPath = "Resources/Mods";
-
-        void Awake() {
-            LoadingManager.instance.LoadExtensions();
-            SimulationManager.instance.updateMode = SimulationManager.UpdateMode.Undefined;
-            Physics.autoSimulation = false;
-            modPath = Application.dataPath + "/" + modPath;
-        }
-
-        void Start() {
-            LoadMods();
-            CommandManager.instance.Initialize();
-        }
-
-        void LoadMods() {
-            DirectoryInfo modDirectory = new DirectoryInfo(modPath);
-            if (modDirectory.Exists) {
-                foreach (FileInfo file in modDirectory.GetFiles()) {
-                    if (file.Extension == ".dll") {
-                        Assembly.LoadFile(file.FullName);
-                        Debug.Log("Loaded mod assembly: " + file.Name);
-                    }
-                }
-            } else {
-                Debug.LogWarning("Mod directory doesn't exist at path: " + modPath);
+        SimulatorWrapper _wrapper;
+        /// <summary>
+        /// Wrapper to provide access through the high-level API, via ISimEnv.ISimulator.
+        /// </summary>
+        public SimulatorWrapper wrapper {
+            get {
+                _wrapper ??= new SimulatorWrapper();
+                return _wrapper;
             }
         }
 
-        void OnDestroy() {
+        private void Awake() {
+            SimulationManager.instance.updateMode = SimulationManager.UpdateMode.Undefined;
+            LoadingManager.instance.LoadCustomAssemblies();
+            LoadingManager.instance.LoadExtensions();
+            Client.instance.Initialize();
+        }
+
+        private void OnDestroy() {
             LoadingManager.instance.Unload();
             LoadingManager.instance.UnloadExtensions();
-        }
+        }       
     }
 }

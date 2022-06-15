@@ -1,16 +1,19 @@
 using System.Collections;
+using ISimEnv;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace SimEnv {
-    public class RenderCamera {
-        public Node node;
-        public UnityEngine.Camera camera;
-        public int id;
+    public class RenderCamera : ICamera {
+        public INode node => m_node;
+        public Camera camera => m_camera;
+
+        Camera m_camera;
+        Node m_node;
 
         public RenderCamera(Node node, GLTF.GLTFCamera data) {
-            this.node = node;
-            camera = node.gameObject.AddComponent<UnityEngine.Camera>();
+            m_node = node;
+            m_camera = node.gameObject.AddComponent<Camera>();
             camera.targetTexture = new RenderTexture(data.width, data.height, 24, RenderTextureFormat.Default);
             camera.targetTexture.name = "RenderTexture";            
             switch(data.type) {
@@ -35,10 +38,10 @@ namespace SimEnv {
         }
 
         public void Render(UnityAction<Color32[]> callback) {
-            node.StartCoroutine(RenderCoroutine(callback));
+            RenderCoroutine(callback).RunCoroutine();
         }
 
-        public IEnumerator RenderCoroutine(UnityAction<Color32[]> callback) {
+        private IEnumerator RenderCoroutine(UnityAction<Color32[]> callback) {
             camera.enabled = true; // Enable camera so that it renders in Unity's internal render loop
             yield return new WaitForEndOfFrame(); // Wait for Unity to render
             CopyRenderResultToColorBuffer(out Color32[] buffer);

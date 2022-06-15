@@ -5,6 +5,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using ISimEnv;
 
 namespace SimEnv.GLTF {
     public class GLTFNode {
@@ -27,12 +28,14 @@ namespace SimEnv.GLTF {
 
         public class Extensions {
             public KHR_light KHR_lights_punctual;
-            public HFRLAgent HF_RL_agents;
             public HF_collider HF_collider;
+            public string[] HF_custom;
         }
 
-        public class HFRLAgent {
-            public int agent;
+        [Serializable]
+        public class CustomExtensionWrapper {
+            public string type;
+            public string contents;
         }
 
         public class KHR_light {
@@ -185,13 +188,20 @@ namespace SimEnv.GLTF {
                                 Debug.LogWarning(string.Format("Collider type {0} not implemented", collider.GetType()));
                             }
                         }
-                        if (nodes[i].extensions.HF_RL_agents != null) {
-                            int agent_id = nodes[i].extensions.HF_RL_agents.agent;
-                            if (extensions == null || extensions.HF_RL_agents == null || extensions.HF_RL_agents.agents == null || extensions.HF_RL_agents.agents.Count < agent_id) {
-                                Debug.LogWarning("Error importing agent");
-                            } else {
-                                HF_RL_agents.HF_RL_Agent agentData = extensions.HF_RL_agents.agents[agent_id];
-                                new Agent(result[i].node, agentData);
+                        if(nodes[i].extensions.HF_custom != null) {
+                            for(int j = 0; j < nodes[i].extensions.HF_custom.Length; j++) {
+                                string json = nodes[i].extensions.HF_custom[j];
+                                CustomExtensionWrapper wrapper = JsonUtility.FromJson<CustomExtensionWrapper>(json);
+                                if(wrapper == null) {
+                                    Debug.LogWarning($"Invalid custom extension JSON: {json}");
+                                    continue;
+                                }
+                                if(!LoadingManager.instance.gltfExtensions.TryGetValue(wrapper.type, out Type extensionType)) {
+                                    Debug.LogWarning($"Extension type {wrapper.type} not found.");
+                                    continue;
+                                }
+                                IGLTFNodeExtension extension = JsonConvert.DeserializeObject(wrapper.contents, extensionType) as IGLTFNodeExtension;
+                                extension.Initialize(result[i].node);
                             }
                         }
                     }

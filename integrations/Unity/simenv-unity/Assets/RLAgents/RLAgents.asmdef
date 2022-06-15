@@ -1,0 +1,16 @@
+{
+    "name": "Agents",
+    "rootNamespace": "",
+    "references": [
+        "GUID:1583bb7e61e713c41b25cdb6fbfb4940"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
