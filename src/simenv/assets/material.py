@@ -147,4 +147,7 @@ class Material:
         return id(self)
 
     def copy(self):
-        return copy.deepcopy(self)
+        copy_mat = copy.deepcopy(self)
+        id = next(self.__class__.__NEW_ID)
+        self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+        return copy_mat

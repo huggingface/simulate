@@ -1,12 +1,12 @@
 from simenv import Scene
 import os
 
-scene = Scene.load('simenv-tests/Lantern/glTF/Lantern.gltf')
+scene = Scene.create_from('simenv-tests/Box/glTF/Box.gltf', auto_update=False)
 
 print("===== BEFORE ====")
 print(scene)
 print(scene._created_from_file)
-scene.show(in_background=False)
+scene.show()
 
 # Save in the gitgnored output
 from pathlib import Path
@@ -14,12 +14,12 @@ save_path = Path(__file__).parent.parent.absolute() / 'output' / 'scene' / 'scen
 
 save_path_returned = scene.save(save_path)
 
-scene = Scene.load(save_path_returned[0])
+scene.load(save_path_returned[0])
 
 print("===== AFTER SAVING LOCALLY ====")
 print(scene)
 print(scene._created_from_file)
-scene.show(in_background=False)
+scene.show()
 
 # Push to hub
 path_on_hub = 'simenv-tests/Debug-2/glTF/Box.gltf'
@@ -30,9 +30,9 @@ url_path_returned = scene.push_to_hub(path_on_hub, token=hub_token)
 print("===== URLs ====")
 print(url_path_returned)
 
-scene = Scene.load(path_on_hub)
+scene.load(path_on_hub)
 
 print("===== AFTER LOADING FROM HUB====")
 print(scene)
 print(scene._created_from_file)
-scene.show(in_background=False)
+scene.show()

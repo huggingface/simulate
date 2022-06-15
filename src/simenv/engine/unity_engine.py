@@ -3,7 +3,6 @@ import base64
 import json
 import socket
 
-from ..gltf_export import tree_as_glb_bytes
 from .engine import Engine
 
 
@@ -66,7 +65,7 @@ class UnityEngine(Engine):
         pass
 
     def show(self, **engine_kwargs):
-        self._send_gltf(tree_as_glb_bytes(self._scene))
+        self._send_gltf(self._scene.as_glb_bytes())
 
     def step(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}

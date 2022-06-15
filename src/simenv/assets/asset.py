@@ -85,9 +85,60 @@ class Asset(NodeMixin, object):
             if node.name == name:
                 return node
 
-    def copy(self):
+    def copy(self, with_children=True, **kwargs):
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
-        return Asset(name=None, position=self.position, rotation=self.rotation, scaling=self.scaling)
+        instance_copy = type(self)(
+            name=None, position=self.position, rotation=self.rotation, scaling=self.scaling, collider=self.collider
+        )
+
+        if with_children:
+            copy_children = []
+            for child in self.tree_children:
+                copy_children.append(child.copy(**kwargs))
+            instance_copy.tree_children = copy_children
+
+        return instance_copy
+
+    @classmethod
+    def create_from(
+        cls,
+        file_path: str,
+        file_type: Optional[str] = None,
+        repo_id: Optional[str] = None,
+        subfolder: Optional[str] = None,
+        revision: Optional[str] = None,
+    ):
+        """Loading function to create a tree of asset nodes from a GLTF file.
+        Return a tree with a root nodes in the GLTF files.
+        The tree can be walked from the root nodes.
+        If the glTF file has several root node a root node is added to it.
+        """
+        # We import dynamically here to avoid circular import (tried many other options...)
+        from .gltf_import import load_gltf_as_tree
+
+        nodes = load_gltf_as_tree(
+            file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
+        )
+        if len(nodes) == 1:
+            root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
+        else:
+            root = cls(name="Scene", children=nodes)  # Otherwise we build a main root node
+        return root
+
+    def save_to_gltf_file(self, file_path: str) -> List[str]:
+        """Save the tree in a GLTF file + additional (binary) ressource files if if shoulf be the case.
+        Return the list of all the path to the saved files (glTF file + ressource files)
+        """
+        # We import here to avoid circular deps
+        from .gltf_export import save_tree_to_gltf_file
+
+        return save_tree_to_gltf_file(file_path=file_path, root_node=self)
+
+    def as_glb_bytes(self) -> bytes:
+        # We import here to avoid circular deps
+        from .gltf_export import tree_as_glb_bytes
+
+        return tree_as_glb_bytes(self)
 
     def translate(self, vector: Optional[List[float]] = None):
         """Translate the asset from a given translation vector
