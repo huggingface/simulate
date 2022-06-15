@@ -39,10 +39,20 @@ namespace SimEnv {
             } else {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
-            for (int i = 0; i < FRAME_SKIP; i++)
+            for (int i = 0; i < FRAME_SKIP; i++) {
+                if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+                    Debug.Log("Stepping agent");
+                    Agent agent = ISimulator.Agent as Agent;
+                    agent.AgentUpdate();
+                } else {
+                    Debug.LogWarning("Attempting to step environment without an Agent");
+                }
                 Physics.Simulate(FRAME_INTERVAL);
+
+            }
+
         }
-        
+
         public static void Close() {
 #if UNITY_EDITOR
             // Application.Quit() does not work in the editor so
@@ -72,7 +82,7 @@ namespace SimEnv {
                 reward += agent.GetReward();
                 agent.ZeroReward();
             } else {
-                Debug.LogWarning("Attempting to get observation without an Agent");
+                Debug.LogWarning("Attempting to get a reward without an Agent");
             }
             return reward;
         }
@@ -84,7 +94,7 @@ namespace SimEnv {
                 Agent agent = ISimulator.Agent as Agent;
                 return agent.IsDone();
             } else {
-                Debug.LogWarning("Attempting to get observation without an Agent");
+                Debug.LogWarning("Attempting to get done without an Agent");
             }
             return false;
         }
@@ -96,7 +106,7 @@ namespace SimEnv {
                 Agent agent = ISimulator.Agent as Agent;
                 agent.Reset();
             } else {
-                Debug.LogWarning("Attempting to get observation without an Agent");
+                Debug.LogWarning("Attempting to reset without an Agent");
             }
         }
 
@@ -146,7 +156,7 @@ namespace SimEnv {
                 .SelectMany(x => x.GetTypes())
                 .Where(x => x.GetInterfaces().Contains(typeof(ISimObjectExtension)))
                 .ToArray();
-            if(simObjectExtensions == null)
+            if (simObjectExtensions == null)
                 simObjectExtensions = new Type[0];
             simObjectExtensions.ToList().ForEach(x => Debug.Log(x));
             Debug.Log(string.Format("Loaded {0} extensions", simObjectExtensions.Length));

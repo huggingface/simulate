@@ -141,7 +141,7 @@ namespace SimEnv {
         public Actions actions;
 
         void Update() {
-            AgentUpdate();
+
         }
 
         public void Initialize(HF_RL_agents.HF_RL_Agent agentData) {
