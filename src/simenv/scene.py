@@ -53,7 +53,7 @@ class Scene(Asset):
         transformation_matrix=None,
         children=None,
         executable: Optional[str] = None,
-        port: Optional[int] = None,
+        port: Optional[int] = 55000,
         headless: Optional[bool] = None,
         **kwargs,
     ):

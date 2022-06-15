@@ -18,7 +18,7 @@ PRIMITIVE_TYPE_MAPPING = {
 }
 
 
-class UnityEngine:
+class UnityEngine(Engine):
     def __init__(self, scene, auto_update=True, executable=None, headless=None, start_frame=0, end_frame=500, frame_rate=24, port=55000):
         super().__init__(scene=scene, auto_update=auto_update)
         self.start_frame = start_frame
