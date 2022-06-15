@@ -1,8 +1,6 @@
 import itertools
 from typing import List, Optional, Union
 
-import numpy as np
-
 from .asset import Asset
 from .collider import Collider
 from .utils import quat_from_degrees

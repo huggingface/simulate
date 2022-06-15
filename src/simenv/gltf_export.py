@@ -14,9 +14,8 @@
 
 # Lint as: python3
 """ Export a Scene as a GLTF file."""
-from copy import deepcopy
 from io import BytesIO
-from typing import Any, ByteString, Dict, List, Optional, Set, Tuple
+from typing import Any, ByteString, Dict, List, Optional
 
 import numpy as np
 import pyvista as pv
@@ -356,6 +355,7 @@ def add_mesh_to_model(
 ) -> int:
     mesh = node.mesh
     material = node.material
+
     if mesh.n_verts == 0 and mesh.n_lines == 0 and mesh.n_faces == 0:
         raise NotImplementedError()
 

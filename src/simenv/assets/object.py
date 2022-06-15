@@ -51,7 +51,14 @@ class Object3D(Asset):
         **kwargs,
     ):
         super().__init__(name=name, position=position, parent=parent, children=children, collider=collider, **kwargs)
+
         self.mesh = mesh if mesh is not None else pv.PolyData()
+
+        # Avoid having averaging normals at shared points
+        # (default pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
+        if self.mesh is not None:
+            self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
+
         self.material = material if material is not None else Material()
 
     def copy(self):
@@ -74,11 +81,12 @@ class Object3D(Asset):
     def __repr__(self):
         mesh_str = ""
         if self.mesh is not None:
-            mesh_str = f" - Mesh: {self.mesh.n_points} points, {self.mesh.n_cells} cells"
+            mesh_str = f"Mesh(points={self.mesh.n_points}, cells={self.mesh.n_cells})"
         material_str = ""
         if self.material is not None:
-            material_str = f" - Material: {self.material}"
-        return f"{self.name} ({self.__class__.__name__}{mesh_str}{material_str})"
+            base_color_str = ", ".join(f"{val:.1f}" for val in self.material.base_color)
+            material_str = f", Material('{self.material.name}', base color=[{base_color_str}])"
+        return f"{self.name}: {self.__class__.__name__}({mesh_str}{material_str})"
 
     def plot(self, **kwargs):
         self.mesh.plot(**kwargs)
@@ -890,5 +898,7 @@ class StructuredGrid(Object3D):
             y = np.array(y)
         if not isinstance(z, np.ndarray):
             z = np.array(z)
-        mesh = pv.StructuredGrid(x, y, z)
+
+        # If it is a structured grid, extract the surface mesh (PolyData)
+        mesh = pv.StructuredGrid(x, y, z).extract_surface()
         super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)

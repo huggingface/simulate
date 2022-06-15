@@ -14,9 +14,9 @@
 
 # Lint as: python3
 """ A simenv Material."""
+import copy
 import itertools
-import uuid
-from dataclasses import InitVar, dataclass
+from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
 import numpy as np
@@ -29,7 +29,7 @@ from .utils import camelcase_to_snakecase
 # To be revamped and improved later
 
 
-@dataclass(repr=False)
+@dataclass()
 class Material:
     """
     The material appearance of a primitive.
@@ -88,7 +88,6 @@ class Material:
     """
 
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
-    _uuid: Optional[int] = None
 
     base_color: Optional[List[float]] = None
     base_color_texture: Optional[pyvista.Texture] = None
@@ -110,13 +109,16 @@ class Material:
         # Setup all our default values
         if self.base_color is None:
             self.base_color = [1.0, 1.0, 1.0, 1.0]
-        if isinstance(self.base_color, np.ndarray):
+        elif isinstance(self.base_color, np.ndarray):
             self.base_color = self.base_color.tolist()
+        else:
+            self.base_color = list(self.base_color)
+
         if len(self.base_color) == 3:
             self.base_color = self.base_color + [1.0]
 
         if self.metallic_factor is None:
-            self.metallic_factor = 1.0
+            self.metallic_factor = 0.0
 
         if self.roughness_factor is None:
             self.roughness_factor = 1.0
@@ -125,6 +127,8 @@ class Material:
             self.emissive_factor = [0.0, 0.0, 0.0]
         elif isinstance(self.emissive_factor, np.ndarray):
             self.emissive_factor = self.emissive_factor.tolist()
+        else:
+            self.emissive_factor = list(self.emissive_factor)
 
         if self.alpha_mode is None:
             self.alpha_mode = "OPAQUE"
@@ -139,11 +143,8 @@ class Material:
             id = next(self.__class__.__NEW_ID)
             self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
 
-        self._uuid = uuid.uuid4().int
-
-    def __repr__(self) -> str:
-        texture_str = f" with texture" if self.base_color_texture is not None else ""
-        return f"Material({self.name}{texture_str})"
-
     def __hash__(self):
-        return self._uuid
+        return id(self)
+
+    def copy(self):
+        return copy.deepcopy(self)

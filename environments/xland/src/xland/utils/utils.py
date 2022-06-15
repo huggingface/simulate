@@ -78,7 +78,7 @@ def get_bounds(object_type, object_size):
         return {"bounds": (min_v, max_v, min_v, max_v, min_v, max_v)}
 
     elif object_type == "Cone":
-        return {"radius": object_size / 2, "height": object_size, "direction": (0, 0, 1)}
+        return {"radius": object_size / 2, "height": object_size}
 
     elif object_type == "Sphere":
         return {"radius": object_size / 2}

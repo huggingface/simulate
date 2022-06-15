@@ -84,20 +84,47 @@ namespace SimEnv.GLTF {
             nodes.ForEach(node => HF_collider.Export(node));
 
             List<GLTFMaterial.ExportResult> materials = GLTFMaterial.Export(meshes);
+            Dictionary<string, GLTFImage.ExportResult> images = new Dictionary<string, GLTFImage.ExportResult>();
             if(materials.Count > 0) {
                 gltfObject.materials = new List<GLTFMaterial>();
                 for(int i = 0; i < materials.Count; i++) {
                     GLTFMaterial.ExportResult result = materials[i];
                     Material material = result.material;
-                    if(material.mainTexture != null)
-                        throw new NotImplementedException();
                     GLTFMaterial.PbrMetallicRoughness pbrMetallicRoughness = new GLTFMaterial.PbrMetallicRoughness();
                     pbrMetallicRoughness.baseColorFactor = material.color;
-                    // TODO: material properties
+                    // TODO: more material properties
+                    if(material.mainTexture != null) {
+                        Texture2D tex = material.mainTexture as Texture2D;
+                        string uri = tex.name + ".png";
+                        if(!images.TryGetValue(uri, out GLTFImage.ExportResult image)) {
+                            image = new GLTFImage.ExportResult();
+                            image.name = tex.name;
+                            image.uri = uri;
+                            image.path = string.Format("{0}/{1}", Path.GetDirectoryName(filepath), uri);
+                            image.bytes = tex.EncodeToPNG();
+                            image.index = images.Count;
+                            images.Add(uri, image);
+                        }
+                        pbrMetallicRoughness.baseColorTexture = new GLTFMaterial.TextureInfo() { index = image.index };
+                    }
                     result.pbrMetallicRoughness = pbrMetallicRoughness;
                 }
             }
             gltfObject.materials = materials.Cast<GLTFMaterial>().ToList();
+
+            foreach(string uri in images.Keys) {
+                GLTFImage.ExportResult image = images[uri];
+                File.WriteAllBytes(image.path, image.bytes);
+                if(gltfObject.textures == null)
+                    gltfObject.textures = new List<GLTFTexture>();
+                if(gltfObject.images == null)
+                    gltfObject.images = new List<GLTFImage>();
+                GLTFTexture texture = new GLTFTexture();
+                texture.source = image.index;
+                texture.name = image.name;
+                gltfObject.textures.Add(texture);
+                gltfObject.images.Add((GLTFImage)image);
+            }
 
             GLTFBuffer buffer = new GLTFBuffer();
             buffer.byteLength = bufferData.Length;

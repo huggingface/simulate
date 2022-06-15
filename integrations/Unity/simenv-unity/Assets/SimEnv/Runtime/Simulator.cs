@@ -40,11 +40,7 @@ namespace SimEnv {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
             for (int i = 0; i < FRAME_SKIP; i++)
-                if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
-                    Agent agent = ISimulator.Agent as Agent;
-                    agent.AgentUpdate();
-                }
-            Physics.Simulate(FRAME_INTERVAL);
+                Physics.Simulate(FRAME_INTERVAL);
         }
         
         public static void Close() {
@@ -61,23 +57,24 @@ namespace SimEnv {
             // Calculate the agent's observation and send to python with callback
             if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
                 Agent agent = ISimulator.Agent as Agent;
-                agent.ObservationCoroutine(callback);
+                agent.Render(callback);
             } else {
                 Debug.LogWarning("Attempting to get observation without an Agent");
             }
-
         }
 
         public static float GetReward() {
+            float reward = 0.0f;
+
             // Calculate the agent's reward for the current timestep 
-            // TODO: this should be caculated for each action repeat and averaged.
             if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
                 Agent agent = ISimulator.Agent as Agent;
-                return agent.CalculateReward();
+                reward += agent.GetReward();
+                agent.ZeroReward();
             } else {
                 Debug.LogWarning("Attempting to get observation without an Agent");
             }
-            return 0.0f;
+            return reward;
         }
 
         public static bool GetDone() {
@@ -102,6 +99,7 @@ namespace SimEnv {
                 Debug.LogWarning("Attempting to get observation without an Agent");
             }
         }
+
 
         #endregion
 
