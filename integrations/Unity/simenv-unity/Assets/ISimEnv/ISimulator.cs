@@ -24,5 +24,12 @@ namespace ISimEnv {
         /// <param name="node">If true, stores reference to the located node.</param>
         /// <returns>Returns true if the node was found, otherwise false.</returns>
         bool TryGetNode(string name, out INode node);
+
+        /// <summary>
+        /// Step the simulator forward.
+        /// </summary>
+        /// <param name="frames">Number of frames to step forward.</param>
+        /// <param name="frameRate">Target frameRate.</param>
+        void Step(int frames = 1, float frameRate = 30);
     }
 }

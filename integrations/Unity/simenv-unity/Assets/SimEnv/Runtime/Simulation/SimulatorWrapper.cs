@@ -14,5 +14,10 @@ namespace SimEnv {
         public bool TryGetNode(string name, out INode node) {
             return SimulationManager.instance.nodes.TryGetValue(name, out node);
         }
+
+        public void Step(int frames, float frameRate) {
+            for(int i = 0; i < frames; i++)
+                SimulationManager.instance.Step(frameRate);
+        }
     }
 }

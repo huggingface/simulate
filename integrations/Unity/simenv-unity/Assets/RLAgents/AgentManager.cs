@@ -17,15 +17,18 @@ namespace SimEnv.Agents {
             }
         }
 
-        ISimulator loading;
+        readonly float FRAME_RATE = 30;
+        readonly float FRAME_SKIP = 15;
+
+        ISimulator simulator;
 
         public AgentManager(ISimulator simulator) {
             instance = this;
-            this.loading = simulator;
+            this.simulator = simulator;
         }
 
         public void Initialize() {
-            IEnumerable<ICamera> cameras = loading.GetCameras();
+            IEnumerable<ICamera> cameras = simulator.GetCameras();
             for(int i = 0; i < agents.Count; i++) {
                 Camera agentCamera = agents[i].node.gameObject.GetComponentInChildren<Camera>();
                 agents[i].renderCamera = cameras.FirstOrDefault(x => x.camera == agentCamera);
@@ -39,7 +42,10 @@ namespace SimEnv.Agents {
 
         public void Step() {
             if(!Validate()) return;
-            agents[0].Step();
+            for(int i = 0; i < FRAME_SKIP; i++) {
+                simulator.Step(1, FRAME_RATE);
+                agents[0].Step();
+            }
         }
 
         public void SetAction(List<float> action) {

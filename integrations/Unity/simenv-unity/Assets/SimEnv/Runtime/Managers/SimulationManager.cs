@@ -21,16 +21,6 @@ namespace SimEnv {
         /// </summary>
         public UpdateMode updateMode;
 
-        /// <summary>
-        /// How many simulation steps to make per Step call.
-        /// </summary>
-        public float frameSkip = 4;
-
-        /// <summary>
-        /// Time between frames (inverse framerate).
-        /// </summary>
-        public float frameInterval = 30;
-
         public void Register(INode node) {
             if(nodes.TryGetValue(node.name, out INode existing)) {
                 Debug.LogWarning($"Node with name {node.name} already existings. Replacing.");
@@ -39,9 +29,8 @@ namespace SimEnv {
             nodes[node.name] = node;
         }
 
-        public void Step() {
-            for(int i = 0; i < frameSkip; i++)
-                Physics.Simulate(frameInterval);
+        public void Step(float frameRate) {
+            Physics.Simulate(1f / frameRate);
         }
 
         public enum UpdateMode {

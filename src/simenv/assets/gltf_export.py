@@ -529,7 +529,7 @@ def add_node_to_scene(
             gl_node.extensions = gl.Extensions(HF_custom=[])
         elif gl_node.extensions.HF_custom is None:
             gl_node.extensions.HF_custom = []
-        wrapper = json.dumps({"type": "HF_RL_Agent", "contents": json.dumps(del_none(asdict(agent)))})
+        wrapper = json.dumps({"type": "HF_RL_Agent", "contents": json.dumps(gl.utils.del_none(asdict(agent)))})
         gl_node.extensions.HF_custom.append(wrapper)
 
     # Add collider if node has one
