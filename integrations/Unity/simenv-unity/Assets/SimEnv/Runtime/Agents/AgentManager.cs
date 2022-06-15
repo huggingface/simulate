@@ -29,7 +29,6 @@ namespace SimEnv {
         }
 
         public void Register(Agent agent) {
-            Debug.Log(agent);
             if(!agents.Contains(agent))
                 agents.Add(agent);
         }

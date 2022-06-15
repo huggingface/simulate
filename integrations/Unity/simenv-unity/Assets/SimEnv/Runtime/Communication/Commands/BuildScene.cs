@@ -7,8 +7,12 @@ namespace SimEnv {
         public string b64bytes;
 
         public void Execute(UnityAction<string> callback) {
+            ExecuteAsync(callback);
+        }
+
+        async void ExecuteAsync(UnityAction<string> callback) {
             byte[] bytes = Convert.FromBase64String(b64bytes);
-            LoadingManager.instance.LoadSceneFromBytes(bytes);
+            await LoadingManager.instance.LoadSceneFromBytes(bytes);
             callback("ack");
         }
     }

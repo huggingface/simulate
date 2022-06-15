@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using ISimEnv;
 using SimEnv.GLTF;
 using UnityEngine;
@@ -39,7 +40,7 @@ namespace SimEnv {
             extensions.ForEach(extension => extension.OnReleased());
         }
 
-        public void LoadSceneFromBytes(byte[] bytes) {
+        public async Task LoadSceneFromBytes(byte[] bytes) {
             if(SimulationManager.instance.updateMode > SimulationManager.UpdateMode.Default) {
                 Debug.LogWarning("Attempting to load while already loading. Ignoring request.");
                 return;
@@ -47,7 +48,7 @@ namespace SimEnv {
             Unload();
             OnBeforeLoad();
             SimulationManager.instance.updateMode = SimulationManager.UpdateMode.Loading;
-            root = Importer.LoadFromBytes(bytes);
+            root = await Importer.LoadFromBytesAsync(bytes);
             OnAfterLoad();
         }
 
