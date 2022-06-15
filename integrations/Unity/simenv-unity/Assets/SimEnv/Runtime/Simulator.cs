@@ -141,7 +141,7 @@ namespace SimEnv {
 
         void Start() {
             Debug.Log("Starting Simulator");
-
+            Time.timeScale = TIME_SCALE;
             LoadMods();
             LoadExtensions();
             StartClient();
