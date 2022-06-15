@@ -52,12 +52,6 @@ unsigned increment_seed(unsigned seed) {
 */
 Array2D<Color> array2d_from_vector(std::vector<Color> input, unsigned width, unsigned height) {
   Array2D<Color> arr = Array2D<Color>(height, width);
-  // for(unsigned i = 0; i < (unsigned)height; i++) {
-  //   for(unsigned j = 0; j < (unsigned)width; j++) {
-  //     unsigned index = 3 * (i * width + j);
-  //     arr.data[i * width + j] = input[j * height + i];
-  //   }
-  // }
   arr.data = input;
   return arr;
 }
