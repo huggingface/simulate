@@ -62,6 +62,12 @@ class Object3D(Asset):
         self.material = material if material is not None else Material()
 
     def copy(self, share_material=False, share_mesh=False):
+        """Copy an object in a new (returned) object.
+
+        By default mesh and materials are copied in respectively new mesh and material.
+        'share_material' and 'share_mesh' can be set to True to share mesh and/or material
+        between original and copy instead of creating new one.
+        """
         mesh_copy = None
         if self.mesh is not None:
             if share_mesh:
