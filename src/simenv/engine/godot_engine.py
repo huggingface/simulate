@@ -4,6 +4,7 @@ import json
 import socket
 
 from ..gltf_export import tree_as_glb_bytes
+from .engine import Engine
 
 
 PRIMITIVE_TYPE_MAPPING = {
@@ -16,8 +17,9 @@ PRIMITIVE_TYPE_MAPPING = {
 }
 
 
-class GodotEngine:
-    def __init__(self, scene, start_frame=0, end_frame=500, frame_rate=24):
+class GodotEngine(Engine):
+    def __init__(self, scene, auto_update=True, start_frame=0, end_frame=500, frame_rate=24):
+        super().__init__(scene=scene, auto_update=auto_update)
         self.start_frame = start_frame
         self.end_frame = end_frame
         self.frame_rate = frame_rate
@@ -55,12 +57,12 @@ class GodotEngine:
         command = {"type": "BuildScene", "contents": {"b64bytes": b64_bytes}}
         self.run_command(command)
 
-    def update_asset_in_scene(self, root_node):
+    def update_asset(self, root_node):
         # TODO update and make this API more consistent with all the
         # update_asset_in_scene, recreate_scene, show
         pass
 
-    def recreate_scene(self):
+    def update_all_assets(self):
         pass
 
     def show(self, **engine_kwargs):
