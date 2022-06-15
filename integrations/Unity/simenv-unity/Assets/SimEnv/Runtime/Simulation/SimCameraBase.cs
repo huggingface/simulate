@@ -8,13 +8,17 @@ namespace SimEnv {
         GLTFCamera data;
         Camera cam;
 
+        private uint[] pixel_values;
+
         public void Initialize(GLTFCamera data) {
             this.data = data;
+            pixel_values = new uint[data.width * data.height * 3];
+
             cam = gameObject.AddComponent<Camera>();
             cam.targetTexture = new RenderTexture(data.width, data.height, 24, RenderTextureFormat.Default);
             cam.targetTexture.name = "RenderTexture";
             transform.localRotation *= Quaternion.Euler(0, 180, 0);
-            switch(data.type) {
+            switch (data.type) {
                 case GLTF.CameraType.orthographic:
                     cam.orthographic = true;
                     cam.nearClipPlane = data.orthographic.znear;
@@ -24,9 +28,9 @@ namespace SimEnv {
                 case GLTF.CameraType.perspective:
                     cam.orthographic = false;
                     cam.nearClipPlane = data.perspective.znear;
-                    if(data.perspective.zfar.HasValue)
+                    if (data.perspective.zfar.HasValue)
                         cam.farClipPlane = data.perspective.zfar.Value;
-                    if(data.perspective.aspectRatio.HasValue)
+                    if (data.perspective.aspectRatio.HasValue)
                         cam.aspect = data.perspective.aspectRatio.Value;
                     cam.fieldOfView = Mathf.Rad2Deg * data.perspective.yfov;
                     break;
@@ -36,7 +40,7 @@ namespace SimEnv {
 
         void Update() {
             Debug.Log("on");
-            if(cam.enabled)
+            if (cam.enabled)
                 Debug.Log(Time.frameCount);
         }
 
@@ -60,11 +64,10 @@ namespace SimEnv {
             Color32[] pixels = image.GetPixels32();
             RenderTexture.active = activeRenderTexture;
 
-            uint[] pixel_values = new uint[pixels.Length * 3];
             for (int i = 0; i < pixels.Length; i++) {
-                pixel_values[i * 3] += pixels[i].r;
-                pixel_values[i * 3 + 1] += pixels[i].g;
-                pixel_values[i * 3 + 2] += pixels[i].b;
+                pixel_values[i * 3] = pixels[i].r;
+                pixel_values[i * 3 + 1] = pixels[i].g;
+                pixel_values[i * 3 + 2] = pixels[i].b;
                 // we do not include alpha, TODO: Add option to include Depth Buffer
             }
 
