@@ -42,14 +42,12 @@ axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 env = RLEnv(scene)
 for i in range(1000):
     action = env.action_space.sample()
-    if type(action) == int:  # discrete are ints, continuous are numpy arrays
-        action = [action]
-    else:
-        action = action.tolist()
+    if type(action) != int:  # discrete are ints, continuous are numpy arrays
+        action = action.tolist()        
 
     obs, reward, done, info = env.step(action)
     print(done, reward, info)
-    axim1.set_data(obs)
+    axim1.set_data(obs.transpose(1,2,0))
     fig1.canvas.flush_events()
 
     # time.sleep(0.1)
