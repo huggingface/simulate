@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using ISimEnv;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -16,14 +17,19 @@ namespace SimEnv {
             }
         }
 
+        AgentWrapper _wrapper;
+        public AgentWrapper agentsWrapper;
+
         public void Initialize() {
-            // Hacky way to connect agent to its camera
+            // Hacky approach to connect agents to their cameras
             for(int i = 0; i < agents.Count; i++)
                 agents[i].camera = RenderManager.instance.lookup[agents[i].node.GetComponentInChildren<Camera>()];
+
             SimulationManager.instance.Register(this);
         }
 
         public void Register(Agent agent) {
+            Debug.Log(agent);
             if(!agents.Contains(agent))
                 agents.Add(agent);
         }
@@ -39,9 +45,9 @@ namespace SimEnv {
             agents[0].SetAction(action);
         }
 
-        public void GetObservation(UnityAction<Color32[]> callback) {
+        public void GetObservation(UnityAction<IAgentObservation> callback) {
             if(!Validate()) {
-                callback(new Color32[0]);
+                callback(default(IAgentObservation));
                 return;
             }
             agents[0].GetObservation(callback);
@@ -67,7 +73,7 @@ namespace SimEnv {
 
         bool Validate() {
             if(agents.Count == 0) {
-                Debug.LogWarning("No agent founds");
+                Debug.LogWarning("No agent found");
                 return false;
             }
             if(agents.Count > 1)

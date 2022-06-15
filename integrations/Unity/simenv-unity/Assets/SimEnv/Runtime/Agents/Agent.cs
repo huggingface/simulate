@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
+using ISimEnv;
 using SimEnv.GLTF;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace SimEnv {
-    public class Agent {
+    public class Agent : IAgent {
         public Node node;
         public RenderCamera camera;
         public Actions actions;
@@ -25,6 +27,7 @@ namespace SimEnv {
             turnSpeed = data.turn_speed;
             rewardFunctions = new List<RewardFunction>();
             SetProperties(data);
+            AgentManager.instance.Register(this);
         }
 
         public void Step() {
@@ -73,8 +76,10 @@ namespace SimEnv {
             return done;
         }
 
-        public void GetObservation(UnityAction<Color32[]> callback) {
-            camera.Render(callback);
+        public void GetObservation(UnityAction<IAgentObservation> callback) {
+            camera.Render(buffer => {
+                callback(new AgentImageObservation(buffer));
+            });
         }
 
         public void SetAction(List<float> step_action) {
@@ -97,23 +102,6 @@ namespace SimEnv {
             capsule.transform.localPosition = Vector3.up * height / 2f;
             capsule.transform.localScale = new Vector3(radius * 2f, height / 2f, radius * 2f);
             capsule.GetComponent<MeshRenderer>().sharedMaterial = Resources.Load<Material>("AgentMaterial");
-            capsule.GetComponent<Collider>().enabled = false;
-
-            GameObject leftEye = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            leftEye.name = "LeftEye";
-            leftEye.transform.SetParent(node.transform);
-            leftEye.transform.localPosition = new Vector3(-0.07f, 0.7f, 0.19f);
-            leftEye.transform.localRotation = Quaternion.Euler(0, 90, 90);
-            leftEye.transform.localScale = Vector3.one * .1f;
-            leftEye.GetComponent<Collider>().enabled = false;
-
-            GameObject rightEye = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            rightEye.name = "RightEye";
-            rightEye.transform.SetParent(node.transform);
-            rightEye.transform.localPosition = new Vector3(-0.07f, 0.7f, 0.19f);
-            rightEye.transform.localRotation = Quaternion.Euler(0, 90, 90);
-            rightEye.transform.localScale = Vector3.one * .1f;
-            rightEye.GetComponent<Collider>().enabled = false;
 
             switch(data.action_dist) {
                 case "discrete":
@@ -171,7 +159,6 @@ namespace SimEnv {
                 }
 
                 rewardFunctions.Add(rewardFunction);
-                AgentManager.instance.Register(this);
             }
         }
     }

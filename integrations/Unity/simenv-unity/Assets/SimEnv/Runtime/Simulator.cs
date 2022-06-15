@@ -19,6 +19,7 @@ namespace SimEnv {
         public string modPath = "Resources/Mods";
 
         void Awake() {
+            LoadingManager.instance.LoadExtensions();
             SimulationManager.instance.updateMode = SimulationManager.UpdateMode.Undefined;
             Physics.autoSimulation = false;
             modPath = Application.dataPath + "/" + modPath;
@@ -41,6 +42,11 @@ namespace SimEnv {
             } else {
                 Debug.LogWarning("Mod directory doesn't exist at path: " + modPath);
             }
+        }
+
+        void OnDestroy() {
+            LoadingManager.instance.Unload();
+            LoadingManager.instance.UnloadExtensions();
         }
     }
 }

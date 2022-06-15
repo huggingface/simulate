@@ -41,13 +41,13 @@ namespace SimEnv {
         public IEnumerator RenderCoroutine(UnityAction<Color32[]> callback) {
             camera.enabled = true; // Enable camera so that it renders in Unity's internal render loop
             yield return new WaitForEndOfFrame(); // Wait for Unity to render
-            CopyRenderResultToStringBuffer(out Color32[] buffer);
+            CopyRenderResultToColorBuffer(out Color32[] buffer);
             camera.enabled = false; // Disable camera for performance
             if(callback != null)
                 callback(buffer);
         }
 
-        private void CopyRenderResultToStringBuffer(out Color32[] buffer) {
+        private void CopyRenderResultToColorBuffer(out Color32[] buffer) {
             buffer = new Color32[0];
             RenderTexture activeRenderTexture = RenderTexture.active;
             RenderTexture.active = camera.targetTexture;
