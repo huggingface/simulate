@@ -3,7 +3,6 @@ import base64
 import json
 import socket
 
-from ..gltf_export import tree_as_glb_bytes
 from .engine import Engine
 
 
@@ -23,7 +22,6 @@ class GodotEngine(Engine):
         self.start_frame = start_frame
         self.end_frame = end_frame
         self.frame_rate = frame_rate
-        self._scene = scene
 
         self.host = "127.0.0.1"
         self.port = 55000
@@ -45,7 +43,7 @@ class GodotEngine(Engine):
             data_length = int.from_bytes(data_length, "little")
 
             if data_length:
-                response = ""  #  TODO: string concatenation may be slow
+                response = ""  # TODO: string concatenation may be slow
                 while len(response) < data_length:
                     response += self.client.recv(data_length - len(response)).decode()
 
@@ -66,7 +64,7 @@ class GodotEngine(Engine):
         pass
 
     def show(self, **engine_kwargs):
-        self._send_gltf(tree_as_glb_bytes(self._scene))
+        self._send_gltf(self._scene.as_glb_bytes())
 
     def step(self, action):
         command = {"type": "Step", "contents": {"action": action}}
@@ -99,7 +97,7 @@ class GodotEngine(Engine):
         return self._send_bytes(message_bytes)
 
     def _close(self):
-        print("exit was not clean, using atexit to close env")
+        # print("exit was not clean, using atexit to close env")
         self.close()
 
     def close(self):
