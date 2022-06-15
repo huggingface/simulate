@@ -39,7 +39,7 @@ Basic example of creating a scene with a plane and a sphere above it:
 import simenv as sm
 
 scene = sm.Scene()
-scene += sm.Plane() + sm.Sphere(position=(0, 1, 0), radius=0.2)
+scene += sm.Plane() + sm.Sphere(position=[0, 1, 0], radius=0.2)
 
 print(scene)
 >>> Scene(dimensionality=3, engine='PyVistaEngine')
