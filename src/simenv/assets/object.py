@@ -61,14 +61,20 @@ class Object3D(Asset):
 
         self.material = material if material is not None else Material()
 
-    def copy(self):
+    def copy(self, share_material=False, share_mesh=False):
         mesh_copy = None
         if self.mesh is not None:
-            mesh_copy = self.mesh.copy()
+            if share_mesh:
+                mesh_copy = self.mesh
+            else:
+                mesh_copy = self.mesh.copy()
 
         material_copy = None
         if self.material is not None:
-            raise NotImplementedError()
+            if share_material:
+                material_copy = self.material
+            else:
+                material_copy = self.material.copy()
 
         instance_copy = type(self)(name=None)
         instance_copy.mesh = mesh_copy
