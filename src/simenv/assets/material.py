@@ -124,7 +124,7 @@ class Material:
             self.roughness_factor = 1.0
 
         if self.emissive_factor is None:
-            self.emissive_factor = [0.0, 0.0, 0.0, 0.0]
+            self.emissive_factor = [0.0, 0.0, 0.0]
         elif isinstance(self.emissive_factor, np.ndarray):
             self.emissive_factor = self.emissive_factor.tolist()
         else:

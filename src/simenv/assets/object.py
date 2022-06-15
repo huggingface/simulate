@@ -921,5 +921,7 @@ class StructuredGrid(Object3D):
             y = np.array(y)
         if not isinstance(z, np.ndarray):
             z = np.array(z)
-        mesh = pv.StructuredGrid(x, y, z)
+
+        # If it is a structured grid, extract the surface mesh (PolyData)
+        mesh = pv.StructuredGrid(x, y, z).extract_surface()
         super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)

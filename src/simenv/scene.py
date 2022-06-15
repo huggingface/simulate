@@ -24,7 +24,7 @@ import simenv as sm
 
 from .assets import Asset
 from .assets.anytree import RenderTree
-from .engine import PyVistaEngine, UnityEngine
+from .engine import GodotEngine, PyVistaEngine, UnityEngine
 
 
 # Set Hugging Face hub debug verbosity (TODO remove)
@@ -67,9 +67,11 @@ class Scene(Asset):
             engine = engine.lower()
         if engine == "unity":
             self.engine = UnityEngine(self, **kwargs)
+        elif engine == "godot":
+            self.engine = GodotEngine(self)
         elif engine == "blender":
             raise NotImplementedError()
-        elif engine == "pyvista":
+        elif engine == "pyvista" or engine is None:
             self.engine = PyVistaEngine(self, **kwargs)
         elif engine is not None:
             raise ValueError("engine should be selected in the list [None, 'unity', 'blender', 'pyvista']")

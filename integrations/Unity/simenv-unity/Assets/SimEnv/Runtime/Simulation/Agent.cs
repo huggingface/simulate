@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using System;
+using SimEnv.GLTF;
 
 namespace SimEnv {
     public static class JsonHelper {
@@ -103,7 +104,6 @@ namespace SimEnv {
         }
 
         public void Print() {
-
             Debug.Log("Printing actions");
             Debug.Log("name: " + name);
             Debug.Log("dist: " + dist);
@@ -145,18 +145,19 @@ namespace SimEnv {
         }
 
         void Update() {
-            if (HUMAN) {
-                AgentUpdate();
-                ObservationCoroutine(null);
-            }
+            AgentUpdate();
+            Render(null);
         }
-        public void Initialize(SimEnv.GLTF.HF_RL_agents.HF_RL_Agent agentData) {
+
+        public void Initialize(HF_RL_agents.HF_RL_Agent agentData) {
             Initialize();
             SetProperties(agentData);
         }
-        public void SetProperties(SimEnv.GLTF.HF_RL_agents.HF_RL_Agent agentData) {
 
+        public void SetProperties(HF_RL_agents.HF_RL_Agent agentData) {
             Debug.Log("Setting Agent properties");
+
+            Debug.Log(agentData.action_dist);
 
             color = agentData.color;
             height = agentData.height;
@@ -222,23 +223,17 @@ namespace SimEnv {
                             entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
                         break;
 
-
                     default:
                         Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
                         break;
                 }
-                rewardFunctions.Add(rewardFunction);
 
+                rewardFunctions.Add(rewardFunction);
             }
         }
+
         public void AgentUpdate() {
-
-            UpdateMovement();
-            UpdateReward();
-        }
-        public void UpdateMovement() {
-
-            if (HUMAN) {
+            if(HUMAN) {
                 // Human control
                 float x = Input.GetAxis("Horizontal");
                 float z = Input.GetAxis("Vertical");
@@ -272,7 +267,6 @@ namespace SimEnv {
             foreach (RewardFunction rewardFunction in rewardFunctions) {
                 rewardFunction.Reset();
             }
-
         }
 
         public float CalculateReward() {
@@ -304,7 +298,7 @@ namespace SimEnv {
             return done;
         }
 
-        public void ObservationCoroutine(UnityAction<string> callback) {
+        public void Render(UnityAction<string> callback) {
             StartCoroutine(RenderCoroutine(callback));
         }
 

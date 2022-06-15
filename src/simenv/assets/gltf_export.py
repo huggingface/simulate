@@ -352,6 +352,7 @@ def add_mesh_to_model(
 ) -> int:
     mesh = node.mesh
     material = node.material
+
     if mesh.n_verts == 0 and mesh.n_lines == 0 and mesh.n_faces == 0:
         raise NotImplementedError()
 
