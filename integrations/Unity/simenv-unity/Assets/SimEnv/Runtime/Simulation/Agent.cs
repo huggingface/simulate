@@ -127,7 +127,6 @@ namespace SimEnv {
         private float accumReward = 0.0f;
 
         public Color color = Color.white;
-        private uint[] pixel_values;
         private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
 
         SimCameraBase _cam;
@@ -186,7 +185,7 @@ namespace SimEnv {
             controller.height = height;
             SetupModel();
 
-            pixel_values = new uint[agentData.camera_width * agentData.camera_height * 3];
+            //pixel_values = new uint[agentData.camera_width * agentData.camera_height * 3];
 
             // add the reward functions to the agent
             for (int i = 0; i < agentData.reward_functions.Count; i++) {
@@ -269,7 +268,7 @@ namespace SimEnv {
         }
 
         public void AgentUpdate() {
-            if(HUMAN) {
+            if (HUMAN) {
                 // Human control
                 float x = Input.GetAxis("Horizontal");
                 float z = Input.GetAxis("Vertical");
