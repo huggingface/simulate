@@ -3,13 +3,12 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace SimEnv {
-    public class GetReward : ICommand {
+    public class GetDone : ICommand {
         public string message;
 
         public void Execute(UnityAction<string> callback) {
-            Debug.Log("get reward");
-            float reward = AgentManager.instance.GetReward();
-            callback(reward.ToString());
+            bool done = AgentManager.instance.GetDone();
+            callback(done.ToString());
         }
     }
 }

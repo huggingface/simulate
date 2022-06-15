@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using ISimEnv;
 using SimEnv.GLTF;
 using UnityEngine;
@@ -116,10 +115,7 @@ namespace SimEnv {
 
             // add the reward functions to the agent
             for(int i = 0; i < data.reward_functions.Count; i++) {
-                Debug.Log("Creating reward function");
                 // get the shared properties
-                Debug.Log("Finding entity1 " + data.reward_entity1s[i]);
-                Debug.Log("Finding entity2 " + data.reward_entity2s[i]);
                 GameObject entity1 = GameObject.Find(data.reward_entity1s[i]);
                 GameObject entity2 = GameObject.Find(data.reward_entity2s[i]);
                 if(entity1 == null)

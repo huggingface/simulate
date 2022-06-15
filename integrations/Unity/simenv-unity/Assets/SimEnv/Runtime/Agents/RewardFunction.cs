@@ -1,8 +1,5 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
-using System;
+
 namespace SimEnv {
     public interface IDistanceMetric {
         public float Calculate(GameObject e1, GameObject e2);
@@ -21,6 +18,7 @@ namespace SimEnv {
 
         }
     }
+
     public abstract class RewardFunction {
         protected GameObject entity1;
         protected GameObject entity2;
@@ -28,7 +26,6 @@ namespace SimEnv {
         protected IDistanceMetric distanceMetric;
         public abstract void Reset();
         public abstract float CalculateReward();
-
     }
 
     public class DenseRewardFunction : RewardFunction {
@@ -49,13 +46,12 @@ namespace SimEnv {
 
             float reward = 0.0f;
 
-            if (distance < bestDistance) {
+            if(distance < bestDistance) {
                 reward += bestDistance - distance;
                 bestDistance = distance;
             }
 
             return reward * rewardScalar;
-
         }
     }
 
@@ -63,6 +59,7 @@ namespace SimEnv {
         public bool hasTriggered = false;
         public bool isTerminal = false;
         float threshold = 1.0f;
+
         public SparseRewardFunction(GameObject entity1, GameObject entity2, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal) {
             this.entity1 = entity1;
             this.entity2 = entity2;
@@ -80,7 +77,7 @@ namespace SimEnv {
             float reward = 0.0f;
             float distance = distanceMetric.Calculate(entity1, entity2);
 
-            if (!hasTriggered && (distance < threshold)) {
+            if(!hasTriggered && (distance < threshold)) {
                 hasTriggered = true;
                 reward += rewardScalar;
             }

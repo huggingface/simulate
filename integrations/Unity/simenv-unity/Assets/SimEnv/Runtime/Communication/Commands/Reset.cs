@@ -1,5 +1,4 @@
 using ISimEnv;
-using UnityEngine;
 using UnityEngine.Events;
 
 namespace SimEnv {
@@ -7,7 +6,6 @@ namespace SimEnv {
         public string message;
 
         public void Execute(UnityAction<string> callback) {
-            Debug.Log("reset");
             AgentManager.instance.ResetAgents();
             callback("ack");
         }
