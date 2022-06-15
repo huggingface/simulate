@@ -121,10 +121,6 @@ def get_playable_area(z):
 
     The algorithm used is dfs to get strongly connected components.
     Then we select the largest strongly connected component to be the "playable area".
-
-    TODO: Getting as input the 1x1 tiles enc
-    connected_components_mask = np.zeros(n_nodes, dtype=bool)
-    connected_components_mask[largest_connected_component] = Trueoded in RGB.
     """
 
     # Get connectivity graph

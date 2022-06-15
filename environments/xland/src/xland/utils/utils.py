@@ -14,28 +14,26 @@ def decode_rgb(img, specific_map=None, sample_from=None, max_height=8):
     Might be temporary until we migrate completely to this format.
     """
 
-    img_np = np.array(img)
-
     # Create the map
-    map_2d = np.zeros((2 * img_np.shape[0], 2 * img_np.shape[1]))
+    map_2d = np.zeros((2 * img.shape[0], 2 * img.shape[1]))
 
     # TODO: optimize this decoding
-    for i in range(img_np.shape[0]):
-        for j in range(img_np.shape[1]):
-            if img_np[i, j, 1] == 0:
-                map_2d[2 * i : 2 * (i + 1), 2 * j : 2 * (j + 1)] = img_np[i, j, 0]
-            elif img_np[i, j, 1] == 1:
-                map_2d[2 * i, 2 * j : 2 * (j + 1)] = img_np[i, j, 0]
-                map_2d[2 * i + 1, 2 * j : 2 * (j + 1)] = img_np[i, j, 0] + 1
-            elif img_np[i, j, 1] == 2:
-                map_2d[2 * i : 2 * (i + 1), 2 * j] = img_np[i, j, 0]
-                map_2d[2 * i : 2 * (i + 1), 2 * j + 1] = img_np[i, j, 0] + 1
-            elif img_np[i, j, 1] == 3:
-                map_2d[2 * i, 2 * j : 2 * (j + 1)] = img_np[i, j, 0] + 1
-                map_2d[2 * i + 1, 2 * j : 2 * (j + 1)] = img_np[i, j, 0]
-            elif img_np[i, j, 1] == 4:
-                map_2d[2 * i : 2 * (i + 1), 2 * j] = img_np[i, j, 0] + 1
-                map_2d[2 * i : 2 * (i + 1), 2 * j + 1] = img_np[i, j, 0]
+    for i in range(img.shape[0]):
+        for j in range(img.shape[1]):
+            if img[i, j, 1] == 0:
+                map_2d[2 * i : 2 * (i + 1), 2 * j : 2 * (j + 1)] = img[i, j, 0]
+            elif img[i, j, 1] == 1:
+                map_2d[2 * i, 2 * j : 2 * (j + 1)] = img[i, j, 0]
+                map_2d[2 * i + 1, 2 * j : 2 * (j + 1)] = img[i, j, 0] + 1
+            elif img[i, j, 1] == 2:
+                map_2d[2 * i : 2 * (i + 1), 2 * j] = img[i, j, 0]
+                map_2d[2 * i : 2 * (i + 1), 2 * j + 1] = img[i, j, 0] + 1
+            elif img[i, j, 1] == 3:
+                map_2d[2 * i, 2 * j : 2 * (j + 1)] = img[i, j, 0] + 1
+                map_2d[2 * i + 1, 2 * j : 2 * (j + 1)] = img[i, j, 0]
+            elif img[i, j, 1] == 4:
+                map_2d[2 * i : 2 * (i + 1), 2 * j] = img[i, j, 0] + 1
+                map_2d[2 * i : 2 * (i + 1), 2 * j + 1] = img[i, j, 0]
 
     map_2d = map_2d * HEIGHT_CONSTANT
 
@@ -47,7 +45,6 @@ def convert_to_actual_pos(obj_pos, generated_map):
     x, y, z = generated_map
 
     # Get true heights and weights
-    # TODO: should we pass it in the function, or add atributes to a class?
     true_width, true_height = x.shape
     width, height = true_width / GRANULARITY, true_height / GRANULARITY
 

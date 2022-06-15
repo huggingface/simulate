@@ -27,12 +27,6 @@ def create_2d_map(name, gen_folder=".gen_files", benchmarks="benchmark/examples"
     if not os.path.exists(gen_folder):
         os.makedirs(gen_folder)
 
-    # Check if maps folder exists and create it if it doesn't
-    maps_folder = os.path.join(gen_folder, "maps")
-
-    if not os.path.exists(maps_folder):
-        os.makedirs(maps_folder)
-
     # Create the map
     m = []
 
@@ -71,4 +65,4 @@ def create_2d_map(name, gen_folder=".gen_files", benchmarks="benchmark/examples"
                 map_2d[i, j, 0] = int(m[i, j][0])
                 map_2d[i, j, 1] = int(m[i, j][1])
 
-    Image.fromarray(map_2d).save(os.path.join(maps_folder, name + ".png"))
+    return map_2d

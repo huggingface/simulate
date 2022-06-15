@@ -23,12 +23,8 @@ def gen_setup(max_height=8, gen_folder=".gen_files"):
     if not os.path.exists(gen_folder):
         os.makedirs(gen_folder)
 
-    # Create the maps and tiles folder if necessary
-    maps_folder = os.path.join(gen_folder, "maps")
+    # Create the tiles folder if necessary
     tiles_folder = os.path.join(gen_folder, "tiles")
-
-    if not os.path.exists(maps_folder):
-        os.makedirs(maps_folder)
 
     if os.path.exists(tiles_folder):
         print("Tiles folder already exists. Using existing tiles... (delete folder to regenerate)")
@@ -45,7 +41,7 @@ def generate_env(
     engine=None,
     periodic_output=False,
     specific_map=None,
-    sample_from=None,
+    sample_map=None,
     seed=None,
     max_height=8,
     N=2,
@@ -70,7 +66,7 @@ def generate_env(
         periodic_output: Whether the output should be toric (WFC param).
         engine: which engine to use.
         specific_map: A specific map to be plotted.
-        sample_from: The name of the map to sample from.
+        sample_map: The map to sample from.
         seed: The seed to use for the generation of the map.
         max_height: The maximum height of the map. Max height of 8 means 8 different levels.
         N: Size of patterns (WFC param).
@@ -103,13 +99,12 @@ def generate_env(
         if verbose:
             print("Try {}".format(curr_try + 1))
 
-        # TODO: add sucess variable to be returned below
         generated_map, map_2d, scene = generate_map(
             width=width,
             height=height,
             periodic_output=periodic_output,
             specific_map=specific_map,
-            sample_from=sample_from,
+            sample_map=sample_map,
             max_height=max_height,
             N=N,
             periodic_input=periodic_input,
@@ -125,7 +120,6 @@ def generate_env(
         obj_pos, success = get_object_pos(map_2d, n_objects=n_objects, **threshold_kwargs)
 
         # If there is no enough area, we should try again and continue the loop
-        # TODO: improve quality of this code
         if success:
             # Set objects in scene:
             obj_pos = convert_to_actual_pos(obj_pos, generated_map)

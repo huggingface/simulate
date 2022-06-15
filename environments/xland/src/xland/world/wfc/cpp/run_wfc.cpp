@@ -47,22 +47,41 @@ unsigned increment_seed(unsigned seed) {
   }
 }
 
+/*
+* Function to create Array2D from vector of vectors.
+*/
+Array2D<Color> array2d_from_vector(std::vector<Color> input, unsigned width, unsigned height) {
+  Array2D<Color> arr = Array2D<Color>(height, width);
+  // for(unsigned i = 0; i < (unsigned)height; i++) {
+  //   for(unsigned j = 0; j < (unsigned)width; j++) {
+  //     unsigned index = 3 * (i * width + j);
+  //     arr.data[i * width + j] = input[j * height + i];
+  //   }
+  // }
+  arr.data = input;
+  return arr;
+}
+
 /**
  * Read the overlapping wfc problem.
  */
-void read_overlapping_instance(unsigned seed, unsigned width, unsigned height, bool periodic_output, unsigned N,
-                              bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry, string input_img,
+std::optional<std::vector<Color>> read_overlapping_instance(unsigned seed, unsigned width, 
+                              unsigned height, bool periodic_output, unsigned N,
+                              bool periodic_input, bool ground, unsigned nb_samples, 
+                              unsigned symmetry, std::vector<Color> input_img,
+                              unsigned input_width, unsigned input_height,
                               const string &current_dir, bool verbose, unsigned nb_tries) {
                                 
-  string name = "sample";
   if (verbose) {
     cout << "Started!" << endl;
   }
+
+  // const std::string image_path = current_dir + "/maps/example_map_01.png";
+  // std::optional<Array2D<Color>> m = read_image(image_path);
   // Stop hardcoding samples
-  const std::string image_path = current_dir + "/maps/" + input_img + ".png";
-  std::optional<Array2D<Color>> m = read_image(image_path);
+  std::optional<Array2D<Color>> m = array2d_from_vector(input_img, input_width, input_height);
   if (!m.has_value()) {
-    throw "Error while loading " + image_path;
+    throw "Error while loading the map to sample from.";
   }
 
   OverlappingWFCOptions options = {
@@ -75,11 +94,10 @@ void read_overlapping_instance(unsigned seed, unsigned width, unsigned height, b
       OverlappingWFC<Color> wfc(*m, options, seed);
       std::optional<Array2D<Color>> success = wfc.run();
       if (success.has_value()) {
-        write_image_png(current_dir + "/maps/" + name + ".png", *success);
         if (verbose) {
           cout << "Finished!" << endl;
         }
-        break;
+        return success.value().data;
       } else {
         if (verbose) {
           cout << "Failed to generate!" << endl;
@@ -227,7 +245,7 @@ read_neighbors(xml_node<> *root_node) {
 /**
  * Read an instance of a tiling WFC problem.
  */
-void read_simpletiled_instance(unsigned seed, unsigned width, unsigned height, bool periodic_output,
+std::optional<std::vector<Color>> read_simpletiled_instance(unsigned seed, unsigned width, unsigned height, bool periodic_output,
                                const string &current_dir, bool verbose, unsigned nb_tries) noexcept {
   string name = "tiles";
   string subset = "tiles";
@@ -285,11 +303,10 @@ void read_simpletiled_instance(unsigned seed, unsigned width, unsigned height, b
 
     std::optional<Array2D<Color>> success = wfc.run();
     if (success.has_value()) {
-      write_image_png(current_dir + "/maps/" + name + ".png", *success);
       if (verbose) {
         cout << "Finished!" << endl;
       }
-      break;
+      return success.value().data;
     } else {
       if (verbose) {
         cout << "Failed!" << endl;
@@ -298,56 +315,34 @@ void read_simpletiled_instance(unsigned seed, unsigned width, unsigned height, b
   }
 }
 
-/**
- * Read a configuration file containing multiple wfc problems
- */
-
-void read_config_file(unsigned seed, unsigned width, unsigned height, bool periodic_output, unsigned N, 
-                      bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry, const string &dir_path, 
-                      string &sample_type, string &input_img, bool verbose, unsigned nb_tries) noexcept {
-  if(sample_type.compare("simpletiled") == 0) {
-    read_simpletiled_instance(seed, width, height, periodic_output, dir_path, verbose, nb_tries);
-  } 
-
-  else if(sample_type.compare("overlapping") == 0) {
-    read_overlapping_instance(seed, width, height, periodic_output, N, periodic_input, ground, 
-                  nb_samples, symmetry, input_img, dir_path, verbose, nb_tries);
-  }
-  
-  else {
-    cout << "Unable to run WFC with the option selected. Please set overlapping or simpletiled as sample_type" << endl;
-  }
-}
-
-void run_wfc_cpp(unsigned seed, unsigned width, unsigned height, int sample_type, bool periodic_output,
+// TODO: try adding &
+std::vector<Color> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, int sample_type, bool periodic_output,
         unsigned N, bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry,
-        string input_img, bool verbose, unsigned nb_tries, string dir_path) {
+        std::vector<Color> input_img, unsigned input_width, unsigned input_height, 
+        bool verbose, unsigned nb_tries, string dir_path) {
 
   // Initialize rand for non-linux targets
   #ifndef __linux__
     srand(time(nullptr));
   #endif
 
-  string sample_type_str = "";
+  std::chrono::time_point<std::chrono::system_clock> start, end;
+  start = std::chrono::system_clock::now();
+
+  std::optional<std::vector<Color>> success;
 
   if (sample_type == 0) {
-    sample_type_str = "simpletiled";
+    success = read_simpletiled_instance(seed, width, height, periodic_output, dir_path, verbose, nb_tries);
   }
 
   else if (sample_type == 1) {
-    sample_type_str = "overlapping";
+    success = read_overlapping_instance(seed, width, height, periodic_output, N, periodic_input, ground, 
+                  nb_samples, symmetry, input_img, input_width, input_height, dir_path, verbose, nb_tries);
   }
 
   else {
     throw "choose 0 (simpletiled) or 1 (overlapping) on sample_type";
   }
-
-  std::chrono::time_point<std::chrono::system_clock> start, end;
-  start = std::chrono::system_clock::now();
-
-  read_config_file(seed, width, height, periodic_output, N,
-                  periodic_input, ground, nb_samples, symmetry,
-                  dir_path, sample_type_str, input_img, verbose, nb_tries);
 
   end = std::chrono::system_clock::now();
   int elapsed_s =
@@ -358,5 +353,11 @@ void run_wfc_cpp(unsigned seed, unsigned width, unsigned height, int sample_type
   if (verbose) {
     std::cout << "All samples done in " << elapsed_s << "s, " << elapsed_ms % 1000
             << "ms.\n";
+  }
+
+  if (success.has_value()) {
+    return success.value();
+  } else {
+    return std::vector<Color>();
   }
 }
