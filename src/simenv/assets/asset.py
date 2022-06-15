@@ -85,9 +85,19 @@ class Asset(NodeMixin, object):
             if node.name == name:
                 return node
 
-    def copy(self):
+    def copy(self, with_children=True, **kwargs):
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
-        return Asset(name=None, position=self.position, rotation=self.rotation, scaling=self.scaling)
+        instance_copy = type(self)(
+            name=None, position=self.position, rotation=self.rotation, scaling=self.scaling, collider=self.collider
+        )
+
+        if with_children:
+            copy_children = []
+            for child in self.tree_children:
+                copy_children.append(child.copy(**kwargs))
+            instance_copy.tree_children = copy_children
+
+        return instance_copy
 
     @classmethod
     def create_from(

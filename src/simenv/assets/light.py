@@ -57,6 +57,30 @@ class Light(Asset):
         self.inner_cone_angle = inner_cone_angle
         self.outer_cone_angle = outer_cone_angle
 
+    def copy(self, with_children=True, **kwargs):
+        """Return a copy of the Asset. Parent and children are not attached to the copy."""
+        instance_copy = type(self)(
+            name=None,
+            position=self.position,
+            rotation=self.rotation,
+            scaling=self.scaling,
+            collider=self.collider,
+            intensity=self.intensity,
+            color=self.color,
+            range=self.range,
+            light_type=self.light_type,
+            inner_cone_angle=self.inner_cone_angle,
+            outer_cone_angle=self.outer_cone_angle,
+        )
+
+        if with_children:
+            copy_children = []
+            for child in self.tree_children:
+                copy_children.append(child.copy(**kwargs))
+            instance_copy.tree_children = copy_children
+
+        return instance_copy
+
     @Asset.rotation.setter
     def rotation(self, value):  # override default rotation to be like the sun
         if self.dimensionality == 3:

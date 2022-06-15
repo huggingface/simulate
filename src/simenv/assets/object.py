@@ -61,13 +61,16 @@ class Object3D(Asset):
 
         self.material = material if material is not None else Material()
 
-    def copy(self, share_material=False, share_mesh=False):
-        """Copy an object in a new (returned) object.
+    def copy(self, with_children=True, **kwargs):
+        """Copy an Object3D node in a new (returned) object.
 
         By default mesh and materials are copied in respectively new mesh and material.
         'share_material' and 'share_mesh' can be set to True to share mesh and/or material
         between original and copy instead of creating new one.
         """
+        share_material = kwargs.get("share_material", False)
+        share_mesh = kwargs.get("share_mesh", False)
+
         mesh_copy = None
         if self.mesh is not None:
             if share_mesh:
@@ -88,6 +91,14 @@ class Object3D(Asset):
         instance_copy.position = self.position
         instance_copy.rotation = self.rotation
         instance_copy.scaling = self.scaling
+        instance_copy.collider = self.collider
+
+        if with_children:
+            copy_children = []
+            for child in self.tree_children:
+                copy_children.append(child.copy(**kwargs))
+            instance_copy.tree_children = copy_children
+
         return instance_copy
 
     def __repr__(self):

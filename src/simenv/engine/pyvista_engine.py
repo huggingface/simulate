@@ -205,9 +205,8 @@ class PyVistaEngine(Engine):
             self.plotter = None
             self.auto_update = auto_update
 
-        if self.plotter is None or not hasattr(self.plotter, "ren_win"):
-            self.regenerate_scene()
-            self.plotter.show()
+        self.regenerate_scene()
+        self.plotter.show()
 
     def close(self):
         self.plotter.close()
