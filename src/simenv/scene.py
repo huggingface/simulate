@@ -96,7 +96,7 @@ class Scene(Asset):
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and is_local is not False:
-            nodes = Asset.create_from_gltf_file(hub_or_local_filepath, file_type=file_type)
+            nodes = Asset.create_from(hub_or_local_filepath, file_type=file_type)
             return nodes, hub_or_local_filepath
 
         splitted_hub_path = hub_or_local_filepath.split("/")
@@ -113,7 +113,7 @@ class Scene(Asset):
             force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
             **kwargs,
         )
-        nodes = Asset.create_from_gltf_file(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
+        nodes = Asset.create_from(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
         return nodes, gltf_file
 
     @classmethod
@@ -138,24 +138,19 @@ class Scene(Asset):
         - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
-        nodes, gltf_file = Scene._get_node_tree_from_hub_or_local(
+        root_node, gltf_file = Scene._get_node_tree_from_hub_or_local(
             hub_or_local_filepath=hub_or_local_filepath,
             use_auth_token=use_auth_token,
             revision=revision,
             is_local=is_local,
             **(hf_hub_kwargs if hf_hub_kwargs is not None else {}),
         )
-        if len(nodes) == 1:
-            root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
-            nodes = root.tree_children
-        else:
-            root = Asset(name="Scene")  # Otherwise we build a main root node
         return cls(
-            name=root.name,
-            position=root.position,
-            rotation=root.rotation,
-            scaling=root.scaling,
-            children=nodes,
+            name=root_node.name,
+            position=root_node.position,
+            rotation=root_node.rotation,
+            scaling=root_node.scaling,
+            children=root_node.tree_children,
             created_from_file=gltf_file,
             **kwargs,
         )
@@ -180,7 +175,7 @@ class Scene(Asset):
         - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
-        nodes, gltf_file = Scene._get_node_tree_from_hub_or_local(
+        root_node, gltf_file = Scene._get_node_tree_from_hub_or_local(
             hub_or_local_filepath=hub_or_local_filepath,
             use_auth_token=use_auth_token,
             revision=revision,
@@ -188,18 +183,12 @@ class Scene(Asset):
             **kwargs,
         )
 
-        if len(nodes) == 1:
-            root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
-            nodes = root.tree_children
-        else:
-            root = Asset(name="Scene")  # Otherwise we build a main root node
-
         self.clear()
-        self.name = root.name
-        self.position = root.position
-        self.rotation = root.rotation
-        self.scaling = root.scaling
-        self.tree_children = nodes
+        self.name = root_node.name
+        self.position = root_node.position
+        self.rotation = root_node.rotation
+        self.scaling = root_node.scaling
+        self.tree_children = root_node.tree_children
         self.created_from_file = gltf_file
 
     def push_to_hub(

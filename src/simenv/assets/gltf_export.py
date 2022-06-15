@@ -24,8 +24,9 @@ import xxhash
 
 try:
     import PIL.Image
-except:
+except ImportError:
     pass
+
 
 from . import Asset, Camera, Light, Material, Object3D, RL_Agent
 from . import gltflib as gl

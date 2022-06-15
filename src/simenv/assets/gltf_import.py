@@ -129,7 +129,7 @@ def get_texture_as_pillow(gltf_scene: GLTF, texture_info: Optional[TextureInfo])
 
     gltf_textures = gltf_scene.model.textures
     gltf_images = gltf_scene.model.images
-    gltf_samplers = gltf_scene.model.samplers
+    # gltf_samplers = gltf_scene.model.samplers
 
     gltf_texture = gltf_textures[texture_info.index]
     gltf_image = gltf_images[gltf_texture.source]
@@ -153,7 +153,7 @@ def get_texture_as_pyvista(gltf_scene: GLTF, texture_info: Optional[TextureInfo]
 
     gltf_textures = gltf_scene.model.textures
     gltf_images = gltf_scene.model.images
-    gltf_samplers = gltf_scene.model.samplers
+    # gltf_samplers = gltf_scene.model.samplers
 
     gltf_texture = gltf_textures[texture_info.index]
     gltf_image = gltf_images[gltf_texture.source]

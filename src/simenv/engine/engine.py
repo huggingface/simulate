@@ -19,11 +19,11 @@ import typing
 
 
 if typing.TYPE_CHECKING:
-    from .. import Scene
+    from ..scene import Scene
 
 
 class Engine:
-    def __init__(self, scene: Scene, auto_update=True):
+    def __init__(self, scene: "Scene", auto_update=True):
         self._scene = scene
         self.auto_update = auto_update
 

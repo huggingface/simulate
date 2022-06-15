@@ -17,7 +17,7 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from ..gltflib.enums.collider_type import ColliderType
+from .gltflib.enums.collider_type import ColliderType
 
 
 @dataclass

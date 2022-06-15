@@ -22,8 +22,6 @@ import numpy as np
 
 from .anytree import NodeMixin
 from .collider import Collider
-from .gltf_export import save_tree_to_gltf_file, tree_as_glb_bytes
-from .gltf_import import load_gltf_as_tree
 from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler
 
 
@@ -92,7 +90,7 @@ class Asset(NodeMixin, object):
         return Asset(name=None, position=self.position, rotation=self.rotation, scaling=self.scaling)
 
     @classmethod
-    def create_from_gltf_file(
+    def create_from(
         cls,
         file_path: str,
         file_type: Optional[str] = None,
@@ -105,6 +103,9 @@ class Asset(NodeMixin, object):
         The tree can be walked from the root nodes.
         If the glTF file has several root node a root node is added to it.
         """
+        # We import dynamically here to avoid circular import (tried many other options...)
+        from .gltf_import import load_gltf_as_tree
+
         nodes = load_gltf_as_tree(
             file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
         )
@@ -118,9 +119,15 @@ class Asset(NodeMixin, object):
         """Save the tree in a GLTF file + additional (binary) ressource files if if shoulf be the case.
         Return the list of all the path to the saved files (glTF file + ressource files)
         """
+        # We import here to avoid circular deps
+        from .gltf_export import save_tree_to_gltf_file
+
         return save_tree_to_gltf_file(file_path=file_path, root_node=self)
 
     def as_glb_bytes(self) -> bytes:
+        # We import here to avoid circular deps
+        from .gltf_export import tree_as_glb_bytes
+
         return tree_as_glb_bytes(self)
 
     def translate(self, vector: Optional[List[float]] = None):
