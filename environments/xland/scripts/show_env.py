@@ -44,7 +44,7 @@ if __name__ == "__main__":
 
     else:
         name = args.map or args.sample_from
-        m = create_2d_map(name, map_format="rgb")
+        m = create_2d_map(name)
         if args.map is not None:
             extra_args["specific_map"] = m
         else:

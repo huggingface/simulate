@@ -138,7 +138,7 @@ if __name__ == "__main__":
 
     else:
         name = args.sample_from
-        map_2d = create_2d_map(name, map_format="rgb")
+        map_2d = create_2d_map(name)
 
     # Create screenshot folder if it doesn't exist
     if not os.path.exists(os.path.join(args.folder_path, "screenshot")):

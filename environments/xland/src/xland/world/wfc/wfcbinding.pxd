@@ -8,7 +8,7 @@ cdef extern from "cpp/include/color.hpp":
     cdef struct Color:
         unsigned char r, g, b
 
-cdef extern from "cpp/run_wfc.cpp":
+cdef extern from "cpp/src/run_wfc.cpp":
     pass
 
 cdef extern from "cpp/include/run_wfc.hpp":

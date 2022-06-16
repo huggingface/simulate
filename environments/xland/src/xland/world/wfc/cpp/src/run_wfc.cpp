@@ -6,13 +6,12 @@
 #include <limits>
 #include "time.h"
 
-#include "include/run_wfc.hpp"
-#include "fastwfc/src/include/overlapping_wfc.hpp"
-#include "fastwfc/src/include/tiling_wfc.hpp"
-#include "fastwfc/src/include/utils/array3D.hpp"
-#include "fastwfc/src/include/wfc.hpp"
-#include "include/color.hpp"
-#include "include/utils.hpp"
+#include "run_wfc.hpp"
+#include "overlapping_wfc.hpp"
+#include "tiling_wfc.hpp"
+#include "utils/array3D.hpp"
+#include "wfc.hpp"
+#include "color.hpp"
 #include <unordered_set>
 
 using namespace std;

@@ -80,46 +80,24 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
 }
 
-# We build fastwfc
-BUILD_CYTHON = True
 
-if sys.platform != "darwin" and not sys.platform.startswith("linux"):
-    BUILD_CYTHON = False
-    # TODO: add support for windows (win32)
-    print("Unsupported platform. Skipping cython generation...")
+ext_modules = [
+   Extension(
+      name="wfc_binding",
+      sources=["src/xland/world/wfc/wfc_binding.pyx", 
+               "src/xland/world/wfc/cpp/src/propagator.cpp",
+               "src/xland/world/wfc/cpp/src/wave.cpp",
+               "src/xland/world/wfc/cpp/src/wfc.cpp"],
+      language="c++",
+      extra_compile_args=["-std=c++17"],
+      extra_link_args=["-std=c++17"],
+      include_dirs=[
+            "src/xland/world/wfc/cpp/include",
+      ],  # path to .h file(s)
+   )
+]
 
-if BUILD_CYTHON:
-    try:
-        print("Building fastwfc...")
-        assert os.system("cmake src/xland/world/wfc/cpp/fastwfc/. -Bsrc/xland/world/wfc/cpp/fastwfc/.") == 0
-        assert os.system("make -C src/xland/world/wfc/cpp/fastwfc/") == 0
-        print("Done!")
-
-    except:
-        if not os.path.exists("src/xland/world/wfc/cpp/fastwfc/lib"):
-            print("Error building external library, please create fastwfc manually.")
-            sys.exit(1)
-
-    ext_modules = [
-        Extension(
-            name="wfc_binding",
-            sources=["src/xland/world/wfc/wfc_binding.pyx"],
-            language="c++",
-            extra_compile_args=["-std=c++17"],
-            extra_link_args=["-std=c++17"],
-            libraries=["fastwfc"],
-            library_dirs=["src/xland/world/wfc/cpp/fastwfc/lib"],
-            include_dirs=[
-                "src/xland/world/wfc/cpp/fastwfc/src/include",
-                os.path.join(os.getcwd(), "src/xland/world/wfc/cpp/include"),
-            ],  # path to .h file(s)
-        )
-    ]
-
-    ext_modules = cythonize(ext_modules, force=True)
-
-else:
-    ext_modules = None
+ext_modules = cythonize(ext_modules, force=True)
 
 setup(
     name="xland",
