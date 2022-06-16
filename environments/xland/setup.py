@@ -55,10 +55,6 @@ To create the package for pypi.
 
 import os
 import sys
-from distutils.extension import Extension
-
-import numpy as np
-from Cython.Build import cythonize
 from setuptools import find_packages, setup
 
 
@@ -80,25 +76,6 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
 }
 
-
-ext_modules = [
-   Extension(
-      name="wfc_binding",
-      sources=["src/xland/world/wfc/wfc_binding.pyx", 
-               "src/xland/world/wfc/cpp/src/propagator.cpp",
-               "src/xland/world/wfc/cpp/src/wave.cpp",
-               "src/xland/world/wfc/cpp/src/wfc.cpp"],
-      language="c++",
-      extra_compile_args=["-std=c++17"],
-      extra_link_args=["-std=c++17"],
-      include_dirs=[
-            "src/xland/world/wfc/cpp/include",
-      ],  # path to .h file(s)
-   )
-]
-
-ext_modules = cythonize(ext_modules, force=True)
-
 setup(
     name="xland",
     description="HuggingFace procedurally generated environment for RL.",
@@ -112,8 +89,5 @@ setup(
     packages=find_packages("src"),
     install_requires=REQUIRED_PKGS,
     extras_require=EXTRAS_REQUIRE,
-    ext_modules=ext_modules,
     keywords="simulation environments procedural generation reinforcement machine learning",
-    zip_safe=False,
-    include_dirs=[np.get_include()],
 )

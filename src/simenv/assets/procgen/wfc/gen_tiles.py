@@ -2,10 +2,7 @@
 Generate tiles for debugging purposes, and for generating maps on the prototype.
 """
 
-import os
-
 import numpy as np
-from PIL import Image
 
 from wfc_binding import build_neighbor, build_tile
 

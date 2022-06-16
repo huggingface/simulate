@@ -5,7 +5,7 @@ Builds map using Wave Function Collapse.
 import numpy as np
 from wfc_binding import run_wfc
 
-from ..utils import GRANULARITY, decode_rgb, generate_seed
+from .utils import GRANULARITY, decode_rgb, generate_seed
 
 
 def generate_2d_map(

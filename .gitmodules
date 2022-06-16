@@ -1,3 +1,0 @@
-[submodule "environments/xland/src/xland/world/wfc/cpp/fastwfc"]
-	path = environments/xland/src/xland/world/wfc/cpp/fastwfc
-	url = https://github.com/math-fehr/fast-wfc

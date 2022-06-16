@@ -136,3 +136,6 @@ dmypy.json
 *.DS_Store
 .vscode
 *omnisharp.json
+
+# ignore generated cpp file from cython
+wfc_binding.cpp
