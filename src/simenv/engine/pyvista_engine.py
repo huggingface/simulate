@@ -157,6 +157,7 @@ class PyVistaEngine(Engine):
                     located_mesh,
                     pbr=material.base_color_texture is None,  # pyvista doesn't support having both a texture and pbr
                     color=material.base_color[:3],
+                    opacity=material.base_color[-1],
                     metallic=material.metallic_factor,
                     roughness=material.roughness_factor,
                     texture=material.base_color_texture,
