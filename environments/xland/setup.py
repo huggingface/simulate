@@ -83,20 +83,9 @@ EXTRAS_REQUIRE = {
 # We build fastwfc
 BUILD_CYTHON = True
 
-if sys.platform == "win32":
-    # TODO: Work in progress
-    pass
-
-elif sys.platform == "darwin":
-    PROFILE_FILE = "~/.zprofile"
-    VARIABLE_NAME = "DLYD_LIBRARY_PATH"
-
-elif sys.platform.startswith("linux"):
-    PROFILE_FILE = "~/.bashrc"
-    VARIABLE_NAME = "LD_LIBRARY_PATH"
-
-else:
+if sys.platform != "darwin" and not sys.platform.startswith("linux"):
     BUILD_CYTHON = False
+    # TODO: add support for windows (win32)
     print("Unsupported platform. Skipping cython generation...")
 
 if BUILD_CYTHON:
@@ -150,13 +139,3 @@ setup(
     zip_safe=False,
     include_dirs=[np.get_include()],
 )
-
-# Add the path to the library to the environment variable
-export_command = "export {}=src/xland/world/wfc/cpp/fastwfc/lib:${}".format(VARIABLE_NAME, VARIABLE_NAME)
-
-# Set bashrc
-# TODO: check if this line already exists
-assert os.system('echo "{} ">>{}'.format(export_command, PROFILE_FILE)) == 0
-
-# You should run export in current session and avoid using source / exec
-print("Run {} for updating current shell.".format(export_command))
