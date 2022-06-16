@@ -5,7 +5,6 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
-using ISimEnv;
 
 namespace SimEnv.GLTF {
     public class GLTFNode {
@@ -87,7 +86,8 @@ namespace SimEnv.GLTF {
                     result[i].transform = new GameObject().transform;
                     result[i].transform.gameObject.name = nodes[i].name;
                     result[i].node = result[i].transform.gameObject.AddComponent<Node>();
-                    result[i].node.Initialize();
+                    if(Application.isPlaying)
+                        result[i].node.Initialize();
                 }
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].children != null) {
@@ -133,7 +133,7 @@ namespace SimEnv.GLTF {
                     if (nodes[i].camera.HasValue) {
                         result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                         GLTFCamera cameraData = cameras[nodes[i].camera.Value];
-                        new RenderCamera(result[i].node, cameraData);
+                        RenderCamera camera = new RenderCamera(result[i].node, cameraData);
                     }
                     if (nodes[i].extensions != null) {
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
@@ -201,9 +201,15 @@ namespace SimEnv.GLTF {
                                     continue;
                                 }
                                 IGLTFExtension extension = JsonConvert.DeserializeObject(wrapper.contents, extensionType) as IGLTFExtension;
-                                extension.Initialize(result[i].node);
+                                if(Application.isPlaying)
+                                    extension.Initialize(result[i].node);
                             }
                         }
+                    }
+                }
+                if(!Application.isPlaying) {
+                    for(int i = 0; i < result.Length; i++) {
+                        GameObject.DestroyImmediate(result[i].node);
                     }
                 }
                 IsCompleted = true;

@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:integrations/Unity/simenv-unity/Assets/SimEnv/Runtime/Extensions/ISimulatorExtension.cs.meta
 guid: a67f4693ad474b24eb718c56681f66a3
-========
-guid: 3fe74ec9ae23cd64cbc8ff6b64fa6c9e
->>>>>>>> 9106f4728996453f712880d6ff372453d0fd0a81:integrations/Unity/simenv-unity/Assets/RLAgents/Actions.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

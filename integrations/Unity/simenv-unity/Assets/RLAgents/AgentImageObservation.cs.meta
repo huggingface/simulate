@@ -1,9 +1,5 @@
 fileFormatVersion: 2
-<<<<<<<< HEAD:integrations/Unity/simenv-unity/Assets/SimEnv/Runtime/Extensions/ICommand.cs.meta
 guid: 78b88f6ae3317c740b3699f45b27f75b
-========
-guid: c7e4573ba63348646b48e50cff3835e0
->>>>>>>> 9106f4728996453f712880d6ff372453d0fd0a81:integrations/Unity/simenv-unity/Assets/RLAgents/AgentImageObservation.cs.meta
 MonoImporter:
   externalObjects: {}
   serializedVersion: 2

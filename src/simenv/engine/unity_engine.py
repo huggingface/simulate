@@ -102,7 +102,7 @@ class UnityEngine(Engine):
         self.close()
 
     def close(self):
-        command = {"type": "Close", "contents": json.dumps({"message": "close"})}
+        command = {"type": "Close", "contents": "{}"}
         self.run_command(command)
         self.client.close()
 

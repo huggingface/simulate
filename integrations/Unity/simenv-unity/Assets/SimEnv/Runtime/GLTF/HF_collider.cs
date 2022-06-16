@@ -1,5 +1,4 @@
 // based on https://github.com/Moguri/glTF/tree/panda3d_physics_collision_shapes/extensions/2.0/Vendor/PANDA3D_collision_shapes
-using ISimEnv;
 using Newtonsoft.Json;
 using UnityEngine;
 

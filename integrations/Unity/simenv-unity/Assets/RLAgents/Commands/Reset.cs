@@ -1,5 +1,3 @@
-using ISimEnv;
-using SimEnv.Agents;
 using UnityEngine.Events;
 
 namespace SimEnv.Agents {
