@@ -18,11 +18,6 @@ np.import_array()
 # Data type of arrays
 DTYPE = int
 
-# "ctypedef" assigns a corresponding compile-time type to DTYPE_t. For
-# every type in the numpy module there's a corresponding compile-time
-# type with a _t-suffix.
-ctypedef np.int_t DTYPE_t
-
 def build_neighbor(string left, unsigned left_or, string right, unsigned right_or):
     return Neighbor(left=left, left_or=left_or, right=right, right_or=right_or)
 

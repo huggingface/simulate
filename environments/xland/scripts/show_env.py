@@ -25,7 +25,7 @@ if __name__ == "__main__":
     parser.add_argument("--height", type=int, default=10)
     parser.add_argument("--n_objects", type=int, default=3)
     parser.add_argument("--seed", type=int, default=None)
-    parser.add_argument("--max_height", type=int, default=8)
+    parser.add_argument("--max_height", type=int, default=6)
     parser.add_argument("--symmetry", type=int, default=1)
     parser.add_argument("--N", type=int, default=2)
     parser.add_argument("--nb_samples", type=int, default=1)

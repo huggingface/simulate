@@ -22,7 +22,7 @@ def get_tile(h, orientation=0):
     """
     return [[h, orientation, 0]]
 
-def generate_tiles(max_height=8, weights=None, double_ramp=False):
+def generate_tiles(max_height=6, weights=None, double_ramp=False):
     """
     Generate tiles for the procedural generation.
     NOTE: So far, we are using these values to get used to how to use the algorithm.
@@ -39,9 +39,9 @@ def generate_tiles(max_height=8, weights=None, double_ramp=False):
 
     # TODO: which should be default weights?
     if weights is None:
-        weights = np.exp(np.linspace(1.0, -4.0, max_height))
+        weights = np.exp(np.linspace(1.0, -3.0, max_height))
 
-    ramp_weights = [0.1] * max_height
+    ramp_weights = [0.4] * max_height
 
     print("Generating tiles with max height: {}".format(max_height))
 
@@ -63,7 +63,7 @@ def generate_tiles(max_height=8, weights=None, double_ramp=False):
         neighbors.append(build_neighbor(plain_tile_names[h], 0, plain_tile_names[h], 0))
 
         if h < max_height - 2:
-            neighbors.append(build_neighbor(plain_tile_names[h], 0, plain_tile_names[h + 1], 0))
+            neighbors.append(build_neighbor(plain_tile_names[h + 1], 0, plain_tile_names[h], 0))
 
         # If i == max_height - 1, then we don't add more ramps
         if h < max_height - 1:
