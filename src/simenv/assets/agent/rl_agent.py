@@ -2,6 +2,7 @@ import itertools
 from typing import List, Optional
 
 from ..asset import Asset
+from ..camera import Camera
 from .rl_agent_actions import DiscreteRLAgentActions, RLAgentActions
 from .rl_agent_reward_function import RLAgentRewardFunction
 
@@ -21,8 +22,8 @@ class RL_Agent(Asset):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
-        camera_width=32,
-        camera_height=32,
+        camera_width: Optional[int] = None,
+        camera_height: Optional[int] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -34,15 +35,21 @@ class RL_Agent(Asset):
             actions = DiscreteRLAgentActions.default()
         if reward_functions is None:
             reward_functions = []
+        if camera_width is None:
+            camera_width = 32
+        if camera_height is None:
+            camera_height = 32
 
         self.color = color
         self.height = height
         self.move_speed = move_speed
         self.turn_speed = turn_speed
         self.actions = actions
-        self.camera_height = camera_height
-        self.camera_width = camera_width
         self.reward_functions = reward_functions
+        self.camera_width = camera_width
+        self.camera_height = camera_height
+        camera = Camera(position=[0.0, height * 0.7, 0.0], width=camera_width, height=camera_height)
+        self.add(camera)
 
     def add_reward_function(self, reward_function: RLAgentRewardFunction) -> None:
         self.reward_functions.append(reward_function)

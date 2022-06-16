@@ -3,8 +3,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 
-public class ColorRGBConverter : JsonConverter
-{
+public class ColorRGBConverter : JsonConverter {
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
         Color color = (Color)value;
         writer.WriteStartArray();
@@ -24,8 +23,7 @@ public class ColorRGBConverter : JsonConverter
     }
 }
 
-public class ColorRGBAConverter : JsonConverter
-{
+public class ColorRGBAConverter : JsonConverter {
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
         Color color = (Color)value;
         writer.WriteStartArray();

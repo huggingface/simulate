@@ -5,6 +5,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using ISimEnv;
 
 namespace SimEnv.GLTF {
     public class GLTFNode {
@@ -27,12 +28,14 @@ namespace SimEnv.GLTF {
 
         public class Extensions {
             public KHR_light KHR_lights_punctual;
-            public HFRLAgent HF_RL_agents;
             public HF_collider HF_collider;
+            public string[] HF_custom;
         }
 
-        public class HFRLAgent {
-            public int agent;
+        [Serializable]
+        public class CustomExtensionWrapper {
+            public string type;
+            public string contents;
         }
 
         public class KHR_light {
@@ -43,6 +46,7 @@ namespace SimEnv.GLTF {
             public int? parent;
             public int[] children;
             public Transform transform;
+            public Node node;
 
             public bool IsRoot => !parent.HasValue;
         }
@@ -82,10 +86,8 @@ namespace SimEnv.GLTF {
                     result[i] = new GLTFNode.ImportResult();
                     result[i].transform = new GameObject().transform;
                     result[i].transform.gameObject.name = nodes[i].name;
-                    if (Application.isPlaying) {
-                        SimObjectBase simObject = result[i].transform.gameObject.AddComponent<SimObjectBase>();
-                        simObject.Initialize();
-                    }
+                    result[i].node = result[i].transform.gameObject.AddComponent<Node>();
+                    result[i].node.Initialize();
                 }
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].children != null) {
@@ -129,26 +131,9 @@ namespace SimEnv.GLTF {
                     }
 
                     if (nodes[i].camera.HasValue) {
-                        GLTFCamera cameraData = cameras[nodes[i].camera.Value];
-                        Camera camera = result[i].transform.gameObject.AddComponent<Camera>();
                         result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
-                        switch (cameraData.type) {
-                            case CameraType.orthographic:
-                                camera.orthographic = true;
-                                camera.nearClipPlane = cameraData.orthographic.znear;
-                                camera.farClipPlane = cameraData.orthographic.zfar;
-                                camera.orthographicSize = cameraData.orthographic.ymag;
-                                break;
-                            case CameraType.perspective:
-                                camera.orthographic = false;
-                                camera.nearClipPlane = cameraData.perspective.znear;
-                                if (cameraData.perspective.zfar.HasValue)
-                                    camera.farClipPlane = cameraData.perspective.zfar.Value;
-                                if (cameraData.perspective.aspectRatio.HasValue)
-                                    camera.aspect = cameraData.perspective.aspectRatio.Value;
-                                camera.fieldOfView = Mathf.Rad2Deg * cameraData.perspective.yfov;
-                                break;
-                        }
+                        GLTFCamera cameraData = cameras[nodes[i].camera.Value];
+                        new RenderCamera(result[i].node, cameraData);
                     }
                     if (nodes[i].extensions != null) {
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
