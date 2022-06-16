@@ -4,7 +4,7 @@ using UnityEngine.Events;
 namespace SimEnv {
     public class Close : ICommand {
         public void Execute(UnityAction<string> callback) {
-            LoadingManager.instance.Close();
+            Simulator.Close();
             callback("ack");
         }
     }

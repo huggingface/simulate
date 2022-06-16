@@ -8,7 +8,7 @@ using System.Linq;
 using System.Collections.Generic;
 
 namespace SimEnv {
-    [CreateAssetMenu(menuName = "SimEnv/Command Manager")]
+    [CreateAssetMenu(menuName = "SimEnv/Client")]
     public class Client : Singleton<Client> {
         public string host = "localhost";
         public int port = 55000;

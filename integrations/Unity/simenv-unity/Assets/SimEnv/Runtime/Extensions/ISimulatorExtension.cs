@@ -1,4 +1,4 @@
-namespace ISimEnv {
+namespace SimEnv {
     /// <summary>
     /// Used to extend SimEnv with custom functionality.
     /// <para>Any classes that extend <c>ISimulatorExtension</c> will 
@@ -29,8 +29,7 @@ namespace ISimEnv {
         /// <summary>
         /// Called when this extension is loaded.
         /// </summary>
-        /// <param name="simulator">Passed reference to the simulator API.</param>
-        void OnCreated(ISimulator simulator);
+        void OnCreated();
 
         /// <summary>
         /// Called when this extension is unloaded.

@@ -1,4 +1,4 @@
-namespace ISimEnv {
+namespace SimEnv {
     /// <summary>
     /// Interface for custom GLTF Node extensions.
     /// <para>Extensions defined should be serializable, so they can be passed as json strings.</para>
@@ -32,11 +32,11 @@ namespace ISimEnv {
     /// </code>
     /// </example>
     /// </summary>
-    public interface IGLTFNodeExtension {
+    public interface IGLTFExtension {
         /// <summary>
         /// Initialize extension on the given node.
         /// </summary>
         /// <param name="node"></param>
-        void Initialize(INode node);
+        void Initialize(Node node);
     }
 }

@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using ISimEnv;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -20,18 +19,18 @@ namespace SimEnv.Agents {
         readonly float FRAME_RATE = 30;
         readonly float FRAME_SKIP = 15;
 
-        ISimulator simulator;
-
-        public AgentManager(ISimulator simulator) {
-            instance = this;
-            this.simulator = simulator;
+        public AgentManager() {
+            
         }
 
         public void Initialize() {
-            IEnumerable<ICamera> cameras = simulator.GetCameras();
             for(int i = 0; i < agents.Count; i++) {
                 Camera agentCamera = agents[i].node.gameObject.GetComponentInChildren<Camera>();
-                agents[i].renderCamera = cameras.FirstOrDefault(x => x.camera == agentCamera);
+                if(!Simulator.Cameras.TryGetValue(agentCamera, out RenderCamera camera)) {
+                    Debug.LogWarning("Couldn't find agent camera.");
+                    return;
+                }
+                agents[i].camera = camera;
             }
         }
 
@@ -43,7 +42,7 @@ namespace SimEnv.Agents {
         public void Step() {
             if(!Validate()) return;
             for(int i = 0; i < FRAME_SKIP; i++) {
-                simulator.Step(1, FRAME_RATE);
+                Simulator.Step(1, FRAME_RATE);
                 agents[0].Step();
             }
         }

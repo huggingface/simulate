@@ -196,11 +196,11 @@ namespace SimEnv.GLTF {
                                     Debug.LogWarning($"Invalid custom extension JSON: {json}");
                                     continue;
                                 }
-                                if(!LoadingManager.instance.gltfExtensions.TryGetValue(wrapper.type, out Type extensionType)) {
+                                if(!Simulator.GLTFExtensions.TryGetValue(wrapper.type, out Type extensionType)) {
                                     Debug.LogWarning($"Extension type {wrapper.type} not found.");
                                     continue;
                                 }
-                                IGLTFNodeExtension extension = JsonConvert.DeserializeObject(wrapper.contents, extensionType) as IGLTFNodeExtension;
+                                IGLTFExtension extension = JsonConvert.DeserializeObject(wrapper.contents, extensionType) as IGLTFExtension;
                                 extension.Initialize(result[i].node);
                             }
                         }

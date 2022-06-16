@@ -1,12 +1,12 @@
 using System.Collections.Generic;
-using ISimEnv;
+using SimEnv;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace SimEnv.Agents {
     public class Agent {
-        public INode node;
-        public ICamera renderCamera;
+        public Node node;
+        public RenderCamera camera;
         public Actions actions;
         public CharacterController controller;
         public float height;
@@ -17,7 +17,7 @@ namespace SimEnv.Agents {
         List<RewardFunction> rewardFunctions;
         float accumReward;
 
-        public Agent(INode node, HF_RL_Agent data) {
+        public Agent(Node node, HF_RL_Agent data) {
             this.node = node;
             height = data.height;
             radius = .5f;
@@ -75,7 +75,7 @@ namespace SimEnv.Agents {
         }
 
         public void GetObservation(UnityAction<CameraObservation> callback) {
-            renderCamera.Render(buffer => {
+            camera.Render(buffer => {
                 callback(new CameraObservation(buffer));
             });
         }

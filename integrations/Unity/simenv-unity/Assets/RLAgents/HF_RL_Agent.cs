@@ -1,8 +1,7 @@
 using System.Collections.Generic;
-using ISimEnv;
 
 namespace SimEnv.Agents {
-    public class HF_RL_Agent : IGLTFNodeExtension {
+    public class HF_RL_Agent : IGLTFExtension {
         //public string name = "";
         public float[] color;
         public float height = 1f;
@@ -22,7 +21,7 @@ namespace SimEnv.Agents {
         public List<float> reward_thresholds = new List<float>();
         public List<bool> reward_is_terminals = new List<bool>();
 
-        public void Initialize(INode node) {
+        public void Initialize(Node node) {
             new Agent(node, this);
         }
     }

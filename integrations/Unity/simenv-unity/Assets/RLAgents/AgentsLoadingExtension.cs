@@ -1,9 +1,7 @@
-using ISimEnv;
-
 namespace SimEnv.Agents {
     public class AgentsLoadingExtension : ISimulatorExtension {
-        public void OnCreated(ISimulator simulator) {
-            AgentManager.instance ??= new AgentManager(simulator);
+        public void OnCreated() {
+            AgentManager.instance ??= new AgentManager();
         }
 
         public void OnReleased() {

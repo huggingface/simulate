@@ -1,11 +1,10 @@
 using System.Collections;
-using ISimEnv;
 using UnityEngine;
 using UnityEngine.Events;
 
 namespace SimEnv {
-    public class RenderCamera : ICamera {
-        public INode node => m_node;
+    public class RenderCamera {
+        public Node node => m_node;
         public Camera camera => m_camera;
 
         Camera m_camera;
@@ -34,7 +33,7 @@ namespace SimEnv {
                     break;
             }
             camera.enabled = false;
-            RenderManager.instance.Register(this);
+            Simulator.Register(this);
         }
 
         public void Render(UnityAction<Color32[]> callback) {
