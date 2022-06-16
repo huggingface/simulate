@@ -12,7 +12,7 @@ var _stream: StreamPeerTCP = StreamPeerTCP.new()
 func _ready() -> void:
 	_status = _stream.get_status()
 
-func _physics_process(delta):
+func _physics_process(_delta):
 	# this is called at a fixed rate
 	update_status()
 	read()	
@@ -62,7 +62,11 @@ func send(out_data: PackedByteArray) -> bool:
 	if _status != _stream.STATUS_CONNECTED:
 		print("Error: Stream is not currently connected.")
 		return false
-	var stream_error: int = _stream.put_data(out_data)
+	var stream_error: int = _stream.put_data(PackedByteArray([len(out_data)]))
+	if stream_error != OK:
+		print("Error writing to stream: ", error)
+		return false
+	stream_error = _stream.put_data(out_data)
 	if stream_error != OK:
 		print("Error writing to stream: ", error)
 		return false
