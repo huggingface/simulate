@@ -74,7 +74,7 @@ try:
                 self.clear_camera_positions,
             )
 
-except:
+except ImportError:
     CustomBackgroundPlotter = None
 
 
@@ -200,14 +200,13 @@ class PyVistaEngine(Engine):
 
         self.plotter.reset_camera()
 
-    def show(self, auto_update: Optional[bool] = None, **pyvista_plotter_kwargs):
+    def show(self, auto_update: Optional[bool] = None):
         if auto_update is not None and auto_update != self.auto_update:
             self.plotter = None
             self.auto_update = auto_update
 
-        if self.plotter is None or not hasattr(self.plotter, "ren_win"):
-            self.regenerate_scene()
-            self.plotter.show(**pyvista_plotter_kwargs)
+        self.regenerate_scene()
+        self.plotter.show()
 
     def close(self):
         self.plotter.close()

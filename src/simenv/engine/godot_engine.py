@@ -2,7 +2,6 @@ import atexit
 import base64
 import json
 import socket
-import subprocess
 
 from .engine import Engine
 
@@ -17,34 +16,17 @@ PRIMITIVE_TYPE_MAPPING = {
 }
 
 
-class UnityEngine(Engine):
-    def __init__(self, scene, auto_update=True, executable=None, headless=None, start_frame=0, end_frame=500, frame_rate=24, port=55000):
+class GodotEngine(Engine):
+    def __init__(self, scene, auto_update=True, start_frame=0, end_frame=500, frame_rate=24):
         super().__init__(scene=scene, auto_update=auto_update)
         self.start_frame = start_frame
         self.end_frame = end_frame
         self.frame_rate = frame_rate
 
         self.host = "127.0.0.1"
-        self.port = port
-
-        if executable is not None:
-            self._launch_executable(executable, port, headless)
-
+        self.port = 55000
         self._initialize_server()
         atexit.register(self._close)
-        
-        
-    def _launch_executable(self, executable, port, headless):
-
-        if headless:
-            print("launching env headless")
-            launch_command = f"{executable} -batchmode -nographics --args port {port}".split(" ")
-        else:
-            launch_command = f"{executable} --args port {port}".split(" ")
-        self.proc = subprocess.Popen(
-            launch_command,
-            start_new_session=False,
-        )
 
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -65,17 +47,17 @@ class UnityEngine(Engine):
                 while len(response) < data_length:
                     response += self.client.recv(data_length - len(response)).decode()
 
-                # print(f"Received response: {response}")
+                print(f"Received response: {response}")
                 return response
 
     def _send_gltf(self, bytes):
         b64_bytes = base64.b64encode(bytes).decode("ascii")
-        command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
+        command = {"type": "BuildScene", "contents": {"b64bytes": b64_bytes}}
         self.run_command(command)
 
     def update_asset(self, root_node):
         # TODO update and make this API more consistent with all the
-        # update_asset, update, show
+        # update_asset_in_scene, recreate_scene, show
         pass
 
     def update_all_assets(self):
@@ -85,24 +67,23 @@ class UnityEngine(Engine):
         self._send_gltf(self._scene.as_glb_bytes())
 
     def step(self, action):
-        command = {"type": "Step", "contents": json.dumps({"action": action})}
+        command = {"type": "Step", "contents": {"action": action}}
         return self.run_command(command)
 
     def get_reward(self):
-        command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
-        return float(self.run_command(command))
+        command = {"type": "GetReward", "contents": {"message": "message"}}
+        return self.run_command(command)
 
     def get_done(self):
-        command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
-
-        return self.run_command(command) == "True"
+        command = {"type": "GetDone", "contents": {"message": "message"}}
+        return self.run_command(command)
 
     def reset(self):
-        command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
+        command = {"type": "Reset", "contents": {"message": "message"}}
         self.run_command(command)
 
     def get_observation(self):
-        command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
+        command = {"type": "GetObservation", "contents": {"message": "message"}}
 
         encoded_obs = self.run_command(command)
         decoded_obs = json.loads(encoded_obs)
@@ -111,7 +92,7 @@ class UnityEngine(Engine):
 
     def run_command(self, command):
         message = json.dumps(command)
-        # print(f"Sending command: {message}")
+        print(f"Sending command: {message}")
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         return self._send_bytes(message_bytes)
 

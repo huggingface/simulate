@@ -19,9 +19,9 @@ from typing import List, Optional, Union
 import numpy as np
 import pyvista as pv
 
-from ..gltflib.enums.collider_type import ColliderType
 from .asset import Asset
 from .collider import Collider
+from .gltflib.enums.collider_type import ColliderType
 from .material import Material
 
 
@@ -61,14 +61,29 @@ class Object3D(Asset):
 
         self.material = material if material is not None else Material()
 
-    def copy(self):
+    def copy(self, with_children=True, **kwargs):
+        """Copy an Object3D node in a new (returned) object.
+
+        By default mesh and materials are copied in respectively new mesh and material.
+        'share_material' and 'share_mesh' can be set to True to share mesh and/or material
+        between original and copy instead of creating new one.
+        """
+        share_material = kwargs.get("share_material", False)
+        share_mesh = kwargs.get("share_mesh", False)
+
         mesh_copy = None
         if self.mesh is not None:
-            mesh_copy = self.mesh.copy()
+            if share_mesh:
+                mesh_copy = self.mesh
+            else:
+                mesh_copy = self.mesh.copy()
 
         material_copy = None
         if self.material is not None:
-            raise NotImplementedError()
+            if share_material:
+                material_copy = self.material
+            else:
+                material_copy = self.material.copy()
 
         instance_copy = type(self)(name=None)
         instance_copy.mesh = mesh_copy
@@ -76,6 +91,14 @@ class Object3D(Asset):
         instance_copy.position = self.position
         instance_copy.rotation = self.rotation
         instance_copy.scaling = self.scaling
+        instance_copy.collider = self.collider
+
+        if with_children:
+            copy_children = []
+            for child in self.tree_children:
+                copy_children.append(child.copy(**kwargs))
+            instance_copy.tree_children = copy_children
+
         return instance_copy
 
     def __repr__(self):

@@ -9,7 +9,7 @@ import numpy as np
 scene = sm.Scene(engine="Unity")
 
 scene += sm.Light(
-    name="sun", position=[0, 20, 0], rotation=utils.quat_from_degrees(60, -30, 0), intensity=3.5
+    name="sun", position=[0, 20, 0], intensity=0.9
 )
 scene += sm.Cube(name="floor", position=[0, -0.05, 0], scaling=[100, 0.1, 100])
 scene += sm.Cube(name="wall1", position=[-1, 0.5, 0], scaling=[0.1, 1, 5.1])

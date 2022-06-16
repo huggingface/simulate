@@ -66,6 +66,33 @@ class Camera(Asset):
         self.xmag = xmag
         self.ymag = ymag
 
+    def copy(self, with_children=True, **kwargs):
+        """Return a copy of the Camera with copy of the children attached to the copy."""
+        instance_copy = type(self)(
+            name=None,
+            position=self.position,
+            rotation=self.rotation,
+            scaling=self.scaling,
+            collider=self.collider,
+            width=self.width,
+            height=self.height,
+            aspect_ratio=self.aspect_ratio,
+            yfov=self.yfov,
+            zfar=self.zfar,
+            znear=self.znear,
+            camera_type=self.camera_type,
+            xmag=self.xmag,
+            ymag=self.ymag,
+        )
+
+        if with_children:
+            copy_children = []
+            for child in self.tree_children:
+                copy_children.append(child.copy(**kwargs))
+            instance_copy.tree_children = copy_children
+
+        return instance_copy
+
     @Asset.position.setter
     def position(self, value):  # override default position a distance from the origin
         if self.dimensionality == 3:

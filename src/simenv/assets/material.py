@@ -124,7 +124,7 @@ class Material:
             self.roughness_factor = 1.0
 
         if self.emissive_factor is None:
-            self.emissive_factor = [0.0, 0.0, 0.0, 0.0]
+            self.emissive_factor = [0.0, 0.0, 0.0]
         elif isinstance(self.emissive_factor, np.ndarray):
             self.emissive_factor = self.emissive_factor.tolist()
         else:
@@ -147,4 +147,7 @@ class Material:
         return id(self)
 
     def copy(self):
-        return copy.deepcopy(self)
+        copy_mat = copy.deepcopy(self)
+        id = next(self.__class__.__NEW_ID)
+        self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+        return copy_mat

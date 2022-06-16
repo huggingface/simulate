@@ -13,11 +13,11 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simenv Material."""
+""" A simenv Collider."""
 from dataclasses import dataclass
 from typing import List, Optional
 
-from ..gltflib.enums.collider_type import ColliderType
+from .gltflib.enums.collider_type import ColliderType
 
 
 @dataclass
