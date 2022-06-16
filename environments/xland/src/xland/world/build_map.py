@@ -14,7 +14,19 @@ from ..utils import GRANULARITY, HEIGHT_CONSTANT, decode_rgb, generate_seed
 
 
 def add_walls(x, y, height=None, thickness=0.1):
+    """
+    Adding walls to prevent agent from falling.
+
+    Args:
+        x: x coordinates in grid
+        y: y coordinates in grid
+        height: height of walls
+        thickness: thickness of walls
     
+    Returns:
+        List of cubes that correspond to walls to prevent
+            agent of falling
+    """
     if height is None:
         height = 10 * HEIGHT_CONSTANT
 
