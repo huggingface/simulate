@@ -5,10 +5,7 @@ using System.Linq;
 
 namespace SimEnv {
     public class Close : ICommand {
-        public string close;
-
-        public override void Execute(UnityAction<string> callback) {
-            Debug.Log("Closing Unity backend ");
+        public void Execute(UnityAction<string> callback) {
             Simulator.Close();
             callback("ack");
         }

@@ -188,20 +188,20 @@ namespace SimEnv.GLTF {
                                 Debug.LogWarning(string.Format("Collider type {0} not implemented", collider.GetType()));
                             }
                         }
-                        if (nodes[i].extensions.HF_RL_agents != null) {
-                            int agent_id = nodes[i].extensions.HF_RL_agents.agent;
-                            if (extensions == null || extensions.HF_RL_agents == null || extensions.HF_RL_agents.agents == null || extensions.HF_RL_agents.agents.Count < agent_id) {
-                                Debug.LogWarning("Error importing agent");
-                            } else {
-                                Debug.Log("Creating Agent");
-
-                                HF_RL_agents.HF_RL_Agent agentData = extensions.HF_RL_agents.agents[agent_id];
-
-                                Debug.Log("color" + agentData.color.ToString());
-                                Agent agent = result[i].transform.gameObject.AddComponent<Agent>();
-                                if (Application.isPlaying)
-                                    agent.Initialize(agentData);
-
+                        if(nodes[i].extensions.HF_custom != null) {
+                            for(int j = 0; j < nodes[i].extensions.HF_custom.Length; j++) {
+                                string json = nodes[i].extensions.HF_custom[j];
+                                CustomExtensionWrapper wrapper = JsonUtility.FromJson<CustomExtensionWrapper>(json);
+                                if(wrapper == null) {
+                                    Debug.LogWarning($"Invalid custom extension JSON: {json}");
+                                    continue;
+                                }
+                                if(!Simulator.GLTFExtensions.TryGetValue(wrapper.type, out Type extensionType)) {
+                                    Debug.LogWarning($"Extension type {wrapper.type} not found.");
+                                    continue;
+                                }
+                                IGLTFExtension extension = JsonConvert.DeserializeObject(wrapper.contents, extensionType) as IGLTFExtension;
+                                extension.Initialize(result[i].node);
                             }
                         }
                     }
