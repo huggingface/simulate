@@ -1,7 +1,8 @@
 extends Node
 
+signal callback
 
-func execute(content):
+func execute(content) -> void:
 	var content_bytes : PackedByteArray = Marshalls.base64_to_raw(content["b64bytes"])
 	
 	var gltf_state : GLTFState = GLTFState.new()
@@ -12,3 +13,5 @@ func execute(content):
 	
 	get_tree().current_scene.add_child(gltf_scene)
 	print("glTF scene built!")
+	
+	emit_signal("callback", PackedByteArray([97, 99, 107]))
