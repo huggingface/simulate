@@ -79,7 +79,6 @@ def get_sides_and_bottom(x, y, z):
 def generate_2d_map(
     width,
     height,
-    gen_folder,
     periodic_output=True,
     N=2,
     periodic_input=False,
@@ -89,6 +88,8 @@ def generate_2d_map(
     sample_from=None,
     seed=None,
     verbose=False,
+    tiles=None,
+    neighbors=None,
 ):
     """
     Generate 2d map.
@@ -121,7 +122,6 @@ def generate_2d_map(
             nb_samples=nb_samples,
             symmetry=symmetry,
             seed=seed,
-            dir_path=gen_folder.encode("utf-8"),
             verbose=verbose,
         )
 
@@ -133,8 +133,9 @@ def generate_2d_map(
         sample_type=0,
         periodic_output=periodic_output,
         seed=seed,
-        dir_path=gen_folder.encode("utf-8"),
         verbose=verbose,
+        tiles=tiles,
+        neighbors=neighbors,
     )
 
 
@@ -143,7 +144,6 @@ def generate_map(
     height=None,
     periodic_output=False,
     final_tile_size=1,
-    gen_folder=".gen_files",
     specific_map=None,
     sample_map=None,
     max_height=8,
@@ -154,6 +154,8 @@ def generate_map(
     symmetry=1,
     engine=None,
     verbose=False,
+    tiles=None,
+    neighbors=None,
 ):
     """
     Generate the map.
@@ -163,7 +165,6 @@ def generate_map(
         height: The height of the map.
         periodic_output: Whether the output should be toric (WFC param).
         final_tile_size: The size of the resulting tiles.
-        gen_folder: where to find all generation necessary files.
         specific_map: if not None, use this map instead of generating one.
         sample_map: if not None, use this map as a sample from.
         max_height: maximum height of the map. For example, max_height=8 means that the map has
@@ -188,7 +189,6 @@ def generate_map(
         img = generate_2d_map(
             width,
             height,
-            gen_folder,
             sample_from=sample_map,
             periodic_output=periodic_output,
             N=N,
@@ -198,6 +198,8 @@ def generate_map(
             symmetry=symmetry,
             seed=seed,
             verbose=verbose,
+            tiles=tiles,
+            neighbors=neighbors,
         )
 
     # Get the dimensions of map - since if plotting a specific_map, we might have different ones

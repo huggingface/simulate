@@ -129,7 +129,6 @@ if __name__ == "__main__":
     parser.add_argument("--N", type=int, default=2)
 
     parser.add_argument("--sample_from", type=str, default="example_map_01")
-    parser.add_argument("--folder_path", type=str, default=".gen_files")
 
     args = parser.parse_args()
 

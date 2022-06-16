@@ -5,8 +5,9 @@ Minimal script for generating a map, and then randomly sampling from it.
 import argparse
 from collections import defaultdict
 
-from xland import gen_setup, generate_env
+from xland import generate_env
 from xland.utils import create_2d_map
+from xland.world import generate_tiles
 
 
 if __name__ == "__main__":
@@ -31,14 +32,15 @@ if __name__ == "__main__":
 
     parser.add_argument("--sample_from", type=str, default=None)
     parser.add_argument("--map", type=str, default=None)
-    parser.add_argument("--folder_path", type=str, default=".gen_files")
     parser.add_argument("--engine", type=str, default=None)
 
     args = parser.parse_args()
     extra_args = defaultdict(lambda: None)
 
     if args.sample_from is None and args.map is None:
-        gen_setup(args.max_height)
+        tiles, neighbors = generate_tiles(args.max_height)
+        extra_args["tiles"] = tiles
+        extra_args["neighbors"] = neighbors
 
     else:
         name = args.map or args.sample_from

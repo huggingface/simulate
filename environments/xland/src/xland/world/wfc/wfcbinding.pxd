@@ -8,10 +8,6 @@ cdef extern from "cpp/include/color.hpp":
     cdef struct Color:
         unsigned char r, g, b
 
-cdef extern from "cpp/fastwfc/src/include/tiling_wfc.hpp":
-    # TODO Not working yet
-    cpdef enum class Symmetry(int): X, T, I, L, backslash, P
-
 cdef extern from "cpp/run_wfc.cpp":
     pass
 
@@ -24,12 +20,12 @@ cdef extern from "cpp/include/run_wfc.hpp":
         unsigned size
         vector[Color] tile
         string name
-        Symmetry symmetry
+        string symmetry
         double weight
 
     cdef vector[Color] run_wfc_cpp(unsigned seed, unsigned width, unsigned height, int sample_type, bool periodic_output, 
                     unsigned N, bool periodic_input, bool ground, unsigned nb_samples,
                     unsigned symmetry, vector[Color] input_img, 
                     unsigned input_width, unsigned input_height, bool verbose, 
-                    unsigned nb_tries, string dir_path, vector[PyTile] tiles,
+                    unsigned nb_tries, vector[PyTile] tiles,
                     vector[Neighbor] neighbors)

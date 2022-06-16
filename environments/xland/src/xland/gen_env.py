@@ -10,30 +10,6 @@ from .utils import convert_to_actual_pos, seed_env
 from .world import create_objects, generate_map, generate_tiles, get_object_pos
 
 
-def gen_setup(max_height=8, gen_folder=".gen_files"):
-    """
-    Setup the generation.
-
-    Args:
-        max_height: The maximum height of the map.
-        gen_folder: The folder to store the generation files.
-    """
-    # Check if tiles exist
-    # Create the folder that stores tiles and maps if it doesn't exist.
-    if not os.path.exists(gen_folder):
-        os.makedirs(gen_folder)
-
-    # Create the tiles folder if necessary
-    tiles_folder = os.path.join(gen_folder, "tiles")
-
-    if os.path.exists(tiles_folder):
-        print("Tiles folder already exists. Using existing tiles... (delete folder to regenerate)")
-
-    else:
-        os.makedirs(tiles_folder)
-        generate_tiles(max_height=max_height)
-
-
 def generate_env(
     width,
     height,
@@ -51,6 +27,8 @@ def generate_env(
     symmetry=1,
     verbose=False,
     show=False,
+    tiles=None,
+    neighbors=None,
     **kwargs,
 ):
     """
@@ -78,6 +56,8 @@ def generate_env(
             (WFC param).
         verbose: whether to print logs or not
         show: Whether to show the map.
+        tiles: tiles for simpletiled generation
+        neighbors: neighborhood constraints to the tiles
         **kwargs: Additional arguments. Handles unused args as well.
 
     Returns:
@@ -113,6 +93,8 @@ def generate_env(
             symmetry=symmetry,
             engine=engine,
             verbose=verbose,
+            tiles=tiles,
+            neighbors=neighbors,
         )
 
         # Get objects position
