@@ -2,10 +2,12 @@
 Files used for scene generation.
 """
 
-from simenv.assets.procgen import HEIGHT_CONSTANT
-from .set_object import create_objects
 import numpy as np
+
 import simenv as sm
+from simenv.assets.procgen import HEIGHT_CONSTANT
+
+from .set_object import create_objects
 
 
 def add_walls(x, z, height=None, thickness=0.1):
@@ -17,7 +19,7 @@ def add_walls(x, z, height=None, thickness=0.1):
         z: z coordinates in grid
         height: height of walls
         thickness: thickness of walls
-    
+
     Returns:
         List of cubes that correspond to walls to prevent
             agent of falling
@@ -30,15 +32,20 @@ def add_walls(x, z, height=None, thickness=0.1):
     material = sm.Material(base_color=(0.9, 0.8, 0.2, 0.1))
 
     return [
-        sm.Cube(position=[0, -HEIGHT_CONSTANT, z_max], 
-            bounds=[x_min, x_max, 0, height, 0, thickness], material=material),
-        sm.Cube(position=[0, -HEIGHT_CONSTANT, z_min], 
-            bounds=[x_min, x_max, 0, height, 0, -thickness], material=material),
-        sm.Cube(position=[x_max, -HEIGHT_CONSTANT, 0], 
-            bounds=[0, thickness, 0, height, z_min, z_max], material=material),
-        sm.Cube(position=[x_min, -HEIGHT_CONSTANT, 0], 
-            bounds=[0, -thickness, 0, height, z_min, z_max], material=material),
+        sm.Cube(
+            position=[0, -HEIGHT_CONSTANT, z_max], bounds=[x_min, x_max, 0, height, 0, thickness], material=material
+        ),
+        sm.Cube(
+            position=[0, -HEIGHT_CONSTANT, z_min], bounds=[x_min, x_max, 0, height, 0, -thickness], material=material
+        ),
+        sm.Cube(
+            position=[x_max, -HEIGHT_CONSTANT, 0], bounds=[0, thickness, 0, height, z_min, z_max], material=material
+        ),
+        sm.Cube(
+            position=[x_min, -HEIGHT_CONSTANT, 0], bounds=[0, -thickness, 0, height, z_min, z_max], material=material
+        ),
     ]
+
 
 def get_sides_and_bottom(x, y, z):
     """
@@ -103,6 +110,7 @@ def get_sides_and_bottom(x, y, z):
 
     return structures
 
+
 def generate_scene(sg, obj_pos, engine=None):
     """
     Generate scene by interacting with simenv library.
@@ -117,15 +125,15 @@ def generate_scene(sg, obj_pos, engine=None):
 
     # Add walls to prevent agent from falling
     scene += add_walls(x, z)
-    
+
     # Add objects
     scene += create_objects(obj_pos)
 
     # Add camera
     if engine is not None:
         scene += sm.Camera(position=[0, 5, -10], rotation=[0, 1, 0.25, 0])
-    
+
     # Add agent
     # TODO
-    
+
     return scene

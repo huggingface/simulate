@@ -13,11 +13,13 @@ def img_from_tiles():
     """
     raise NotImplementedError
 
+
 def get_tile(h, orientation=0):
     """
     Returns plain tile of height h of a certain orientation.
     """
     return [[h, orientation, 0]]
+
 
 def generate_tiles(max_height=6, weights=None, double_ramp=False):
     """
@@ -44,7 +46,7 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
     size = 1
     tiles = []
     neighbors = []
-    plain_tile_names = [bytes("{}0".format(h), 'UTF-8') for h in range(max_height)]
+    plain_tile_names = [bytes("{}0".format(h), "UTF-8") for h in range(max_height)]
 
     # Generate tiles
     for h in range(max_height):
@@ -76,8 +78,8 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
                     tile = get_tile(h, ramp_or + 1)
 
                     # Save tiles
-                    next_ramp_name = bytes("{}{}".format(h + 1, ramp_or + 1), 'UTF-8')
-                    ramp_name = bytes("{}{}".format(h, ramp_or + 1), 'UTF-8')
+                    next_ramp_name = bytes("{}{}".format(h + 1, ramp_or + 1), "UTF-8")
+                    ramp_name = bytes("{}{}".format(h, ramp_or + 1), "UTF-8")
 
                     tiles.append(build_tile(size, tile, ramp_name, b"L", ramp_weights[h]))
 
@@ -85,13 +87,17 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
                     # Notice that we have to add orientation
                     # The tiles are rotate clockwise as i * 2 + ax increases
                     # And we add a rotation to fix that and keep the ramps in the right place
-                    neighbors.append(build_neighbor(left=ramp_name, left_or=ramp_or, right=plain_tile_names[h], right_or=0))
-                    neighbors.append(build_neighbor(left=plain_tile_names[h + 1], 
-                                    left_or=0, right=ramp_name, right_or=ramp_or))
+                    neighbors.append(
+                        build_neighbor(left=ramp_name, left_or=ramp_or, right=plain_tile_names[h], right_or=0)
+                    )
+                    neighbors.append(
+                        build_neighbor(left=plain_tile_names[h + 1], left_or=0, right=ramp_name, right_or=ramp_or)
+                    )
 
                     # Adding ramp to going upwards
                     if h < max_height - 2 and double_ramp:
-                        neighbors.append(build_neighbor(left=next_ramp_name, 
-                                        left_or=ramp_or, right=ramp_name, right_or=ramp_or))
+                        neighbors.append(
+                            build_neighbor(left=next_ramp_name, left_or=ramp_or, right=ramp_name, right_or=ramp_or)
+                        )
 
     return tiles, neighbors

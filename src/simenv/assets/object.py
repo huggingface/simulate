@@ -23,7 +23,7 @@ from ..gltflib.enums.collider_type import ColliderType
 from .asset import Asset
 from .collider import Collider
 from .material import Material
-from .procgen.wfc import generate_map
+from .procgen.wfc import *
 
 
 class Object3D(Asset):
@@ -241,6 +241,7 @@ class Sphere(Object3D):
         )
 
 
+# TODO: add rest of arguments
 class Capsule(Object3D):
     """
     A capsule (a cylinder with hemispheric ends).
@@ -914,12 +915,28 @@ class ProcgenGrid(Object3D):
     sample_map : np.ndarray or python list of list of floats
         Map to procedurally generate from.
 
+    specific_map: np.ndarray or python list of list of floats
+        Map to procedurally generate from.
+
     tiles : list of tiles
         Tiles and neighbors constraints used for procedural generation
         with Wave Function Collapse.
         If no tiles are passed, uses default function on the library.
 
     neighbors: list of available neighbors for each tile
+
+    width: int
+        width of the generated map
+
+    height: int
+        height of the generated map
+
+    shallow: bool
+        Indicates whether procedural generation mesh should be generated or not.
+        Created for the purpose of optimizing certain environments such as XLand.
+
+    algorithm_args: dict
+        Extra arguments to be passed to the procedural generation.
 
     Returns
     -------
@@ -931,7 +948,6 @@ class ProcgenGrid(Object3D):
 
     # TODO: add support to other algorithms
     # TODO: add function regenerate to generate the map again?
-    # TODO: add rest of arguments
     def __init__(
         self,
         sample_map: Union[np.ndarray, List[List[List[int]]]] = None,
@@ -940,31 +956,61 @@ class ProcgenGrid(Object3D):
         neighbors: Optional[List] = None,
         width: Optional[int] = 9,
         height: Optional[int] = 9,
+        shallow: Optional[bool] = False,
         algorithm_args: Optional[dict] = None,
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
+
+        if sample_map is not None and not isinstance(sample_map, np.ndarray):
+            sample_map = np.array(sample_map)
+
+        if specific_map is not None and not isinstance(specific_map, np.ndarray):
+            specific_map = np.array(specific_map)
+
         # Handle when user doesn't pass arguments properly
         if (tiles is None or neighbors is None) and sample_map is None and specific_map is None:
             raise ValueError("Insert tiles / neighbors or a map to sample from.")
 
-        # Get coordinates and image from procedural generation
-        coordinates, img_2d = generate_map(
-            width=width,
-            height=height,
-            specific_map=specific_map,
-            sample_map=sample_map,
-            tiles=tiles,
-            neighbors=neighbors,
-            **algorithm_args,
-        )
+        # Generate seed for C++
+        seed = generate_seed()
 
-        # Saves these for other functions that might use them
-        self.coordinates = coordinates
-        self.map_2d = img_2d
+        # Get coordinates and image from procedural generation
+        all_args = {
+            "width": width,
+            "height": height,
+            "sample_map": sample_map,
+            "tiles": tiles,
+            "neighbors": neighbors,
+            "seed": seed,
+            **algorithm_args,
+        }
+
+        if shallow:
+            self.map_2d = generate_2d_map(**all_args)
+
+        else:
+            # Saves these for other functions that might use them
+            self.coordinates, self.map_2d = generate_map(specific_map=specific_map, **all_args)
+
+            # If it is a structured grid, extract the surface mesh (PolyData)
+            mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
+            super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
+
+    def generate_3D(
+        self,
+        name: Optional[str] = None,
+        parent: Optional[Asset] = None,
+        children: Optional[List[Asset]] = None,
+        **kwargs,
+    ):
+        """
+        Function for creating the mesh in case the creation of map was shallow.
+        """
+        self.coordinates, _ = generate_map(specific_map=self.map_2d)
 
         # If it is a structured grid, extract the surface mesh (PolyData)
-        mesh = pv.StructuredGrid(*coordinates).extract_surface()
+        mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
         super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)

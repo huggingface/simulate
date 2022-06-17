@@ -2,10 +2,10 @@
 Python file to call map, game and agents generation.
 """
 
-from .utils import convert_to_actual_pos, seed_env
-from .world import get_object_pos, generate_scene
-
 import simenv as sm
+
+from .utils import convert_to_actual_pos, seed_env
+from .world import generate_scene, get_object_pos
 
 
 def generate_env(
@@ -17,7 +17,6 @@ def generate_env(
     specific_map=None,
     sample_map=None,
     seed=None,
-    max_height=8,
     N=2,
     periodic_input=False,
     ground=False,
@@ -44,7 +43,6 @@ def generate_env(
         specific_map: A specific map to be plotted.
         sample_map: The map to sample from.
         seed: The seed to use for the generation of the map.
-        max_height: The maximum height of the map. Max height of 8 means 8 different levels.
         N: Size of patterns (WFC param).
         periodic_input: Whether the input is toric (WFC param).
         ground: Whether to use the lowest middle pattern to initialize the bottom of the map (WFC param).
@@ -87,21 +85,21 @@ def generate_env(
             sample_map=sample_map,
             tiles=tiles,
             neighbors=neighbors,
+            shallow=True,
             algorithm_args={
                 "periodic_output": periodic_output,
-                "max_height": max_height,
                 "N": N,
                 "periodic_input": periodic_input,
                 "ground": ground,
                 "nb_samples": nb_samples,
                 "symmetry": symmetry,
                 "verbose": verbose,
-            }
+            },
         )
-        
+
         # Get objects position
         threshold_kwargs = {"threshold": kwargs["threshold"]} if "threshold" in kwargs else {}
-        
+
         # TODO return playable area and use it for agent placement
         # TODO: Add corner case where there are no objects
         obj_pos, success = get_object_pos(sg.map_2d, n_objects=n_objects, **threshold_kwargs)
@@ -109,6 +107,7 @@ def generate_env(
         # If there is no enough area, we should try again and continue the loop
         if success:
             # Set objects in scene:
+            sg.generate_3D()
             obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
             scene = generate_scene(sg, obj_pos, engine)
 

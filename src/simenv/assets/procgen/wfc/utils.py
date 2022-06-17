@@ -22,7 +22,7 @@ def generate_seed():
     return np.random.randint(0, 2**32)
 
 
-def decode_rgb(img, specific_map=None, sample_from=None, max_height=8):
+def decode_rgb(img):
     """
     Decode the RGB image into a height map with tiles of 2x2.
 
