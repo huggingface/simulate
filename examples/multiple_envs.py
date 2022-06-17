@@ -4,8 +4,11 @@ from simenv.rl_env import RLEnv
 import matplotlib.pyplot as plt
 import numpy as np
 import random
-scene = sm.Scene(engine="Unity")
+
+
+scene = sm.Scene(engine="unity")
 scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
+
 root = sm.Asset(name="root")
 blue_material = sm.Material(base_color=(0, 0, 0.8))
 red_material = sm.Material(base_color=(0.8, 0, 0))
@@ -26,28 +29,30 @@ for i in range(20):
 agent = sm.RL_Agent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
 reward_function = sm.RLAgentRewardFunction(
     function="dense",
-    entity1="agent",
-    entity2="cube0",
-    distance_metric="euclidean"
+    entity1=agent,
+    entity2=cube,
+    distance_metric="euclidean",
+
 )
 agent.add_reward_function(reward_function)
 
 root += agent
-
-
 scene += root
-scene += root.copy().translate_x(21.0)
-scene += root.copy().translate_x(21.0).translate_z(21.0)
-scene += root.copy().translate_z(21.0)
 
+for x in [0, 21, 42, 63]:
+    for z in [0, 21, 42, 63]:
+        if x ==0 and z == 0: continue
+        scene += root.copy().translate_x(x).translate_z(z)
 
-
+print(scene)
+print(agent.camera.height, agent.camera.width)
+#exit()
 scene.show()
 env = RLEnv(scene)
 
 plt.ion()
 fig1, ax1 = plt.subplots()
-dummy_obs = np.zeros(shape=(agent.camera.height*2, agent.camera.width*2, 3), dtype=np.uint8)
+dummy_obs = np.zeros(shape=(agent.camera.height*4, agent.camera.width*4, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 
@@ -59,11 +64,11 @@ for i in range(1000):
 
     obs, reward, done, info = env.step(actions)
 
-    for i in range(2):
-        for j in range(2):
-            dummy_obs[i*agent.camera.height:(i+1)*agent.camera.height,j*agent.camera.width:(j+1)*agent.camera.width] = obs[i*2+j].transpose(1,2,0)
-    axim1.set_data(dummy_obs)
-    fig1.canvas.flush_events()
+    # for i in range(4):
+    #     for j in range(4):
+    #         dummy_obs[i*agent.camera.height:(i+1)*agent.camera.height,j*agent.camera.width:(j+1)*agent.camera.width] = obs[i*4+j].transpose(1,2,0)
+    # axim1.set_data(dummy_obs)
+    # fig1.canvas.flush_events()
     print(done, reward, info)
 
     # time.sleep(0.1)
