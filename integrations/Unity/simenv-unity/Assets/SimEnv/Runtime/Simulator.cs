@@ -44,7 +44,6 @@ namespace SimEnv {
             }
             for (int j = 0; j < FRAME_SKIP; j++) {
                 if (ISimulator.Agents != null) {
-                    Debug.Log("Stepping agents");
                     for (int i = 0; i < ISimulator.Agents.Count; i++) {
                         Agent agent = ISimulator.Agents[i] as Agent;
                         agent.AgentUpdate();
@@ -53,7 +52,15 @@ namespace SimEnv {
                     Debug.LogWarning("Attempting to step environment without an Agent");
                 }
                 Physics.Simulate(FRAME_INTERVAL);
-
+                // Reward has to be updated after the simulate start as it is the result of the action the agent just took.
+                if (ISimulator.Agents != null) {
+                    for (int i = 0; i < ISimulator.Agents.Count; i++) {
+                        Agent agent = ISimulator.Agents[i] as Agent;
+                        agent.UpdateReward();
+                    }
+                } else {
+                    Debug.LogWarning("Attempting to step environment without an Agent");
+                }
             }
 
         }
@@ -134,7 +141,6 @@ namespace SimEnv {
                 image.Apply();
                 Color32[] pixels = image.GetPixels32();
                 RenderTexture.active = activeRenderTexture;
-                Debug.Log("pixels length:" + pixels.Length.ToString());
                 for (int i = 0; i < pixels.Length; i++) {
                     pixel_values[j * obsSize + i * 3] = pixels[i].r;
                     pixel_values[j * obsSize + i * 3 + 1] = pixels[i].g;
@@ -144,42 +150,50 @@ namespace SimEnv {
             }
 
             string string_array = JsonHelper.ToJson(pixel_values);
-            Debug.Log(string_array);
             if (callback != null)
                 callback(string_array);
         }
-        public static float GetReward() {
-            float reward = 0.0f;
-
-            // Calculate the agent's reward for the current timestep 
+        public static float[] GetReward() {
+            List<float> rewards = new List<float>();
             if (ISimulator.Agents != null) {
-                Agent agent = ISimulator.Agents[0] as Agent;
-                reward += agent.GetReward();
-                agent.ZeroReward();
+                // Calculate the agent's reward for the current timestep 
+                for (int i = 0; i < ISimulator.Agents.Count; i++) {
+                    Agent agent = ISimulator.Agents[i] as Agent;
+                    rewards.Add(agent.GetReward());
+                    agent.ZeroReward();
+                }
             } else {
                 Debug.LogWarning("Attempting to get a reward without an Agent");
             }
-            return reward;
+            return rewards.ToArray<float>();
         }
 
-        public static bool GetDone() {
+        public static bool[] GetDone() {
             // Check if the agent is in a terminal state 
             // TODO: add option for auto reset
+            List<bool> dones = new List<bool>();
             if (ISimulator.Agents != null) {
-                Agent agent = ISimulator.Agents[0] as Agent;
-                return agent.IsDone();
+                // Calculate the agent's reward for the current timestep 
+                for (int i = 0; i < ISimulator.Agents.Count; i++) {
+                    Agent agent = ISimulator.Agents[i] as Agent;
+                    dones.Add(agent.IsDone());
+                }
             } else {
-                Debug.LogWarning("Attempting to get done without an Agent");
+                Debug.LogWarning("Attempting to get a reward without an Agent");
             }
-            return false;
+            return dones.ToArray<bool>();
         }
 
         public static void Reset() {
             // Reset the Agent & the environment # 
-            // TODO add the environment reset!
+            // TODO add the environment reset, changing maps, etc!
+
             if (ISimulator.Agents != null) {
-                Agent agent = ISimulator.Agent as Agent;
-                agent.Reset();
+                // Calculate the agent's reward for the current timestep 
+                for (int i = 0; i < ISimulator.Agents.Count; i++) {
+                    Agent agent = ISimulator.Agents[i] as Agent;
+                    agent.Reset();
+                }
             } else {
                 Debug.LogWarning("Attempting to reset without an Agent");
             }
