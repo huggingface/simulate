@@ -18,15 +18,13 @@ namespace SimEnv {
         public float[] action;
 
         public override void Execute(UnityAction<string> callback) {
-            Debug.Log("stepping" + action[0].ToString());
-
+            // TODO: improve serialization to include nested lists / arrays
             List<List<float>> covertedActions = new List<List<float>>();
 
             foreach (var item in action.ToList()) {
                 List<float> covertedAction = new List<float>();
                 covertedAction.Add(item);
                 covertedActions.Add(covertedAction);
-                Debug.Log(covertedAction.ToString());
             }
 
             Simulator.Step(covertedActions);
