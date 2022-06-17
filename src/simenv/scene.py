@@ -69,7 +69,7 @@ class Scene(Asset):
         if engine is not None:
             engine = engine.lower()
         if engine == "unity":
-            self.engine = UnityEngine(self, **kwargs)
+            self.engine = UnityEngine(self, executable=executable, port=port, headless=headless, **kwargs)
         elif engine == "godot":
             self.engine = GodotEngine(self)
         elif engine == "blender":
