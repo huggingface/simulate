@@ -970,6 +970,9 @@ class ProcgenGrid(Object3D):
         if specific_map is not None and not isinstance(specific_map, np.ndarray):
             specific_map = np.array(specific_map)
 
+        if algorithm_args is None:
+            algorithm_args = {}
+
         # Handle when user doesn't pass arguments properly
         if (tiles is None or neighbors is None) and sample_map is None and specific_map is None:
             raise ValueError("Insert tiles / neighbors or a map to sample from.")
