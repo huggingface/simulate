@@ -3,8 +3,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 
-public class QuaternionConverter : JsonConverter
-{
+public class QuaternionConverter : JsonConverter {
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
         Quaternion rot = (Quaternion)value;
         writer.WriteStartArray();

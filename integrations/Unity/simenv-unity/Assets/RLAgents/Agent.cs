@@ -99,7 +99,9 @@ namespace SimEnv.Agents {
             capsule.transform.SetParent(node.gameObject.transform);
             capsule.transform.localPosition = Vector3.up * height / 2f;
             capsule.transform.localScale = new Vector3(radius * 2f, height / 2f, radius * 2f);
-            capsule.GetComponent<MeshRenderer>().sharedMaterial = Resources.Load<Material>("AgentMaterial");
+            MeshRenderer capsuleRenderer = capsule.GetComponent<MeshRenderer>();
+            capsuleRenderer.material = Resources.Load<Material>("DefaultLit");
+            capsuleRenderer.material.color = new Color(227 / 255, 34 / 255f, 38 / 255f);
 
             switch(data.action_dist) {
                 case "discrete":

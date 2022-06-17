@@ -27,12 +27,14 @@ namespace SimEnv.GLTF {
 
         public class Extensions {
             public KHR_light KHR_lights_punctual;
-            public HFRLAgent HF_RL_agents;
             public HF_collider HF_collider;
+            public string[] HF_custom;
         }
 
-        public class HFRLAgent {
-            public int agent;
+        [Serializable]
+        public class CustomExtensionWrapper {
+            public string type;
+            public string contents;
         }
 
         public class KHR_light {
@@ -43,6 +45,7 @@ namespace SimEnv.GLTF {
             public int? parent;
             public int[] children;
             public Transform transform;
+            public Node node;
 
             public bool IsRoot => !parent.HasValue;
         }
@@ -82,10 +85,9 @@ namespace SimEnv.GLTF {
                     result[i] = new GLTFNode.ImportResult();
                     result[i].transform = new GameObject().transform;
                     result[i].transform.gameObject.name = nodes[i].name;
-                    if (Application.isPlaying) {
-                        SimObjectBase simObject = result[i].transform.gameObject.AddComponent<SimObjectBase>();
-                        simObject.Initialize();
-                    }
+                    result[i].node = result[i].transform.gameObject.AddComponent<Node>();
+                    if(Application.isPlaying)
+                        result[i].node.Initialize();
                 }
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].children != null) {
@@ -129,11 +131,9 @@ namespace SimEnv.GLTF {
                     }
 
                     if (nodes[i].camera.HasValue) {
+                        result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                         GLTFCamera cameraData = cameras[nodes[i].camera.Value];
-
-                        SimCameraBase camera = result[i].transform.gameObject.AddComponent<SimCameraBase>();
-                        if(Application.isPlaying)
-                            camera.Initialize(cameraData);                        
+                        RenderCamera camera = new RenderCamera(result[i].node, cameraData);
                     }
                     if (nodes[i].extensions != null) {
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
@@ -201,9 +201,15 @@ namespace SimEnv.GLTF {
                                     continue;
                                 }
                                 IGLTFExtension extension = JsonConvert.DeserializeObject(wrapper.contents, extensionType) as IGLTFExtension;
-                                extension.Initialize(result[i].node);
+                                if(Application.isPlaying)
+                                    extension.Initialize(result[i].node);
                             }
                         }
+                    }
+                }
+                if(!Application.isPlaying) {
+                    for(int i = 0; i < result.Length; i++) {
+                        GameObject.DestroyImmediate(result[i].node);
                     }
                 }
                 IsCompleted = true;

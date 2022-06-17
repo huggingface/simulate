@@ -1,7 +1,4 @@
-using ISimEnv;
-using UnityEngine;
 using UnityEngine.Events;
-using System.Linq;
 
 namespace SimEnv {
     public class Close : ICommand {

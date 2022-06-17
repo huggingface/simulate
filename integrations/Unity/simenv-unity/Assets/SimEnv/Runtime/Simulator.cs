@@ -10,13 +10,20 @@ using UnityEngine.Events;
 
 namespace SimEnv {
     /// <summary>
-    /// Master Simulator component, required to use SimEnv
-    /// 
-    /// 1. Imports mod DLLs (custom code snippets)
-    /// 2. Spawns Client to communicate with python API
+    /// Initializes the SimEnv backend. Required for all scenes.
     /// </summary>
     public class Simulator : MonoBehaviour {
-        public static Simulator Instance { get; private set; }
+        static Simulator _instance;
+        public static Simulator instance {
+            get {
+                if(_instance == null) {
+                    _instance = GameObject.FindObjectOfType<Simulator>();
+                    if(_instance == null)
+                        _instance = new GameObject("Simulator").AddComponent<Simulator>();
+                }
+                return _instance;
+            }
+        }
 
         public static event UnityAction BeforeEnvironmentLoaded;
         public static event UnityAction EnvironmentLoaded;
