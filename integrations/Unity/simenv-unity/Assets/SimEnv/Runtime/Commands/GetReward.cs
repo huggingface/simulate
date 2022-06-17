@@ -7,8 +7,8 @@ namespace SimEnv {
     public class GetReward : ICommand {
         public string message;
         public override void Execute(UnityAction<string> callback) {
-            float reward = Simulator.GetReward();
-            callback(reward.ToString());
+            float[] reward = Simulator.GetReward();
+            callback(JsonHelper.ToJson(reward));
         }
     }
 }
