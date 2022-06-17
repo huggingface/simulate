@@ -182,8 +182,7 @@ namespace SimEnv.Agents {
             controller.height = height;
             SetupModel();
 
-            //pixel_values = new uint[agentData.camera_width * agentData.camera_height * 3];
-
+            //
             // add the reward functions to the agent
             for (int i = 0; i < agentData.reward_functions.Count; i++) {
                 Debug.Log("Creating reward function");

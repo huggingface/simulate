@@ -11,6 +11,7 @@ class RLEnv(gym.Env):
 
         self.scene = scene
         self.agents = scene.get_agents()
+        self.n_agents = len(self.agents)
         assert len(self.agents), "at least one sm.Agent is require in the scene for RL"
 
         agent_actions: agent.RLAgentActions = self.agents[0].actions
@@ -31,21 +32,24 @@ class RLEnv(gym.Env):
     def reset(self):
         self.scene.reset()
         obs = self.scene.get_observation()
-        # TODO: remove np.flip for training (the agent does not care the world is upside-down
-        obs = np.flip(
-            np.array(obs["Items"]).astype(np.uint8).reshape(self.camera_height, self.camera_width, 3), 0
-        ).transpose(2, 0, 1)
+
+        obs = self._reshape_obs(obs)
 
         return obs
 
+    def _reshape_obs(self, obs):
+        # TODO: remove np.flip for training (the agent does not care the world is upside-down
+        # TODO: have unity side send in B,C,H,W order
+        return np.flip(
+            np.array(obs["Items"]).astype(np.uint8).reshape(self.n_agents, self.camera_height, self.camera_width, 3), 1
+        ).transpose(0, 3, 1, 2)
+
     def step(self, action):
-        self.scene.step([int(action)])
+        self.scene.step(action)
 
         obs = self.scene.get_observation()
         # TODO: remove np.flip for training (the agent does not care the world is upside-down
-        obs = np.flip(
-            np.array(obs["Items"]).astype(np.uint8).reshape(self.camera_height, self.camera_width, 3), 0
-        ).transpose(2, 0, 1)
+        obs = self._reshape_obs(obs)
 
         reward = self.scene.get_reward()
         done = self.scene.get_done()

@@ -57,6 +57,7 @@ class UnityEngine(Engine):
 
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((self.host, self.port))
         print("Server started. Waiting for connection...")
         self.socket.listen()
@@ -99,12 +100,16 @@ class UnityEngine(Engine):
 
     def get_reward(self):
         command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
-        return float(self.run_command(command))
+        response = self.run_command(command)
+        data = json.loads(response)
+
+        return [float(f) for f in data["Items"]]
 
     def get_done(self):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
-
-        return self.run_command(command) == "True"
+        response = self.run_command(command)
+        data = json.loads(response)
+        return [d == "True" for d in data["Items"]]
 
     def reset(self):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
