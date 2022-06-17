@@ -13,7 +13,7 @@ class RLEnv(gym.Env):
         self.agents = scene.get_agents()
         self.n_agents = len(self.agents)
         assert len(self.agents), "at least one sm.Agent is require in the scene for RL"
-        
+
         agent_actions: agent.RLAgentActions = self.agents[0].actions
 
         if agent_actions.dist == "discrete":
@@ -25,21 +25,24 @@ class RLEnv(gym.Env):
         self.camera_width = self.agents[0].camera.width
         self.camera_height = self.agents[0].camera.height
 
-        self.observation_space = spaces.Box(low=0, high=255, shape=[3, self.camera_height, self.camera_width], dtype=np.uint8)
+        self.observation_space = spaces.Box(
+            low=0, high=255, shape=[3, self.camera_height, self.camera_width], dtype=np.uint8
+        )
 
     def reset(self):
         self.scene.reset()
         obs = self.scene.get_observation()
-        
+
         obs = self._reshape_obs(obs)
 
         return obs
 
-
     def _reshape_obs(self, obs):
         # TODO: remove np.flip for training (the agent does not care the world is upside-down
-        # TODO: have unity side send in B,C,H,W order 
-        return np.flip(np.array(obs["Items"]).astype(np.uint8).reshape(self.n_agents, self.camera_height, self.camera_width, 3), 0).transpose(0,3,1,2)
+        # TODO: have unity side send in B,C,H,W order
+        return np.flip(
+            np.array(obs["Items"]).astype(np.uint8).reshape(self.n_agents, self.camera_height, self.camera_width, 3), 1
+        ).transpose(0, 3, 1, 2)
 
     def step(self, action):
         self.scene.step(action)

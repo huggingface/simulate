@@ -86,7 +86,7 @@ class Object3D(Asset):
                 material_copy = self.material.copy()
 
         copy_name = self.name + f"_copy{self._n_copies}"
-        
+
         self._n_copies += 1
         instance_copy = type(self)(name=copy_name)
         instance_copy.mesh = mesh_copy
