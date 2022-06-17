@@ -101,6 +101,8 @@ class Object3D(Asset):
             for child in self.tree_children:
                 copy_children.append(child.copy(**kwargs))
             instance_copy.tree_children = copy_children
+            for child in instance_copy.tree_children:
+                child.post_copy()
 
         return instance_copy
 

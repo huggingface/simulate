@@ -102,7 +102,13 @@ class Asset(NodeMixin, object):
                 copy_children.append(child.copy(**kwargs))
             instance_copy.tree_children = copy_children
 
+            for child in instance_copy.tree_children:
+                child.post_copy()
+
         return instance_copy
+    
+    def post_copy(self):
+        return
 
     def get_last_copy_name(self):
         assert self._n_copies > 0, "this object is yet to be copied"
