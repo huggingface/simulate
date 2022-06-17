@@ -45,9 +45,6 @@ namespace SimEnv {
 
         public override void SetAction(List<float> stepAction) {
             Debug.Assert(dist == "discrete");
-            Debug.Log("action count " + stepAction.Count);
-
-
             Debug.Assert(stepAction.Count == 1, "in the discrete case step action must be of length 1");
 
             // in the case of discrete actions, this list is just one value
