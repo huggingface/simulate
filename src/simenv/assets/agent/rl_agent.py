@@ -26,6 +26,7 @@ class RL_Agent(Asset):
         camera_height=None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         super().__init__(name=name, position=position, rotation=rotation, parent=parent, children=children)
 
