@@ -3,7 +3,9 @@ Python file to call map, game and agents generation.
 """
 
 from .utils import convert_to_actual_pos, seed_env
-from .world import generate_map, get_object_pos, generate_scene
+from .world import get_object_pos, generate_scene
+
+import simenv as sm
 
 
 def generate_env(
@@ -75,22 +77,26 @@ def generate_env(
         if verbose:
             print("Try {}".format(curr_try + 1))
 
-        generated_map, map_2d = generate_map(
+        # TODO: think about how to optimize, since
+        # we only need the map 2d when checking if this map
+        # is acceptable or not
+        sg = sm.ProcgenGrid(
             width=width,
             height=height,
-            periodic_output=periodic_output,
             specific_map=specific_map,
             sample_map=sample_map,
-            max_height=max_height,
-            N=N,
-            periodic_input=periodic_input,
-            ground=ground,
-            nb_samples=nb_samples,
-            symmetry=symmetry,
-            engine=engine,
-            verbose=verbose,
             tiles=tiles,
             neighbors=neighbors,
+            algorithm_args={
+                "periodic_output": periodic_output,
+                "max_height": max_height,
+                "N": N,
+                "periodic_input": periodic_input,
+                "ground": ground,
+                "nb_samples": nb_samples,
+                "symmetry": symmetry,
+                "verbose": verbose,
+            }
         )
         
         # Get objects position
@@ -98,13 +104,13 @@ def generate_env(
         
         # TODO return playable area and use it for agent placement
         # TODO: Add corner case where there are no objects
-        obj_pos, success = get_object_pos(map_2d, n_objects=n_objects, **threshold_kwargs)
+        obj_pos, success = get_object_pos(sg.map_2d, n_objects=n_objects, **threshold_kwargs)
 
         # If there is no enough area, we should try again and continue the loop
         if success:
             # Set objects in scene:
-            obj_pos = convert_to_actual_pos(obj_pos, generated_map)
-            scene = generate_scene(generated_map, obj_pos, engine)
+            obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
+            scene = generate_scene(sg, obj_pos, engine)
 
             # Generate the game
             # generate_game(generated_map, scene)

@@ -2,6 +2,7 @@
 Builds map using Wave Function Collapse.
 """
 
+import os
 import numpy as np
 from wfc_binding import run_wfc
 
@@ -72,19 +73,18 @@ def generate_2d_map(
 
 
 def generate_map(
-    width=None,
-    height=None,
+    width=9,
+    height=9,
     periodic_output=False,
     final_tile_size=1,
     specific_map=None,
     sample_map=None,
-    max_height=8,
+    max_height=6,
     N=2,
     periodic_input=False,
     ground=False,
     nb_samples=1,
     symmetry=1,
-    engine=None,
     verbose=False,
     tiles=None,
     neighbors=None,
@@ -108,7 +108,6 @@ def generate_map(
         symmetry: Levels of symmetry to be used when sampling from a map. Values
             larger than one might imply in new tiles, which might be a unwanted behaviour
             (WFC param).
-        engine: which engine to use on the scene.
     """
 
     # Generate seed for C++
@@ -145,10 +144,10 @@ def generate_map(
 
     # We create the mesh centered in (0,0)
     x = np.linspace(-height / 2, height / 2, GRANULARITY * height)
-    y = np.linspace(-width / 2, width / 2, GRANULARITY * width)
+    z = np.linspace(-width / 2, width / 2, GRANULARITY * width)
 
     # Create mesh grid
-    x, y = np.meshgrid(x, y)
+    x, z = np.meshgrid(x, z)
 
     # Nowm we create the z coordinates
     # First we split the procedurally generated image into tiles a format (:,:,2,2) in order to
@@ -161,8 +160,10 @@ def generate_map(
     # and then on the y axis for each tile
     # In order to do so, we can use np.linspace, and then transpose the tensor and
     # get the right order
-    z_grid = np.linspace(img_np[:, :, :, 0], img_np[:, :, :, 1], GRANULARITY)
-    z_grid = np.linspace(z_grid[:, :, :, 0], z_grid[:, :, :, 1], GRANULARITY)
-    z_grid = np.transpose(z_grid, (2, 0, 3, 1)).reshape((width * GRANULARITY, height * GRANULARITY), order="A")
+    y = np.linspace(img_np[:, :, :, 0], img_np[:, :, :, 1], GRANULARITY)
+    y = np.linspace(y[:, :, :, 0], y[:, :, :, 1], GRANULARITY)
+    y = np.transpose(y, (2, 0, 3, 1)).reshape((width * GRANULARITY, height * GRANULARITY), order="A")
 
-    return (x, y, z_grid), np.array(img)
+    coordinates = np.stack([x, y, z])
+
+    return coordinates, np.array(img)

@@ -40,8 +40,6 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
 
     ramp_weights = [0.4] * max_height
 
-    print("Generating tiles with max height: {}".format(max_height))
-
     # Step for the height (which is represented by the intensity of the color)
     size = 1
     tiles = []

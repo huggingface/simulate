@@ -1,1 +1,1 @@
-from .wfc import GRANULARITY, HEIGHT_CONSTANT
+from .wfc import GRANULARITY, HEIGHT_CONSTANT, create_2d_map

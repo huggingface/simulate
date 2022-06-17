@@ -27,6 +27,7 @@ def convert_to_actual_pos(obj_pos, generated_map):
     # Transform to tuple in order to pass to x, y, z
     converted_pos = tuple(*converted_pos)
 
+    # We add transpose so that we get N x 3 coordinates (x, y, z for each object)
     return np.array([x[converted_pos], y[converted_pos], z[converted_pos]]).transpose()
 
 

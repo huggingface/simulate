@@ -6,8 +6,8 @@ import argparse
 from collections import defaultdict
 
 from xland import generate_env
-from xland.utils import create_2d_map
-from xland.world import generate_tiles
+from simenv.assets.procgen import create_2d_map
+from xland.utils import generate_tiles
 
 
 if __name__ == "__main__":

@@ -2,19 +2,19 @@
 Files used for scene generation.
 """
 
-from ..utils import HEIGHT_CONSTANT
+from simenv.assets.procgen import HEIGHT_CONSTANT
 from .set_object import create_objects
 import numpy as np
 import simenv as sm
 
 
-def add_walls(x, y, height=None, thickness=0.1):
+def add_walls(x, z, height=None, thickness=0.1):
     """
     Adding walls to prevent agent from falling.
 
     Args:
         x: x coordinates in grid
-        y: y coordinates in grid
+        z: z coordinates in grid
         height: height of walls
         thickness: thickness of walls
     
@@ -25,19 +25,19 @@ def add_walls(x, y, height=None, thickness=0.1):
     if height is None:
         height = 10 * HEIGHT_CONSTANT
 
-    x_min, y_min, x_max, y_max = np.min(x), np.min(y), np.max(x), np.max(y)
+    x_min, z_min, x_max, z_max = np.min(x), np.min(z), np.max(x), np.max(z)
     # Add transparent material:
     material = sm.Material(base_color=(0.9, 0.8, 0.2, 0.1))
 
     return [
-        sm.Cube(position=[0, -HEIGHT_CONSTANT, y_max], 
+        sm.Cube(position=[0, -HEIGHT_CONSTANT, z_max], 
             bounds=[x_min, x_max, 0, height, 0, thickness], material=material),
-        sm.Cube(position=[0, -HEIGHT_CONSTANT, y_min], 
+        sm.Cube(position=[0, -HEIGHT_CONSTANT, z_min], 
             bounds=[x_min, x_max, 0, height, 0, -thickness], material=material),
         sm.Cube(position=[x_max, -HEIGHT_CONSTANT, 0], 
-            bounds=[0, thickness, 0, height, y_min, y_max], material=material),
+            bounds=[0, thickness, 0, height, z_min, z_max], material=material),
         sm.Cube(position=[x_min, -HEIGHT_CONSTANT, 0], 
-            bounds=[0, -thickness, 0, height, y_min, y_max], material=material),
+            bounds=[0, -thickness, 0, height, z_min, z_max], material=material),
     ]
 
 def get_sides_and_bottom(x, y, z):
@@ -58,63 +58,65 @@ def get_sides_and_bottom(x, y, z):
     # We calculate the coordinates for each of the sides:
     # Add bottom at first
     xx_0 = x[0, :]
-    yx_0 = [y[0, 0]] * 2
-    xx_0, yx_0 = np.meshgrid(xx_0, yx_0)
-    zx_0 = np.zeros(xx_0.shape)
-    zx_0[0, :] = -HEIGHT_CONSTANT
-    zx_0[1, :] = z[0, :]
+    zx_0 = [z[0, 0]] * 2
+    xx_0, zx_0 = np.meshgrid(xx_0, zx_0)
+    yx_0 = np.zeros(xx_0.shape)
+    yx_0[0, :] = -HEIGHT_CONSTANT
+    yx_0[1, :] = y[0, :]
 
     xx_1 = x[-1, :]
-    yx_1 = [y[-1, 0]] * 2
-    xx_1, yx_1 = np.meshgrid(xx_1, yx_1)
-    zx_1 = np.zeros(xx_1.shape)
-    zx_1[0, :] = z[-1, :]
-    zx_1[1, :] = -HEIGHT_CONSTANT
+    zx_1 = [z[-1, 0]] * 2
+    xx_1, zx_1 = np.meshgrid(xx_1, zx_1)
+    yx_1 = np.zeros(xx_1.shape)
+    yx_1[0, :] = y[-1, :]
+    yx_1[1, :] = -HEIGHT_CONSTANT
 
-    yy_0 = y[:, 0]
-    xy_0 = [x[0, 0]] * 2
-    xy_0, yy_0 = np.meshgrid(xy_0, yy_0)
-    zy_0 = np.zeros(xy_0.shape)
-    zy_0[:, 0] = -HEIGHT_CONSTANT
-    zy_0[:, 1] = z[:, 0]
+    zz_0 = z[:, 0]
+    xz_0 = [x[0, 0]] * 2
+    xz_0, zz_0 = np.meshgrid(xz_0, zz_0)
+    yz_0 = np.zeros(xz_0.shape)
+    yz_0[:, 0] = -HEIGHT_CONSTANT
+    yz_0[:, 1] = y[:, 0]
 
-    yy_1 = y[:, -1]
-    xy_1 = [x[0, -1]] * 2
-    xy_1, yy_1 = np.meshgrid(xy_1, yy_1)
-    zy_1 = np.zeros(xy_1.shape)
-    zy_1[:, 0] = z[:, -1]
-    zy_1[:, 1] = -HEIGHT_CONSTANT
+    zz_1 = z[:, -1]
+    xz_1 = [x[0, -1]] * 2
+    xz_1, zz_1 = np.meshgrid(xz_1, zz_1)
+    yz_1 = np.zeros(xz_1.shape)
+    yz_1[:, 0] = y[:, -1]
+    yz_1[:, 1] = -HEIGHT_CONSTANT
 
     # Down base
     x_down = [x[0, -1], x[0, 0]]
-    y_down = [y[0, 0], y[-1, 0]]
-    x_down, y_down = np.meshgrid(x_down, y_down)
-    z_down = np.full(x_down.shape, -HEIGHT_CONSTANT)
+    z_down = [z[0, 0], z[-1, 0]]
+    x_down, z_down = np.meshgrid(x_down, z_down)
+    y_down = np.full(x_down.shape, -HEIGHT_CONSTANT)
 
     # We get each of the extra structures
     # We use z as y since it's the way it is in most game engines:
     structures = [
-        sm.StructuredGrid(x=x_down, y=z_down, z=y_down, name="bottom_surface"),
-        sm.StructuredGrid(x=xx_0, y=zx_0, z=yx_0),
-        sm.StructuredGrid(x=xx_1, y=zx_1, z=yx_1),
-        sm.StructuredGrid(x=xy_0, y=zy_0, z=yy_0),
-        sm.StructuredGrid(x=xy_1, y=zy_1, z=yy_1),
+        sm.StructuredGrid(x=x_down, y=y_down, z=z_down, name="bottom_surface"),
+        sm.StructuredGrid(x=xx_0, y=yx_0, z=zx_0),
+        sm.StructuredGrid(x=xx_1, y=yx_1, z=zx_1),
+        sm.StructuredGrid(x=xz_0, y=yz_0, z=zz_0),
+        sm.StructuredGrid(x=xz_1, y=yz_1, z=zz_1),
     ]
 
     return structures
 
-def generate_scene(generated_map, obj_pos, engine=None):
+def generate_scene(sg, obj_pos, engine=None):
     """
     Generate scene by interacting with simenv library.
     """
     # Create the mesh
-    x, y, z = generated_map
+    x, y, z = sg.coordinates
     scene = sm.Scene(engine=engine)
 
-    # We use z as y since it's the way it is in most game engines:
-    scene += sm.StructuredGrid(x=x, y=z, z=y, name="top_surface")
+    # Add structured grid, sides and bottom of the map
+    scene += sg
     scene += get_sides_and_bottom(x, y, z)
-    scene += add_walls(x, y)
+
+    # Add walls to prevent agent from falling
+    scene += add_walls(x, z)
     
     # Add objects
     scene += create_objects(obj_pos)

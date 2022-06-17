@@ -14,7 +14,7 @@
 
 # Lint as: python3
 """ A simenv Scene Object."""
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Tuple
 
 import numpy as np
 import pyvista as pv
@@ -23,6 +23,8 @@ from ..gltflib.enums.collider_type import ColliderType
 from .asset import Asset
 from .collider import Collider
 from .material import Material
+
+from .procgen.wfc import generate_map
 
 
 class Object3D(Asset):
@@ -901,4 +903,67 @@ class StructuredGrid(Object3D):
 
         # If it is a structured grid, extract the surface mesh (PolyData)
         mesh = pv.StructuredGrid(x, y, z).extract_surface()
+        super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
+
+class ProcgenGrid(Object3D):
+    """Create a procedural generated 3D grid (structured plane) from
+        tiles / previous map.
+
+    Parameters
+    ----------
+    sample_map : np.ndarray or python list of list of floats
+        Map to procedurally generate from.
+
+    tiles : list of tiles
+        Tiles and neighbors constraints used for procedural generation 
+        with Wave Function Collapse.
+        If no tiles are passed, uses default function on the library.
+    
+    neighbors: list of available neighbors for each tile
+
+    Returns
+    -------
+
+    Examples
+    --------
+
+    """
+
+    # TODO: add support to other algorithms
+    # TODO: add function regenerate to generate the map again?
+    # TODO: add rest of arguments
+    def __init__(
+        self,
+        sample_map: Union[np.ndarray, List[List[List[int]]]] = None,
+        specific_map: Union[np.ndarray, List[List[List[int]]]] = None,
+        tiles: Optional[List] = None,
+        neighbors: Optional[List] = None,
+        width: Optional[int] = 9,
+        height: Optional[int] = 9,
+        algorithm_args: Optional[dict] = None,
+        name: Optional[str] = None,
+        parent: Optional[Asset] = None,
+        children: Optional[List[Asset]] = None,
+        **kwargs,
+    ):
+        # Handle when user doesn't pass arguments properly
+        if (tiles is None or neighbors is None) and sample_map is None \
+            and specific_map is None:
+            raise ValueError("Insert tiles / neighbors or a map to sample from.")
+
+        # Get coordinates and image from procedural generation
+        coordinates, img_2d = generate_map(width=width, 
+                height=height, 
+                specific_map=specific_map,
+                sample_map=sample_map,
+                tiles=tiles,
+                neighbors=neighbors,
+                **algorithm_args)
+
+        # Saves these for other functions that might use them
+        self.coordinates = coordinates
+        self.map_2d = img_2d
+
+        # If it is a structured grid, extract the surface mesh (PolyData)
+        mesh = pv.StructuredGrid(*coordinates).extract_surface()
         super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
