@@ -50,6 +50,9 @@ class Scene(Asset):
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
         children=None,
+        executable: Optional[str] = None,
+        port: Optional[int] = 55000,
+        headless: Optional[bool] = None,
         **kwargs,
     ):
         super().__init__(

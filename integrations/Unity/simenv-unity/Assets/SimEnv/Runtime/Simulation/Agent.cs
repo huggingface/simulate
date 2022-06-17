@@ -114,51 +114,45 @@ namespace SimEnv {
         }
     }
 
-    [RequireComponent(typeof(CharacterController))]
     public class Agent : SimAgentBase {
         public float move_speed = 1f;
+
+        private Vector3 originalPosition;
         public float turn_speed = 1f;
         public float height = 1f;
+
+        private const float radius = .25f;
         private const bool HUMAN = false;
 
         private float accumReward = 0.0f;
 
         public Color color = Color.white;
-
         private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
 
-        CharacterController controller;
-        Camera agent_camera;
-
-        void Awake() {
-            controller = GetComponent<CharacterController>();
-            agent_camera = GetComponentInChildren<Camera>();
-            if (HUMAN) {
-                agent_camera.targetTexture = new RenderTexture(32, 32, 24); // for debugging
+        SimCameraBase _cam;
+        SimCameraBase cam {
+            get {
+                _cam ??= GetComponentInChildren<SimCameraBase>();
+                return _cam;
             }
         }
 
-        public Actions actions;
-        // Start is called before the first frame update
-        void Start() {
+        CharacterController controller;
 
-        }
+        public Actions actions;
 
         void Update() {
-            AgentUpdate();
-            Render(null);
+
         }
 
         public void Initialize(HF_RL_agents.HF_RL_Agent agentData) {
-            Initialize();
+            base.Initialize();
             SetProperties(agentData);
         }
 
         public void SetProperties(HF_RL_agents.HF_RL_Agent agentData) {
             Debug.Log("Setting Agent properties");
-
-            Debug.Log(agentData.action_dist);
-
+            originalPosition = new Vector3(transform.position.x, transform.position.y, transform.position.z);
             color = agentData.color;
             height = agentData.height;
             move_speed = agentData.move_speed;
@@ -187,7 +181,18 @@ namespace SimEnv {
             actions.dist = agentData.action_dist;
             actions.available = agentData.available_actions;
 
-            agent_camera.targetTexture = new RenderTexture(agentData.camera_width, agentData.camera_height, 24);
+            // set up components
+            controller = gameObject.AddComponent<CharacterController>();
+            controller.slopeLimit = 45;
+            controller.stepOffset = .3f;
+            controller.skinWidth = .08f;
+            controller.minMoveDistance = .001f;
+            controller.center = Vector3.up * height / 2f;
+            controller.radius = radius;
+            controller.height = height;
+            SetupModel();
+
+            //pixel_values = new uint[agentData.camera_width * agentData.camera_height * 3];
 
             // add the reward functions to the agent
             for (int i = 0; i < agentData.reward_functions.Count; i++) {
@@ -229,6 +234,10 @@ namespace SimEnv {
                         rewardFunction = new SparseRewardFunction(
                             entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
                         break;
+                    case "timeout":
+                        rewardFunction = new TimeoutRewardFunction(
+                            entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
+                        break;
 
                     default:
                         Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
@@ -239,8 +248,34 @@ namespace SimEnv {
             }
         }
 
+        void SetupModel() {
+            GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
+            capsule.name = "Capsule";
+            capsule.transform.SetParent(transform);
+            capsule.transform.localPosition = Vector3.up * height / 2f;
+            capsule.transform.localScale = new Vector3(radius * 2f, height / 2f, radius * 2f);
+            capsule.GetComponent<MeshRenderer>().sharedMaterial = Resources.Load<Material>("AgentMaterial");
+            capsule.GetComponent<Collider>().enabled = false;
+
+            GameObject leftEye = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            leftEye.name = "LeftEye";
+            leftEye.transform.SetParent(transform);
+            leftEye.transform.localPosition = new Vector3(-0.07f, 0.7f, 0.19f);
+            leftEye.transform.localRotation = Quaternion.Euler(0, 90, 90);
+            leftEye.transform.localScale = Vector3.one * .1f;
+            leftEye.GetComponent<Collider>().enabled = false;
+
+            GameObject rightEye = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
+            rightEye.name = "RightEye";
+            rightEye.transform.SetParent(transform);
+            rightEye.transform.localPosition = new Vector3(-0.07f, 0.7f, 0.19f);
+            rightEye.transform.localRotation = Quaternion.Euler(0, 90, 90);
+            rightEye.transform.localScale = Vector3.one * .1f;
+            rightEye.GetComponent<Collider>().enabled = false;
+        }
+
         public void AgentUpdate() {
-            if(HUMAN) {
+            if (HUMAN) {
                 // Human control
                 float x = Input.GetAxis("Horizontal");
                 float z = Input.GetAxis("Vertical");
@@ -269,8 +304,14 @@ namespace SimEnv {
         public void Reset() {
             accumReward = 0.0f;
             // Reset the agent
+            controller.enabled = false; // the Character Controller takes control of the tranform and must be disabled
+            transform.position = originalPosition;
+            controller.enabled = true;
+
+
             // Reset reward objects?
             // Reset reward functions
+
             foreach (RewardFunction rewardFunction in rewardFunctions) {
                 rewardFunction.Reset();
             }
@@ -302,53 +343,16 @@ namespace SimEnv {
                     done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);
                 }
             }
+
             return done;
         }
 
-        public void Render(UnityAction<string> callback) {
-            StartCoroutine(RenderCoroutine(callback));
-        }
-
-        IEnumerator RenderCoroutine(UnityAction<string> callback) {
-            yield return new WaitForEndOfFrame();
-            GetObservation(callback);
-            Debug.Log("Finished rendering");
-        }
-
         public void GetObservation(UnityAction<string> callback) {
-            RenderTexture activeRenderTexture = RenderTexture.active;
-            RenderTexture.active = agent_camera.targetTexture;
-            agent_camera.Render();
-            int width = agent_camera.pixelWidth;
-            int height = agent_camera.pixelHeight;
-
-            Texture2D image = new Texture2D(width, height);
-            image.ReadPixels(new Rect(0, 0, width, height), 0, 0);
-            image.Apply();
-
-            Color32[] pixels = image.GetPixels32();
-            RenderTexture.active = activeRenderTexture;
-
-            uint[] pixel_values = new uint[pixels.Length * 3];
-
-            for (int i = 0; i < pixels.Length; i++) {
-                pixel_values[i * 3] += pixels[i].r;
-                pixel_values[i * 3 + 1] += pixels[i].g;
-                pixel_values[i * 3 + 2] += pixels[i].b;
-                // we do not include alpha, TODO: Add option to include Depth Buffer
-            }
-
-            string string_array = JsonHelper.ToJson(pixel_values);
-            if (callback != null)
-                callback(string_array);
+            cam.Render(callback);
         }
 
         public void SetAction(List<float> step_action) {
             actions.SetAction(step_action);
         }
-
-
     }
-
-
 }
