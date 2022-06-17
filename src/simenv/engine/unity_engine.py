@@ -48,6 +48,7 @@ class UnityEngine(Engine):
 
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
         self.socket.bind((self.host, self.port))
         print("Server started. Waiting for connection...")
         self.socket.listen()
@@ -121,7 +122,12 @@ class UnityEngine(Engine):
 
     def close(self):
         command = {"type": "Close", "contents": json.dumps({"message": "close"})}
-        self.run_command(command)
+        try:
+            self.run_command(command)
+        except Exception as e:
+            print("exception sending close message", e) 
+
+        print("closing client")
         self.client.close()
 
         try:
