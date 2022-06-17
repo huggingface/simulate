@@ -5,8 +5,8 @@ namespace SimEnv.Agents {
         public string message;
 
         public void Execute(UnityAction<string> callback) {
-            bool done = AgentManager.instance.GetDone();
-            callback(done.ToString());
+            bool[] done = AgentManager.instance.GetDone();
+            callback(JsonHelper.ToJson(done));
         }
     }
 }

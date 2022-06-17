@@ -40,7 +40,7 @@ namespace SimEnv {
             RenderCoroutine(callback).RunCoroutine();
         }
 
-        private IEnumerator RenderCoroutine(UnityAction<Color32[]> callback) {
+        public IEnumerator RenderCoroutine(UnityAction<Color32[]> callback) {
             camera.enabled = true; // Enable camera so that it renders in Unity's internal render loop
             yield return new WaitForEndOfFrame(); // Wait for Unity to render
             CopyRenderResultToColorBuffer(out Color32[] buffer);

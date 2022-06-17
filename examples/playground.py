@@ -48,7 +48,7 @@ env.reset()
 for i in range(1000):
     action = env.action_space.sample()
     if type(action) != int:  # discrete are ints, continuous are numpy arrays
-        action = action.tolist()        
+        action = action.tolist()
 
     obs, reward, done, info = env.step([action])
     print(done, reward, info)

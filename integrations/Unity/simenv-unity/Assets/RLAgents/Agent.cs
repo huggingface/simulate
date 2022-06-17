@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 using System;
+using System.Collections;
 
 namespace SimEnv.Agents {
     public static class JsonHelper {
@@ -322,18 +323,13 @@ namespace SimEnv.Agents {
             return done;
         }
 
-        public void GetObservation(UnityAction<string> callback) {
-            cam.Render(colors => {
-                uint[] pixelValues = new uint[colors.Length * 3];
+        public IEnumerator GetObservationCoroutine(uint[] pixelValues, int startingIndex) {
+            yield return cam.RenderCoroutine(colors => {
                 for (int i = 0; i < colors.Length; i++) {
-                    pixelValues[i * 3] = colors[i].r;
-                    pixelValues[i * 3 + 1] = colors[i].g;
-                    pixelValues[i * 3 + 2] = colors[i].b;
+                    pixelValues[startingIndex + i * 3] = colors[i].r;
+                    pixelValues[startingIndex + i * 3 + 1] = colors[i].g;
+                    pixelValues[startingIndex + i * 3 + 2] = colors[i].b;
                 }
-
-                string string_array = JsonHelper.ToJson(pixelValues);
-                if (callback != null)
-                    callback(string_array);
             });
         }
 

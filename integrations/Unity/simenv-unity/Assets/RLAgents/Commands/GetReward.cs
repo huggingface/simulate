@@ -5,8 +5,8 @@ namespace SimEnv.Agents {
         public string message;
 
         public void Execute(UnityAction<string> callback) {
-            float reward = AgentManager.instance.GetReward();
-            callback(reward.ToString());
+            float[] reward = AgentManager.instance.GetReward();
+            callback(JsonHelper.ToJson(reward));
         }
     }
 }
