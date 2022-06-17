@@ -2,7 +2,7 @@
 
 from libcpp cimport bool
 from libcpp.string cimport string
-from wfcbinding cimport Color, run_wfc_cpp, Neighbor, PyTile
+from wfcbinding cimport Color, Neighbor, PyTile, run_wfc_cpp
 
 import numpy as np
 

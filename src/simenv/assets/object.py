@@ -14,7 +14,7 @@
 
 # Lint as: python3
 """ A simenv Scene Object."""
-from typing import List, Optional, Union, Tuple
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 import pyvista as pv
@@ -23,7 +23,6 @@ from ..gltflib.enums.collider_type import ColliderType
 from .asset import Asset
 from .collider import Collider
 from .material import Material
-
 from .procgen.wfc import generate_map
 
 
@@ -905,6 +904,7 @@ class StructuredGrid(Object3D):
         mesh = pv.StructuredGrid(x, y, z).extract_surface()
         super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
+
 class ProcgenGrid(Object3D):
     """Create a procedural generated 3D grid (structured plane) from
         tiles / previous map.
@@ -915,10 +915,10 @@ class ProcgenGrid(Object3D):
         Map to procedurally generate from.
 
     tiles : list of tiles
-        Tiles and neighbors constraints used for procedural generation 
+        Tiles and neighbors constraints used for procedural generation
         with Wave Function Collapse.
         If no tiles are passed, uses default function on the library.
-    
+
     neighbors: list of available neighbors for each tile
 
     Returns
@@ -947,18 +947,19 @@ class ProcgenGrid(Object3D):
         **kwargs,
     ):
         # Handle when user doesn't pass arguments properly
-        if (tiles is None or neighbors is None) and sample_map is None \
-            and specific_map is None:
+        if (tiles is None or neighbors is None) and sample_map is None and specific_map is None:
             raise ValueError("Insert tiles / neighbors or a map to sample from.")
 
         # Get coordinates and image from procedural generation
-        coordinates, img_2d = generate_map(width=width, 
-                height=height, 
-                specific_map=specific_map,
-                sample_map=sample_map,
-                tiles=tiles,
-                neighbors=neighbors,
-                **algorithm_args)
+        coordinates, img_2d = generate_map(
+            width=width,
+            height=height,
+            specific_map=specific_map,
+            sample_map=sample_map,
+            tiles=tiles,
+            neighbors=neighbors,
+            **algorithm_args,
+        )
 
         # Saves these for other functions that might use them
         self.coordinates = coordinates

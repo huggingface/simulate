@@ -14,6 +14,7 @@ GRANULARITY = 10
 # Constant to multiply by the values in the height map to get the actual height
 HEIGHT_CONSTANT = 0.6375
 
+
 def generate_seed():
     """
     Generate seeds to pass to the C++ side.
