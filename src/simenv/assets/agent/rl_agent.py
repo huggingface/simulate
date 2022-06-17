@@ -48,8 +48,8 @@ class RL_Agent(Asset):
         self.reward_functions = reward_functions
         self.camera_width = camera_width
         self.camera_height = camera_height
-        camera = Camera(position=[0.0, height * 0.7, 0.0], width=camera_width, height=camera_height)
-        self.add(camera)
+        self.camera = Camera(position=[0.0, height * 0.7, 0.0], width=camera_width, height=camera_height)
+        self.add(self.camera)
 
     def add_reward_function(self, reward_function: RLAgentRewardFunction) -> None:
         self.reward_functions.append(reward_function)
