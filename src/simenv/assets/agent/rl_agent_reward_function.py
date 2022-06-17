@@ -1,7 +1,7 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from simenv.assets import Asset
+from ..asset import Asset
 
 
 @dataclass
@@ -13,3 +13,19 @@ class RLAgentRewardFunction:
     scalar: Optional[float] = 1.0
     threshold: Optional[float] = 1.0
     is_terminal: Optional[bool] = False
+
+    def post_copy(self, agent):
+        root = agent.tree_root
+
+        new_instance = type(self)(
+            function=self.function,
+            entity1=root.get(self.entity1.get_last_copy_name()),
+            entity2=root.get(self.entity2.get_last_copy_name()),
+            distance_metric=self.distance_metric,
+            scalar=self.scalar,
+            threshold=self.threshold,
+            is_terminal=self.is_terminal,
+        )
+        
+
+        return new_instance
