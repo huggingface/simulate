@@ -74,6 +74,8 @@ class Asset(NodeMixin, object):
         if transformation_matrix is not None:
             self.transformation_matrix = transformation_matrix
 
+        self._n_copies = 0
+
     @property
     def uuid(self):
         """A unique identifier of the node if needed."""
@@ -87,8 +89,11 @@ class Asset(NodeMixin, object):
 
     def copy(self, with_children=True, **kwargs):
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
+        
+        copy_name = self.name + f"_copy{self._n_copies}"
+        self._n_copies += 1
         instance_copy = type(self)(
-            name=None, position=self.position, rotation=self.rotation, scaling=self.scaling, collider=self.collider
+            name=copy_name, position=self.position, rotation=self.rotation, scaling=self.scaling, collider=self.collider
         )
 
         if with_children:
@@ -98,6 +103,10 @@ class Asset(NodeMixin, object):
             instance_copy.tree_children = copy_children
 
         return instance_copy
+
+    def get_last_copy_name(self):
+        assert self._n_copies > 0, "this object is yet to be copied"
+        return  self.name + f"_copy{self._n_copies-1}"
 
     @classmethod
     def create_from(
