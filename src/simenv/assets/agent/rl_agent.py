@@ -56,7 +56,12 @@ class RL_Agent(Asset):
 
     def copy(self):
         instance_copy = super().copy()
+        instance_copy.color = self.color
+        instance_copy.height = self.height
+        instance_copy.move_speed = self.move_speed
+        instance_copy.actions = self.actions
         instance_copy.reward_functions = self.reward_functions
+        #instance_copy.camera = self.camera
 
         return instance_copy
 
