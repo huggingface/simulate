@@ -45,6 +45,9 @@ namespace SimEnv {
 
         public override void SetAction(List<float> stepAction) {
             Debug.Assert(dist == "discrete");
+            Debug.Log("action count " + stepAction.Count);
+
+
             Debug.Assert(stepAction.Count == 1, "in the discrete case step action must be of length 1");
 
             // in the case of discrete actions, this list is just one value
@@ -130,7 +133,7 @@ namespace SimEnv {
         private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
 
         SimCameraBase _cam;
-        SimCameraBase cam {
+        public SimCameraBase cam {
             get {
                 _cam ??= GetComponentInChildren<SimCameraBase>();
                 return _cam;
@@ -192,8 +195,7 @@ namespace SimEnv {
             controller.height = height;
             SetupModel();
 
-            //pixel_values = new uint[agentData.camera_width * agentData.camera_height * 3];
-
+            //
             // add the reward functions to the agent
             for (int i = 0; i < agentData.reward_functions.Count; i++) {
                 Debug.Log("Creating reward function");
@@ -347,8 +349,8 @@ namespace SimEnv {
             return done;
         }
 
-        public void GetObservation(UnityAction<string> callback) {
-            cam.Render(callback);
+        public IEnumerator CoroutineGetObservation(uint[] pixels, int startingIndex) {
+            yield return cam.RenderCoroutine(pixels, startingIndex);
         }
 
         public void SetAction(List<float> step_action) {
