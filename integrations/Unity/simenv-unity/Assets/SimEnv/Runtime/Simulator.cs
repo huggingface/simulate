@@ -32,18 +32,23 @@ namespace SimEnv {
             root = Importer.LoadFromBytes(bytes);
         }
 
-        public static void Step(List<float> action) {
-            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
-                Agent agent = ISimulator.Agent as Agent;
-                agent.SetAction(action);
+        public static void Step(List<List<float>> actions) {
+            if (ISimulator.Agents != null) {
+                for (int i = 0; i < ISimulator.Agents.Count; i++) {
+                    Agent agent = ISimulator.Agents[i] as Agent;
+                    List<float> action = actions[i];
+                    agent.SetAction(action);
+                }
             } else {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
-            for (int i = 0; i < FRAME_SKIP; i++) {
-                if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
-                    Debug.Log("Stepping agent");
-                    Agent agent = ISimulator.Agent as Agent;
-                    agent.AgentUpdate();
+            for (int j = 0; j < FRAME_SKIP; j++) {
+                if (ISimulator.Agents != null) {
+                    Debug.Log("Stepping agents");
+                    for (int i = 0; i < ISimulator.Agents.Count; i++) {
+                        Agent agent = ISimulator.Agents[i] as Agent;
+                        agent.AgentUpdate();
+                    }
                 } else {
                     Debug.LogWarning("Attempting to step environment without an Agent");
                 }
@@ -65,20 +70,90 @@ namespace SimEnv {
 
         public static void GetObservation(UnityAction<string> callback) {
             // Calculate the agent's observation and send to python with callback
-            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
-                Agent agent = ISimulator.Agent as Agent;
-                agent.GetObservation(callback);
+            if (ISimulator.Agents != null) {
+
+                Instance.StartCoroutine(CoroutineGetObservation(callback));
+
+
             } else {
                 Debug.LogWarning("Attempting to get observation without an Agent");
             }
         }
 
+        public static IEnumerator CoroutineGetObservation(UnityAction<string> callback) {
+            Agent exampleAgent = ISimulator.Agents[0] as Agent;
+            // the coroutine has to be started from a monobehavior or something like that
+
+            int obsSize = exampleAgent.cam.data.width * exampleAgent.cam.data.height * 3;
+            uint[] pixel_values = new uint[ISimulator.Agents.Count * obsSize]; // make this a member variable somewhere
+
+
+            List<Coroutine> coroutines = new List<Coroutine>();
+            for (int i = 0; i < ISimulator.Agents.Count; i++) {
+                Agent agent = ISimulator.Agents[i] as Agent;
+                Coroutine coroutine = Instance.StartCoroutine(agent.CoroutineGetObservation(pixel_values, i * obsSize));
+                coroutines.Add(coroutine);
+                //yield return new WaitUntil(() => counter == ISimulator.Agents.Count);
+            }
+
+            foreach (var coroutine in coroutines) {
+                yield return coroutine;
+            }
+
+
+            string string_array = JsonHelper.ToJson(pixel_values);
+            callback(string_array);
+        }
+        public static IEnumerator RenderCoroutine(UnityAction<string> callback) {
+            for (int i = 0; i < ISimulator.Agents.Count; i++) {
+                Agent agent = ISimulator.Agents[i] as Agent;
+                // Enable camera so that it renders in Unity's internal render loop
+                agent.cam.enabled = true;
+            }
+            yield return new WaitForEndOfFrame(); // Wait for Unity to render
+
+            CopyRenderResultToStringBuffer(callback);
+            for (int i = 0; i < ISimulator.Agents.Count; i++) {
+                Agent agent = ISimulator.Agents[i] as Agent;
+                agent.cam.enabled = false;
+            }
+        }
+
+        public static void CopyRenderResultToStringBuffer(UnityAction<string> callback) {
+
+            Agent exampleAgent = ISimulator.Agents[0] as Agent;
+            int obsSize = exampleAgent.cam.data.width * exampleAgent.cam.data.height * 3;
+            uint[] pixel_values; // make this a member variable somewhere
+            pixel_values = new uint[ISimulator.Agents.Count * obsSize];
+            for (int j = 0; j < ISimulator.Agents.Count; j++) {
+                Agent agent = ISimulator.Agents[j] as Agent;
+                RenderTexture activeRenderTexture = RenderTexture.active;
+                RenderTexture.active = agent.cam.cam.targetTexture;
+                Texture2D image = new Texture2D(agent.cam.cam.targetTexture.width, agent.cam.cam.targetTexture.height);
+                image.ReadPixels(new Rect(0, 0, image.width, image.height), 0, 0);
+                image.Apply();
+                Color32[] pixels = image.GetPixels32();
+                RenderTexture.active = activeRenderTexture;
+                Debug.Log("pixels length:" + pixels.Length.ToString());
+                for (int i = 0; i < pixels.Length; i++) {
+                    pixel_values[j * obsSize + i * 3] = pixels[i].r;
+                    pixel_values[j * obsSize + i * 3 + 1] = pixels[i].g;
+                    pixel_values[j * obsSize + i * 3 + 2] = pixels[i].b;
+                    // we do not include alpha, TODO: Add option to include Depth Buffer
+                }
+            }
+
+            string string_array = JsonHelper.ToJson(pixel_values);
+            Debug.Log(string_array);
+            if (callback != null)
+                callback(string_array);
+        }
         public static float GetReward() {
             float reward = 0.0f;
 
             // Calculate the agent's reward for the current timestep 
-            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
-                Agent agent = ISimulator.Agent as Agent;
+            if (ISimulator.Agents != null) {
+                Agent agent = ISimulator.Agents[0] as Agent;
                 reward += agent.GetReward();
                 agent.ZeroReward();
             } else {
@@ -90,8 +165,8 @@ namespace SimEnv {
         public static bool GetDone() {
             // Check if the agent is in a terminal state 
             // TODO: add option for auto reset
-            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
-                Agent agent = ISimulator.Agent as Agent;
+            if (ISimulator.Agents != null) {
+                Agent agent = ISimulator.Agents[0] as Agent;
                 return agent.IsDone();
             } else {
                 Debug.LogWarning("Attempting to get done without an Agent");
@@ -102,7 +177,7 @@ namespace SimEnv {
         public static void Reset() {
             // Reset the Agent & the environment # 
             // TODO add the environment reset!
-            if (ISimulator.Agent != null && ISimulator.Agent is Agent) {
+            if (ISimulator.Agents != null) {
                 Agent agent = ISimulator.Agent as Agent;
                 agent.Reset();
             } else {
