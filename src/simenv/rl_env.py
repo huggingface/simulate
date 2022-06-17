@@ -24,13 +24,17 @@ class RLEnv(gym.Env):
         self.camera_width = self.agents[0].camera.width
         self.camera_height = self.agents[0].camera.height
 
-        self.observation_space = spaces.Box(low=0, high=255, shape=[3, self.camera_height, self.camera_width], dtype=np.uint8)
+        self.observation_space = spaces.Box(
+            low=0, high=255, shape=[3, self.camera_height, self.camera_width], dtype=np.uint8
+        )
 
     def reset(self):
         self.scene.reset()
         obs = self.scene.get_observation()
         # TODO: remove np.flip for training (the agent does not care the world is upside-down
-        obs = np.flip(np.array(obs["Items"]).astype(np.uint8).reshape(self.camera_height, self.camera_width, 3), 0).transpose(2,0,1)
+        obs = np.flip(
+            np.array(obs["Items"]).astype(np.uint8).reshape(self.camera_height, self.camera_width, 3), 0
+        ).transpose(2, 0, 1)
 
         return obs
 
@@ -39,7 +43,9 @@ class RLEnv(gym.Env):
 
         obs = self.scene.get_observation()
         # TODO: remove np.flip for training (the agent does not care the world is upside-down
-        obs = np.flip(np.array(obs["Items"]).astype(np.uint8).reshape(self.camera_height, self.camera_width, 3), 0).transpose(2,0,1)
+        obs = np.flip(
+            np.array(obs["Items"]).astype(np.uint8).reshape(self.camera_height, self.camera_width, 3), 0
+        ).transpose(2, 0, 1)
 
         reward = self.scene.get_reward()
         done = self.scene.get_done()
