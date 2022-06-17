@@ -66,7 +66,7 @@ class UnityEngine(Engine):
                 while len(response) < data_length:
                     response += self.client.recv(data_length - len(response)).decode()
 
-                # print(f"Received response: {response}")
+                #print(f"Received response: {response}")
                 return response
 
     def _send_gltf(self, bytes):
@@ -91,12 +91,17 @@ class UnityEngine(Engine):
 
     def get_reward(self):
         command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
-        return float(self.run_command(command))
+        response = self.run_command(command)
+        data = json.loads(response)
+
+        return [float(f) for f in data["Items"]]
 
     def get_done(self):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
-
-        return self.run_command(command) == "True"
+        response = self.run_command(command)
+        data = json.loads(response)
+        return [d == "True" for d in data["Items"]]
+    
 
     def reset(self):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
