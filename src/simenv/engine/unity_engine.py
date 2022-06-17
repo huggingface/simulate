@@ -2,6 +2,7 @@ import atexit
 import base64
 import json
 import socket
+import subprocess
 
 from .engine import Engine
 
@@ -17,17 +18,33 @@ PRIMITIVE_TYPE_MAPPING = {
 
 
 class UnityEngine(Engine):
-    def __init__(self, scene, auto_update=True, start_frame=0, end_frame=500, frame_rate=24):
+    def __init__(self, scene, auto_update=True, executable=None, headless=None, start_frame=0, end_frame=500, frame_rate=24, port=55000):
         super().__init__(scene=scene, auto_update=auto_update)
-
         self.start_frame = start_frame
         self.end_frame = end_frame
         self.frame_rate = frame_rate
 
         self.host = "127.0.0.1"
-        self.port = 55000
+        self.port = port
+
+        if executable is not None:
+            self._launch_executable(executable, port, headless)
+
         self._initialize_server()
         atexit.register(self._close)
+        
+        
+    def _launch_executable(self, executable, port, headless):
+
+        if headless:
+            print("launching env headless")
+            launch_command = f"{executable} -batchmode -nographics --args port {port}".split(" ")
+        else:
+            launch_command = f"{executable} --args port {port}".split(" ")
+        self.proc = subprocess.Popen(
+            launch_command,
+            start_new_session=False,
+        )
 
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
@@ -73,11 +90,12 @@ class UnityEngine(Engine):
 
     def get_reward(self):
         command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
-        return self.run_command(command)
+        return float(self.run_command(command))
 
     def get_done(self):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
-        return self.run_command(command)
+
+        return self.run_command(command) == "True"
 
     def reset(self):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}

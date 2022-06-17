@@ -8,7 +8,6 @@ namespace SimEnv {
         public float[] action;
 
         public override void Execute(UnityAction<string> callback) {
-            Debug.Log("Stepping " + action.ToString());
             Simulator.Step(action.ToList());
             callback("ack");
         }

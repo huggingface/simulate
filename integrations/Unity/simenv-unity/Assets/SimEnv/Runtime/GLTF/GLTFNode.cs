@@ -130,25 +130,10 @@ namespace SimEnv.GLTF {
 
                     if (nodes[i].camera.HasValue) {
                         GLTFCamera cameraData = cameras[nodes[i].camera.Value];
-                        Camera camera = result[i].transform.gameObject.AddComponent<Camera>();
-                        result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
-                        switch (cameraData.type) {
-                            case CameraType.orthographic:
-                                camera.orthographic = true;
-                                camera.nearClipPlane = cameraData.orthographic.znear;
-                                camera.farClipPlane = cameraData.orthographic.zfar;
-                                camera.orthographicSize = cameraData.orthographic.ymag;
-                                break;
-                            case CameraType.perspective:
-                                camera.orthographic = false;
-                                camera.nearClipPlane = cameraData.perspective.znear;
-                                if (cameraData.perspective.zfar.HasValue)
-                                    camera.farClipPlane = cameraData.perspective.zfar.Value;
-                                if (cameraData.perspective.aspectRatio.HasValue)
-                                    camera.aspect = cameraData.perspective.aspectRatio.Value;
-                                camera.fieldOfView = Mathf.Rad2Deg * cameraData.perspective.yfov;
-                                break;
-                        }
+
+                        SimCameraBase camera = result[i].transform.gameObject.AddComponent<SimCameraBase>();
+                        if(Application.isPlaying)
+                            camera.Initialize(cameraData);                        
                     }
                     if (nodes[i].extensions != null) {
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
@@ -213,19 +198,7 @@ namespace SimEnv.GLTF {
                                 HF_RL_agents.HF_RL_Agent agentData = extensions.HF_RL_agents.agents[agent_id];
 
                                 Debug.Log("color" + agentData.color.ToString());
-                                Agent agent = GameObject.Instantiate(
-                                    Resources.Load<Agent>("Agent"),
-                                    result[i].transform.position,
-                                    result[i].transform.rotation,
-                                    result[i].transform.parent
-                                );
-
-                                agent.transform.SetSiblingIndex(result[i].transform.GetSiblingIndex());
-                                agent.name = result[i].transform.gameObject.name;
-                                agent.transform.localRotation *= Quaternion.Euler(0, 180, 0);
-                                GameObject.Destroy(result[i].transform.gameObject);
-
-
+                                Agent agent = result[i].transform.gameObject.AddComponent<Agent>();
                                 if (Application.isPlaying)
                                     agent.Initialize(agentData);
 

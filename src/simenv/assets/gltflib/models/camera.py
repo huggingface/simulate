@@ -21,6 +21,8 @@ class Camera(NamedBaseModel):
         (Optional)
     type (string) Specifies if the camera uses a perspective or orthographic projection. (Required)
     name (string) The user-defined name of this object. (Optional)
+    width (int) The width of the camera render result. (Optional)
+    height (int) The height of the camera render result. (Optional)s
     extensions (object) Dictionary object with extension-specific objects. (Optional)
     extras (any) Application-specific data. (Optional)
     """
@@ -28,3 +30,5 @@ class Camera(NamedBaseModel):
     orthographic: Optional[OrthographicCameraInfo] = None
     perspective: Optional[PerspectiveCameraInfo] = None
     type: str = None
+    width: int = None
+    height: int = None
