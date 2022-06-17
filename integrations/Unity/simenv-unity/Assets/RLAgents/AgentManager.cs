@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -30,7 +29,7 @@ namespace SimEnv.Agents {
                     Debug.LogWarning("Couldn't find agent camera.");
                     return;
                 }
-                agents[i].camera = camera;
+                agents[i].cam = camera;
             }
         }
 
@@ -43,7 +42,7 @@ namespace SimEnv.Agents {
             if(!Validate()) return;
             for(int i = 0; i < FRAME_SKIP; i++) {
                 Simulator.Step(1, FRAME_RATE);
-                agents[0].Step();
+                agents[0].AgentUpdate();
             }
         }
 
@@ -52,9 +51,9 @@ namespace SimEnv.Agents {
             agents[0].SetAction(action);
         }
 
-        public void GetObservation(UnityAction<CameraObservation> callback) {
+        public void GetObservation(UnityAction<string> callback) {
             if(!Validate()) {
-                callback(default(CameraObservation));
+                callback("Error: No agent found");
                 return;
             }
             agents[0].GetObservation(callback);

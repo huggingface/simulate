@@ -77,7 +77,7 @@ def make_env(executable, rank, seed=0, headless=None):
 if __name__ == "__main__":
 
 
-    n_envs = 16
+    n_envs = 2
 
     # envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i) for i in range(n_envs)])
     envs = SubprocVecEnv([make_env("integrations/Unity/Build/SimEnv.exe", i) for i in range(n_envs)])

@@ -19,10 +19,10 @@ namespace SimEnv.Agents {
         }
     }
     public abstract class RewardFunction {
-        protected GameObject entity1;
-        protected GameObject entity2;
-        protected float rewardScalar = 1.0f;
-        protected IDistanceMetric distanceMetric;
+        public GameObject entity1;
+        public GameObject entity2;
+        public float rewardScalar = 1.0f;
+        public IDistanceMetric distanceMetric;
         public abstract void Reset();
         public abstract float CalculateReward();
 
@@ -33,7 +33,6 @@ namespace SimEnv.Agents {
 
         public override void Reset() {
             bestDistance = distanceMetric.Calculate(entity1, entity2);
-            Debug.Log("reseting dense reward");
         }
         public DenseRewardFunction(GameObject entity1, GameObject entity2, IDistanceMetric distanceMetric, float rewardScalar) {
             this.entity1 = entity1;
@@ -59,7 +58,7 @@ namespace SimEnv.Agents {
     public class SparseRewardFunction : RewardFunction {
         public bool hasTriggered = false;
         public bool isTerminal = false;
-        float threshold = 1.0f;
+        public float threshold = 1.0f;
         public SparseRewardFunction(GameObject entity1, GameObject entity2, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal) {
             this.entity1 = entity1;
             this.entity2 = entity2;
@@ -70,14 +69,34 @@ namespace SimEnv.Agents {
         }
         public override void Reset() {
             hasTriggered = false;
-            Debug.Log("reseting sparse reward");
         }
 
         public override float CalculateReward() {
             float reward = 0.0f;
             float distance = distanceMetric.Calculate(entity1, entity2);
-
             if (!hasTriggered && (distance < threshold)) {
+                hasTriggered = true;
+                reward += rewardScalar;
+            }
+            return reward * rewardScalar;
+        }
+    }
+
+
+    public class TimeoutRewardFunction : SparseRewardFunction {
+        int steps = 0;
+
+        public TimeoutRewardFunction(GameObject entity1, GameObject entity2, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal) :
+                base(entity1, entity2, distanceMetric, rewardScalar, threshold, isTerminal) { }
+        public override void Reset() {
+            hasTriggered = false;
+            steps = 0;
+        }
+
+        public override float CalculateReward() {
+            float reward = 0.0f;
+            steps += 1;
+            if (!hasTriggered && (steps > threshold)) {
                 hasTriggered = true;
                 reward += rewardScalar;
             }
