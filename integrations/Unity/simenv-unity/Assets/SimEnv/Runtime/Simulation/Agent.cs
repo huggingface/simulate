@@ -158,6 +158,13 @@ namespace SimEnv {
             move_speed = agentData.move_speed;
             turn_speed = agentData.turn_speed;
 
+            foreach(Transform child in transform) {
+                if(child.gameObject.name == "Capsule") {
+                    child.gameObject.GetComponent<MeshRenderer>().material.color = color;
+                    break;
+                }
+            }
+
             switch (agentData.action_dist) {
                 case "discrete":
                     actions = new DiscreteActions();
