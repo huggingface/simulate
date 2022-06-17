@@ -26,6 +26,5 @@ class RLAgentRewardFunction:
             threshold=self.threshold,
             is_terminal=self.is_terminal,
         )
-        
 
         return new_instance

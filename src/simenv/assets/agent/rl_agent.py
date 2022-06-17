@@ -53,7 +53,6 @@ class RL_Agent(Asset):
     def add_reward_function(self, reward_function: RLAgentRewardFunction) -> None:
         self.reward_functions.append(reward_function)
 
-
     def copy(self):
         instance_copy = super().copy()
         instance_copy.color = self.color
@@ -61,7 +60,7 @@ class RL_Agent(Asset):
         instance_copy.move_speed = self.move_speed
         instance_copy.actions = self.actions
         instance_copy.reward_functions = self.reward_functions
-        #instance_copy.camera = self.camera
+        # instance_copy.camera = self.camera
 
         return instance_copy
 

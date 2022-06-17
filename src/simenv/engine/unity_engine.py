@@ -18,7 +18,17 @@ PRIMITIVE_TYPE_MAPPING = {
 
 
 class UnityEngine(Engine):
-    def __init__(self, scene, auto_update=True, executable=None, headless=None, start_frame=0, end_frame=500, frame_rate=24, port=55000):
+    def __init__(
+        self,
+        scene,
+        auto_update=True,
+        executable=None,
+        headless=None,
+        start_frame=0,
+        end_frame=500,
+        frame_rate=24,
+        port=55000,
+    ):
         super().__init__(scene=scene, auto_update=auto_update)
         self.start_frame = start_frame
         self.end_frame = end_frame
@@ -32,8 +42,7 @@ class UnityEngine(Engine):
 
         self._initialize_server()
         atexit.register(self._close)
-        
-        
+
     def _launch_executable(self, executable, port, headless):
 
         if headless:
@@ -66,7 +75,7 @@ class UnityEngine(Engine):
                 while len(response) < data_length:
                     response += self.client.recv(data_length - len(response)).decode()
 
-                #print(f"Received response: {response}")
+                # print(f"Received response: {response}")
                 return response
 
     def _send_gltf(self, bytes):
@@ -101,7 +110,6 @@ class UnityEngine(Engine):
         response = self.run_command(command)
         data = json.loads(response)
         return [d == "True" for d in data["Items"]]
-    
 
     def reset(self):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
@@ -130,7 +138,7 @@ class UnityEngine(Engine):
         try:
             self.run_command(command)
         except Exception as e:
-            print("exception sending close message", e) 
+            print("exception sending close message", e)
 
         print("closing client")
         self.client.close()

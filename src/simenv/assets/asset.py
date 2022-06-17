@@ -89,11 +89,15 @@ class Asset(NodeMixin, object):
 
     def copy(self, with_children=True, **kwargs):
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
-        
+
         copy_name = self.name + f"_copy{self._n_copies}"
         self._n_copies += 1
         instance_copy = type(self)(
-            name=copy_name, position=self.position, rotation=self.rotation, scaling=self.scaling, collider=self.collider
+            name=copy_name,
+            position=self.position,
+            rotation=self.rotation,
+            scaling=self.scaling,
+            collider=self.collider,
         )
 
         if with_children:
@@ -106,13 +110,13 @@ class Asset(NodeMixin, object):
                 child.post_copy()
 
         return instance_copy
-    
+
     def post_copy(self):
         return
 
     def get_last_copy_name(self):
         assert self._n_copies > 0, "this object is yet to be copied"
-        return  self.name + f"_copy{self._n_copies-1}"
+        return self.name + f"_copy{self._n_copies-1}"
 
     @classmethod
     def create_from(
