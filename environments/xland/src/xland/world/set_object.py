@@ -227,7 +227,7 @@ def get_object_pos(y, n_objects, threshold=0.5, distribution="uniform"):
     playable_nodes, area = get_playable_area(y)
 
     if area < threshold:
-        print("Unsufficient playable area: {} when minimum is {}".format(area, threshold))
+        print("Unsufficient playable area: {:.3f} when minimum is {}".format(area, threshold))
         return None, False
 
     # Get probabilities to where to place objects

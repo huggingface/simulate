@@ -50,6 +50,11 @@ def run_wfc(unsigned width, unsigned height, int sample_type, list input_img=Non
     result = run_wfc_cpp(seed, height, width, sample_type, periodic_output, N, periodic_input, ground, 
                 nb_samples, symmetry, input_img, input_height, input_width,
                 verbose, nb_tries, tiles, neighbors)
+    
+    if len(result) == 0:
+        raise SystemExit("ERROR: Wave Function Collapse failed. \nTips: Use smaller width / height; Use larger " \
+        "image as input (overlapping case); or relax restrictions (simpletiled) by increasing the number " \
+        "of possible neighbors.")
 
     cdef np.ndarray np_results = np.array([list(r.values()) for r in result], dtype=DTYPE).reshape(width, height, -1)
 

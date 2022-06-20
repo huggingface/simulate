@@ -88,16 +88,16 @@ EXTRAS_REQUIRE = {
 ext_modules = [
    Extension(
       name="wfc_binding",
-      sources=["src/simenv/assets/procgen/wfc/wfc/wfc_binding.pyx", 
-               "src/simenv/assets/procgen/wfc/wfc/cpp/src/propagator.cpp",
-               "src/simenv/assets/procgen/wfc/wfc/cpp/src/wave.cpp",
-               "src/simenv/assets/procgen/wfc/wfc/cpp/src/wfc.cpp"],
+      sources=["src/simenv/assets/procgen/wfc/core/wfc_binding.pyx", 
+               "src/simenv/assets/procgen/wfc/core/cpp/src/propagator.cpp",
+               "src/simenv/assets/procgen/wfc/core/cpp/src/wave.cpp",
+               "src/simenv/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
       language="c++",
       extra_compile_args=["-std=c++17"],
       extra_link_args=["-std=c++17"],
       include_dirs=[
-            "src/simenv/assets/procgen/wfc/wfc/cpp/include",
-      ],  # path to .h file(s)
+            "src/simenv/assets/procgen/wfc/core/cpp/include",
+      ],
    )
 ]
 

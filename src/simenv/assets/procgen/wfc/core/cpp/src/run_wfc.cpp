@@ -93,6 +93,8 @@ std::optional<std::vector<Color>> read_overlapping_instance(unsigned seed, unsig
       }
     }
   }
+
+  return std::nullopt;
 }
 
 /**
@@ -185,6 +187,8 @@ std::optional<std::vector<Color>> read_simpletiled_instance(unsigned seed, unsig
       }
     }
   }
+
+  return std::nullopt;
 }
 
 // TODO: try adding &
@@ -199,11 +203,6 @@ std::vector<Color> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, i
         bool verbose, unsigned nb_tries, 
         std::vector<PyTile> tiles,
         std::vector<Neighbor> neighbors) {
-
-  // Initialize rand for non-linux targets
-  #ifndef __linux__
-    srand(time(nullptr));
-  #endif
 
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
