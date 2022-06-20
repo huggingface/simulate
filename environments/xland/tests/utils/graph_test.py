@@ -26,6 +26,7 @@ class TestConnectedComponents(unittest.TestCase):
 
         components = get_connected_components(n_nodes, edges)
         components = [sorted(c) for c in components]
+        print(components)
 
         # Check values
         self.assertEqual(len(components), len(true_components))
