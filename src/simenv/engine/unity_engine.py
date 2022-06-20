@@ -6,7 +6,6 @@ import subprocess
 
 from .engine import Engine
 
-
 PRIMITIVE_TYPE_MAPPING = {
     "Sphere": 0,
     "Capsule": 1,
@@ -64,8 +63,12 @@ class UnityEngine(Engine):
         self.client, self.client_address = self.socket.accept()
         print(f"Connection from {self.client_address}")
 
-    def _send_bytes(self, bytes):
+    def _send_bytes(self, bytes, ack):
         self.client.sendall(bytes)
+        if ack:
+            return self._get_response()
+
+    def _get_response(self):
         while True:
             data_length = self.client.recv(4)
             data_length = int.from_bytes(data_length, "little")
@@ -81,7 +84,7 @@ class UnityEngine(Engine):
     def _send_gltf(self, bytes):
         b64_bytes = base64.b64encode(bytes).decode("ascii")
         command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
-        self.run_command(command)
+        self.run_command(command, ack=True)
 
     def update_asset(self, root_node):
         # TODO update and make this API more consistent with all the
@@ -98,12 +101,27 @@ class UnityEngine(Engine):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
         return self.run_command(command)
 
+    def step_async(self, action):
+        command = {"type": "Step", "contents": json.dumps({"action": action})}
+        return self.run_command(command, ack=False)
+    
+    def step_sync(self):
+        return self._get_response()
+
     def get_reward(self):
         command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
         response = self.run_command(command)
         data = json.loads(response)
-
         return [float(f) for f in data["Items"]]
+
+    def get_reward_async(self):
+        command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
+        self.run_command(command, ack=False)
+
+    def get_reward_sync(self):
+        response = self._get_response()
+        data = json.loads(response)
+        return [float(f) for f in data["Items"]]       
 
     def get_done(self):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
@@ -111,23 +129,46 @@ class UnityEngine(Engine):
         data = json.loads(response)
         return [d == "True" for d in data["Items"]]
 
-    def reset(self):
+    def get_done_async(self):
+        command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
+        self.run_command(command, ack=False)
+
+    def get_done_sync(self):
+        response = self._get_response()
+        data = json.loads(response)
+        return [d == "True" for d in data["Items"]]  
+
+    def reset(self, ack=True):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command)
+    
+    def reset_async(self):
+        command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
+        self.run_command(command, ack=False) 
+
+    def reset_sync(self):
+        return self._get_response()
 
     def get_observation(self):
         command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
-
         encoded_obs = self.run_command(command)
         decoded_obs = json.loads(encoded_obs)
-
         return decoded_obs
 
-    def run_command(self, command):
+    def get_observation_async(self):
+        command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
+        self.run_command(command, ack=False)
+    
+    def get_observation_sync(self):
+        encoded_obs = self._get_response()
+        decoded_obs = json.loads(encoded_obs)
+        return decoded_obs
+
+    def run_command(self, command, ack=True):
         message = json.dumps(command)
         # print(f"Sending command: {message}")
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
-        return self._send_bytes(message_bytes)
+        return self._send_bytes(message_bytes, ack)
 
     def _close(self):
         # print("exit was not clean, using atexit to close env")
