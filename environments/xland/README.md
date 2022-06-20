@@ -8,17 +8,7 @@ For now, we are building the procedural generation using [Wave Function Collapse
 
 ## Installation
 
-First, install the Wave Function Collapse C++ library (you will need cmake which can be installed with `sudo apt install cmake` (Linux) or `brew install cmake` (MacOS)):
-
-```
-git clone https://github.com/math-fehr/fast-wfc && cd fast-wfc && cmake . && sudo make install
-```
-
-Troubleshooting w.r.t. to C++ external library installation: 
-
-* When installing an external library in C++, you might need to create the links to `usr/local/lib`, and other usual paths for C++ library installation. The installation of this particular external library doesn't update the links, so you might need to run `sudo ldconfig` in Linux.
-
-* On MacOS, you might face the same issue. If that's the case, please follow this next extra step: for a temporary solution, run `export DYLD_LIBRARY_PATH=/usr/local/lib:$DYLD_LIBRARY_PATH` on the terminal you will be using to run the code. If you want changes to be persistent, add the export command on your profile file (e.g. `~/.zprofile`). It's possible to make it work without this extra step (but not as easy as in Linux, unfortunately), however we are still working on identifying the exact solution (one non-ideal solution is to install another C++ library that updates the links in MacOS).
+First, ensure that you have a C++ compiler installed, since we will be using Cython to speed up things.
 
 Then create a virtual env, activate it, and then install `simenv`:
 
@@ -35,7 +25,7 @@ cd environments/xland
 pip install -e ".[dev]"
 ```
 
-So far, the environment was not tested on Windows.
+And it's done!
 
 ### Style
 
@@ -49,17 +39,14 @@ make style
 A minimalistic example to generate from an example map:
 
 ```
-from xland import gen_setup, generate_env
+from xland import generate_env
 from xland.utils import create_2d_map
 
-# Generate initial tiles and structure to save maps and etc
-gen_setup()
-
 # Create example map from csv file on examples
-create_2d_map(name="example_map_01")
+example_map = create_2d_map(name="example_map_01")
 
 # Sample from example map and show interactive mode
-generate_env(width=8, height=8, sample_from="example_map_01", show=True)
+generate_env(width=8, height=8, sample_from=example_map, show=True)
 ```
 
 Other scripts might be found in the folder `scripts`. The map that is used as example is in CSV format for human readability inside the `benchmark/examples`.

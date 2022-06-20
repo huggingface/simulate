@@ -38,7 +38,7 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
 
     # TODO: which should be default weights?
     if weights is None:
-        weights = np.exp(np.linspace(1.0, -3.0, max_height))
+        weights = np.exp(np.linspace(1.0, -3.0, max(6, max_height)))[:max_height]
 
     ramp_weights = [0.4] * max_height
 
@@ -54,13 +54,13 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
         # Generate plain tile
         tile = get_tile(h)
 
-        # Symmetry of a certain letter means that it has the sames symmetric progenerate_tilesperties
+        # Symmetry of a certain letter means that it has the sames symmetric
         # as the letter
-        tiles.append(build_tile(size, tile, plain_tile_names[h], b"X", weights[h]))
-        neighbors.append(build_neighbor(plain_tile_names[h], 0, plain_tile_names[h], 0))
-
-        if h < max_height - 2:
-            neighbors.append(build_neighbor(plain_tile_names[h + 1], 0, plain_tile_names[h], 0))
+        tiles.append(build_tile(size=size, tile=tile, name=plain_tile_names[h], symmetry=b"X", weight=weights[h]))
+        neighbors.append(build_neighbor(left=plain_tile_names[h], left_or=0, right=plain_tile_names[h], right_or=0))
+ 
+        if h < max_height - 1:
+            neighbors.append(build_neighbor(left=plain_tile_names[h+1], left_or=0, right=plain_tile_names[h], right_or=0))
 
         # If i == max_height - 1, then we don't add more ramps
         if h < max_height - 1:
@@ -80,8 +80,8 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
                     # Save tiles
                     next_ramp_name = bytes("{}{}".format(h + 1, ramp_or + 1), "UTF-8")
                     ramp_name = bytes("{}{}".format(h, ramp_or + 1), "UTF-8")
-
-                    tiles.append(build_tile(size, tile, ramp_name, b"L", ramp_weights[h]))
+            
+                    tiles.append(build_tile(size=size, tile=tile, name=ramp_name, symmetry=b"L", weight=ramp_weights[h]))
 
                     # We add neighbors
                     # Notice that we have to add orientation

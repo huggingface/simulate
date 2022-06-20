@@ -18,10 +18,13 @@ np.import_array()
 # Data type of arrays
 DTYPE = int
 
-def build_neighbor(string left, unsigned left_or, string right, unsigned right_or):
+def build_neighbor(string left, string right, unsigned left_or=0, unsigned right_or=0):
     return Neighbor(left=left, left_or=left_or, right=right, right_or=right_or)
 
-def build_tile(unsigned size, list tile, string name, string symmetry, double weight):
+def build_tile(list tile, string name, string symmetry=b"L", double weight=1, unsigned size=0):
+    if size == 0:
+        size = np.sqrt(len(tile))
+    
     for i in range(len(tile)):
         tile[i] = Color(r=tile[i][0], g=tile[i][1], b=tile[i][2])
     return PyTile(size=size, tile=tile, name=name, symmetry=symmetry, weight=weight)

@@ -98,7 +98,7 @@ def generate_env(
         )
 
         # Get objects position
-        threshold_kwargs = {"threshold": kwargs["threshold"]} if "threshold" in kwargs else {}
+        threshold_kwargs = {"threshold": kwargs["threshold"]} if "threshold" in kwargs else {"threshold": 0.5}
 
         # TODO return playable area and use it for agent placement
         # TODO: Add corner case where there are no objects
