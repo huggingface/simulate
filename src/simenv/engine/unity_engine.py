@@ -21,12 +21,12 @@ class UnityEngine(Engine):
         self,
         scene,
         auto_update=True,
-        executable=None,
-        headless=None,
         start_frame=0,
         end_frame=500,
         frame_rate=24,
-        port=55000,
+        engine_exe=None,
+        engine_headless=None,
+        engine_port=55000,
     ):
         super().__init__(scene=scene, auto_update=auto_update)
         self.start_frame = start_frame
@@ -34,16 +34,16 @@ class UnityEngine(Engine):
         self.frame_rate = frame_rate
 
         self.host = "127.0.0.1"
-        self.port = port
+        self.port = engine_port
 
-        if executable is not None:
-            self._launch_executable(executable, port, headless)
+        if engine_exe is not None:
+            self._launch_executable(engine_exe, engine_port, engine_headless)
 
         self._initialize_server()
         atexit.register(self._close)
 
     def _launch_executable(self, executable, port, headless):
-
+        # TODO: improve headless training check on a headless machine
         if headless:
             print("launching env headless")
             launch_command = f"{executable} -batchmode -nographics --args port {port}".split(" ")
