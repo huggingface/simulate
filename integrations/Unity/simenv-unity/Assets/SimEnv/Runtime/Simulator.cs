@@ -1,289 +1,243 @@
-using UnityEngine;
 using System;
-using System.Linq;
 using System.Collections;
-using System.IO;
-using System.Reflection;
-using ISimEnv;
 using System.Collections.Generic;
-using SimEnv.GLTF;
+using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Threading.Tasks;
+using UnityEngine;
 using UnityEngine.Events;
+
 namespace SimEnv {
     /// <summary>
-    /// Master Simulator component, required to use SimEnv
-    /// 
-    /// 1. Imports mod DLLs (custom code snippets)
-    /// 2. Spawns Client to communicate with python API
+    /// Initializes the SimEnv backend. Required for all scenes.
     /// </summary>
     public class Simulator : MonoBehaviour {
-        public static Simulator Instance { get; private set; }
-
-        #region Simulation
-        static readonly int FRAME_RATE = 30;
-        static readonly float TIME_SCALE = 1.0f;
-        static readonly int FRAME_SKIP = 4;
-        static readonly float FRAME_INTERVAL = 1f / (FRAME_RATE);
-
-        static GameObject root;
-
-        public static void BuildSceneFromBytes(byte[] bytes) {
-            if (root != null)
-                GameObject.DestroyImmediate(root);
-            root = Importer.LoadFromBytes(bytes);
+        static Simulator _instance;
+        public static Simulator instance {
+            get {
+                if(_instance == null) {
+                    _instance = GameObject.FindObjectOfType<Simulator>();
+                    if(_instance == null)
+                        _instance = new GameObject("Simulator").AddComponent<Simulator>();
+                }
+                return _instance;
+            }
         }
 
-        public static void Step(List<List<float>> actions) {
-            if (ISimulator.Agents != null) {
-                for (int i = 0; i < ISimulator.Agents.Count; i++) {
-                    Agent agent = ISimulator.Agents[i] as Agent;
-                    List<float> action = actions[i];
-                    agent.SetAction(action);
-                }
-            } else {
-                Debug.LogWarning("Attempting to step environment without an Agent");
-            }
-            for (int j = 0; j < FRAME_SKIP; j++) {
-                if (ISimulator.Agents != null) {
-                    for (int i = 0; i < ISimulator.Agents.Count; i++) {
-                        Agent agent = ISimulator.Agents[i] as Agent;
-                        agent.AgentUpdate();
-                    }
-                } else {
-                    Debug.LogWarning("Attempting to step environment without an Agent");
-                }
-                Physics.Simulate(FRAME_INTERVAL);
-                // Reward has to be updated after the simulate start as it is the result of the action the agent just took.
-                if (ISimulator.Agents != null) {
-                    for (int i = 0; i < ISimulator.Agents.Count; i++) {
-                        Agent agent = ISimulator.Agents[i] as Agent;
-                        agent.UpdateReward();
-                    }
-                } else {
-                    Debug.LogWarning("Attempting to step environment without an Agent");
-                }
-            }
+        public static event UnityAction BeforeEnvironmentLoaded;
+        public static event UnityAction EnvironmentLoaded;
+        public static event UnityAction BeforeEnvironmentUnloaded;
+        public static event UnityAction EnvironmentUnloaded;
 
+        /// <summary>
+        /// Stores reference to loaded GLTF extensions.
+        /// <para>See GLTFNode.cs for extension loading.</para>
+        /// </summary>
+        public static Dictionary<string, Type> GLTFExtensions;
+
+        /// <summary>
+        /// Stores reference to loaded simulator extensions.
+        /// </summary>
+        public static List<ISimulatorExtension> SimulatorExtensions;
+
+        /// <summary>
+        /// Stores reference to all tracked cameras in the current environment.
+        /// </summary>
+        public static Dictionary<Camera, RenderCamera> Cameras;
+
+        /// <summary>
+        /// Stores reference to all tracked nodes in the current environment.
+        /// </summary>
+        public static Dictionary<string, Node> Nodes;
+
+        /// <summary>
+        /// The root gameobject of the currently loaded scene.
+        /// </summary>
+        public static GameObject Root;
+
+        /// <summary>
+        /// Whether the current environment is undefined, active, loading, or unloading.
+        /// </summary>
+        public static State CurrentState;
+
+        private void Awake() {
+            Cameras = new Dictionary<Camera, RenderCamera>();
+            Nodes = new Dictionary<string, Node>();
+            CurrentState = State.Undefined;
+            LoadCustomAssemblies();
+            LoadExtensions();
+            Client.instance.Initialize();
         }
 
+        private void OnDestroy() {
+            Unload();
+            UnloadExtensions();
+        }
+
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="frames">Number of frames to step forward.</param>
+        /// <param name="frameRate">Frames per second to simulate at.</param>
+        public static void Step(int frames = 1, float frameRate = 30) {
+            for(int i = 0; i < frames; i++) {
+                Physics.Simulate(1 / frameRate);
+            }
+        }
+
+        public static void Register(RenderCamera camera) {
+            if(Cameras.TryGetValue(camera.camera, out RenderCamera existing))
+                Debug.LogWarning($"Found existing camera on node with name: {camera.node.name}.");
+            Cameras[camera.camera] = camera;
+        }
+
+        public static void Register(Node node) {
+            if(Nodes.TryGetValue(node.name, out Node existing))
+                Debug.LogWarning($"Found existing node with name: {node.name}.");
+            Nodes[node.name] = node;
+        }
+
+        /// <summary>
+        /// Render all cameras and returns their color buffers.
+        /// </summary>
+        /// <param name="callback">List of camera color buffers.</param>
+        public static void Render(UnityAction<List<Color32[]>> callback) {
+            RenderCoroutine(callback).RunCoroutine();
+        }
+
+        private static IEnumerator RenderCoroutine(UnityAction<List<Color32[]>> callback) {
+            List<Color32[]> buffers = new List<Color32[]>();
+            foreach(RenderCamera camera in Cameras.Values)
+                camera.Render(buffer => buffers.Add(buffer));
+            yield return new WaitUntil(() => buffers.Count == Cameras.Count);
+            callback(buffers);
+        }
+
+        /// <summary>
+        /// Synchronously loads a scene from bytes.
+        /// </summary>
+        /// <param name="bytes">GLTF scene as bytes.</param>
+        public static void LoadEnvironmentFromBytes(byte[] bytes) {
+            if(CurrentState > State.Default) {
+                Debug.LogWarning("Attempting to load while already loading. Ignoring request.");
+                return;
+            }
+            Unload();
+            OnBeforeLoad();
+            Root = GLTF.Importer.LoadFromBytes(bytes);
+            OnAfterLoad();
+        }
+
+        /// <summary>
+        /// Asynchronously loads an environment from bytes.
+        /// </summary>
+        /// <param name="bytes">GLTF scene as bytes.</param>
+        /// <returns></returns>
+        public static async Task LoadEnvironmentFromBytesAsync(byte[] bytes) {
+            if(CurrentState > State.Default) {
+                Debug.LogWarning("Attempting to load while already loading. Ignoring request.");
+                return;
+            }
+            Unload();
+            OnBeforeLoad();
+            Root = await GLTF.Importer.LoadFromBytesAsync(bytes);
+            OnAfterLoad();
+        }
+
+        private static void OnBeforeLoad() {
+            BeforeEnvironmentLoaded?.Invoke();
+            CurrentState = State.Loading;
+        }
+
+        private static void OnAfterLoad() {
+            CurrentState = State.Default;
+            Physics.autoSimulation = false;
+            for(int i = 0; i < SimulatorExtensions.Count; i++)
+                SimulatorExtensions[i].OnEnvironmentLoaded();
+            EnvironmentLoaded?.Invoke();
+        }
+
+        /// <summary>
+        /// Unloads the current loaded environment.
+        /// </summary>
+        public static void Unload() {
+            if(Root == null) return;
+            for(int i = 0; i < SimulatorExtensions.Count; i++)
+                SimulatorExtensions[i].OnBeforeEnvironmentUnloaded();
+            BeforeEnvironmentUnloaded?.Invoke();
+            CurrentState = State.Unloading;
+            GameObject.DestroyImmediate(Root);
+            Nodes.Clear();
+            Cameras.Clear();
+            CurrentState = State.Undefined;
+            for(int i = 0; i < SimulatorExtensions.Count; i++)
+                EnvironmentUnloaded?.Invoke();
+        }
+
+        /// <summary>
+        /// Finds and loads any custom DLLs in Resources/Mods.
+        /// </summary>
+        private static void LoadCustomAssemblies() {
+            string modPath = Application.dataPath + "/Resources/Mods";
+            DirectoryInfo modDirectory = new DirectoryInfo(Application.dataPath + "/Resources/Mods");
+            if(!modDirectory.Exists) {
+                Debug.LogWarning("Mod directory doesn't exist at path: " + modPath);
+                return;
+            }
+            foreach(FileInfo file in modDirectory.GetFiles()) {
+                if(file.Extension == ".dll") {
+                    Assembly.LoadFile(file.FullName);
+                    Debug.Log("Loaded mod assembly: " + file.Name);
+                }
+            }
+        }
+
+        /// <summary>
+        /// Finds custom extensions and instantiates them.
+        /// </summary>
+        private static void LoadExtensions() {
+            SimulatorExtensions = AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(x => x.GetTypes())
+                .Where(x => !x.IsInterface && !x.IsAbstract && typeof(ISimulatorExtension).IsAssignableFrom(x))
+                .Select(x => (ISimulatorExtension)Activator.CreateInstance(x))
+                .ToList();
+            SimulatorExtensions.ForEach(extension => extension.OnCreated());
+
+            GLTFExtensions = new Dictionary<string, Type>();
+            AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(x => x.GetTypes())
+                .Where(x => !x.IsInterface && !x.IsAbstract && typeof(IGLTFExtension).IsAssignableFrom(x))
+                .ToList().ForEach(type => {
+                    GLTFExtensions.Add(type.Name, type);
+                });
+        }
+
+        /// <summary>
+        /// Calls <c>OnReleased()</c> of all extensions.
+        /// </summary>
+        private static void UnloadExtensions() {
+            SimulatorExtensions.ForEach(extension => extension.OnReleased());
+            SimulatorExtensions.Clear();
+        }
+
+        /// <summary>
+        /// Kills the executable.
+        /// </summary>
         public static void Close() {
+            Unload();
 #if UNITY_EDITOR
-            // Application.Quit() does not work in the editor so
-            // UnityEditor.EditorApplication.isPlaying need to be set to false to end the game
             UnityEditor.EditorApplication.isPlaying = false;
 #else
-         Application.Quit();
+            Application.Quit();
 #endif
         }
 
-        public static void GetObservation(UnityAction<string> callback) {
-            // Calculate the agent's observation and send to python with callback
-            if (ISimulator.Agents != null) {
-
-                Instance.StartCoroutine(CoroutineGetObservation(callback));
-
-
-            } else {
-                Debug.LogWarning("Attempting to get observation without an Agent");
-            }
+        public enum State {
+            Undefined,
+            Default,
+            Loading,
+            Unloading
         }
-
-        public static IEnumerator CoroutineGetObservation(UnityAction<string> callback) {
-            Agent exampleAgent = ISimulator.Agents[0] as Agent;
-            // the coroutine has to be started from a monobehavior or something like that
-
-            int obsSize = exampleAgent.cam.data.width * exampleAgent.cam.data.height * 3;
-            uint[] pixel_values = new uint[ISimulator.Agents.Count * obsSize]; // make this a member variable somewhere
-
-
-            List<Coroutine> coroutines = new List<Coroutine>();
-            for (int i = 0; i < ISimulator.Agents.Count; i++) {
-                Agent agent = ISimulator.Agents[i] as Agent;
-                Coroutine coroutine = Instance.StartCoroutine(agent.CoroutineGetObservation(pixel_values, i * obsSize));
-                coroutines.Add(coroutine);
-                //yield return new WaitUntil(() => counter == ISimulator.Agents.Count);
-            }
-
-            foreach (var coroutine in coroutines) {
-                yield return coroutine;
-            }
-
-
-            string string_array = JsonHelper.ToJson(pixel_values);
-            callback(string_array);
-        }
-        public static IEnumerator RenderCoroutine(UnityAction<string> callback) {
-            for (int i = 0; i < ISimulator.Agents.Count; i++) {
-                Agent agent = ISimulator.Agents[i] as Agent;
-                // Enable camera so that it renders in Unity's internal render loop
-                agent.cam.enabled = true;
-            }
-            yield return new WaitForEndOfFrame(); // Wait for Unity to render
-
-            CopyRenderResultToStringBuffer(callback);
-            for (int i = 0; i < ISimulator.Agents.Count; i++) {
-                Agent agent = ISimulator.Agents[i] as Agent;
-                agent.cam.enabled = false;
-            }
-        }
-
-        public static void CopyRenderResultToStringBuffer(UnityAction<string> callback) {
-
-            Agent exampleAgent = ISimulator.Agents[0] as Agent;
-            int obsSize = exampleAgent.cam.data.width * exampleAgent.cam.data.height * 3;
-            uint[] pixel_values; // make this a member variable somewhere
-            pixel_values = new uint[ISimulator.Agents.Count * obsSize];
-            for (int j = 0; j < ISimulator.Agents.Count; j++) {
-                Agent agent = ISimulator.Agents[j] as Agent;
-                RenderTexture activeRenderTexture = RenderTexture.active;
-                RenderTexture.active = agent.cam.cam.targetTexture;
-                Texture2D image = new Texture2D(agent.cam.cam.targetTexture.width, agent.cam.cam.targetTexture.height);
-                image.ReadPixels(new Rect(0, 0, image.width, image.height), 0, 0);
-                image.Apply();
-                Color32[] pixels = image.GetPixels32();
-                RenderTexture.active = activeRenderTexture;
-                for (int i = 0; i < pixels.Length; i++) {
-                    pixel_values[j * obsSize + i * 3] = pixels[i].r;
-                    pixel_values[j * obsSize + i * 3 + 1] = pixels[i].g;
-                    pixel_values[j * obsSize + i * 3 + 2] = pixels[i].b;
-                    // we do not include alpha, TODO: Add option to include Depth Buffer
-                }
-            }
-
-            string string_array = JsonHelper.ToJson(pixel_values);
-            if (callback != null)
-                callback(string_array);
-        }
-        public static float[] GetReward() {
-            List<float> rewards = new List<float>();
-            if (ISimulator.Agents != null) {
-                // Calculate the agent's reward for the current timestep 
-                for (int i = 0; i < ISimulator.Agents.Count; i++) {
-                    Agent agent = ISimulator.Agents[i] as Agent;
-                    rewards.Add(agent.GetReward());
-                    agent.ZeroReward();
-                }
-            } else {
-                Debug.LogWarning("Attempting to get a reward without an Agent");
-            }
-            return rewards.ToArray<float>();
-        }
-
-        public static bool[] GetDone() {
-            // Check if the agent is in a terminal state 
-            // TODO: add option for auto reset
-            List<bool> dones = new List<bool>();
-            if (ISimulator.Agents != null) {
-                // Calculate the agent's reward for the current timestep 
-                for (int i = 0; i < ISimulator.Agents.Count; i++) {
-                    Agent agent = ISimulator.Agents[i] as Agent;
-                    dones.Add(agent.IsDone());
-                }
-            } else {
-                Debug.LogWarning("Attempting to get a reward without an Agent");
-            }
-            return dones.ToArray<bool>();
-        }
-
-        public static void Reset() {
-            // Reset the Agent & the environment # 
-            // TODO add the environment reset, changing maps, etc!
-
-            if (ISimulator.Agents != null) {
-                // Calculate the agent's reward for the current timestep 
-                for (int i = 0; i < ISimulator.Agents.Count; i++) {
-                    Agent agent = ISimulator.Agents[i] as Agent;
-                    agent.Reset();
-                }
-            } else {
-                Debug.LogWarning("Attempting to reset without an Agent");
-            }
-        }
-
-
-        #endregion
-
-        #region Initialization
-        [Header("Mod Path")]
-        public string modPath = "Resources/Mods";
-
-        Type[] simObjectExtensions;
-        public static Type[] SimObjectExtensions => Instance.simObjectExtensions;
-
-        Client client;
-        IEnumerator listenCoroutine;
-        bool initialized;
-
-        void Awake() {
-            Instance = this;
-            Time.timeScale = TIME_SCALE;
-            Physics.autoSimulation = false;
-
-            var portArg = GetArg("port");
-            int clientPort = 55000;
-
-            if (portArg is not null) clientPort = int.Parse(portArg);
-
-            Debug.Log("starting Client on Port " + clientPort.ToString());
-            client = new Client(port: clientPort);
-            modPath = Application.dataPath + "/" + modPath;
-        }
-
-        void Start() {
-            Debug.Log("Starting Simulator");
-            Time.timeScale = TIME_SCALE;
-            LoadMods();
-            LoadExtensions();
-            StartClient();
-        }
-        // Helper function for getting the command line arguments
-        private static string GetArg(string name) {
-            var args = System.Environment.GetCommandLineArgs();
-            for (int i = 0; i < args.Length; i++) {
-                if (args[i] == name && args.Length > i + 1) {
-                    return args[i + 1];
-                }
-            }
-            return null;
-        }
-        void LoadMods() {
-            DirectoryInfo modDirectory = new DirectoryInfo(modPath);
-            if (modDirectory.Exists) {
-                foreach (FileInfo file in modDirectory.GetFiles()) {
-                    if (file.Extension == ".dll") {
-                        Assembly.LoadFile(file.FullName);
-                        Debug.Log("Loaded mod assembly: " + file.Name);
-                    }
-                }
-            } else {
-                Debug.LogWarning("Mod directory doesn't exist at path: " + modPath);
-            }
-        }
-
-        void LoadExtensions() {
-            simObjectExtensions = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(x => x.GetTypes())
-                .Where(x => x.GetInterfaces().Contains(typeof(ISimObjectExtension)))
-                .ToArray();
-            if (simObjectExtensions == null)
-                simObjectExtensions = new Type[0];
-            simObjectExtensions.ToList().ForEach(x => Debug.Log(x));
-            Debug.Log(string.Format("Loaded {0} extensions", simObjectExtensions.Length));
-        }
-
-        void StartClient() {
-            Debug.Assert(!initialized);
-            listenCoroutine = client.Listen();
-            StartCoroutine(listenCoroutine);
-            initialized = true;
-        }
-
-        void OnDestroy() {
-            if (initialized) {
-                StopCoroutine(listenCoroutine);
-                client.Close();
-                initialized = false;
-            }
-        }
-        #endregion
     }
 }
