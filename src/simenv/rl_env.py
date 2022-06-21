@@ -2,15 +2,16 @@ import gym
 import numpy as np
 from gym import spaces
 
-from simenv.assets import agent
+from .assets import agent
+from .scene import Scene
 
 
 class RLEnv(gym.Env):
-    def __init__(self, scene) -> None:
+    def __init__(self, scene: Scene) -> None:
         super().__init__()
 
         self.scene = scene
-        self.agents = scene.get_agents()
+        self.agents = scene.agents()
         assert len(self.agents), "at least one sm.Agent is require in the scene for RL"
 
         agent_actions: agent.RLAgentActions = self.agents[0].actions

@@ -256,6 +256,7 @@ def build_node_tree(
         primitives = gltf_mesh.primitives
         for index, primitive in enumerate(primitives):
             mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][index]
+
             material_id = primitive.material
             if material_id is not None:
                 mat = gltf_model.materials[material_id]

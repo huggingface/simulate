@@ -20,9 +20,7 @@ from typing import List, Optional, Union
 
 from huggingface_hub import create_repo, hf_hub_download, logging, upload_file
 
-import simenv as sm
-
-from .assets import Asset
+from .assets import Asset, Camera, Light, Object3D, RL_Agent
 from .assets.anytree import RenderTree
 from .engine import GodotEngine, PyVistaEngine, UnityEngine
 
@@ -112,7 +110,7 @@ class Scene(Asset):
             revision=revision,
             repo_type="space",
             use_auth_token=use_auth_token,
-            force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
+            # force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
             **kwargs,
         )
         nodes = Asset.create_from(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
@@ -252,17 +250,25 @@ class Scene(Asset):
         self.tree_children = []
         return self
 
-    def _get_decendants_of_class_type(self, class_type):
-        result = []
-        for child in self.tree_descendants:
-            if isinstance(child, class_type):
-                result.append(child)
+    @property
+    def agents(self):
+        """Tuple with all RLAgent in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, RL_Agent))
 
-        return result
+    @property
+    def lights(self):
+        """Tuple with all Light in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, Light))
 
-    def get_agents(self):
-        # search all nodes for agents classes and then return in list
-        return self._get_decendants_of_class_type(sm.RL_Agent)
+    @property
+    def cameras(self):
+        """Tuple with all Camera in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, Camera))
+
+    @property
+    def objets(self):
+        """Tuple with all Object3D in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, Object3D))
 
     def show(self, **engine_kwargs):
         """Render the Scene using the engine if provided."""

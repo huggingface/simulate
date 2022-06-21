@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Sequence, Union
+from typing import Callable, Sequence, Union
 
 from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
@@ -371,6 +371,16 @@ class NodeMixin(object):
 
     def __repr__(self):
         return f"{self.name} ({self.__class__.__name__})"
+
+    def tree_filtered_descendants(self, filter_fn: Callable, stop=None, maxlevel=None):
+        """
+        Iterate over tree starting at node.
+        Keyword Args:
+            filter_fn: function called with every node as argument, node is returned if True.
+            stop: stop iteration at node if stop function returns True for node.
+            maxlevel (int): maximum descending in the node hierarchy.
+        """
+        return tuple(PreOrderIter(self, filter_=filter_fn, stop=stop, maxlevel=maxlevel))
 
     @property
     def tree_path(self):

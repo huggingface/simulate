@@ -7,6 +7,8 @@ from .rl_agent_reward_function import RLAgentRewardFunction
 
 
 class RL_Agent(Asset):
+    """A reinforcement learning agent"""
+
     dimensionality = 3
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
