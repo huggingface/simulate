@@ -32,15 +32,6 @@ namespace SimEnv.GLTF {
 
             public IEnumerator CreateTextureAsync(bool linear, Action<Texture2D> onFinish, Action<float> onProgress = null) {
                 if(!string.IsNullOrEmpty(path)) {
-#if UNITY_EDITOR
-                    Texture2D assetTexture = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-                    if(assetTexture != null) {
-                        onFinish(assetTexture);
-                        if(onProgress != null)
-                            onProgress(1f);
-                        yield break;
-                    }
-#endif
                     if(File.Exists(path)) {
                         byte[] data = File.ReadAllBytes(path);
                         Texture2D tex = new Texture2D(2, 2, TextureFormat.ARGB32, true);
