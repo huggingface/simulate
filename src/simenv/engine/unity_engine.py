@@ -101,11 +101,11 @@ class UnityEngine(Engine):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
         return self.run_command(command)
 
-    def step_async(self, action):
+    def step_send(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
         return self.run_command(command, ack=False)
     
-    def step_sync(self):
+    def step_recv(self):
         return self._get_response()
 
     def get_reward(self):
@@ -114,11 +114,11 @@ class UnityEngine(Engine):
         data = json.loads(response)
         return [float(f) for f in data["Items"]]
 
-    def get_reward_async(self):
+    def get_reward_send(self):
         command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
         self.run_command(command, ack=False)
 
-    def get_reward_sync(self):
+    def get_reward_recv(self):
         response = self._get_response()
         data = json.loads(response)
         return [float(f) for f in data["Items"]]       
@@ -129,11 +129,11 @@ class UnityEngine(Engine):
         data = json.loads(response)
         return [d == "True" for d in data["Items"]]
 
-    def get_done_async(self):
+    def get_done_send(self):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
         self.run_command(command, ack=False)
 
-    def get_done_sync(self):
+    def get_done_recv(self):
         response = self._get_response()
         data = json.loads(response)
         return [d == "True" for d in data["Items"]]  
@@ -142,11 +142,11 @@ class UnityEngine(Engine):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command)
     
-    def reset_async(self):
+    def reset_send(self):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command, ack=False) 
 
-    def reset_sync(self):
+    def reset_recv(self):
         return self._get_response()
 
     def get_observation(self):
@@ -155,11 +155,11 @@ class UnityEngine(Engine):
         decoded_obs = json.loads(encoded_obs)
         return decoded_obs
 
-    def get_observation_async(self):
+    def get_observation_send(self):
         command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
         self.run_command(command, ack=False)
     
-    def get_observation_sync(self):
+    def get_observation_recv(self):
         encoded_obs = self._get_response()
         decoded_obs = json.loads(encoded_obs)
         return decoded_obs
