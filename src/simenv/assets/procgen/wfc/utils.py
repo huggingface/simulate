@@ -16,7 +16,7 @@ def generate_seed():
     """
     Generate seeds to pass to the C++ side.
     """
-    return np.random.randint(0, 2**32)
+    return np.random.randint(0, 2**32, dtype=np.uint32)
 
 
 def decode_rgb(img):
