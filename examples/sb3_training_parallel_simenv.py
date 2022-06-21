@@ -12,7 +12,7 @@ from stable_baselines3.common.env_checker import check_env
 from simenv.wrappers import ParallelSimEnv
 
 def create_env(executable=None, port=None, headless=None):
-    scene = sm.Scene(engine="Unity", engine_exe=executable, enging_port=port, engine_headless=headless)
+    scene = sm.Scene(engine="Unity", engine_exe=executable, engine_port=port, engine_headless=headless)
     scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
 
     root = sm.Asset(name="root")
