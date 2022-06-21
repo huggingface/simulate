@@ -1,10 +1,9 @@
+import numpy as np
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 
-import numpy as np
 import simenv.assets.utils as utils
 from simenv.rl_env import RLEnv
-
 
 
 class ParallelSimEnv(VecEnv):
@@ -15,18 +14,17 @@ class ParallelSimEnv(VecEnv):
         self.envs = []
         # create the environments
         for i in range(n_parallel):
-            env = env_fn(starting_port+i)
+            env = env_fn(starting_port + i)
             self.n_agents = env.n_agents
             num_envs = self.n_agents * self.n_parallel
-            
+
             observation_space = env.observation_space
             action_space = env.action_space
 
             self.envs.append(env)
         super().__init__(num_envs, observation_space, action_space)
 
-
-#
+    #
     def reset(self):
         return self._reset()
         # get obs
@@ -40,7 +38,6 @@ class ParallelSimEnv(VecEnv):
 
         return self._get_observations()
 
-
     def step(self, actions):
         self._step(actions)
         # must return obs, reward, done, info
@@ -49,11 +46,10 @@ class ParallelSimEnv(VecEnv):
         obs = self._get_observations()
         return obs, rewards, dones, {}
 
-
     def _step(self, actions):
         # unpack and send the actions
         for i in range(self.n_parallel):
-            action = actions[i*self.n_agents:(i+1)*self.n_agents]
+            action = actions[i * self.n_agents : (i + 1) * self.n_agents]
             self.envs[i].step_send(action)
 
         # receive the acks
@@ -69,7 +65,7 @@ class ParallelSimEnv(VecEnv):
         for i in range(self.n_parallel):
             reward = self.envs[i].get_reward_recv()
             rewards.extend(reward)
-        
+
         return rewards
 
     def _get_done(self):
@@ -81,9 +77,8 @@ class ParallelSimEnv(VecEnv):
         for i in range(self.n_parallel):
             done = self.envs[i].get_done_recv()
             dones.extend(done)
-        
-        return dones
 
+        return dones
 
     def _get_observations(self):
         for i in range(self.n_parallel):
@@ -95,7 +90,7 @@ class ParallelSimEnv(VecEnv):
             obs = self.envs[i].get_observation_recv()
             obss.append(obs)
 
-        obss = np.concatenate(obss,0)
+        obss = np.concatenate(obss, 0)
 
         return obss
 
@@ -120,7 +115,7 @@ class ParallelSimEnv(VecEnv):
     def seed(self, value):
         # this should be done when the env is initialized
         return
-        #raise NotImplementedError()
+        # raise NotImplementedError()
 
     def set_attr(self):
         raise NotImplementedError()

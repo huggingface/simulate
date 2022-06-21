@@ -60,7 +60,6 @@ class RLEnv(gym.Env):
     def close(self):
         self.scene.close()
 
-
     # async sim interaction
 
     def step_send(self, action):
@@ -80,18 +79,15 @@ class RLEnv(gym.Env):
 
     def get_done_recv(self):
         return self.scene.engine.get_done_recv()
-    
+
     def reset_send(self):
         return self.scene.engine.reset_send()
-    
+
     def reset_recv(self):
         return self.scene.engine.reset_recv()
-    
+
     def get_observation_send(self):
         return self.scene.engine.get_observation_send()
-    
+
     def get_observation_recv(self):
         return self._reshape_obs(self.scene.engine.get_observation_recv())
-
-
-

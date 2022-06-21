@@ -6,6 +6,7 @@ import subprocess
 
 from .engine import Engine
 
+
 PRIMITIVE_TYPE_MAPPING = {
     "Sphere": 0,
     "Capsule": 1,
@@ -104,7 +105,7 @@ class UnityEngine(Engine):
     def step_send(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
         return self.run_command(command, ack=False)
-    
+
     def step_recv(self):
         return self._get_response()
 
@@ -121,7 +122,7 @@ class UnityEngine(Engine):
     def get_reward_recv(self):
         response = self._get_response()
         data = json.loads(response)
-        return [float(f) for f in data["Items"]]       
+        return [float(f) for f in data["Items"]]
 
     def get_done(self):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
@@ -136,15 +137,15 @@ class UnityEngine(Engine):
     def get_done_recv(self):
         response = self._get_response()
         data = json.loads(response)
-        return [d == "True" for d in data["Items"]]  
+        return [d == "True" for d in data["Items"]]
 
     def reset(self, ack=True):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command)
-    
+
     def reset_send(self):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
-        self.run_command(command, ack=False) 
+        self.run_command(command, ack=False)
 
     def reset_recv(self):
         return self._get_response()
@@ -158,7 +159,7 @@ class UnityEngine(Engine):
     def get_observation_send(self):
         command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
         self.run_command(command, ack=False)
-    
+
     def get_observation_recv(self):
         encoded_obs = self._get_response()
         decoded_obs = json.loads(encoded_obs)
