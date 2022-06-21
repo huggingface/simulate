@@ -12,7 +12,7 @@ from stable_baselines3.common.env_checker import check_env
 from simenv.wrappers import ParallelSimEnv
 
 def create_env(executable=None, port=None, headless=None):
-    scene = sm.Scene(engine="Unity", executable=executable, port=port, headless=headless)
+    scene = sm.Scene(engine="Unity", engine_exe=executable, enging_port=port, engine_headless=headless)
     scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
 
     root = sm.Asset(name="root")
@@ -64,14 +64,10 @@ def make_env(executable, seed=0, headless=None):
 
 
 if __name__ == "__main__":
-
-
-    n_envs = 16
-
-
+    n_parallel = 4
     env_fn = make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")
 
-    env = ParallelSimEnv(env_fn=env_fn, n_parallel=2)
+    env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
     obs = env.reset()
     model = PPO("CnnPolicy", env, verbose=3)
     model.learn(total_timesteps=100000)
