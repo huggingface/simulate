@@ -86,12 +86,6 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
 }
 
-# Check if platform is windows and if it is, change the arguments
-if sys.platform == "win32":
-   extra_args = ["-std:c++17"]
-else:
-   extra_args = ["-std=c++17"]
-
 ext_modules = [
    Extension(
       name="wfc_binding",
@@ -100,8 +94,6 @@ ext_modules = [
                "src/simenv/assets/procgen/wfc/core/cpp/src/wave.cpp",
                "src/simenv/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
       language="c++",
-      extra_compile_args=extra_args,
-      extra_link_args=extra_args,
       include_dirs=[
             "src/simenv/assets/procgen/wfc/core/cpp/include",
       ],

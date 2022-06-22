@@ -1,7 +1,6 @@
 #ifndef FAST_WFC_WFC_HPP_
 #define FAST_WFC_WFC_HPP_
 
-#include <optional>
 #include <random>
 
 #include "utils/array2D.hpp"
@@ -57,7 +56,7 @@ public:
   /**
    * Run the algorithm, and return a result if it succeeded.
    */
-  std::optional<Array2D<unsigned>> run() noexcept;
+  Array2D<unsigned> run() noexcept;
 
   /**
    * Return value of observe.

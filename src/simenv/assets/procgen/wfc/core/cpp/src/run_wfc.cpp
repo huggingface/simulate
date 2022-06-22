@@ -55,7 +55,7 @@ Array2D<Color> array2d_from_vector(std::vector<Color> input, unsigned width, uns
 /**
  * Read the overlapping wfc problem.
  */
-std::optional<std::vector<Color>> read_overlapping_instance(unsigned seed, unsigned width, 
+std::vector<Color> read_overlapping_instance(unsigned seed, unsigned width, 
                               unsigned height, bool periodic_output, unsigned N,
                               bool periodic_input, bool ground, unsigned nb_samples, 
                               unsigned symmetry, std::vector<Color> input_img,
@@ -67,8 +67,8 @@ std::optional<std::vector<Color>> read_overlapping_instance(unsigned seed, unsig
   }
 
   // Stop hardcoding samples
-  std::optional<Array2D<Color>> m = array2d_from_vector(input_img, input_width, input_height);
-  if (!m.has_value()) {
+  Array2D<Color> m = array2d_from_vector(input_img, input_width, input_height);
+  if (m.width == 0 && m.height == 0) {
     throw "Error while loading the map to sample from.";
   }
 
@@ -79,13 +79,13 @@ std::optional<std::vector<Color>> read_overlapping_instance(unsigned seed, unsig
       if (test > 0) {
         seed = increment_seed(seed);
       }
-      OverlappingWFC<Color> wfc(*m, options, seed);
-      std::optional<Array2D<Color>> success = wfc.run();
-      if (success.has_value()) {
+      OverlappingWFC<Color> wfc(m, options, seed);
+      Array2D<Color> result = wfc.run();
+      if (result.width > 0 || result.height > 0) {
         if (verbose) {
           cout << "Finished!" << endl;
         }
-        return success.value().data;
+        return result.data;
       } else {
         if (verbose) {
           cout << "Failed to generate!" << endl;
@@ -94,7 +94,7 @@ std::optional<std::vector<Color>> read_overlapping_instance(unsigned seed, unsig
     }
   }
 
-  return std::nullopt;
+  return vector<Color>();
 }
 
 /**
@@ -133,7 +133,7 @@ Tile<Color> pytile_to_tile(PyTile pytile) {
 /**
  * Read an instance of a tiling WFC problem.
  */
-std::optional<std::vector<Color>> read_simpletiled_instance(unsigned seed, unsigned width, unsigned height, bool periodic_output,
+std::vector<Color> read_simpletiled_instance(unsigned seed, unsigned width, unsigned height, bool periodic_output,
                                 bool verbose, unsigned nb_tries, std::vector<PyTile> pytiles,
                                 std::vector<Neighbor> neighbors) noexcept {
 
@@ -175,12 +175,12 @@ std::optional<std::vector<Color>> read_simpletiled_instance(unsigned seed, unsig
     TilingWFC<Color> wfc(tiles, neighbors_ids, height, width, {periodic_output},
                          seed);
 
-    std::optional<Array2D<Color>> success = wfc.run();
-    if (success.has_value()) {
+    Array2D<Color> result = wfc.run();
+    if (result.width > 0 || result.height > 0) {
       if (verbose) {
         cout << "Finished!" << endl;
       }
-      return success.value().data;
+      return result.data;
     } else {
       if (verbose) {
         cout << "Failed!" << endl;
@@ -188,7 +188,7 @@ std::optional<std::vector<Color>> read_simpletiled_instance(unsigned seed, unsig
     }
   }
 
-  return std::nullopt;
+  return vector<Color>();
 }
 
 // TODO: try adding &
@@ -207,15 +207,15 @@ std::vector<Color> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, i
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  std::optional<std::vector<Color>> success;
+  std::vector<Color> result;
 
   if (sample_type == 0) {
-    success = read_simpletiled_instance(seed, width, height, periodic_output, verbose, nb_tries,
+    result = read_simpletiled_instance(seed, width, height, periodic_output, verbose, nb_tries,
                                         tiles, neighbors);
   }
 
   else if (sample_type == 1) {
-    success = read_overlapping_instance(seed, width, height, periodic_output, N, periodic_input, ground, 
+    result = read_overlapping_instance(seed, width, height, periodic_output, N, periodic_input, ground, 
                   nb_samples, symmetry, input_img, input_width, input_height, verbose, nb_tries);
   }
 
@@ -234,8 +234,8 @@ std::vector<Color> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, i
             << "ms.\n";
   }
 
-  if (success.has_value()) {
-    return success.value();
+  if (result.size() > 0) {
+    return result;
   } else {
     return std::vector<Color>();
   }

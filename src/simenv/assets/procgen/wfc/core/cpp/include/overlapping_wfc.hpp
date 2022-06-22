@@ -35,6 +35,17 @@ struct OverlappingWFCOptions {
   }
 };
 
+template<class InputIt, class T>
+constexpr InputIt find(InputIt first, InputIt last, const T& value)
+{
+    for (; first != last; ++first) {
+        if (*first == value) {
+            return first;
+        }
+    }
+    return last;
+}
+
 /**
  * Class generating a new image with the overlapping WFC algorithm.
  */
@@ -298,14 +309,14 @@ private:
     return output;
   }
 
-  std::optional<unsigned> get_pattern_id(const Array2D<T> &pattern) {
-    unsigned* pattern_id = std::find(patterns.begin(), patterns.end(), pattern);
+  unsigned get_pattern_id(const Array2D<T> &pattern) {
+    unsigned* pattern_id = find(patterns.begin(), patterns.end(), pattern);
 
     if (pattern_id != patterns.end()) {
       return *pattern_id;
     }
 
-    return std::nullopt;
+    return patterns.data.size();
   }
 
   /**
@@ -336,7 +347,8 @@ public:
   bool set_pattern(const Array2D<T>& pattern, unsigned i, unsigned j) noexcept {
     auto pattern_id = get_pattern_id(pattern);
 
-    if (pattern_id == std::nullopt || i >= options.get_wave_height() || j >= options.get_wave_width()) {
+    // If pattern_id points to an unaccessible id, then it failed to find the pattern
+    if (pattern_id == patterns.data.size() || i >= options.get_wave_height() || j >= options.get_wave_width()) {
       return false;
     }
 
@@ -347,12 +359,12 @@ public:
   /**
    * Run the WFC algorithm, and return the result if the algorithm succeeded.
    */
-  std::optional<Array2D<T>> run() noexcept {
-    std::optional<Array2D<unsigned>> result = wfc.run();
-    if (result.has_value()) {
-      return to_image(*result);
+  Array2D<T> run() noexcept {
+    Array2D<unsigned> result = wfc.run();
+    if (result.width > 0 || result.height > 0) {
+      return to_image(result);
     }
-    return std::nullopt;
+    return Array2D<T>(0, 0);
   }
 };
 
