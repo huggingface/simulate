@@ -8,7 +8,7 @@ import numpy as np
 
 from wfc_binding import run_wfc
 
-from .utils import GRANULARITY, decode_rgb
+from .wfc_utils import GRANULARITY, decode_rgb
 
 
 def generate_2d_map(
