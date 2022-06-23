@@ -18,32 +18,42 @@ namespace ISimEnv {
         static Dictionary<string, ISimObject> _objects;
         static Dictionary<string, ISimObject> objects {
             get {
-                if(_objects == null)
+                if (_objects == null)
                     _objects = new Dictionary<string, ISimObject>();
                 return _objects;
             }
         }
 
         public static ISimAgent Agent { get; private set; }
+        public static List<ISimAgent> Agents { get; private set; }
 
         public static void Register(ISimAgent agent) {
-            if(Agent != null) {
-                Debug.LogWarning("Environment already contains an agent: " + Agent.Name);
-                return;
+            // if (Agent != null) {
+            //     Debug.LogWarning("Environment already contains an agent: " + Agent.Name);
+            //     return;
+            // }
+            // Agent = agent;
+            if (Agents == null) {
+                Agents = new List<ISimAgent>();
             }
-            Agent = agent;
+            Agents.Add(agent);
         }
 
         public static void Unregister(ISimAgent agent) {
-            if(Agent == null || Agent != agent) {
-                Debug.LogWarning("ISimulator agent isn't set to agent: " + agent.Name);
-                return;
+            // if (Agent == null || Agent != agent) {
+            //     Debug.LogWarning("ISimulator agent isn't set to agent: " + agent.Name);
+            //     return;
+            // }
+            // Agent = null;
+
+            Agents.Remove(agent);
+            if (Agents.Count == 0) {
+                Agents = null;
             }
-            Agent = null;
         }
 
         public static void Register(ISimObject simObject) {
-            if(objects.ContainsKey(simObject.Name)) {
+            if (objects.ContainsKey(simObject.Name)) {
                 Debug.LogWarning("Environment already contains object with name: " + simObject.Name);
                 return;
             }
@@ -51,7 +61,7 @@ namespace ISimEnv {
         }
 
         public static void Unregister(ISimObject simObject) {
-            if(!objects.ContainsKey(simObject.Name)) {
+            if (!objects.ContainsKey(simObject.Name)) {
                 Debug.LogWarning(string.Format("Object with name {0} not found", simObject.Name));
                 return;
             }
@@ -59,7 +69,7 @@ namespace ISimEnv {
         }
 
         public static ISimObject GetObject(string identifier) {
-            if(!objects.ContainsKey(identifier)) {
+            if (!objects.ContainsKey(identifier)) {
                 Debug.LogWarning("Couldn't find object with identifier: " + identifier);
                 return null;
             }
@@ -68,7 +78,7 @@ namespace ISimEnv {
 
         public static bool TryGetObject(string identifier, out ISimObject simObject) {
             simObject = null;
-            if(objects.ContainsKey(identifier)) {
+            if (objects.ContainsKey(identifier)) {
                 simObject = objects[identifier];
                 return true;
             }

@@ -26,6 +26,7 @@ class RL_Agent(Asset):
         camera_height=None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        **kwargs,
     ):
         super().__init__(name=name, position=position, rotation=rotation, parent=parent, children=children)
 
@@ -51,3 +52,17 @@ class RL_Agent(Asset):
 
     def add_reward_function(self, reward_function: RLAgentRewardFunction) -> None:
         self.reward_functions.append(reward_function)
+
+    def copy(self):
+        instance_copy = super().copy()
+        instance_copy.color = self.color
+        instance_copy.height = self.height
+        instance_copy.move_speed = self.move_speed
+        instance_copy.actions = self.actions
+        instance_copy.reward_functions = self.reward_functions
+        # instance_copy.camera = self.camera
+
+        return instance_copy
+
+    def post_copy(self):
+        self.reward_functions = [rf.post_copy(self) for rf in self.reward_functions]

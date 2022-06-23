@@ -24,3 +24,4 @@ from .assets.utils import *
 from .engine import PyVistaEngine, UnityEngine
 from .rl_env import RLEnv
 from .scene import Scene
+from .wrappers import ParallelSimEnv
