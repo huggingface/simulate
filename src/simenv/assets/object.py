@@ -1099,6 +1099,8 @@ class ProcgenGrid(Object3D):
         specific_map: Union[np.ndarray, List[List[List[int]]]] = None,
         tiles: Optional[List] = None,
         neighbors: Optional[List] = None,
+        symmetries: Optional[List] = None,
+        weights: Optional[List] = None,
         width: Optional[int] = 9,
         height: Optional[int] = 9,
         shallow: Optional[bool] = False,
@@ -1137,6 +1139,8 @@ class ProcgenGrid(Object3D):
             "sample_map": sample_map,
             "tiles": tiles,
             "neighbors": neighbors,
+            "weights": weights,
+            "symmetries": symmetries,
             **algorithm_args,
         }
 

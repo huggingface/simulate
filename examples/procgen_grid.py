@@ -11,8 +11,10 @@ scene = sm.Scene()
 # Third doesn't have information associated for now. 
 # Ideally the user could create
 # their own functions to handle decoding the information.
-specific_map = np.array([[[0,0,0], [0,0,0]], [[1,0,0], [1,0,0]], \
-    [[1,0,0], [0,0,0]]], dtype=int)
+specific_map = np.array(
+    [[[[0,0], [0,0]], [[0,0], [0,0]]], 
+    [[[1,1], [1,1]], [[1,1], [1,1]]], \
+    [[[1,1], [1,1]], [[0,0], [0,0]]]]) * 0.6
 scene += sm.ProcgenGrid(specific_map=specific_map)
 scene += sm.Light()
 scene.show()
@@ -32,19 +34,16 @@ scene.clear()
 
 # Ideally, instead of "hardcoding" the tiles, you would create a function
 # to generate them
-# You can use some help functions in wfc_binding: 
-# Using tiles:
-# TODO: add a python wrapper
-tiles = [build_wfc_tile(tile=[[i, 0, 0]], symmetry="X", name="level_" \
-    + str(i), weight=1.0 - i * 0.5) for i in range(2)]
+tiles = 0.6 * np.array([[[i, i], [i, i]] for i in range(2)])
+
+# Weights and symmetries are facultative
+weights = [1.0 - i * 0.5 for i in range(2)]
+symmetries = ["X"] * 2
 
 # Create constraints that define which tiles can be neighbors
-_neighbors = [["level_1", "level_0", 0, 0], ["level_0", "level_0", 0, 0], \
-    ["level_1", "level_1", 0, 0]]
-neighbors = [build_wfc_neighbor(left=_neighbor[0], right=_neighbor[1], \
-    left_or=_neighbor[2], right_or=_neighbor[3]) for _neighbor in _neighbors]
-
-scene += sm.ProcgenGrid(width=5, height=5, tiles=tiles, neighbors=neighbors)
+neighbors = [(tiles[1], tiles[0]), (tiles[0], tiles[0]), (tiles[1], tiles[1])]
+scene += sm.ProcgenGrid(width=3, height=3, tiles=tiles, neighbors=neighbors, weights=weights, symmetries=symmetries) 
+scene += sm.Light()
 
 scene.show()
 input("Press Enter to close")

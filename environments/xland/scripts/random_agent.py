@@ -10,6 +10,9 @@ from xland.utils import create_2d_map
 ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 
 
+ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+
+
 if __name__ == "__main__":
     plt.ion()
 
