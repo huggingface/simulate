@@ -3,32 +3,78 @@ using System.Net.Sockets;
 using System.Text;
 using System.Collections;
 using UnityEngine;
-using ISimEnv;
 using System.Linq;
+using System.Collections.Generic;
 
 namespace SimEnv {
-    /// <summary>
-    /// Manages all communication with Python API
-    /// </summary>
-    public class Client {
-        TcpClient client;
-        string host;
-        int port;
+    [CreateAssetMenu(menuName = "SimEnv/Client")]
+    public class Client : Singleton<Client> {
+        public string host;
+        public int port;
 
-        public Client(string host = "localhost", int port = 55000) {
-            this.host = host;
-            this.port = port;
+        TcpClient _client;
+        TcpClient client {
+            get {
+                _client ??= new TcpClient(host, port);
+                return _client;
+            }
         }
 
-        public IEnumerator Listen() {
-            try {
-                client = new TcpClient(host, port);
-            } catch (Exception e) {
-                Debug.LogError("Connection failed: " + e.ToString());
-                yield break;
+        Dictionary<string, ICommand> _commands;
+        Dictionary<string, ICommand> commands {
+            get {
+                _commands ??= new Dictionary<string, ICommand>();
+                return _commands;
             }
-            int chunk_size = 1024;
-            byte[] buffer = new byte[chunk_size];
+        }
+
+        Coroutine listenCoroutine;
+
+        /// <summary>
+        /// Connect to server and begin listening for commands.
+        /// </summary>
+        public void Initialize(string host = "localhost", int port = 55000) {
+            if(TryGetArg("port", out string portArg))
+                int.TryParse(portArg, out port);
+            this.host = host;
+            this.port = port;
+            LoadCommands();
+            if (listenCoroutine == null)
+                listenCoroutine = ListenCoroutine().RunCoroutine();
+        }
+
+        /// <summary>
+        /// Helper function for getting command line arguments.
+        /// </summary>
+        /// <param name="name"></param>
+        /// <returns></returns>
+        public static bool TryGetArg(string name, out string arg) {
+            arg = null;
+            var args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++) {
+                if (args[i] == name && args.Length > i + 1) {
+                    arg = args[i + 1];
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        private void LoadCommands() {
+            AppDomain.CurrentDomain.GetAssemblies()
+                .SelectMany(x => x.GetTypes())
+                .Where(x => !x.IsInterface && !x.IsAbstract && x.GetInterfaces().Contains(typeof(ICommand)))
+                .Select(x => (ICommand)Activator.CreateInstance(x))
+                .ToList().ForEach(command => {
+                    string type = command.GetType().Name;
+                    if (!commands.ContainsKey(type))
+                        commands.Add(type, command);
+                });
+        }
+
+        private IEnumerator ListenCoroutine() {
+            int chunkSize = 1024;
+            byte[] buffer = new byte[chunkSize];
             while (true) {
                 NetworkStream stream = client.GetStream();
                 if (stream.DataAvailable) {
@@ -39,13 +85,11 @@ namespace SimEnv {
                     byte[] data = new byte[messageLength];
                     int dataReceived = 0;
 
-                    while (dataReceived < messageLength) {
-                        dataReceived += stream.Read(data, dataReceived, Math.Min(chunk_size, messageLength - dataReceived));
-                    }
+                    while (dataReceived < messageLength)
+                        dataReceived += stream.Read(data, dataReceived, Math.Min(chunkSize, messageLength - dataReceived));
 
                     Debug.Assert(dataReceived == messageLength);
                     string message = Encoding.ASCII.GetString(data, 0, messageLength);
-                    //Debug.Log("Received message: " + message);
                     if (TryParseCommand(message, out ICommand command, out string error)) {
                         command.Execute(response => WriteMessage(response));
                     } else {
@@ -57,6 +101,10 @@ namespace SimEnv {
             }
         }
 
+        /// <summary>
+        /// Write a message back to the server.
+        /// </summary>
+        /// <param name="message"></param>
         public void WriteMessage(string message) {
             if (client == null) return;
             try {
@@ -74,24 +122,24 @@ namespace SimEnv {
             }
         }
 
+        /// <summary>
+        /// Close the client.
+        /// </summary>
         public void Close() {
             if (client != null && client.Connected)
                 client.Close();
         }
 
-        bool TryParseCommand(string json, out ICommand command, out string error) {
+        private bool TryParseCommand(string json, out ICommand command, out string error) {
             error = "";
             command = null;
             CommandWrapper commandWrapper = JsonUtility.FromJson<CommandWrapper>(json);
-            Type commandType = AppDomain.CurrentDomain.GetAssemblies()
-                .SelectMany(x => x.GetTypes())
-                .Where(x => x.IsSubclassOf(typeof(ICommand)))
-                .FirstOrDefault(x => x.ToString().EndsWith(commandWrapper.type));
-            if (commandType == null) {
-                error = "Unknown Command " + commandWrapper.type;
+            if (!commands.ContainsKey(commandWrapper.type)) {
+                error = "Unknown command: " + commandWrapper.type;
                 return false;
             }
-            command = JsonUtility.FromJson(commandWrapper.contents, commandType) as ICommand;
+            command = commands[commandWrapper.type];
+            JsonUtility.FromJsonOverwrite(commandWrapper.contents, command);
             return true;
         }
 

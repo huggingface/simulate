@@ -3,8 +3,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 
-public class Matrix4x4Converter : JsonConverter
-{
+public class Matrix4x4Converter : JsonConverter {
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
         Matrix4x4 matrix = (Matrix4x4)value;
         writer.WriteStartArray();

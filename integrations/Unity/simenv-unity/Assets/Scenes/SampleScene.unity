@@ -167,7 +167,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: edce4d304493ed6419d4714cb9c74c89, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  modPath: Resources/Mods
 --- !u!1 &1489473661
 GameObject:
   m_ObjectHideFlags: 0
