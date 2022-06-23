@@ -14,6 +14,7 @@
 
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
+import itertools
 import os
 import tempfile
 from typing import List, Optional, Union
@@ -38,6 +39,12 @@ class SceneNotBuiltError(Exception):
 
 
 class Scene(Asset):
+    """A Scene is the main place to add objects and object tree.
+    In addition to a root node, it has an engine that can be used to diplay and interact with the scene.
+    """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         engine: Optional[str] = "pyvista",

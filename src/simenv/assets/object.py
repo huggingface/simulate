@@ -14,6 +14,7 @@
 
 # Lint as: python3
 """ A simenv Scene Object."""
+import itertools
 from typing import List, Optional, Union
 
 import numpy as np
@@ -38,6 +39,8 @@ class Object3D(Asset):
     --------
 
     """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -148,6 +151,8 @@ class Plane(Object3D):
 
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         i_size: Optional[float] = 1,
@@ -212,6 +217,8 @@ class Sphere(Object3D):
     sphere_type : str, optional
         One of 'uv' for a UV-sphere or 'ico' for an icosphere.
     """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -299,6 +306,8 @@ class Capsule(Object3D):
 
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         position: Optional[List[float]] = None,
@@ -376,6 +385,8 @@ class Cylinder(Object3D):
     --------
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         height: Optional[float] = 1.0,
@@ -396,7 +407,7 @@ class Cylinder(Object3D):
         super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
-class Cube(Object3D):
+class Box(Object3D):
     """Create a box with solid faces for the given bounds.
 
     Parameters
@@ -409,9 +420,15 @@ class Cube(Object3D):
         Direction the top of the box points to in ``[x, y, z]``.
         Default to pointing in the ``y`` (up) direction.
 
-    bounds : iterable, optional
-        Specify the bounding box of the cube.
-        ``(xMin, xMax, yMin, yMax, zMin, zMax)``.
+    bounds : float or List[float], optional
+        Specify the bounding box of the cube as either:
+        - a list of 6 floats:(xMin, xMax, yMin, yMax, zMin, zMax)
+            => bounds are ``(xMin, xMax, yMin, yMax, zMin, zMax)``
+        - a list of 3 floats: xSize, ySize, zSize
+            => bounds are ``(-xSize/2, xSize/2, ySize/2, ySize/2, -zSize/2, zSize/2)``
+        - a single float: size
+            => bounds are ``(-size/2, size/2, size/2, size/2, -size/2, size/2)``
+        If no value is provide, create a centered unit box
 
     level : int, optional
         Level of subdivision of the faces.
@@ -427,6 +444,8 @@ class Cube(Object3D):
     --------
 
     """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -444,7 +463,16 @@ class Cube(Object3D):
         if bounds is None:
             bounds = (-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)
         if isinstance(bounds, (float, int)):
-            bounds = (-bounds, bounds, -bounds, bounds, -bounds, bounds)  # Make it a list
+            bounds = (-bounds / 2, bounds / 2, -bounds / 2, bounds / 2, -bounds / 2, bounds / 2)  # Make it a tuple
+        if len(bounds) == 3:
+            bounds = (
+                -bounds[0] / 2,
+                bounds[0] / 2,
+                -bounds[1] / 2,
+                bounds[1] / 2,
+                -bounds[2] / 2,
+                bounds[2] / 2,
+            )  # Make it a tuple
 
         mesh = pv.Box(bounds=bounds, level=level, quads=quads)
         if direction is not None:
@@ -494,6 +522,8 @@ class Cone(Object3D):
 
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         height: Optional[float] = 1.0,
@@ -534,6 +564,8 @@ class Line(Object3D):
 
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         pointa: Optional[List[float]] = None,
@@ -568,6 +600,8 @@ class MultipleLines(Object3D):
     --------
 
     """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -612,6 +646,8 @@ class Tube(Object3D):
 
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         pointa: Optional[List[float]] = None,
@@ -645,7 +681,72 @@ class Polygon(Object3D):
         Direction the normal to the polygon in ``[x, y, z]``.
         Default to pointing in the ``y`` (up) direction.
 
-    radius : float, optional
+    points : np.ndarray or list
+        List of points defining the polygon,
+            e.g. ``[[0, 0, 0], [1, 0, -.1], [.8, 0, .5], [1, 0, 1], [.6, 0, 1.2], [0, 0, .8]]``.
+        The polygon is defined by an ordered list of three or more points lying in a plane.
+        The polygon normal is implicitly defined by a counterclockwise ordering of
+        its points using the right-hand rule.
+
+    Returns
+    -------
+
+    Examples
+    --------
+
+
+    """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
+    def __init__(
+        self,
+        points: List[List[float]],
+        position: Optional[List[float]] = None,
+        name: Optional[str] = None,
+        parent: Optional[Asset] = None,
+        children: Optional[List[Asset]] = None,
+        **kwargs,
+    ):
+        from vtkmodules.vtkCommonDataModel import vtkCellArray, vtkPolyData, vtkPolygon
+
+        # Setup points
+        num_pts = len(points)
+        v_points = pv.vtk_points(points)
+
+        # Create the polygon
+        polygon = vtkPolygon()
+        polygon.GetPointIds().SetNumberOfIds(num_pts)
+        for i in range(num_pts):
+            polygon.GetPointIds().SetId(i, i)
+
+        # Add the polygon to a list of polygons
+        polygons = vtkCellArray()
+        polygons.InsertNextCell(polygon)
+
+        # Create a PolyData
+        polygonPolyData = vtkPolyData()
+        polygonPolyData.SetPoints(v_points)
+        polygonPolyData.SetPolys(polygons)
+
+        mesh = pv.PolyData(polygonPolyData)
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
+
+
+class RegularPolygon(Object3D):
+    """Create a regular polygon.
+
+    Parameters
+    ----------
+    position : np.ndarray or list, optional
+        Center in ``[x, y, z]``.
+        Default to a center at the origin ``[0, 0, 0]``.
+
+    direction : list or tuple or np.ndarray, optional
+        Direction the normal to the polygon in ``[x, y, z]``.
+        Default to pointing in the ``y`` (up) direction.
+
+    points : float, optional
         The radius of the polygon.
 
     n_sides : int, optional
@@ -658,6 +759,8 @@ class Polygon(Object3D):
     --------
 
     """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -713,6 +816,8 @@ class Disc(Object3D):
 
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     # TODO(thomas) add back center and normal and see how to handle that for 2D/3D stuff
     def __init__(
         self,
@@ -760,6 +865,8 @@ class Text3D(Object3D):
 
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         string: Optional[str] = "Hello",
@@ -797,6 +904,8 @@ class Triangle(Object3D):
 
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         points: Optional[List[List[float]]] = None,
@@ -824,6 +933,8 @@ class Rectangle(Object3D):
     --------
 
     """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -863,6 +974,8 @@ class Circle(Object3D):
     --------
 
     """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
@@ -904,6 +1017,8 @@ class StructuredGrid(Object3D):
     --------
 
     """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
