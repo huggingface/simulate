@@ -54,7 +54,7 @@ class Asset(NodeMixin, object):
         children=None,
     ):
         self._uuid = uuid.uuid4()
-        id = next(self.__class__.__NEW_ID)
+        id = next(getattr(self.__class__, f"_{self.__class__.__name__}__NEW_ID"))
         if name is None:
             name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
         self.name = name

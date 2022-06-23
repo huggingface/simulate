@@ -49,8 +49,8 @@ for i in range(1000):
     action = env.action_space.sample()
     if type(action) != int:  # discrete are ints, continuous are numpy arrays
         action = action.tolist()
-
     obs, reward, done, info = env.step([action])
+
     print(done, reward, info)
     axim1.set_data(obs[0].transpose(1,2,0))
     fig1.canvas.flush_events()

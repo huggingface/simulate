@@ -22,7 +22,7 @@ class DiscreteRLAgentActions(RLAgentActions):
         )
 
 
-class ContinuosRLAgentActions(RLAgentActions):
+class ContinuousRLAgentActions(RLAgentActions):
     def __init__(self, name=None, dist=None, types=None, available_actions=None) -> None:
         super().__init__(name=name, dist=dist, types=types, available_actions=available_actions)
 
