@@ -137,7 +137,7 @@ class UnityEngine(Engine):
     def get_done_recv(self):
         response = self._get_response()
         data = json.loads(response)
-        return [d == "True" for d in data["Items"]]
+        return [d for d in data["Items"]]
 
     def reset(self, ack=True):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
