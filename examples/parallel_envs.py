@@ -29,7 +29,7 @@ def create_env(executable=None, port=None, headless=None):
     scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
 
-    agent = sm.RL_Agent(name="agent", turn_speed=5.0,camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
+    agent = sm.RlAgent(name="agent", turn_speed=5.0,camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
     scene += sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
 
     reward_function = sm.RLAgentRewardFunction(

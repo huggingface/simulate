@@ -189,8 +189,8 @@ def build_node_tree(
         "parent": parent,
     }
 
-    if gltf_node.extensions is not None and gltf_node.extensions.HF_collider is not None:
-        hf_collider = gltf_node.extensions.HF_collider
+    if gltf_node.extensions is not None and gltf_node.extensions.HF_colliders is not None:
+        hf_collider = gltf_node.extensions.HF_colliders
         collider = Collider(
             type=hf_collider.type,
             bounding_box=hf_collider.boundingBox,

@@ -135,13 +135,13 @@ namespace SimEnv.Agents {
 
         public Actions actions;
 
-        public Agent(Node node, HF_RL_Agent agentData) {
+        public Agent(Node node, HFRlAgent agentData) {
             this.node = node;
             SetProperties(agentData);
             AgentManager.instance.Register(this);
         }
 
-        public void SetProperties(HF_RL_Agent agentData) {
+        public void SetProperties(HFRlAgent agentData) {
             Debug.Log("Setting Agent properties");
             originalPosition = new Vector3(node.gameObject.transform.position.x, node.gameObject.transform.position.y, node.gameObject.transform.position.z);
             color = new Color(agentData.color[0], agentData.color[1], agentData.color[2]);

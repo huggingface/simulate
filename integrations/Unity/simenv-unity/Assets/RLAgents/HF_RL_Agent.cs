@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 
 namespace SimEnv.Agents {
-    public class HF_RL_Agent : IGLTFExtension {
+    public class HFRlAgent : IGLTFExtension {
         //public string name = "";
         public float[] color;
         public float height = 1f;

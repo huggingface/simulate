@@ -11,6 +11,8 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
 from simenv.wrappers import ParallelSimEnv
 
+UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
+
 def create_env(executable=None, port=None, headless=None):
     scene = sm.Scene(engine="Unity", engine_exe=executable, engine_port=port, engine_headless=headless)
     scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
@@ -32,7 +34,7 @@ def create_env(executable=None, port=None, headless=None):
         material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
         root += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 
-    agent = sm.RL_Agent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
+    agent = sm.RlAgent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
     reward_function = sm.RLAgentRewardFunction(
         function="dense",
         entity1=agent,
@@ -65,7 +67,7 @@ def make_env(executable, seed=0, headless=None):
 
 if __name__ == "__main__":
     n_parallel = 4
-    env_fn = make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")
+    env_fn = make_env(UNITY_BUILD_URL)
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
     obs = env.reset()

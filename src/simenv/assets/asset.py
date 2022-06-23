@@ -107,11 +107,11 @@ class Asset(NodeMixin, object):
             instance_copy.tree_children = copy_children
 
             for child in instance_copy.tree_children:
-                child.post_copy()
+                child._post_copy()
 
         return instance_copy
 
-    def post_copy(self):
+    def _post_copy(self):
         return
 
     def get_last_copy_name(self):

@@ -7,7 +7,7 @@ from .rl_agent_actions import DiscreteRLAgentActions, RLAgentActions
 from .rl_agent_reward_function import RLAgentRewardFunction
 
 
-class RL_Agent(Asset):
+class RlAgent(Asset):
     """A reinforcement learning agent"""
 
     dimensionality = 3
@@ -68,5 +68,5 @@ class RL_Agent(Asset):
 
         return instance_copy
 
-    def post_copy(self):
-        self.reward_functions = [rf.post_copy(self) for rf in self.reward_functions]
+    def _post_copy(self):
+        self.reward_functions = [rf._post_copy(self) for rf in self.reward_functions]
