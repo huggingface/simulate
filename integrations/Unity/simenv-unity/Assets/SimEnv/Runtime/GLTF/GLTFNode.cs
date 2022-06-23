@@ -313,9 +313,10 @@ namespace SimEnv.GLTF {
             [JsonIgnore] public GLTFMesh meshResult;
         }
 
-        public static List<ExportResult> Export(Transform root) {
+        public static List<ExportResult> Export(GLTFObject gltfObject, Transform root) {
             List<ExportResult> nodes = new List<ExportResult>();
             CreateNodeListRecursive(root, nodes);
+            gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
             return nodes;
         }
 

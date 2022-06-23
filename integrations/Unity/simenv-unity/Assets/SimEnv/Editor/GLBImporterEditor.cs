@@ -2,7 +2,7 @@ using UnityEditor.AssetImporters;
 using UnityEngine;
 
 namespace SimEnv.GLTF {
-    [ScriptedImporter(1, "glb")]
+    [ScriptedImporter(1, "glb", importQueueOffset: 3000)]
     public class GLBImporterEditor : GLTFImporterEditor {
         public override void OnImportAsset(AssetImportContext ctx) {
             AnimationClip[] animations;

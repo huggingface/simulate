@@ -26,18 +26,18 @@ namespace SimEnv.GLTF {
         public ImportResult Import(string filepath, byte[] bytefile, long binChunkStart) {
             ImportResult result = new ImportResult();
 
-            if(uri == null) {
-                if(string.IsNullOrEmpty(filepath))
+            if (uri == null) {
+                if (string.IsNullOrEmpty(filepath))
                     result.stream = new MemoryStream(bytefile);
                 else
                     result.stream = File.OpenRead(filepath);
                 result.startOffset = binChunkStart + 8;
                 result.stream.Position = result.startOffset;
-            } else if(uri.StartsWith(embeddedPrefix)) {
+            } else if (uri.StartsWith(embeddedPrefix)) {
                 string b64 = uri.Substring(embeddedPrefix.Length, uri.Length - embeddedPrefix.Length);
                 byte[] bytes = Convert.FromBase64String(b64);
                 result.stream = new MemoryStream(bytes);
-            } else if(uri.StartsWith(embeddedPrefix2)) {
+            } else if (uri.StartsWith(embeddedPrefix2)) {
                 string b64 = uri.Substring(embeddedPrefix2.Length, uri.Length - embeddedPrefix2.Length);
                 byte[] bytes = Convert.FromBase64String(b64);
                 result.stream = new MemoryStream(bytes);
@@ -54,10 +54,21 @@ namespace SimEnv.GLTF {
             public ImportTask(List<GLTFBuffer> buffers, string filepath, byte[] bytefile, long binChunkStart) : base() {
                 task = new Task(() => {
                     result = new ImportResult[buffers.Count];
-                    for(int i = 0; i < result.Length; i++)
+                    for (int i = 0; i < result.Length; i++)
                         result[i] = buffers[i].Import(filepath, bytefile, binChunkStart);
                 });
             }
+        }
+
+        public static GLTFBuffer Export(GLTFObject gltfObject, byte[] bufferData, string filepath) {
+            GLTFBuffer buffer = new GLTFBuffer();
+            buffer.byteLength = bufferData.Length;
+            string bufferPath = filepath.Replace(".gltf", ".bin");
+            buffer.uri = Path.GetFileName(bufferPath);
+            gltfObject.buffers ??= new List<GLTFBuffer>();
+            gltfObject.buffers.Add(buffer);
+            File.WriteAllBytes(bufferPath, bufferData);
+            return buffer;
         }
     }
 }
