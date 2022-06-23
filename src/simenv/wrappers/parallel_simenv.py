@@ -41,8 +41,20 @@ class ParallelSimEnv(VecEnv):
         # must return obs, reward, done, info
         dones = self._get_done()
         rewards = self._get_rewards()
+
+        self.auto_reset(dones)
         obs = self._get_observations()
-        return obs, rewards, dones, {}
+        return obs, rewards, dones, [{}]*self.n_parallel*self.n_agents
+
+    def auto_reset(self, dones):
+        # need to reset if done
+        for i in range(self.n_parallel):
+            if dones[i]:
+                self.envs[i].reset_send()
+
+        for i in range(self.n_parallel):
+            if dones[i]:
+                self.envs[i].reset_recv()
 
     def _step(self, actions):
         # unpack and send the actions
