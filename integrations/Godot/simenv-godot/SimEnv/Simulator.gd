@@ -12,6 +12,7 @@ func _ready() -> void:
 	_client.connect("disconnected", _handle_client_disconnected)
 	_client.connect("error", _handle_client_error)
 	_client.connect("data", _handle_client_data)
+	_command.connect("callback", _handle_callback)
 	
 	add_child(_client)
 	add_child(_command)
@@ -31,16 +32,13 @@ func _handle_client_data(data: PackedByteArray) -> void:
 	var str_data : String = data.slice(4).get_string_from_utf8()
 	print("Start: ", str_data.left(60), "...", str_data.right(30))
 	
-	var json_object : JSON = JSON.new() 
+	var json_object : JSON = JSON.new()
 	if json_object.parse(str_data) == OK:
 		var json_data : Variant = json_object.get_data()
 		_command.content = json_data["contents"]
 		_command.execute(json_data["type"])
 	else:
 		print("Error parsing data.")
-	
-	var message: PackedByteArray = [97, 99, 107] # "ack" callback
-	_client.send(message)
 
 func _handle_client_disconnected() -> void:
 	print("Client disconnected from server.")
@@ -49,3 +47,7 @@ func _handle_client_disconnected() -> void:
 func _handle_client_error() -> void:
 	print("Client error.")
 	_connect_after_timeout(RECONNECT_TIMEOUT)
+	
+func _handle_callback(callback_data: PackedByteArray) -> void:
+	print("Sending callback.")
+	_client.send(callback_data)

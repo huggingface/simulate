@@ -3,8 +3,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 
-public class Vector3Converter : JsonConverter
-{
+public class Vector3Converter : JsonConverter {
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
         Vector3 pos = (Vector3)value;
         writer.WriteStartArray();

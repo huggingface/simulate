@@ -1,4 +1,4 @@
-[gd_scene load_steps=7 format=3 uid="uid://bcf7yp2qkcxn7"]
+[gd_scene load_steps=7 format=3 uid="uid://cw1dgk4oijllg"]
 
 [ext_resource type="Script" path="res://SimEnv/Simulator.gd" id="1_oo243"]
 [ext_resource type="Script" path="res://SimEnv/Camera.gd" id="2_wa3b4"]

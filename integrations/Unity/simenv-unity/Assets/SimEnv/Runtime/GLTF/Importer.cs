@@ -83,6 +83,16 @@ namespace SimEnv.GLTF {
             return ImportGLB(bytes, importSettings, out animations);
         }
 
+        public static async Task<GameObject> LoadFromBytesAsync(byte[] bytes, ImportSettings importSettings = null) {
+            GameObject gameObject = null;
+            ImportGLBAsync(bytes, importSettings, (result, clips) => {
+                gameObject = result;
+            });
+            while(gameObject == null)
+                await Task.Yield();
+            return gameObject;
+        }
+
         public static void LoadFromFileAsync(string filepath, ImportSettings importSettings, Action<GameObject, AnimationClip[]> onFinished, Action<float> onProgress = null) {
             ImportGLTFAsync(filepath, importSettings, onFinished, onProgress);
         }
