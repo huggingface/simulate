@@ -70,7 +70,7 @@ def get_bounds(object_type, object_size):
     """
     Returns bounds for certain objects construction.
     """
-    if object_type == "Cube":
+    if object_type == "Box":
         # Assign x, y, z coordinates
         min_v, max_v = -object_size / 2, object_size / 2
 

@@ -8,4 +8,4 @@ GRANULARITY = 10
 HEIGHT_CONSTANT = 0.6375
 
 # Set of objects that can be placed
-OBJECTS = ["Cube", "Sphere", "Cone"]
+OBJECTS = ["Box", "Sphere", "Cone"]

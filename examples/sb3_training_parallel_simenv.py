@@ -18,19 +18,19 @@ def create_env(executable=None, port=None, headless=None):
     root = sm.Asset(name="root")
     blue_material = sm.Material(base_color=(0, 0, 0.8))
     red_material = sm.Material(base_color=(0.8, 0, 0))
-    root += sm.Cube(name="floor", position=[0, 0, 0], bounds=[-11, 11, 0, 0.1, -11, 51], material=blue_material)
-    root += sm.Cube(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=red_material)
-    root += sm.Cube(name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=red_material)
-    root += sm.Cube(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=red_material)
-    root += sm.Cube(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=red_material)
+    root += sm.Box(name="floor", position=[0, 0, 0], bounds=[-11, 11, 0, 0.1, -11, 51], material=blue_material)
+    root += sm.Box(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=red_material)
+    root += sm.Box(name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=red_material)
+    root += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=red_material)
+    root += sm.Box(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=red_material)
 
 
     material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
-    cube = sm.Cube(name=f"cube0", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
+    cube = sm.Box(name=f"cube0", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
     root += cube
     for i in range(20):
         material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
-        root += sm.Cube(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
+        root += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 
     agent = sm.RL_Agent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
     reward_function = sm.RLAgentRewardFunction(

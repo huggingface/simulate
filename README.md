@@ -57,7 +57,7 @@ The following objects creation helpers are currently provided:
 - `Sphere`
 - `Capsule`
 - `Cylinder`
-- `Cube`
+- `Box`
 - `Cone`
 - `Line`
 - `MultipleLines`
