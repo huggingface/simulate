@@ -5,8 +5,12 @@ Minimal script for generating a map, and then randomly sampling from it.
 import argparse
 from collections import defaultdict
 
+import numpy as np
+from matplotlib import pyplot as plt
 from xland import generate_env
 from xland.utils import create_2d_map, generate_tiles
+
+from simenv.rl_env import RLEnv
 
 
 if __name__ == "__main__":
@@ -23,6 +27,7 @@ if __name__ == "__main__":
     parser.add_argument("--width", type=int, default=8)
     parser.add_argument("--height", type=int, default=10)
     parser.add_argument("--n_objects", type=int, default=3)
+    parser.add_argument("--n_agents", type=int, default=1)
     parser.add_argument("--seed", type=int, default=None)
     parser.add_argument("--max_height", type=int, default=6)
     parser.add_argument("--symmetry", type=int, default=1)
@@ -49,7 +54,33 @@ if __name__ == "__main__":
         else:
             extra_args["sample_map"] = m
 
-    success = generate_env(**vars(args), **extra_args)
+    success, scene = generate_env(**vars(args), **extra_args)
+
+    # If we want to show the map and we were successful
+    if args.show and success:
+        scene.show()
+
+        if args.engine is not None and args.engine != "pyvista":
+            plt.ion()
+            fig1, ax1 = plt.subplots()
+            dummy_obs = np.zeros(shape=(scene.agent_0.camera_height, scene.agent_0.camera_width, 3), dtype=np.uint8)
+            axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
+
+            env = RLEnv(scene)
+            for i in range(1000):
+                action = env.action_space.sample()
+                if type(action) == int:  # discrete are ints, continuous are numpy arrays
+                    action = [action]
+                else:
+                    action = action.tolist()
+
+                obs, reward, done, info = env.step(action)
+                # print(done, reward, info)
+                axim1.set_data(obs)
+                fig1.canvas.flush_events()
+
+        input("Press Enter to continue...")
+        scene.close()
 
     if success:
         print("Successful generation!")
