@@ -1,5 +1,6 @@
 from requests import head
 import simenv as sm
+from simenv.assets import material
 import simenv.assets.utils as utils
 import os, time
 from simenv.rl_env import RLEnv
@@ -14,39 +15,60 @@ from simenv.wrappers import ParallelSimEnv
 def create_env(executable=None, port=None, headless=None):
     scene = sm.Scene(engine="Unity", engine_exe=executable, engine_port=port, engine_headless=headless)
     scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
-
-    root = sm.Asset(name="root")
     blue_material = sm.Material(base_color=(0, 0, 0.8))
     red_material = sm.Material(base_color=(0.8, 0, 0))
-    root += sm.Box(name="floor", position=[0, 0, 0], bounds=[-11, 11, 0, 0.1, -11, 51], material=blue_material)
-    root += sm.Box(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=red_material)
-    root += sm.Box(name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=red_material)
-    root += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=red_material)
-    root += sm.Box(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=red_material)
+    gray_material = sm.Material(base_color=(0.8, 0.8, 0.8))
+    root = sm.Asset(name="root")
+    root += sm.Cube(name="floor", position=[0, -0.05, 0], scaling=[100, 0.1, 100], material=blue_material)
+    root += sm.Cube(name="wall1", position=[-1, 0.5, 0], scaling=[0.1, 1, 5.1], material=gray_material)
+    root += sm.Cube(name="wall2", position=[1, 0.5, 0], scaling=[0.1, 1, 5.1], material=gray_material)
+    root += sm.Cube(name="wall3", position=[0, 0.5, 4.5], scaling=[5.9, 1, 0.1], material=gray_material)
+    root += sm.Cube(name="wall4", position=[-2, 0.5, 2.5], scaling=[1.9, 1, 0.1], material=gray_material)
+    root += sm.Cube(name="wall5", position=[2, 0.5, 2.5], scaling=[1.9, 1, 0.1], material=gray_material)
+    root += sm.Cube(name="wall6", position=[-3, 0.5, 3.5], scaling=[0.1, 1, 2.1], material=gray_material)
+    root += sm.Cube(name="wall7", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1], material=gray_material)
+    root += sm.Cube(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1], material=gray_material)
 
 
-    material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
-    cube = sm.Box(name=f"cube0", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
-    root += cube
-    for i in range(20):
-        material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
-        root += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
+    agent = sm.RL_Agent(name="agent", turn_speed=5.0,camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
+    collectable = sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3, material=red_material)
 
-    agent = sm.RL_Agent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
+
     reward_function = sm.RLAgentRewardFunction(
         function="dense",
         entity1=agent,
-        entity2=cube,
-        distance_metric="euclidean",
+        entity2=collectable,
+        distance_metric="euclidean"
+    )
 
+    reward_function2 = sm.RLAgentRewardFunction(
+        function="sparse",
+        entity1=agent,
+        entity2=collectable,
+        distance_metric="euclidean",
+        threshold=0.2,
+        is_terminal=True
+    )
+    timeout_reward_function = sm.RLAgentRewardFunction(
+        function="timeout",
+        entity1=agent,
+        entity2=agent,
+        distance_metric="euclidean",
+        threshold=500,
+        is_terminal=True,
+        scalar=-1.0,
     )
     agent.add_reward_function(reward_function)
-
+    agent.add_reward_function(reward_function2)
+    agent.add_reward_function(timeout_reward_function)
+    print(agent.camera.width, agent.camera.height)
     root += agent
+    root += collectable
+
     scene += root
 
-    for x in [0, 21, 42, 63]:
-        for z in [0, 21, 42, 63]:
+    for x in [-10, 0, 11, 22]:
+        for z in [0, 11, 22, 33]:
             if x ==0 and z == 0: continue
             scene += root.copy().translate_x(x).translate_z(z)
 
@@ -64,7 +86,7 @@ def make_env(executable, seed=0, headless=None):
 
 
 if __name__ == "__main__":
-    n_parallel = 4
+    n_parallel = 16
     env_fn = make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
