@@ -5,13 +5,14 @@ Python file to call map, game and agents generation.
 import simenv as sm
 
 from .utils import convert_to_actual_pos, seed_env
-from .world import generate_scene, get_object_pos
+from .world import generate_scene, get_pos
 
 
 def generate_env(
     width,
     height,
     n_objects=3,
+    n_agents=1,
     engine=None,
     periodic_output=False,
     specific_map=None,
@@ -38,6 +39,7 @@ def generate_env(
         width: The width of the map.
         height: The height of the map.
         n_objects: number of objects to be set in the map.
+        n_agents: number of agents to be set in the map.
         periodic_output: Whether the output should be toric (WFC param).
         engine: which engine to use.
         specific_map: A specific map to be plotted.
@@ -102,19 +104,15 @@ def generate_env(
 
         # TODO return playable area and use it for agent placement
         # TODO: Add corner case where there are no objects
-        obj_pos, success = get_object_pos(sg.map_2d, n_objects=n_objects, **threshold_kwargs)
+        obj_pos, agent_pos, success = get_pos(sg.map_2d, n_objects=n_objects, n_agents=n_agents, **threshold_kwargs)
 
         # If there is no enough area, we should try again and continue the loop
         if success:
             # Set objects in scene:
-            sg.generate_3D()
-            obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
-            scene = generate_scene(sg, obj_pos, engine)
+            scene = generate_scene(sg, obj_pos, agent_pos, engine, verbose=verbose)
 
             # Generate the game
             # generate_game(generated_map, scene)
-
-            # TODO: generation of agents
 
         else:
             curr_try += 1
@@ -123,11 +121,4 @@ def generate_env(
                 # Change to seed to test other maps
                 seed += 1
 
-    # If we want to show the map and we were successful
-    if show and success:
-        scene.show()
-        input("Press Enter to continue...")
-
-        scene.close()
-
-    return success
+    return success, scene

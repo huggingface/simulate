@@ -5,8 +5,10 @@ Files used for scene generation.
 import numpy as np
 
 import simenv as sm
-from simenv.assets.procgen import HEIGHT_CONSTANT
+from simenv.assets.procgen import GRANULARITY, HEIGHT_CONSTANT
 
+from ..utils import convert_to_actual_pos
+from .set_agent import create_agents
 from .set_object import create_objects
 
 
@@ -111,29 +113,93 @@ def get_sides_and_bottom(x, y, z):
     return structures
 
 
-def generate_scene(sg, obj_pos, engine=None):
+def generate_colliders(sg):
+    """
+    Generate colliders for mesh.
+    """
+    width, height, _ = sg.map_2d.shape
+    collider_assets = []
+
+    for i in range(width):
+        for j in range(height):
+            position = [
+                -height / 2 + (j + 0.5),
+                HEIGHT_CONSTANT * (sg.map_2d[i][j][0] + 0.5) - HEIGHT_CONSTANT,
+                -width / 2 + (i + 0.5),
+            ]
+
+            angle = np.arctan(HEIGHT_CONSTANT)
+            angle_deg = angle * 180 / np.pi
+            angles = [0, 0, 0]
+
+            # Calculate the bounding box:
+            if sg.map_2d[i][j][1] == 0:
+                bounding_box = (1, HEIGHT_CONSTANT, 1)
+            else:
+                position[1] += (HEIGHT_CONSTANT / 2) * np.cos(angle)
+
+                if sg.map_2d[i][j][1] % 2 == 1:
+                    bounding_box = (1, HEIGHT_CONSTANT, 1 / np.cos(angle))
+
+                    ramp_or = -2 * int(sg.map_2d[i][j][1] == 1) + 1
+                    position[2] += -ramp_or * (HEIGHT_CONSTANT / 2) * np.sin(angle)
+
+                    # Change angle x since it is a ramp
+                    angles[0] = ramp_or * angle_deg
+
+                else:
+                    bounding_box = (1 / np.cos(angle), HEIGHT_CONSTANT, 1)
+
+                    ramp_or = -2 * int(sg.map_2d[i][j][1] == 4) + 1
+                    position[0] += ramp_or * (HEIGHT_CONSTANT / 2) * np.sin(angle)
+
+                    # Changle angle z since it is a ramp
+                    angles[2] = ramp_or * angle_deg
+
+            collider_assets.append(
+                sm.Asset(
+                    position=position,
+                    rotation=sm.utils.quat_from_degrees(*angles),
+                    collider=sm.Collider(type=sm.ColliderType.BOX, bounding_box=bounding_box),
+                )
+            )
+
+    return collider_assets
+
+
+def generate_scene(sg, obj_pos, agent_pos, engine=None, verbose=False):
     """
     Generate scene by interacting with simenv library.
     """
     # Create the mesh
-    x, y, z = sg.coordinates
     scene = sm.Scene(engine=engine)
 
+    # Add colliders to StructuredGrid
+    sg.generate_3D()
+    obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
+    agent_pos = convert_to_actual_pos(agent_pos, sg.coordinates)
+
     # Add structured grid, sides and bottom of the map
+    x, y, z = sg.coordinates
     scene += sg
     scene += get_sides_and_bottom(x, y, z)
 
     # Add walls to prevent agent from falling
-    scene += add_walls(x, z)
+    scene += add_walls(x, z, height=np.max(y) + 1.5 * HEIGHT_CONSTANT)
 
     # Add objects
-    scene += create_objects(obj_pos)
+    objects = create_objects(obj_pos)
+    scene += objects
+
+    # Add colliders
+    sg += generate_colliders(sg)
 
     # Add camera
-    if engine is not None:
-        scene += sm.Camera(position=[0, 5, -10], rotation=[0, 1, 0.25, 0])
+    if engine is not None and engine != "pyvista":
+        scene += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
 
     # Add agent
-    # TODO
+    # TODO: Generate random predicates
+    scene += create_agents(agent_pos, objects, predicate=None, verbose=verbose)
 
     return scene

@@ -219,7 +219,8 @@ def create_objects(positions, object_type=None, object_size=0.5):
     ]
 
 
-def get_object_pos(y, n_objects, threshold=0.5, distribution="uniform"):
+# TODO: move this to utils
+def get_pos(y, n_objects, n_agents, threshold=0.5, distribution="uniform"):
     """
     Returns None if there isn't enough playable area.
     """
@@ -228,7 +229,7 @@ def get_object_pos(y, n_objects, threshold=0.5, distribution="uniform"):
 
     if area < threshold:
         print("Unsufficient playable area: {:.3f} when minimum is {}".format(area, threshold))
-        return None, False
+        return None, None, False
 
     # Get probabilities to where to place objects
     # TODO: add option to do the same as it's done in XLand from Deepmind
@@ -237,11 +238,15 @@ def get_object_pos(y, n_objects, threshold=0.5, distribution="uniform"):
     )
 
     non_null_nodes = np.sum(probabilities > 0)
-    if non_null_nodes < n_objects:
-        print("Unsufficient nodes to set objects: {} when number of objects is {}".format(non_null_nodes, n_objects))
-        return None, False
+    if non_null_nodes < n_objects + n_agents:
+        print(
+            "Unsufficient nodes to set objects: {} when the total number of objects"
+            "and agents is {}".format(non_null_nodes, n_objects + n_agents)
+        )
+        return None, None, False
 
-    obj_pos = np.array(sample_index(n_objects, probabilities))
+    positions = np.array(sample_index(n_objects + n_agents, probabilities))
+    obj_pos, agent_pos = positions[:, :n_objects], positions[:, n_objects:]
 
     # Return True showing that object placement was successful
-    return obj_pos, True
+    return obj_pos, agent_pos, True
