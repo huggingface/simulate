@@ -128,7 +128,7 @@ class UnityEngine(Engine):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
         response = self.run_command(command)
         data = json.loads(response)
-        return [d == "True" for d in data["Items"]]
+        return [d for d in data["Items"]]
 
     def get_done_send(self):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
@@ -139,7 +139,7 @@ class UnityEngine(Engine):
         data = json.loads(response)
         return [d for d in data["Items"]]
 
-    def reset(self, ack=True):
+    def reset(self):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command)
 
