@@ -54,6 +54,11 @@ To create the package for pypi.
 """
 
 import os
+import sys
+from distutils.extension import Extension
+
+import numpy as np
+from Cython.Build import cythonize
 
 from setuptools import find_packages, setup
 
@@ -81,6 +86,21 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
 }
 
+ext_modules = [
+   Extension(
+      name="wfc_binding",
+      sources=["src/simenv/assets/procgen/wfc/core/wfc_binding.pyx", 
+               "src/simenv/assets/procgen/wfc/core/cpp/src/propagator.cpp",
+               "src/simenv/assets/procgen/wfc/core/cpp/src/wave.cpp",
+               "src/simenv/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
+      language="c++",
+      include_dirs=[
+            "src/simenv/assets/procgen/wfc/core/cpp/include",
+      ],
+   )
+]
+
+ext_modules = cythonize(ext_modules, force=True)
 
 setup(
     name="simenv",
@@ -114,4 +134,6 @@ setup(
     ],
     keywords="simulation environments synthetic data datasets machine learning",
     zip_safe=False,  # Required for mypy to find the py.typed file
+    ext_modules=ext_modules,
+    include_dirs=[np.get_include()],
 )

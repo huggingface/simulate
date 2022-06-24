@@ -19,31 +19,37 @@ def transpose_graph(edges):
     return tranposed_edges
 
 
-def dfs(v, visited, edges, stack, return_components=False, curr_components=None):
+def dfs(v, visited, edges, stack, return_components=False):
     """
-    Depth-first search.
+    Depth-first search without recursion.
 
     Includes both versions necessary to get strongly connected components.
     Either it does a normal dfs and returns nothing, or it returns the vertices
     that it went through.
     """
+    # Create stack for iterative version of algorithm
+    internal_stack = [v]
+
+    # If we return the components, create the curr_components var
+    if return_components:
+        curr_components = []
+
+    while len(internal_stack) > 0:
+        s = internal_stack.pop()
+
+        if not visited[s]:
+            visited[s] = True
+
+            for i in edges[s]:
+                if not visited[i]:
+                    internal_stack.append(i)
+
+            if return_components:
+                curr_components.append(s)
+            else:
+                stack.append(s)
 
     if return_components:
-        if curr_components is None:
-            curr_components = [v]
-        else:
-            curr_components.append(v)
-
-    visited[v] = True
-
-    for i in edges[v]:
-        if not visited[i]:
-            dfs(i, visited, edges, stack, return_components=return_components, curr_components=curr_components)
-
-    if not return_components:
-        stack.append(v)
-
-    else:
         return curr_components
 
 

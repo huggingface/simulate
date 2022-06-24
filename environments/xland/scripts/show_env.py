@@ -3,9 +3,10 @@ Minimal script for generating a map, and then randomly sampling from it.
 """
 
 import argparse
+from collections import defaultdict
 
-from xland import gen_setup, generate_env
-from xland.utils import create_2d_map
+from xland import generate_env
+from xland.utils import create_2d_map, generate_tiles
 
 
 if __name__ == "__main__":
@@ -23,26 +24,33 @@ if __name__ == "__main__":
     parser.add_argument("--height", type=int, default=10)
     parser.add_argument("--n_objects", type=int, default=3)
     parser.add_argument("--seed", type=int, default=None)
-    parser.add_argument("--max_height", type=int, default=8)
+    parser.add_argument("--max_height", type=int, default=6)
     parser.add_argument("--symmetry", type=int, default=1)
     parser.add_argument("--N", type=int, default=2)
     parser.add_argument("--nb_samples", type=int, default=1)
 
     parser.add_argument("--sample_from", type=str, default=None)
-    parser.add_argument("--specific_map", type=str, default=None)
-    parser.add_argument("--folder_path", type=str, default=".gen_files")
+    parser.add_argument("--map", type=str, default=None)
     parser.add_argument("--engine", type=str, default=None)
 
     args = parser.parse_args()
+    extra_args = defaultdict(lambda: None)
 
-    if args.sample_from is None and args.specific_map is None:
-        gen_setup(args.max_height)
+    if args.sample_from is None and args.map is None:
+        tiles, neighbors = generate_tiles(args.max_height)
+        extra_args["tiles"] = tiles
+        extra_args["neighbors"] = neighbors
 
     else:
-        name = args.specific_map or args.sample_from
-        create_2d_map(name, map_format="rgb")
+        name = args.map or args.sample_from
+        m = create_2d_map(name)
+        if args.map is not None:
+            extra_args["specific_map"] = m
+        else:
+            extra_args["sample_map"] = m
 
-    success = generate_env(**vars(args))
+    success = generate_env(**vars(args), **extra_args)
+
     if success:
         print("Successful generation!")
     else:

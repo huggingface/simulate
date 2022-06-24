@@ -148,6 +148,7 @@ class PyVistaEngine(Engine):
                     located_mesh,
                     pbr=True,  # material.base_color_texture is None,  # pyvista doesn't support having both a texture and pbr
                     color=material.base_color[:3],
+                    opacity=material.base_color[-1],
                     metallic=material.metallic_factor,
                     roughness=material.roughness_factor,
                     texture=None,  # We set all the textures ourself in _set_pbr_material_for_actor

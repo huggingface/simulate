@@ -141,4 +141,5 @@ dmypy.json
 *omnisharp.json
 .idea
 
-.gen_files
+# ignore generated cpp file from cython
+wfc_binding.cpp

@@ -2,44 +2,12 @@
 Util functions.
 """
 
+import csv
+import os
+
 import numpy as np
 
-from .constants import GRANULARITY, HEIGHT_CONSTANT
-
-
-def decode_rgb(img, specific_map=None, sample_from=None, max_height=8):
-    """
-    Decode the RGB image into a height map with tiles of 2x2.
-
-    Might be temporary until we migrate completely to this format.
-    """
-
-    img_np = np.array(img)
-
-    # Create the map
-    map_2d = np.zeros((2 * img_np.shape[0], 2 * img_np.shape[1]))
-
-    # TODO: optimize this decoding
-    for i in range(img_np.shape[0]):
-        for j in range(img_np.shape[1]):
-            if img_np[i, j, 1] == 0:
-                map_2d[2 * i : 2 * (i + 1), 2 * j : 2 * (j + 1)] = img_np[i, j, 0]
-            elif img_np[i, j, 1] == 1:
-                map_2d[2 * i, 2 * j : 2 * (j + 1)] = img_np[i, j, 0]
-                map_2d[2 * i + 1, 2 * j : 2 * (j + 1)] = img_np[i, j, 0] + 1
-            elif img_np[i, j, 1] == 2:
-                map_2d[2 * i : 2 * (i + 1), 2 * j] = img_np[i, j, 0]
-                map_2d[2 * i : 2 * (i + 1), 2 * j + 1] = img_np[i, j, 0] + 1
-            elif img_np[i, j, 1] == 3:
-                map_2d[2 * i, 2 * j : 2 * (j + 1)] = img_np[i, j, 0] + 1
-                map_2d[2 * i + 1, 2 * j : 2 * (j + 1)] = img_np[i, j, 0]
-            elif img_np[i, j, 1] == 4:
-                map_2d[2 * i : 2 * (i + 1), 2 * j] = img_np[i, j, 0] + 1
-                map_2d[2 * i : 2 * (i + 1), 2 * j + 1] = img_np[i, j, 0]
-
-    map_2d = map_2d * HEIGHT_CONSTANT
-
-    return map_2d
+from simenv.assets.procgen import GRANULARITY
 
 
 def convert_to_actual_pos(obj_pos, generated_map):
@@ -47,7 +15,6 @@ def convert_to_actual_pos(obj_pos, generated_map):
     x, y, z = generated_map
 
     # Get true heights and weights
-    # TODO: should we pass it in the function, or add atributes to a class?
     true_width, true_height = x.shape
     width, height = true_width / GRANULARITY, true_height / GRANULARITY
 
@@ -63,6 +30,7 @@ def convert_to_actual_pos(obj_pos, generated_map):
     # Transform to tuple in order to pass to x, y, z
     converted_pos = tuple(*converted_pos)
 
+    # We add transpose so that we get N x 3 coordinates (x, y, z for each object)
     return np.array([x[converted_pos], y[converted_pos], z[converted_pos]]).transpose()
 
 
@@ -85,3 +53,36 @@ def get_bounds(object_type, object_size):
 
     else:
         raise ValueError
+
+
+def create_2d_map(name, benchmarks="benchmark/examples"):
+    """
+    Create a 2D map from a CSV file with the tiles that should be used in each position.
+
+    Args:
+        name: name of the map.
+        benchmarks: folder where the benchmark / example files are saved.
+    """
+
+    # Create the map
+    m = []
+
+    # Read the file with the map
+    with open(os.path.join(benchmarks, name + ".csv"), "r") as f:
+        reader = csv.reader(f)
+        for row in reader:
+            m.append(row)
+
+    # Transform m to a numpy array
+    m = np.array(m)
+
+    # Create map with tiles 1x1 encoded in first and second channels
+    map_2d = np.zeros((m.shape[0], m.shape[1], 3), dtype=np.uint8)
+
+    for i in range(m.shape[0]):
+        for j in range(m.shape[1]):
+
+            map_2d[i, j, 0] = int(m[i, j][0])
+            map_2d[i, j, 1] = int(m[i, j][1])
+
+    return map_2d
