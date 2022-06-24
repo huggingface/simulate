@@ -27,6 +27,7 @@ class HF_RL_Agent:
     reward_scalars: Optional[List[float]] = None
     reward_thresholds: Optional[List[float]] = None
     reward_is_terminals: Optional[List[bool]] = None
+    reward_is_collectables: Optional[List[bool]] = None
 
 
 @dataclass_json
