@@ -2,4 +2,4 @@
 COLORS = [[255, 0, 0], [0, 255, 0], [0, 0, 255]]
 
 # Set of objects that can be placed
-OBJECTS = ["Cube", "Sphere", "Cone"]
+OBJECTS = ["Box", "Sphere", "Cone"]

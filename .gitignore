@@ -6,6 +6,9 @@ __pycache__/
 # C extensions
 *.so
 
+# Unity builds
+integrations/Unity/builds
+
 # Distribution / packaging
 .Python
 build/
@@ -136,6 +139,7 @@ dmypy.json
 *.DS_Store
 .vscode
 *omnisharp.json
+.idea
 
 # ignore generated cpp file from cython
 wfc_binding.cpp

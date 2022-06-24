@@ -14,19 +14,16 @@
 
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
+import itertools
 import os
 import tempfile
 from typing import List, Optional, Union
 
 from huggingface_hub import create_repo, hf_hub_download, logging, upload_file
 
-import simenv as sm
-
-from .assets import Asset
+from .assets import Asset, Camera, Light, Object3D, RL_Agent
 from .assets.anytree import RenderTree
-from .engine import PyVistaEngine, UnityEngine
-from .gltf_export import save_tree_as_gltf_file
-from .gltf_import import load_gltf_as_tree
+from .engine import GodotEngine, PyVistaEngine, UnityEngine
 
 
 # Set Hugging Face hub debug verbosity (TODO remove)
@@ -42,6 +39,12 @@ class SceneNotBuiltError(Exception):
 
 
 class Scene(Asset):
+    """A Scene is the main place to add objects and object tree.
+    In addition to a root node, it has an engine that can be used to diplay and interact with the scene.
+    """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(
         self,
         engine: Optional[str] = "pyvista",
@@ -69,6 +72,8 @@ class Scene(Asset):
             engine = engine.lower()
         if engine == "unity":
             self.engine = UnityEngine(self, **kwargs)
+        elif engine == "godot":
+            self.engine = GodotEngine(self)
         elif engine == "blender":
             raise NotImplementedError()
         elif engine == "pyvista" or engine is None:
@@ -98,7 +103,7 @@ class Scene(Asset):
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and is_local is not False:
-            nodes = load_gltf_as_tree(hub_or_local_filepath, file_type=file_type)
+            nodes = Asset.create_from(hub_or_local_filepath, file_type=file_type)
             return nodes, hub_or_local_filepath
 
         splitted_hub_path = hub_or_local_filepath.split("/")
@@ -112,10 +117,10 @@ class Scene(Asset):
             revision=revision,
             repo_type="space",
             use_auth_token=use_auth_token,
-            force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
+            # force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
             **kwargs,
         )
-        nodes = load_gltf_as_tree(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
+        nodes = Asset.create_from(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
         return nodes, gltf_file
 
     @classmethod
@@ -140,24 +145,19 @@ class Scene(Asset):
         - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
-        nodes, gltf_file = Scene._get_node_tree_from_hub_or_local(
+        root_node, gltf_file = Scene._get_node_tree_from_hub_or_local(
             hub_or_local_filepath=hub_or_local_filepath,
             use_auth_token=use_auth_token,
             revision=revision,
             is_local=is_local,
             **(hf_hub_kwargs if hf_hub_kwargs is not None else {}),
         )
-        if len(nodes) == 1:
-            root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
-            nodes = root.tree_children
-        else:
-            root = Asset(name="Scene")  # Otherwise we build a main root node
         return cls(
-            name=root.name,
-            position=root.position,
-            rotation=root.rotation,
-            scaling=root.scaling,
-            children=nodes,
+            name=root_node.name,
+            position=root_node.position,
+            rotation=root_node.rotation,
+            scaling=root_node.scaling,
+            children=root_node.tree_children,
             created_from_file=gltf_file,
             **kwargs,
         )
@@ -182,7 +182,7 @@ class Scene(Asset):
         - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
-        nodes, gltf_file = Scene._get_node_tree_from_hub_or_local(
+        root_node, gltf_file = Scene._get_node_tree_from_hub_or_local(
             hub_or_local_filepath=hub_or_local_filepath,
             use_auth_token=use_auth_token,
             revision=revision,
@@ -190,18 +190,12 @@ class Scene(Asset):
             **kwargs,
         )
 
-        if len(nodes) == 1:
-            root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
-            nodes = root.tree_children
-        else:
-            root = Asset(name="Scene")  # Otherwise we build a main root node
-
         self.clear()
-        self.name = root.name
-        self.position = root.position
-        self.rotation = root.rotation
-        self.scaling = root.scaling
-        self.tree_children = nodes
+        self.name = root_node.name
+        self.position = root_node.position
+        self.rotation = root_node.rotation
+        self.scaling = root_node.scaling
+        self.tree_children = root_node.tree_children
         self.created_from_file = gltf_file
 
     def push_to_hub(
@@ -254,26 +248,34 @@ class Scene(Asset):
                 hub_urls.append(hub_url)
         return repo_url
 
-    def save(self, filepath: str, **kwargs) -> List[str]:
+    def save(self, filepath: str) -> List[str]:
         """Save a Scene as a GLTF file (with optional ressources in the same folder)."""
-        return save_tree_as_gltf_file(filepath, self)
+        return self.save_to_gltf_file(filepath)
 
     def clear(self):
         """ " Remove all assets in the scene."""
         self.tree_children = []
         return self
 
-    def _get_decendants_of_class_type(self, class_type):
-        result = []
-        for child in self.tree_descendants:
-            if isinstance(child, class_type):
-                result.append(child)
+    @property
+    def agents(self):
+        """Tuple with all RLAgent in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, RL_Agent))
 
-        return result
+    @property
+    def lights(self):
+        """Tuple with all Light in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, Light))
 
-    def get_agents(self):
-        # search all nodes for agents classes and then return in list
-        return self._get_decendants_of_class_type(sm.RL_Agent)
+    @property
+    def cameras(self):
+        """Tuple with all Camera in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, Camera))
+
+    @property
+    def objets(self):
+        """Tuple with all Object3D in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, Object3D))
 
     def show(self, **engine_kwargs):
         """Render the Scene using the engine if provided."""

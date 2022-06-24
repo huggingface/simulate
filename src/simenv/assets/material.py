@@ -118,13 +118,13 @@ class Material:
             self.base_color = self.base_color + [1.0]
 
         if self.metallic_factor is None:
-            self.metallic_factor = 0.0
+            self.metallic_factor = 1.0
 
         if self.roughness_factor is None:
             self.roughness_factor = 1.0
 
         if self.emissive_factor is None:
-            self.emissive_factor = [0.0, 0.0, 0.0, 0.0]
+            self.emissive_factor = [0.0, 0.0, 0.0]
         elif isinstance(self.emissive_factor, np.ndarray):
             self.emissive_factor = self.emissive_factor.tolist()
         else:
@@ -132,6 +132,8 @@ class Material:
 
         if self.alpha_mode is None:
             self.alpha_mode = "OPAQUE"
+        elif not isinstance(self.alpha_mode, str) or self.alpha_mode not in ["OPAQUE", "MASK", "BLEND"]:
+            raise ValueError('alpha_mode should be a string selected in ["OPAQUE", "MASK", "BLEND"]')
 
         if self.alpha_cutoff is None:
             self.alpha_cutoff = 0.5
@@ -147,4 +149,11 @@ class Material:
         return id(self)
 
     def copy(self):
-        return copy.deepcopy(self)
+        copy_mat = copy.deepcopy(self)
+        id = next(self.__class__.__NEW_ID)
+        self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+        return copy_mat
+
+    @classmethod
+    def CHECKER(cls, color1: Optional[List[float]] = None, color2: Optional[List[float]] = None):
+        pass  # Procedural textures ??

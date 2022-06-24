@@ -177,8 +177,8 @@ def get_object_fn(obj):
     """
     Returns classes depending on the object.
     """
-    if obj == "Cube":
-        return sm.Cube
+    if obj == "Box":
+        return sm.Box
 
     elif obj == "Cone":
         return sm.Cone

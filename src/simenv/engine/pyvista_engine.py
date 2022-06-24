@@ -19,6 +19,8 @@ from typing import Any, Optional
 import numpy as np
 import pyvista
 
+from simenv.assets.material import Material
+
 from ..assets import Asset, Camera, Light, Object3D
 from .engine import Engine
 
@@ -35,17 +37,6 @@ try:
 
             def _view_vector(*args: Any) -> None:
                 return self.view_vector(*args)
-
-            # cvec_setters = {
-            #     # Viewing vector then view up vector
-            #     "Top (-Z)": lambda: _view_vector((0, 0, 1), (0, 1, 0)),
-            #     "Bottom (+Z)": lambda: _view_vector((0, 0, -1), (0, 1, 0)),
-            #     "Front (-Y)": lambda: _view_vector((0, 1, 0), (0, 0, 1)),
-            #     "Back (+Y)": lambda: _view_vector((0, -1, 0), (0, 0, 1)),
-            #     "Left (-X)": lambda: _view_vector((1, 0, 0), (0, 0, 1)),
-            #     "Right (+X)": lambda: _view_vector((-1, 0, 0), (0, 0, 1)),
-            #     "Isometric": lambda: _view_vector((1, 1, 1), (0, 0, 1)),
-            # }
 
             cvec_setters = {
                 # Viewing vector then view up vector
@@ -74,7 +65,7 @@ try:
                 self.clear_camera_positions,
             )
 
-except:
+except ImportError:
     CustomBackgroundPlotter = None
 
 
@@ -155,13 +146,16 @@ class PyVistaEngine(Engine):
                 material = node.material
                 actor = self.plotter.add_mesh(
                     located_mesh,
-                    pbr=material.base_color_texture is None,  # pyvista doesn't support having both a texture and pbr
+                    pbr=True,  # material.base_color_texture is None,  # pyvista doesn't support having both a texture and pbr
                     color=material.base_color[:3],
                     opacity=material.base_color[-1],
                     metallic=material.metallic_factor,
                     roughness=material.roughness_factor,
-                    texture=material.base_color_texture,
+                    texture=None,  # We set all the textures ourself in _set_pbr_material_for_actor
+                    specular_power=1.0,  # Fixing a default of pyvista
+                    point_size=1.0,  # Fixing a default of pyvista
                 )
+                self._set_pbr_material_for_actor(actor, material)
 
             self._plotter_actors[node.uuid] = actor
 
@@ -175,6 +169,85 @@ class PyVistaEngine(Engine):
             light = pyvista.Light()
             light.transform_matrix = model_transform_matrix
             self._plotter_actors[node.uuid] = self.plotter.add_light(light)
+
+    @staticmethod
+    def _set_pbr_material_for_actor(actor: pyvista._vtk.vtkActor, material: Material):
+        """Set all the necessary properties for a nice PBR material rendering
+        Inspired by https://github.com/Kitware/VTK/blob/master/IO/Import/vtkGLTFImporter.cxx#L188
+        """
+        from vtkmodules.vtkCommonCore import vtkInformation
+        from vtkmodules.vtkRenderingCore import vtkProp
+
+        prop = actor.GetProperty()
+        if material.alpha_mode != "OPAQUE":
+            prop.ForceTranslucentOn()
+        # flip texture coordinates
+        if actor.GetPropertyKeys() is None:
+            info = vtkInformation()
+            actor.SetPropertyKeys(info)
+        mat = [1, 0, 0, 0, 0, -1, 0, 1, 0, 0, 1, 0, 0, 0, 0, 1]
+        actor.GetPropertyKeys().Set(vtkProp.GeneralTextureTransform(), mat, 16)
+
+        if not material.double_sided:
+            actor.GetProperty().BackfaceCullingOn()
+
+        if material.base_color_texture:
+            # set albedo texture
+            material.base_color_texture.UseSRGBColorSpaceOn()
+            prop.SetBaseColorTexture(material.base_color_texture)
+
+            if material.metallic_roughness_texture:
+                # merge ambient occlusion and metallic/roughness, then set material texture
+                pbrTexture = material.metallic_roughness_texture.copy()
+                pbrImage = pbrTexture.to_image()
+                if material.occlusion_texture:
+                    # While glTF 2.0 uses two different textures for Ambient Occlusion and Metallic/Roughness
+                    # values, VTK only uses one, so we merge both textures into one.
+                    # If an Ambient Occlusion texture is present, we merge its first channel into the
+                    # metallic/roughness texture (AO is r, Roughness g and Metallic b) If no Ambient
+                    # Occlusion texture is present, we need to fill the metallic/roughness texture's first
+                    # channel with 255
+                    aoTexture = material.occlusion_texture.copy()
+                    from vtkmodules.vtkImagingCore import (
+                        vtkImageAppendComponents,
+                        vtkImageExtractComponents,
+                        vtkImageResize,
+                    )
+
+                    prop.SetOcclusionStrength(1.0)
+                    # If sizes are different, resize the AO texture to the R/M texture's size
+                    pbrSize = pbrImage.GetDimensions()
+                    aoImage = aoTexture.to_image()
+                    aoSize = aoImage.GetDimensions()
+                    redAO = vtkImageExtractComponents()
+                    if pbrSize != aoSize:
+                        resize = vtkImageResize()
+                        resize.SetInputData(aoImage)
+                        resize.SetOutputDimensions(pbrSize[0], pbrSize[1], pbrSize[2])
+                        resize.Update()
+                        redAO.SetInputConnection(resize.GetOutputPort(0))
+                    else:
+                        redAO.SetInputData(aoImage)
+                    redAO.SetComponents(0)
+                    gbPbr = vtkImageExtractComponents()
+                    gbPbr.SetInputData(pbrImage)
+                    gbPbr.SetComponents(1, 2)
+                    append = vtkImageAppendComponents()
+                    append.AddInputConnection(redAO.GetOutputPort())
+                    append.AddInputConnection(gbPbr.GetOutputPort())
+                    append.SetOutput(pbrImage)
+                    append.Update()
+                else:
+                    pbrImage.GetPointData().GetScalars().FillComponent(0, 255)
+                prop.SetORMTexture(pbrTexture)
+
+            if material.emissive_texture:
+                material.emissive_texture.UseSRGBColorSpaceOn()
+                prop.SetEmissiveTexture(material.emissive_texture)
+
+            if material.normal_texture:
+                actor.GetProperty().SetNormalScale(1.0)
+                prop.SetNormalTexture(material.normal_texture)
 
     def regenerate_scene(self):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
@@ -201,14 +274,13 @@ class PyVistaEngine(Engine):
 
         self.plotter.reset_camera()
 
-    def show(self, auto_update: Optional[bool] = None, **pyvista_plotter_kwargs):
+    def show(self, auto_update: Optional[bool] = None):
         if auto_update is not None and auto_update != self.auto_update:
             self.plotter = None
             self.auto_update = auto_update
 
-        if self.plotter is None or not hasattr(self.plotter, "ren_win"):
-            self.regenerate_scene()
-            self.plotter.show(**pyvista_plotter_kwargs)
+        self.regenerate_scene()
+        self.plotter.show()
 
     def close(self):
         self.plotter.close()

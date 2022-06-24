@@ -13,12 +13,8 @@ namespace SimEnv.GLTF {
 #if UNITY_EDITOR
         public static Material defaultMaterial {
             get {
-                if(_defaultMaterial == null) {
-                    GameObject primitive = GameObject.CreatePrimitive(PrimitiveType.Cube);
-                    primitive.SetActive(false);
-                    _defaultMaterial = primitive.GetComponent<MeshRenderer>().sharedMaterial;
-                    GameObject.DestroyImmediate(primitive);
-                }
+                if (_defaultMaterial == null)
+                    _defaultMaterial = Resources.Load<Material>("DefaultLit");
                 return _defaultMaterial;
             }
         }
@@ -51,69 +47,66 @@ namespace SimEnv.GLTF {
         }
 
         public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, Action<Material> onFinish) {
-            GameObject primitive = GameObject.CreatePrimitive(PrimitiveType.Cube);
-            primitive.SetActive(false);
-            Material mat = primitive.GetComponent<MeshRenderer>().sharedMaterial;
-            GameObject.DestroyImmediate(primitive);
+            Material mat = null;
             IEnumerator coroutine = null;
-            if(pbrMetallicRoughness != null) {
-                coroutine = pbrMetallicRoughness.CreateMaterial(textures, alphaMode, mat.shader, x => mat = x);
-                while(coroutine.MoveNext())
+            if (pbrMetallicRoughness != null) {
+                coroutine = pbrMetallicRoughness.CreateMaterial(textures, alphaMode, x => mat = x);
+                while (coroutine.MoveNext())
                     yield return null;
             }
-            if(normalTexture != null) {
+            if (normalTexture != null) {
                 coroutine = TryGetTexture(textures, normalTexture, true, tex => {
-                    if(tex != null) {
+                    if (tex != null) {
                         mat.SetTexture("_BumpMap", tex);
                         mat.EnableKeyword("_NORMALMAP");
                         mat.SetFloat("_BumpScale", normalTexture.scale);
                     }
                 });
-                while(coroutine.MoveNext())
+                while (coroutine.MoveNext())
                     yield return null;
             }
-            if(occlusionTexture != null) {
+            if (occlusionTexture != null) {
                 coroutine = TryGetTexture(textures, occlusionTexture, true, tex => {
-                    if(tex != null)
+                    if (tex != null)
                         mat.SetTexture("_OcclusionMap", tex);
                 });
-                while(coroutine.MoveNext())
+                while (coroutine.MoveNext())
                     yield return null;
             }
-            if(emissiveFactor != Color.black) {
+            if (emissiveFactor != Color.black) {
                 mat.SetColor("_EmissionColor", emissiveFactor);
                 mat.EnableKeyword("_EMISSION");
             }
-            if(emissiveTexture != null) {
+            if (emissiveTexture != null) {
                 coroutine = TryGetTexture(textures, emissiveTexture, false, tex => {
-                    if(tex != null) {
+                    if (tex != null) {
                         mat.SetTexture("_EmissionMap", tex);
                         mat.EnableKeyword("_EMISSION");
                     }
                 });
-                while(coroutine.MoveNext())
+                while (coroutine.MoveNext())
                     yield return null;
             }
-            if(alphaMode == AlphaMode.MASK)
+            if (alphaMode == AlphaMode.MASK)
                 mat.SetFloat("_AlphaCutoff", alphaCutoff);
             mat.name = name;
             onFinish(mat);
         }
 
         public static IEnumerator TryGetTexture(GLTFTexture.ImportResult[] textures, TextureInfo texture, bool linear, Action<Texture2D> onFinish, Action<float> onProgress = null) {
-            if(texture == null || texture.index < 0 || textures == null) {
-                if(onProgress != null)
+            if (texture == null || texture.index < 0 || textures == null) {
+                if (onProgress != null)
                     onProgress(1f);
                 onFinish(null);
             }
-            if(textures.Length <= texture.index) {
+            if (textures.Length <= texture.index) {
                 Debug.LogWarning("No texture at index " + texture.index);
-                if(onProgress != null)
+                if (onProgress != null)
                     onProgress(1f);
                 onFinish(null);
             }
             IEnumerator coroutine = textures[texture.index].GetTextureCached(linear, onFinish, onProgress);
-            while(coroutine.MoveNext())
+            while (coroutine.MoveNext())
                 yield return null;
         }
 
@@ -128,45 +121,43 @@ namespace SimEnv.GLTF {
             public bool ShouldSerializemetallicFactor() { return metallicFactor != 0f; }
             public bool ShouldSerializeroughnessFactor() { return roughnessFactor != 0f; }
 
-            public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, Shader shader, Action<Material> onFinish) {
-                Material mat = new Material(shader);
+            public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, Action<Material> onFinish) {
+                Material mat = new Material(Resources.Load<Material>("DefaultLit"));
                 mat.color = baseColorFactor;
-                mat.SetFloat("_Mode", (float)alphaMode);
+                mat.SetFloat("_WorkflowMode", 1f);
                 mat.SetFloat("_Metallic", metallicFactor);
-                mat.SetFloat("_Roughness", roughnessFactor);
+                mat.SetFloat("_Smoothness", roughnessFactor);
 
-                if(textures != null) {
-                    if(baseColorTexture != null && baseColorTexture.index >= 0) {
-                        if(textures.Length <= baseColorTexture.index) {
+                if (textures != null) {
+                    if (baseColorTexture != null && baseColorTexture.index >= 0) {
+                        if (textures.Length <= baseColorTexture.index) {
                             Debug.LogWarning("Texture index error");
                         } else {
                             IEnumerator coroutine = textures[baseColorTexture.index].GetTextureCached(false, tex => {
-                                if(tex != null)
-                                    mat.SetTexture("_MainTex", tex);
+                                if (tex != null)
+                                    mat.mainTexture = tex;
                             });
-                            while(coroutine.MoveNext())
+                            while (coroutine.MoveNext())
                                 yield return null;
                         }
                     }
                 }
-                if(metallicRoughnessTexture != null && metallicRoughnessTexture.index >= 0) {
-                    if(textures.Length <= metallicRoughnessTexture.index) {
+                if (metallicRoughnessTexture != null && metallicRoughnessTexture.index >= 0) {
+                    if (textures.Length <= metallicRoughnessTexture.index) {
                         Debug.LogWarning("Metallic texture index error");
                     } else {
                         IEnumerator coroutine = TryGetTexture(textures, metallicRoughnessTexture, true, tex => {
-                            if(tex != null) {
+                            if (tex != null)
                                 mat.SetTexture("_MetallicGlossMap", tex);
-                                mat.EnableKeyword("_METALLICGLOSSMAP");
-                            }
                         });
-                        while(coroutine.MoveNext())
+                        while (coroutine.MoveNext())
                             yield return null;
                     }
                 }
 
-                if(mat.HasProperty("_BaseMap"))
+                if (mat.HasProperty("_BaseMap"))
                     mat.SetTexture("_BaseMap", mat.mainTexture);
-                if(mat.HasProperty("_BaseColor"))
+                if (mat.HasProperty("_BaseColor"))
                     mat.SetColor("_BaseColor", baseColorFactor);
                 onFinish(mat);
             }
@@ -179,45 +170,48 @@ namespace SimEnv.GLTF {
             public float glossinessFactor = 1f;
             public TextureInfo specularGlossinessTexture;
 
-            public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, Shader shader, Action<Material> onFinish) {
-                Material mat = new Material(shader);
+            public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, Action<Material> onFinish) {
+                Material mat = new Material(Resources.Load<Material>("DefaultLit"));
                 mat.color = diffuseFactor;
-                mat.SetFloat("_Mode", (float)alphaMode);
+                mat.SetFloat("_WorkflowMode", 0f);
                 mat.SetColor("_SpecColor", specularFactor);
-                mat.SetFloat("_GlossyReflections", glossinessFactor);
+                mat.SetFloat("_Smoothness", glossinessFactor);
 
-                if(textures != null) {
-                    if(diffuseTexture != null) {
-                        if(textures.Length <= diffuseTexture.index) {
+                if (textures != null) {
+                    if (diffuseTexture != null) {
+                        if (textures.Length <= diffuseTexture.index) {
                             Debug.LogWarning("Failed to get diffuse texture at index");
                         } else {
                             IEnumerator coroutine = textures[diffuseTexture.index].GetTextureCached(false, tex => {
-                                if(tex != null) {
-                                    mat.SetTexture("_MainTex", tex);
-                                    if(diffuseTexture.extensions != null)
-                                        diffuseTexture.extensions.Apply(diffuseTexture, mat, "_MainTex");
+                                if (tex != null) {
+                                    mat.mainTexture = tex;
+                                    if (diffuseTexture.extensions != null)
+                                        diffuseTexture.extensions.Apply(diffuseTexture, mat, "_BaseMap");
                                 }
                             });
-                            while(coroutine.MoveNext()) yield return null;
+                            while (coroutine.MoveNext()) yield return null;
                         }
                     }
-                    if(specularGlossinessTexture != null) {
-                        if(textures.Length <= specularGlossinessTexture.index) {
+                    if (specularGlossinessTexture != null) {
+                        if (textures.Length <= specularGlossinessTexture.index) {
                             Debug.LogWarning("Failed to get specular glossiness texture at index");
                         } else {
-                            mat.EnableKeyword("_SPECGLOSSMAP");
                             IEnumerator coroutine = textures[specularGlossinessTexture.index].GetTextureCached(false, tex => {
-                                if(tex != null) {
+                                if (tex != null) {
                                     mat.SetTexture("_SpecGlossMap", tex);
-                                    mat.EnableKeyword("_SPECGLOSSMAP");
-                                    if(specularGlossinessTexture.extensions != null)
+                                    if (specularGlossinessTexture.extensions != null)
                                         specularGlossinessTexture.extensions.Apply(specularGlossinessTexture, mat, "_SpecGlossMap");
                                 }
                             });
-                            while(coroutine.MoveNext()) yield return null;
+                            while (coroutine.MoveNext()) yield return null;
                         }
                     }
                 }
+
+                if (mat.HasProperty("_BaseMap"))
+                    mat.SetTexture("_BaseMap", mat.mainTexture);
+                if (mat.HasProperty("_BaseColor"))
+                    mat.SetColor("_BaseColor", diffuseFactor);
                 onFinish(mat);
             }
         }
@@ -228,11 +222,14 @@ namespace SimEnv.GLTF {
             public float scale = 1;
             public Extensions extensions;
 
+            public bool ShouldSerializetexCoord() => texCoord != 0;
+            public bool ShouldSerializescale() => scale != 1;
+
             public class Extensions {
                 public KHR_texture_transform KHR_texture_transform;
 
                 public void Apply(GLTFMaterial.TextureInfo texInfo, Material material, string textureSamplerName) {
-                    if(KHR_texture_transform != null)
+                    if (KHR_texture_transform != null)
                         KHR_texture_transform.Apply(texInfo, material, textureSamplerName);
                 }
             }
@@ -253,24 +250,24 @@ namespace SimEnv.GLTF {
                 this.importSettings = importSettings;
 
                 task = new Task(() => {
-                    if(materials == null) return;
+                    if (materials == null) return;
                     result = new ImportResult[materials.Count];
                 });
             }
 
             public override IEnumerator TaskCoroutine(Action<float> onProgress = null) {
-                if(materials == null) {
-                    if(onProgress != null)
+                if (materials == null) {
+                    if (onProgress != null)
                         onProgress(1f);
                     IsCompleted = true;
                     yield break;
                 }
-                for(int i = 0; i < result.Length; i++) {
+                for (int i = 0; i < result.Length; i++) {
                     result[i] = new ImportResult();
                     IEnumerator coroutine = materials[i].CreateMaterial(textureTask.result, x => result[i].material = x);
-                    while(coroutine.MoveNext())
+                    while (coroutine.MoveNext())
                         yield return null;
-                    if(result[i].material.name == null)
+                    if (result[i].material.name == null)
                         result[i].material.name = "material" + i;
                     yield return null;
                 }
@@ -285,18 +282,19 @@ namespace SimEnv.GLTF {
 
         public static List<ExportResult> Export(List<GLTFMesh.ExportResult> meshes) {
             Dictionary<Material, ExportResult> results = new Dictionary<Material, ExportResult>();
-            for(int i = 0; i < meshes.Count; i++) {
-                if(meshes[i].node.renderer != null && meshes[i].node.renderer.sharedMaterial != null) {
+            for (int i = 0; i < meshes.Count; i++) {
+                if (meshes[i].node.renderer != null && meshes[i].node.renderer.sharedMaterial != null) {
                     Material material = meshes[i].node.renderer.sharedMaterial;
                     ExportResult result;
-                    if(!results.TryGetValue(material, out result)) {
+                    if (!results.TryGetValue(material, out result)) {
                         result = new ExportResult() {
+                            name = material.name,
                             material = material,
                             index = results.Count
                         };
                         results.Add(material, result);
                     }
-                    for(int j = 0; j < meshes[i].primitives.Count; j++)
+                    for (int j = 0; j < meshes[i].primitives.Count; j++)
                         meshes[i].primitives[j].material = result.index;
                 }
             }
