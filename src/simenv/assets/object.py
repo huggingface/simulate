@@ -1089,6 +1089,8 @@ class ProcgenGrid(Object3D):
 
     """
 
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     # TODO: add support to other algorithms
     # TODO: add function regenerate to generate the map again?
     def __init__(

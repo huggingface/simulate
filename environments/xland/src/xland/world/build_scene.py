@@ -32,16 +32,16 @@ def add_walls(x, z, height=None, thickness=0.1):
     material = sm.Material(base_color=(0.9, 0.8, 0.2, 0.1))
 
     return [
-        sm.Cube(
+        sm.Box(
             position=[0, -HEIGHT_CONSTANT, z_max], bounds=[x_min, x_max, 0, height, 0, thickness], material=material
         ),
-        sm.Cube(
+        sm.Box(
             position=[0, -HEIGHT_CONSTANT, z_min], bounds=[x_min, x_max, 0, height, 0, -thickness], material=material
         ),
-        sm.Cube(
+        sm.Box(
             position=[x_max, -HEIGHT_CONSTANT, 0], bounds=[0, thickness, 0, height, z_min, z_max], material=material
         ),
-        sm.Cube(
+        sm.Box(
             position=[x_min, -HEIGHT_CONSTANT, 0], bounds=[0, -thickness, 0, height, z_min, z_max], material=material
         ),
     ]
