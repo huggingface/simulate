@@ -11,6 +11,9 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
 
+ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
+
 def create_env(executable=None, port=None, headless=None):
     scene = sm.Scene(engine="Unity", executable=executable, port=port, headless=headless)
 
@@ -80,7 +83,7 @@ if __name__ == "__main__":
     n_envs = 16
 
     # envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i) for i in range(n_envs)])
-    envs = SubprocVecEnv([make_env("integrations/Unity/Build/SimEnv.exe", i) for i in range(n_envs)])
+    envs = SubprocVecEnv([make_env(ED_UNITY_BUILD_URL, i) for i in range(n_envs)])
 
     obs = envs.reset()
     model = PPO("CnnPolicy", envs, verbose=3)

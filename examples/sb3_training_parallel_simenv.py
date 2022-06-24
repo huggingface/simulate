@@ -11,7 +11,8 @@ from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
 from simenv.wrappers import ParallelSimEnv
 
-UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
+ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
 
 def create_env(executable=None, port=None, headless=None):
     scene = sm.Scene(engine="Unity", engine_exe=executable, engine_port=port, engine_headless=headless)
@@ -67,7 +68,7 @@ def make_env(executable, seed=0, headless=None):
 
 if __name__ == "__main__":
     n_parallel = 4
-    env_fn = make_env(UNITY_BUILD_URL)
+    env_fn = make_env(THOM_UNITY_BUILD_URL)
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
     obs = env.reset()
