@@ -253,7 +253,9 @@ namespace SimEnv.Agents {
             capsule.GetComponent<Collider>().enabled = false;
         }
 
-        public void AgentUpdate(float timeStep) {
+        public void AgentUpdate(float frameRate) {
+
+            float timeStep = 1.0f / frameRate;
             if (HUMAN) {
                 // Human control
                 float x = Input.GetAxis("Horizontal");
