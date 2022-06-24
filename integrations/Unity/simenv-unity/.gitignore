@@ -75,6 +75,5 @@ crashlytics-build.properties
 /[Aa]ssets/GLTF/
 /[Aa]ssets/[Pp]layground/
 
-# Mods
-[Aa]ssets/Resources/Mods/*
-![Aa]ssets/Resources/Mods/README.md
+# Plugins
+[Aa]ssets/Resources/Plugins/*
