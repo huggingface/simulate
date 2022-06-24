@@ -37,9 +37,9 @@ namespace SimEnv {
         public static Dictionary<string, Type> GLTFExtensions;
 
         /// <summary>
-        /// Stores reference to loaded simulator extensions.
+        /// Stores reference to loaded plugins.
         /// </summary>
-        public static List<ISimulatorExtension> SimulatorExtensions;
+        public static List<IPlugin> Plugins;
 
         /// <summary>
         /// Stores reference to all tracked cameras in the current environment.
@@ -66,13 +66,13 @@ namespace SimEnv {
             Nodes = new Dictionary<string, Node>();
             CurrentState = State.Undefined;
             LoadCustomAssemblies();
-            LoadExtensions();
+            LoadPlugins();
             Client.instance.Initialize();
         }
 
         private void OnDestroy() {
             Unload();
-            UnloadExtensions();
+            UnloadPlugins();
         }
 
         /// <summary>
@@ -153,8 +153,8 @@ namespace SimEnv {
         private static void OnAfterLoad() {
             CurrentState = State.Default;
             Physics.autoSimulation = false;
-            for(int i = 0; i < SimulatorExtensions.Count; i++)
-                SimulatorExtensions[i].OnEnvironmentLoaded();
+            for(int i = 0; i < Plugins.Count; i++)
+                Plugins[i].OnEnvironmentLoaded();
             EnvironmentLoaded?.Invoke();
         }
 
@@ -163,46 +163,46 @@ namespace SimEnv {
         /// </summary>
         public static void Unload() {
             if(Root == null) return;
-            for(int i = 0; i < SimulatorExtensions.Count; i++)
-                SimulatorExtensions[i].OnBeforeEnvironmentUnloaded();
+            for(int i = 0; i < Plugins.Count; i++)
+                Plugins[i].OnBeforeEnvironmentUnloaded();
             BeforeEnvironmentUnloaded?.Invoke();
             CurrentState = State.Unloading;
             GameObject.DestroyImmediate(Root);
             Nodes.Clear();
             Cameras.Clear();
             CurrentState = State.Undefined;
-            for(int i = 0; i < SimulatorExtensions.Count; i++)
+            for(int i = 0; i < Plugins.Count; i++)
                 EnvironmentUnloaded?.Invoke();
         }
 
         /// <summary>
-        /// Finds and loads any custom DLLs in Resources/Mods.
+        /// Finds and loads any custom DLLs in Resources/Plugins.
         /// </summary>
         private static void LoadCustomAssemblies() {
-            string modPath = Application.dataPath + "/Resources/Mods";
-            DirectoryInfo modDirectory = new DirectoryInfo(Application.dataPath + "/Resources/Mods");
+            string modPath = Application.dataPath + "/Resources/Plugins";
+            DirectoryInfo modDirectory = new DirectoryInfo(Application.dataPath + "/Resources/Plugins");
             if(!modDirectory.Exists) {
-                Debug.LogWarning("Mod directory doesn't exist at path: " + modPath);
+                Debug.LogWarning("Plugin directory doesn't exist at path: " + modPath);
                 return;
             }
             foreach(FileInfo file in modDirectory.GetFiles()) {
                 if(file.Extension == ".dll") {
                     Assembly.LoadFile(file.FullName);
-                    Debug.Log("Loaded mod assembly: " + file.Name);
+                    Debug.Log("Loaded plugin assembly: " + file.Name);
                 }
             }
         }
 
         /// <summary>
-        /// Finds custom extensions and instantiates them.
+        /// Finds plugins and instantiates them.
         /// </summary>
-        private static void LoadExtensions() {
-            SimulatorExtensions = AppDomain.CurrentDomain.GetAssemblies()
+        private static void LoadPlugins() {
+            Plugins = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
-                .Where(x => !x.IsInterface && !x.IsAbstract && typeof(ISimulatorExtension).IsAssignableFrom(x))
-                .Select(x => (ISimulatorExtension)Activator.CreateInstance(x))
+                .Where(x => !x.IsInterface && !x.IsAbstract && typeof(IPlugin).IsAssignableFrom(x))
+                .Select(x => (IPlugin)Activator.CreateInstance(x))
                 .ToList();
-            SimulatorExtensions.ForEach(extension => extension.OnCreated());
+            Plugins.ForEach(plugin => plugin.OnCreated());
 
             GLTFExtensions = new Dictionary<string, Type>();
             AppDomain.CurrentDomain.GetAssemblies()
@@ -214,11 +214,11 @@ namespace SimEnv {
         }
 
         /// <summary>
-        /// Calls <c>OnReleased()</c> of all extensions.
+        /// Calls <c>OnReleased()</c> of all plugins.
         /// </summary>
-        private static void UnloadExtensions() {
-            SimulatorExtensions.ForEach(extension => extension.OnReleased());
-            SimulatorExtensions.Clear();
+        private static void UnloadPlugins() {
+            Plugins.ForEach(plugin => plugin.OnReleased());
+            Plugins.Clear();
         }
 
         /// <summary>

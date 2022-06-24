@@ -1,5 +1,5 @@
 namespace SimEnv.Agents {
-    public class AgentsLoadingExtension : ISimulatorExtension {
+    public class AgentsPlugin : IPlugin {
         public void OnCreated() {
             AgentManager.instance ??= new AgentManager();
         }

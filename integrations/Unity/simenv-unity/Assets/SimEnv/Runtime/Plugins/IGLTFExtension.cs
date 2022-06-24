@@ -9,7 +9,7 @@ namespace SimEnv {
     /// public class MyCustomRigidBodyExtension : IGLTFNodeExtension {
     ///     public float mass;
     ///     
-    ///     public void Initialize(INode node) {
+    ///     public void Initialize(Node node) {
     ///         Rigidbody rigidBody = node.gameObject.AddComponent{Rigidbody}();
     ///         rigidBody.mass = mass;
     ///     }
