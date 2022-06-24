@@ -578,6 +578,7 @@ def add_node_to_scene(
             reward_scalars=[rf.scalar for rf in node.reward_functions],
             reward_thresholds=[rf.threshold for rf in node.reward_functions],
             reward_is_terminals=[rf.is_terminal for rf in node.reward_functions],
+            reward_is_collectables=[rf.is_collectable for rf in node.reward_functions],
         )
         if gl_node.extensions is None:
             gl_node.extensions = gl.Extensions(HF_custom=[])

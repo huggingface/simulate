@@ -20,6 +20,7 @@ namespace SimEnv.Agents {
         public List<float> reward_scalars = new List<float>();
         public List<float> reward_thresholds = new List<float>();
         public List<bool> reward_is_terminals = new List<bool>();
+        public List<bool> reward_is_collectables = new List<bool>();
 
         public void Initialize(Node node) {
             new Agent(node, this);
