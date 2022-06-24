@@ -20,6 +20,13 @@ class DiscreteRLAgentActions(RLAgentActions):
             dist="discrete",
             available_actions=["move_forward", "move_backward", "move_left", "move_right", "turn_left", "turn_right"],
         )
+    @classmethod
+    def simple(cls):
+        return cls(
+            name="movement",
+            dist="discrete",
+            available_actions=["move_forward", "turn_left", "turn_right"],
+        )
 
 
 class ContinuousRLAgentActions(RLAgentActions):

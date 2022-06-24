@@ -17,7 +17,7 @@ class RL_Agent(Asset):
         self,
         color: Optional[List[float]] = None,
         height: Optional[float] = 1.5,
-        move_speed: Optional[float] = 5.0,
+        move_speed: Optional[float] = 1.0,
         turn_speed: Optional[float] = 2.0,
         actions: Optional[RLAgentActions] = None,
         reward_functions: Optional[List[RLAgentRewardFunction]] = None,

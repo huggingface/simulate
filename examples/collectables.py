@@ -1,6 +1,7 @@
 from requests import head
 import simenv as sm
 from simenv.assets import material
+from simenv.assets.agent import rl_agent_actions
 import simenv.assets.utils as utils
 import os, time
 from simenv.rl_env import RLEnv
@@ -30,7 +31,7 @@ def create_env(executable=None, port=None, headless=None):
 
 
 
-    agent = sm.RL_Agent(name="agent", turn_speed=5.0,camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
+    agent = sm.RL_Agent(name="agent", turn_speed=5.0, camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0), rl_agent_actions=rl_agent_actions.DiscreteRLAgentActions.simple())
     root += agent
     for i in range(20):
 
@@ -87,23 +88,6 @@ if __name__ == "__main__":
     env_fn = make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel, starting_port=56000)
-
-    # plt.ion()
-    # fig1, ax1 = plt.subplots()
-    # dummy_obs = np.zeros(shape=(36*4, 36*4, 3), dtype=np.uint8)
-    # axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
-
-
-
-    # for i in range(1000):
-    #     actions = np.array([env.action_space.sample() for _ in range(env.n_agents)])
-
-    #     obs, reward, done, info = env.step(actions)
-    #     for i in range(4):
-    #         for j in range(4):
-    #             dummy_obs[i*36:(i+1)*36,j*36:(j+1)*36] = obs[i*4+j].transpose(1,2,0)
-    #     axim1.set_data(dummy_obs)
-    #     fig1.canvas.flush_events()
 
     obs = env.reset()
     model = PPO("CnnPolicy", env, verbose=3, n_steps=200, n_epochs=2, batch_size=1280)
