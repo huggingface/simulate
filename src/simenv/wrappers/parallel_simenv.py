@@ -88,7 +88,7 @@ class ParallelSimEnv(VecEnv):
             done = self.envs[i].get_done_recv()
             dones.extend(done)
 
-        return dones
+        return np.array(dones)
 
     def _get_observations(self):
         for i in range(self.n_parallel):
