@@ -1,8 +1,6 @@
 import numpy as np
-from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 
-import simenv.assets.utils as utils
 from simenv.rl_env import RLEnv
 
 

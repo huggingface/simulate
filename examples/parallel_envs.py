@@ -32,14 +32,14 @@ def create_env(executable=None, port=None, headless=None):
     agent = sm.RlAgent(name="agent", turn_speed=5.0,camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
     scene += sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
 
-    reward_function = sm.RLAgentRewardFunction(
+    reward_function = sm.RlAgentRewardFunction(
         function="dense",
         entity1="agent",
         entity2="collectable",
         distance_metric="euclidean"
     )
 
-    reward_function2 = sm.RLAgentRewardFunction(
+    reward_function2 = sm.RlAgentRewardFunction(
         function="sparse",
         entity1="agent",
         entity2="collectable",
@@ -47,7 +47,7 @@ def create_env(executable=None, port=None, headless=None):
         threshold=0.2,
         is_terminal=True
     )
-    timeout_reward_function = sm.RLAgentRewardFunction(
+    timeout_reward_function = sm.RlAgentRewardFunction(
         function="timeout",
         entity1="agent",
         entity2="agent",

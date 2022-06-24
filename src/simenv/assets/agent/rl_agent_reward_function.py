@@ -5,7 +5,7 @@ from ..asset import Asset
 
 
 @dataclass
-class RLAgentRewardFunction:
+class RlAgentRewardFunction:
     function: Optional[str] = "dense"
     entity1: Optional[Asset] = None
     entity2: Optional[Asset] = None

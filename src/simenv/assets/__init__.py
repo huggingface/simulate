@@ -1,4 +1,4 @@
-from .agent import RlAgent, RLAgentRewardFunction
+from .agent import RlAgent, RlAgentRewardFunction
 from .asset import *
 from .camera import Camera
 from .collider import *
