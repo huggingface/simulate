@@ -21,7 +21,7 @@ from typing import List, Optional, Union
 
 from huggingface_hub import create_repo, hf_hub_download, logging, upload_file
 
-from .assets import Asset, Camera, Light, Object3D, RL_Agent
+from .assets import Asset, Camera, Light, Object3D, RlAgent
 from .assets.anytree import RenderTree
 from .engine import GodotEngine, PyVistaEngine, UnityEngine
 
@@ -260,7 +260,7 @@ class Scene(Asset):
     @property
     def agents(self):
         """Tuple with all RLAgent in the Scene"""
-        return self.tree_filtered_descendants(lambda node: isinstance(node, RL_Agent))
+        return self.tree_filtered_descendants(lambda node: isinstance(node, RlAgent))
 
     @property
     def lights(self):

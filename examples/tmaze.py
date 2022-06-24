@@ -22,7 +22,7 @@ scene += sm.Box(name="wall7", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1])
 scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
 
-agent = sm.RL_Agent(name="agent", position=[0, 0, 0.0])
+agent = sm.RlAgent(name="agent", position=[0, 0, 0.0])
 agent += sm.Camera(
     name="cam1", position=[5, 6.5, -3.75], rotation=utils.quat_from_degrees(45, -45, 0), width=1024, height=1024
 )

@@ -4,10 +4,10 @@ from typing import List, Optional
 from ..asset import Asset
 from ..camera import Camera
 from .rl_agent_actions import DiscreteRLAgentActions, RLAgentActions
-from .rl_agent_reward_function import RLAgentRewardFunction
+from .rl_agent_reward_function import RlAgentRewardFunction
 
 
-class RL_Agent(Asset):
+class RlAgent(Asset):
     """A reinforcement learning agent"""
 
     dimensionality = 3
@@ -20,7 +20,7 @@ class RL_Agent(Asset):
         move_speed: Optional[float] = 5.0,
         turn_speed: Optional[float] = 2.0,
         actions: Optional[RLAgentActions] = None,
-        reward_functions: Optional[List[RLAgentRewardFunction]] = None,
+        reward_functions: Optional[List[RlAgentRewardFunction]] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
@@ -54,7 +54,7 @@ class RL_Agent(Asset):
         self.camera = Camera(position=[0.0, height * 0.7, 0.0], width=camera_width, height=camera_height)
         self.add(self.camera)
 
-    def add_reward_function(self, reward_function: RLAgentRewardFunction) -> None:
+    def add_reward_function(self, reward_function: RlAgentRewardFunction) -> None:
         self.reward_functions.append(reward_function)
 
     def copy(self):
@@ -68,5 +68,5 @@ class RL_Agent(Asset):
 
         return instance_copy
 
-    def post_copy(self):
-        self.reward_functions = [rf.post_copy(self) for rf in self.reward_functions]
+    def _post_copy(self):
+        self.reward_functions = [rf._post_copy(self) for rf in self.reward_functions]

@@ -5,7 +5,7 @@ from ..asset import Asset
 
 
 @dataclass
-class RLAgentRewardFunction:
+class RlAgentRewardFunction:
     function: Optional[str] = "dense"
     entity1: Optional[Asset] = None
     entity2: Optional[Asset] = None
@@ -14,7 +14,7 @@ class RLAgentRewardFunction:
     threshold: Optional[float] = 1.0
     is_terminal: Optional[bool] = False
 
-    def post_copy(self, agent):
+    def _post_copy(self, agent):
         root = agent.tree_root
 
         new_instance = type(self)(

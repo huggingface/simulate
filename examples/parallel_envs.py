@@ -11,6 +11,9 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
 
+ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
+
 def create_env(executable=None, port=None, headless=None):
     scene = sm.Scene(engine="Unity", executable=executable, port=port, headless=headless)
 
@@ -29,17 +32,17 @@ def create_env(executable=None, port=None, headless=None):
     scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
 
-    agent = sm.RL_Agent(name="agent", turn_speed=5.0,camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
+    agent = sm.RlAgent(name="agent", turn_speed=5.0,camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
     scene += sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
 
-    reward_function = sm.RLAgentRewardFunction(
+    reward_function = sm.RlAgentRewardFunction(
         function="dense",
         entity1="agent",
         entity2="collectable",
         distance_metric="euclidean"
     )
 
-    reward_function2 = sm.RLAgentRewardFunction(
+    reward_function2 = sm.RlAgentRewardFunction(
         function="sparse",
         entity1="agent",
         entity2="collectable",
@@ -47,7 +50,7 @@ def create_env(executable=None, port=None, headless=None):
         threshold=0.2,
         is_terminal=True
     )
-    timeout_reward_function = sm.RLAgentRewardFunction(
+    timeout_reward_function = sm.RlAgentRewardFunction(
         function="timeout",
         entity1="agent",
         entity2="agent",
@@ -80,7 +83,7 @@ if __name__ == "__main__":
     n_envs = 16
 
     # envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i) for i in range(n_envs)])
-    envs = SubprocVecEnv([make_env("integrations/Unity/Build/SimEnv.exe", i) for i in range(n_envs)])
+    envs = SubprocVecEnv([make_env(ED_UNITY_BUILD_URL, i) for i in range(n_envs)])
 
     obs = envs.reset()
     model = PPO("CnnPolicy", envs, verbose=3)

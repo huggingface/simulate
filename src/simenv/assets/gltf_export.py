@@ -30,7 +30,7 @@ except ImportError:
     pass
 
 
-from . import Asset, Camera, Light, Material, Object3D, RL_Agent
+from . import Asset, Camera, Light, Material, Object3D, RlAgent
 from . import gltflib as gl
 
 
@@ -429,15 +429,25 @@ def add_mesh_to_model(
         primitive.material = material_id
         primitives.append(primitive)
 
-    # Add the new mesh
+    # Create a final new mesh
     gltf_mesh = gl.Mesh(primitives=primitives)
+
+    # If we have already created exactly the same mesh we avoid double storing
+    cached_id = is_data_cached(data=gltf_mesh.to_json(), cache=cache)
+    if cached_id is not None:
+        return cached_id
+
     gltf_model.meshes.append(gltf_mesh)
     mesh_id = len(gltf_model.meshes) - 1
+
+    cache_data(data=gltf_mesh.to_json(), data_id=mesh_id, cache=cache)
 
     return mesh_id
 
 
-def add_camera_to_model(camera: Camera, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
+def add_camera_to_model(
+    camera: Camera, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+) -> int:
     gl_camera = gl.Camera(type=camera.camera_type, width=camera.width, height=camera.height)
 
     if camera.camera_type == "perspective":
@@ -449,14 +459,23 @@ def add_camera_to_model(camera: Camera, gltf_model: gl.GLTFModel, buffer_data: B
             xmag=camera.xmag, ymag=camera.ymag, zfar=camera.zfar, znear=camera.znear
         )
 
+    # If we have already created exactly the same camera we avoid double storing
+    cached_id = is_data_cached(data=gl_camera.to_json(), cache=cache)
+    if cached_id is not None:
+        return cached_id
+
     # Add the new camera
     gltf_model.cameras.append(gl_camera)
     camera_id = len(gltf_model.cameras) - 1
 
+    cache_data(data=gl_camera.to_json(), data_id=camera_id, cache=cache)
+
     return camera_id
 
 
-def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0) -> int:
+def add_light_to_model(
+    node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+) -> int:
     light_type = node.light_type
     if light_type == "positional":
         if node.outer_cone_angle is None or node.outer_cone_angle > np.pi / 2:
@@ -470,6 +489,11 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
         light.innerConeAngle = node.inner_cone_angle
         light.outerConeAngle = node.outer_cone_angle
 
+    # If we have already created exactly the same light we avoid double storing
+    cached_id = is_data_cached(data=light.to_json(), cache=cache)
+    if cached_id is not None:
+        return cached_id
+
     # Add the new light
     if gltf_model.extensions.KHR_lights_punctual is None:
         gltf_model.extensions.KHR_lights_punctual = gl.KHRLightsPunctual(lights=[light])
@@ -477,7 +501,37 @@ def add_light_to_model(node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteS
         gltf_model.extensions.KHR_lights_punctual.lights.append(light)
     light_id = len(gltf_model.extensions.KHR_lights_punctual.lights) - 1
 
+    cache_data(data=light.to_json(), data_id=light_id, cache=cache)
+
     return light_id
+
+
+def add_collider_to_model(
+    node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+) -> int:
+    collider = gl.HFCollidersCollider(
+        type=node.collider.type.value,
+        boundingBox=node.collider.bounding_box,
+        mesh=node.collider.mesh,
+        offset=node.collider.offset,
+        intangible=node.collider.intangible,
+    )
+
+    # If we have already created exactly the same collider we avoid double storing
+    cached_id = is_data_cached(data=collider.to_json(), cache=cache)
+    if cached_id is not None:
+        return cached_id
+
+    # Add the new collider
+    if gltf_model.extensions.HF_colliders is None:
+        gltf_model.extensions.HF_colliders = gl.HFColliders(colliders=[collider])
+    else:
+        gltf_model.extensions.HF_colliders.colliders.append(collider)
+    collider_id = len(gltf_model.extensions.HF_colliders.colliders) - 1
+
+    cache_data(data=collider.to_json(), data_id=collider_id, cache=cache)
+
+    return collider_id
 
 
 def add_node_to_scene(
@@ -496,20 +550,20 @@ def add_node_to_scene(
     )
     if isinstance(node, Camera):
         gl_node.camera = add_camera_to_model(
-            camera=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
+            camera=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
     elif isinstance(node, Light):
-        light_id = add_light_to_model(node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id)
+        light_id = add_light_to_model(
+            node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+        )
         gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
 
     elif isinstance(node, Object3D):
         gl_node.mesh = add_mesh_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
-
-    # TODO: less hacky way to add custom extensions
-    if isinstance(node, RL_Agent):
-        agent = gl.HF_RL_Agent(
+    elif isinstance(node, RlAgent):
+        agent = gl.HFRlAgent(
             color=node.color,
             height=node.height,
             move_speed=node.move_speed,
@@ -529,22 +583,15 @@ def add_node_to_scene(
             gl_node.extensions = gl.Extensions(HF_custom=[])
         elif gl_node.extensions.HF_custom is None:
             gl_node.extensions.HF_custom = []
-        wrapper = json.dumps({"type": "HF_RL_Agent", "contents": json.dumps(gl.utils.del_none(asdict(agent)))})
+        wrapper = json.dumps({"type": "HFRlAgent", "contents": json.dumps(gl.utils.del_none(asdict(agent)))})
         gl_node.extensions.HF_custom.append(wrapper)
 
     # Add collider if node has one
     if node.collider is not None:
-        hf_collider = gl.HF_Collider(
-            type=node.collider.type,
-            boundingBox=node.collider.bounding_box,
-            mesh=node.collider.mesh,
-            offset=node.collider.offset,
-            intangible=node.collider.intangible,
+        collider_id = add_collider_to_model(
+            node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
-        if gl_node.extensions is None:
-            gl_node.extensions = gl.Extensions(HF_collider=hf_collider)
-        else:
-            gl_node.extensions.HF_collider = hf_collider
+        gl_node.extensions = gl.Extensions(HF_colliders=gl.HFColliders(collider=collider_id))
 
     # Add the new node
     gltf_model.nodes.append(gl_node)

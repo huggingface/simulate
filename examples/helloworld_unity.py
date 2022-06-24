@@ -5,7 +5,7 @@ scene = sm.Scene(engine='Unity')
 
 scene += sm.Sphere()
 scene += sm.Light()
-scene += sm.RL_Agent()
+scene += sm.RlAgent()
 scene += sm.Camera()
 scene.show()
 

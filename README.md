@@ -185,16 +185,16 @@ public class MyCommand : Command {
 
 Simply adding the script to the project should be sufficient to make it work. Any public fields defined in a `Command` can be passed through your `contents` JSON. Only simple types (i.e. `int`, `float`, `string`) and arrays are supported, not Lists, Vector3, etc., since it uses Unity's built-in JSON serialization. You need to serialize/deserialize these yourself.
 
-### Collider Extension
+### Colliders Extension
 
-The HF_collider extension is based loosely on the PANDA3D_physics_collision_shapes extension: https://github.com/Moguri/glTF/tree/panda3d_physics_collision_shapes/extensions/2.0/Vendor/PANDA3D_collision_shapes
+The HF_colliders extension is based loosely on the PANDA3D_physics_collision_shapes extension: https://github.com/Moguri/glTF/tree/panda3d_physics_collision_shapes/extensions/2.0/Vendor/PANDA3D_collision_shapes
 
-This extension is defined at the node-level. For example, a node with a box collider:
+This extension is defined both at the scene-level (storing the colliders) and the node-level (storing pointers to the colliders). For example, a node with a box collider:
 ```
 {
     "extensions": {
-        "HF_collider": {
-            {
+        "HF_colliders": {
+            collider: {
                 "type": "BOX",
                 "boundingBox": [
                     0.5,

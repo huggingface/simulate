@@ -26,8 +26,8 @@ for i in range(20):
     material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
     root += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 
-agent = sm.RL_Agent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
-reward_function = sm.RLAgentRewardFunction(
+agent = sm.RlAgent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
+reward_function = sm.RlAgentRewardFunction(
     function="dense",
     entity1=agent,
     entity2=cube,

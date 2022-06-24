@@ -6,7 +6,7 @@ from dataclasses_json import dataclass_json
 
 @dataclass_json
 @dataclass
-class HF_RL_Agent:
+class HFRlAgent:
     """
     A GTLF RL Agent
     """
@@ -27,14 +27,3 @@ class HF_RL_Agent:
     reward_scalars: Optional[List[float]] = None
     reward_thresholds: Optional[List[float]] = None
     reward_is_terminals: Optional[List[bool]] = None
-
-
-@dataclass_json
-@dataclass
-class HF_RL_Agents:
-    """
-    A collection of GLTFAgents
-    """
-
-    agents: Optional[List[HF_RL_Agent]] = None
-    agent: Optional[int] = None
