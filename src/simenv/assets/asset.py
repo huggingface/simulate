@@ -70,10 +70,10 @@ class Asset(NodeMixin, object):
         self.position = position
         self.rotation = rotation
         self.scaling = scaling
-        self.collider = collider
         if transformation_matrix is not None:
             self.transformation_matrix = transformation_matrix
 
+        self.collider = collider
         self._n_copies = 0
 
     @property
@@ -114,7 +114,7 @@ class Asset(NodeMixin, object):
     def _post_copy(self):
         return
 
-    def get_last_copy_name(self):
+    def _get_last_copy_name(self):
         assert self._n_copies > 0, "this object is yet to be copied"
         return self.name + f"_copy{self._n_copies-1}"
 
@@ -356,6 +356,66 @@ class Asset(NodeMixin, object):
             raise ValueError("Scale should be of size 1 (Uniform scale) or 3 (X, Y, Z)")
         self.scaling = np.multiply(self.scaling, scaling)
         return self
+
+    def scale_x(self, value: Optional[float] = None):
+        """scale the asset around the ``x`` axis with a given scaling value.
+
+        Parameters
+        ----------
+        value : float, optional
+            scaling value to apply to the object around the ``x`` axis.
+            Default to applying no scaling.
+
+        Returns
+        -------
+        self : Asset modified in-place with the scaling.
+
+        Examples
+        --------
+
+        """
+
+        return self.scale(vector=[1.0, 0.0, 0.0], value=value)
+
+    def scale_y(self, value: Optional[float] = None):
+        """scale the asset around the ``y`` axis with a given scaling value.
+
+        Parameters
+        ----------
+        value : float, optional
+            scaling value to apply to the object around the ``y`` axis .
+            Default to applying no scaling.
+
+        Returns
+        -------
+        self : Asset modified in-place with the scaling.
+
+        Examples
+        --------
+
+        """
+
+        return self.scale(vector=[0.0, 1.0, 0.0], value=value)
+
+    def scale_z(self, value: Optional[float] = None):
+        """scale the asset around the ``z`` axis with a given value.
+
+        Parameters
+        ----------
+        value : float, optional
+            Scale value to apply to the object around the ``z`` axis.
+            Default to applying no scaling.
+
+        Returns
+        -------
+        self : Asset modified in-place with the scaling.
+
+        Examples
+        --------
+
+        """
+
+        return self.scale(vector=[0.0, 0.0, 1.0], value=value)
 
     # getters for position/rotation/scale
 

@@ -19,8 +19,8 @@ class RlAgentRewardFunction:
 
         new_instance = type(self)(
             function=self.function,
-            entity1=root.get(self.entity1.get_last_copy_name()),
-            entity2=root.get(self.entity2.get_last_copy_name()),
+            entity1=root.get(self.entity1._get_last_copy_name()),
+            entity2=root.get(self.entity2._get_last_copy_name()),
             distance_metric=self.distance_metric,
             scalar=self.scalar,
             threshold=self.threshold,

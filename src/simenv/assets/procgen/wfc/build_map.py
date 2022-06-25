@@ -5,7 +5,6 @@ Builds map using Wave Function Collapse.
 import os
 
 import numpy as np
-
 from wfc_binding import run_wfc
 
 from .wfc_utils import GRANULARITY, decode_rgb
