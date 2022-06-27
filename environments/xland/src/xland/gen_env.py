@@ -27,6 +27,9 @@ def generate_env(
     show=False,
     tiles=None,
     neighbors=None,
+    executable=None,
+    port=None,
+    headless=None,
     **kwargs,
 ):
     """
@@ -56,6 +59,7 @@ def generate_env(
         show: Whether to show the map.
         tiles: tiles for simpletiled generation
         neighbors: neighborhood constraints to the tiles
+        TODO: Add executable, port, and headless descriptions.
         **kwargs: Additional arguments. Handles unused args as well.
 
     Returns:
@@ -109,7 +113,9 @@ def generate_env(
         # If there is no enough area, we should try again and continue the loop
         if success:
             # Set objects in scene:
-            scene = generate_scene(sg, obj_pos, agent_pos, engine, verbose=verbose)
+            scene = generate_scene(
+                sg, obj_pos, agent_pos, engine, executable=executable, port=port, headless=headless, verbose=verbose
+            )
 
             # Generate the game
             # generate_game(generated_map, scene)

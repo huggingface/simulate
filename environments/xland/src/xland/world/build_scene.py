@@ -167,12 +167,21 @@ def generate_colliders(sg):
     return collider_assets
 
 
-def generate_scene(sg, obj_pos, agent_pos, engine=None, verbose=False):
+def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=None, headless=None, verbose=False):
     """
     Generate scene by interacting with simenv library.
     """
-    # Create the mesh
-    scene = sm.Scene(engine=engine)
+    # Create scene and add camera
+    if engine is not None and engine != "pyvista":
+        if port is not None:
+            scene = sm.Scene(engine=engine, engine_exe=executable, engine_port=port, engine_headless=headless)
+        else:
+            scene = sm.Scene(engine=engine, engine_exe=executable, engine_headless=headless)
+
+        scene += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
+
+    else:
+        scene = sm.Scene(engine=engine)
 
     # Add colliders to StructuredGrid
     sg.generate_3D()
@@ -193,10 +202,6 @@ def generate_scene(sg, obj_pos, agent_pos, engine=None, verbose=False):
 
     # Add colliders
     sg += generate_colliders(sg)
-
-    # Add camera
-    if engine is not None and engine != "pyvista":
-        scene += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
 
     # Add agent
     # TODO: Generate random predicates
