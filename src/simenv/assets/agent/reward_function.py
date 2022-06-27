@@ -5,8 +5,8 @@ from ..asset import Asset
 
 
 @dataclass
-class RlAgentRewardFunction:
-    function: Optional[str] = "dense"
+class RewardFunction:
+    type: Optional[str] = "dense"
     entity1: Optional[Asset] = None
     entity2: Optional[Asset] = None
     distance_metric: Optional[str] = "euclidean"
@@ -18,7 +18,7 @@ class RlAgentRewardFunction:
         root = agent.tree_root
 
         new_instance = type(self)(
-            function=self.function,
+            type=self.type,
             entity1=root.get(self.entity1._get_last_copy_name()),
             entity2=root.get(self.entity2._get_last_copy_name()),
             distance_metric=self.distance_metric,

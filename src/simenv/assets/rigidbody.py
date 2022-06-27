@@ -25,18 +25,17 @@ import pyvista
 from .utils import camelcase_to_snakecase
 
 
-# TODO thom this is a very basic PBR Metrial class, mostly here to be able to load a gltf - strongly base on GLTF definitions
-# To be revamped and improved later
-
-"FreezePositionX"
-"FreezePositionY"
-"FreezePositionZ"
-"FreezeRotationX"
-"FreezeRotationY"
-"FreezeRotationZ"
-"FreezePosition"
-"FreezeRotation"
-"FreezeAll"
+ALLOWED_CONSTRAINTS = [
+    "FreezePositionX",
+    "FreezePositionY",
+    "FreezePositionZ",
+    "FreezeRotationX",
+    "FreezeRotationY",
+    "FreezeRotationZ",
+    "FreezePosition",
+    "FreezeRotation",
+    "FreezeAll",
+]
 
 
 @dataclass()
@@ -49,7 +48,14 @@ class RigidBody:
     name : string, optional
         The user-defined name of this material
 
-    mass : List, optiona
+    mass : float
+        Mass of the rigidbody
+
+    constraints : List[str], optional
+        List of constraints to apply to the rigidbody, selected in:
+            [FreezePositionX, FreezePositionY, FreezePositionZ,
+             FreezeRotationX, FreezeRotationY, FreezeRotationZ,
+             FreezePosition, FreezeRotation, FreezeAll]
 
     """
 
@@ -65,6 +71,13 @@ class RigidBody:
         # Setup all our default values
         if self.mass is None:
             self.mass = 1.0
+        self.mass = float(self.mass)
+
+        if self.constraints is None:
+            self.constraints = []
+        for contraint in self.constraints:
+            if contraint not in ALLOWED_CONSTRAINTS:
+                raise ValueError(f"Contraint {contraint} not in allowed list: {ALLOWED_CONSTRAINTS}")
 
         if self.name is None:
             id = next(self.__class__.__NEW_ID)

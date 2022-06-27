@@ -15,10 +15,13 @@
 # Lint as: python3
 """ A simenv Asset - Objects in the scene (mesh, primitives, camera, lights)."""
 import itertools
+import os
+import tempfile
 import uuid
 from typing import List, Optional, Union
 
 import numpy as np
+from huggingface_hub import create_repo, hf_hub_download, upload_file
 
 from .anytree import NodeMixin
 from .collider import Collider
@@ -118,34 +121,187 @@ class Asset(NodeMixin, object):
         assert self._n_copies > 0, "this object is yet to be copied"
         return self.name + f"_copy{self._n_copies-1}"
 
-    @classmethod
-    def create_from(
-        cls,
-        file_path: str,
-        file_type: Optional[str] = None,
-        repo_id: Optional[str] = None,
-        subfolder: Optional[str] = None,
+    @staticmethod
+    def _get_node_tree_from_hub_or_local(
+        hub_or_local_filepath: str,
+        use_auth_token: Optional[str] = None,
         revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
+        file_type: Optional[str] = None,
+        **kwargs,
     ):
-        """Loading function to create a tree of asset nodes from a GLTF file.
-        Return a tree with a root nodes in the GLTF files.
-        The tree can be walked from the root nodes.
-        If the glTF file has several root node a root node is added to it.
+        """Return a root tree loaded from the HuggingFace hub or from a local GLTF file.
+
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
+
+        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         # We import dynamically here to avoid circular import (tried many other options...)
         from .gltf_import import load_gltf_as_tree
 
+        if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and is_local is not False:
+            gltf_file = hub_or_local_filepath
+        else:
+            splitted_hub_path = hub_or_local_filepath.split("/")
+            repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
+            filename = splitted_hub_path[-1]
+            subfolder = "/".join(splitted_hub_path[2:-1])
+            gltf_file = hf_hub_download(
+                repo_id=repo_id,
+                filename=filename,
+                subfolder=subfolder,
+                revision=revision,
+                repo_type="space",
+                use_auth_token=use_auth_token,
+                # force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
+                **kwargs,
+            )
+        nodes = Asset.create_from(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
+
         nodes = load_gltf_as_tree(
-            file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
+            gltf_file=gltf_file, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
         )
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
         else:
-            root = cls(name="Scene", children=nodes)  # Otherwise we build a main root node
+            root = Asset(name="Scene", children=nodes)  # Otherwise we build a main root node
         return root
 
-    def save_to_gltf_file(self, file_path: str) -> List[str]:
-        """Save the tree in a GLTF file + additional (binary) ressource files if if shoulf be the case.
+        return nodes, gltf_file
+
+    @classmethod
+    def create_from(
+        cls,
+        hub_or_local_filepath: str,
+        use_auth_token: Optional[str] = None,
+        revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
+        hf_hub_kwargs: Optional[dict] = None,
+        **kwargs,
+    ) -> "Asset":
+        """Load a Scene or Asset from the HuggingFace hub or from a local GLTF file.
+
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
+
+        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
+        """
+        root_node, gltf_file = Asset._get_node_tree_from_hub_or_local(
+            hub_or_local_filepath=hub_or_local_filepath,
+            use_auth_token=use_auth_token,
+            revision=revision,
+            is_local=is_local,
+            **(hf_hub_kwargs if hf_hub_kwargs is not None else {}),
+        )
+        return cls(
+            name=root_node.name,
+            position=root_node.position,
+            rotation=root_node.rotation,
+            scaling=root_node.scaling,
+            children=root_node.tree_children,
+            created_from_file=gltf_file,
+            **kwargs,
+        )
+
+    def load(
+        self,
+        hub_or_local_filepath: str,
+        use_auth_token: Optional[str] = None,
+        revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
+        **kwargs,
+    ) -> "Asset":
+        """Load a Scene from the HuggingFace hub or from a local GLTF file.
+
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
+
+        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
+        """
+        root_node, gltf_file = Asset._get_node_tree_from_hub_or_local(
+            hub_or_local_filepath=hub_or_local_filepath,
+            use_auth_token=use_auth_token,
+            revision=revision,
+            is_local=is_local,
+            **kwargs,
+        )
+
+        self.clear()
+        self.name = root_node.name
+        self.position = root_node.position
+        self.rotation = root_node.rotation
+        self.scaling = root_node.scaling
+        self.tree_children = root_node.tree_children
+        self.created_from_file = gltf_file
+
+    def push_to_hub(
+        self,
+        hub_filepath: str,
+        token: Optional[str] = None,
+        revision: Optional[str] = None,
+        identical_ok: bool = True,
+        private: bool = False,
+        **kwargs,
+    ) -> List[str]:
+        """Push a GLTF Scene to the hub.
+
+        First argument is a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        Return the url on the hub of the file.
+
+        Example:
+        - scene.push_to_hub('simenv-tests/Box/glTF-Embedded/Box.gltf')
+        """
+        splitted_hub_path = hub_filepath.split("/")
+        hub_repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
+        hub_filename = splitted_hub_path[-1]
+        hub_subfolder = "/".join(splitted_hub_path[2:-1])
+
+        repo_url = create_repo(
+            repo_id=hub_repo_id,
+            token=token,
+            private=private,
+            repo_type="space",
+            space_sdk="gradio",
+            exist_ok=identical_ok,
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            full_filename = os.path.join(tmpdirname, hub_filename)
+            saved_filepaths = self.save(full_filename)
+            hub_urls = []
+            for saved_filepath in saved_filepaths:
+                saved_filename = os.path.basename(saved_filepath)
+                repo_filepath = os.path.join(hub_subfolder, saved_filename)
+                hub_url = upload_file(
+                    path_or_fileobj=saved_filepath,
+                    path_in_repo=repo_filepath,
+                    repo_id=hub_repo_id,
+                    token=token,
+                    repo_type="space",
+                    revision=revision,
+                    identical_ok=identical_ok,
+                )
+                hub_urls.append(hub_url)
+        return repo_url
+
+    def save(self, file_path: str) -> List[str]:
+        """Save in a GLTF file + additional (binary) ressource files if if shoulf be the case.
         Return the list of all the path to the saved files (glTF file + ressource files)
         """
         # We import here to avoid circular deps
