@@ -54,7 +54,7 @@ namespace SimEnv.Agents {
                 if (agents != null) {
                     for (int i = 0; i < agents.Count; i++) {
                         Agent agent = agents[i] as Agent;
-                        agent.AgentUpdate();
+                        agent.AgentUpdate(FRAME_RATE);
                     }
                 } else {
                     Debug.LogWarning("Attempting to step environment without an Agent");

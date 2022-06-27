@@ -114,6 +114,9 @@ namespace SimEnv.Agents {
     }
 
     public class Agent {
+
+        private const float GRAVITY = -9.8f;
+        private float ySpeed = 0.0f;
         public float move_speed = 1f;
 
         private Vector3 originalPosition;
@@ -222,11 +225,11 @@ namespace SimEnv.Agents {
                         break;
                     case "sparse":
                         rewardFunction = new SparseRewardFunction(
-                            entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
+                            entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i], agentData.reward_is_collectables[i]);
                         break;
                     case "timeout":
                         rewardFunction = new TimeoutRewardFunction(
-                            entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
+                            entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i], agentData.reward_is_collectables[i]);
                         break;
 
                     default:
@@ -250,7 +253,9 @@ namespace SimEnv.Agents {
             capsule.GetComponent<Collider>().enabled = false;
         }
 
-        public void AgentUpdate() {
+        public void AgentUpdate(float frameRate) {
+
+            float timeStep = 1.0f / frameRate;
             if (HUMAN) {
                 // Human control
                 float x = Input.GetAxis("Horizontal");
@@ -266,8 +271,15 @@ namespace SimEnv.Agents {
                 }
             } else {
                 // RL control
-                Vector3 move = node.gameObject.transform.right * actions.moveRight + node.gameObject.transform.forward * actions.forward;
-                controller.Move(move * move_speed * Time.deltaTime);
+                Vector3 move = node.gameObject.transform.right * actions.moveRight + node.gameObject.transform.forward * actions.forward * move_speed;
+
+                if (controller.isGrounded) {
+                    ySpeed = 0.0f;
+                } else {
+                    ySpeed += GRAVITY * timeStep;
+                }
+                move.y = ySpeed;
+                controller.Move(move * timeStep);
                 float rotate = actions.turnRight;
                 node.gameObject.transform.Rotate(Vector3.up * rotate * turn_speed);
             }
@@ -279,6 +291,7 @@ namespace SimEnv.Agents {
 
         public void Reset() {
             accumReward = 0.0f;
+            ySpeed = 0.0f;
             // Reset the agent
             controller.enabled = false; // the Character Controller takes control of the tranform and must be disabled
             node.gameObject.transform.position = originalPosition;

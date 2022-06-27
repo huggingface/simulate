@@ -13,6 +13,7 @@ class RlAgentRewardFunction:
     scalar: Optional[float] = 1.0
     threshold: Optional[float] = 1.0
     is_terminal: Optional[bool] = False
+    is_collectable: Optional[bool] = False
 
     def _post_copy(self, agent):
         root = agent.tree_root
@@ -25,6 +26,7 @@ class RlAgentRewardFunction:
             scalar=self.scalar,
             threshold=self.threshold,
             is_terminal=self.is_terminal,
+            is_collectable=self.is_collectable,
         )
 
         return new_instance
