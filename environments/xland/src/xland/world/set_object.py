@@ -180,8 +180,8 @@ def get_object_fn(obj):
     if obj == "Box":
         return sm.Box
 
-    elif obj == "Cone":
-        return sm.Cone
+    elif obj == "Capsule":
+        return sm.Capsule
 
     elif obj == "Sphere":
         return sm.Sphere

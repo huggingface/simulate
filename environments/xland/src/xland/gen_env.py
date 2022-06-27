@@ -30,6 +30,7 @@ def generate_env(
     executable=None,
     port=None,
     headless=None,
+    frame_rate=None,
     **kwargs,
 ):
     """
@@ -60,6 +61,7 @@ def generate_env(
         tiles: tiles for simpletiled generation
         neighbors: neighborhood constraints to the tiles
         TODO: Add executable, port, and headless descriptions.
+        frame_rate: The frame rate of the simulation.
         **kwargs: Additional arguments. Handles unused args as well.
 
     Returns:
@@ -71,6 +73,8 @@ def generate_env(
     # Generate the map if no specific map is passed
     # TODO: create default kwargs to avoid having to do this below:
     nb_tries = kwargs["nb_tries"] if "nb_tries" in kwargs else 10
+    # TODO: find out how to improve frame rate
+    frame_rate = frame_rate if frame_rate is not None else 2000
 
     # Initialize success and curr_try variables
     success = False
@@ -114,8 +118,8 @@ def generate_env(
         if success:
             # Set objects in scene:
             scene = generate_scene(
-                sg, obj_pos, agent_pos, engine, executable=executable, port=port, headless=headless, verbose=verbose
-            )
+                sg, obj_pos, agent_pos, frame_rate, engine=engine, executable=executable, 
+                port=port, headless=headless, verbose=verbose)
 
             # Generate the game
             # generate_game(generated_map, scene)

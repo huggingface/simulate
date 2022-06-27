@@ -30,26 +30,40 @@ def add_walls(x, z, height=None, thickness=0.1):
         height = 10 * HEIGHT_CONSTANT
 
     x_min, z_min, x_max, z_max = np.min(x), np.min(z), np.max(x), np.max(z)
-    # Add transparent material:
-    material = sm.Material(base_color=(0.9, 0.8, 0.2, 0.1))
 
     return [
-        sm.Box(
-            position=[0, -HEIGHT_CONSTANT, z_max], bounds=[x_min, x_max, 0, height, 0, thickness], material=material
+        sm.Asset(
+            position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2], 
+            collider=sm.Collider(
+                type=sm.ColliderType.BOX,
+                bounding_box=[x_max - x_min, height, thickness],
+            ),
         ),
-        sm.Box(
-            position=[0, -HEIGHT_CONSTANT, z_min], bounds=[x_min, x_max, 0, height, 0, -thickness], material=material
+        sm.Asset(
+            position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2], 
+            collider=sm.Collider(
+                type=sm.ColliderType.BOX,
+                bounding_box=[x_max - x_min, height, thickness],
+            ),
         ),
-        sm.Box(
-            position=[x_max, -HEIGHT_CONSTANT, 0], bounds=[0, thickness, 0, height, z_min, z_max], material=material
+        sm.Asset(
+            position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0], 
+            collider=sm.Collider(
+                type=sm.ColliderType.BOX,
+                bounding_box=[thickness, height, z_max - z_min],
+            ),
         ),
-        sm.Box(
-            position=[x_min, -HEIGHT_CONSTANT, 0], bounds=[0, -thickness, 0, height, z_min, z_max], material=material
+        sm.Asset(
+            position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0], 
+            collider=sm.Collider(
+                type=sm.ColliderType.BOX,
+                bounding_box=[thickness, height, z_max - z_min],
+            ),
         ),
     ]
 
 
-def get_sides_and_bottom(x, y, z):
+def get_sides_and_bottom(x, y, z, material):
     """
     Get a bottom basis for the structured grid.
 
@@ -60,6 +74,7 @@ def get_sides_and_bottom(x, y, z):
         x: x coordinates
         y: y coordinates
         z: z coordinates
+        material: material to use on the sides and bottom
     """
     # TODO: generate 3d mesh with all of this
     # TODO: all of this is being done by hand. Ideally, we want a function
@@ -103,11 +118,11 @@ def get_sides_and_bottom(x, y, z):
     # We get each of the extra structures
     # We use z as y since it's the way it is in most game engines:
     structures = [
-        sm.StructuredGrid(x=x_down, y=y_down, z=z_down, name="bottom_surface"),
-        sm.StructuredGrid(x=xx_0, y=yx_0, z=zx_0),
-        sm.StructuredGrid(x=xx_1, y=yx_1, z=zx_1),
-        sm.StructuredGrid(x=xz_0, y=yz_0, z=zz_0),
-        sm.StructuredGrid(x=xz_1, y=yz_1, z=zz_1),
+        sm.StructuredGrid(x=x_down, y=y_down, z=z_down, name="bottom_surface", material=material),
+        sm.StructuredGrid(x=xx_0, y=yx_0, z=zx_0, material=material),
+        sm.StructuredGrid(x=xx_1, y=yx_1, z=zx_1, material=material),
+        sm.StructuredGrid(x=xz_0, y=yz_0, z=zz_0, material=material),
+        sm.StructuredGrid(x=xz_1, y=yz_1, z=zz_1, material=material),
     ]
 
     return structures
@@ -167,44 +182,56 @@ def generate_colliders(sg):
     return collider_assets
 
 
-def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=None, headless=None, verbose=False):
+def generate_scene(sg, obj_pos, agent_pos, frame_rate,
+                    engine=None, executable=None, port=None, headless=None, verbose=False):
     """
-    Generate scene by interacting with simenv library.
+    Generate scene using simenv library.
     """
     # Create scene and add camera
     if engine is not None and engine != "pyvista":
         if port is not None:
-            scene = sm.Scene(engine=engine, engine_exe=executable, engine_port=port, engine_headless=headless)
+            scene = sm.Scene(engine=engine, engine_exe=executable, engine_port=port, 
+                    frame_rate=frame_rate, engine_headless=headless)
         else:
-            scene = sm.Scene(engine=engine, engine_exe=executable, engine_headless=headless)
+            scene = sm.Scene(engine=engine, engine_exe=executable, frame_rate=frame_rate, engine_headless=headless)
 
         scene += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
+        scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
 
     else:
         scene = sm.Scene(engine=engine)
 
+    # Add empty roots
+    scene += sm.Asset(name="map_root")
+    scene += sm.Asset(name="agents_root")
+    scene += sm.Asset(name="objects_root")
+
     # Add colliders to StructuredGrid
-    sg.generate_3D()
+    material = sm.Material(base_color=[0.0, 0.67, 0.66])
+    sg.generate_3D(material=material)
+
     obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
     agent_pos = convert_to_actual_pos(agent_pos, sg.coordinates)
 
     # Add structured grid, sides and bottom of the map
     x, y, z = sg.coordinates
-    scene += sg
-    scene += get_sides_and_bottom(x, y, z)
-
-    # Add walls to prevent agent from falling
-    scene += add_walls(x, z, height=np.max(y) + 1.5 * HEIGHT_CONSTANT)
-
-    # Add objects
-    objects = create_objects(obj_pos)
-    scene += objects
 
     # Add colliders
     sg += generate_colliders(sg)
 
+    # Add procedurally generated grid and sides and bottom
+    scene.map_root += sg
+    scene.map_root += get_sides_and_bottom(x, y, z, material=material)
+
+    # Add walls to prevent agent from falling
+    scene.map_root += add_walls(x, z)
+
+    # Add objects
+    objects = create_objects(obj_pos)
+    scene.objects_root += objects
+
     # Add agent
     # TODO: Generate random predicates
-    scene += create_agents(agent_pos, objects, predicate=None, verbose=verbose)
+    scene.agents_root += create_agents(agent_pos, objects, predicate=None, verbose=verbose)
 
     return scene

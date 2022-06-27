@@ -9,7 +9,7 @@ import numpy as np
 GRANULARITY = 10
 
 # Constant to multiply by the values in the height map to get the actual height
-HEIGHT_CONSTANT = 0.6375
+HEIGHT_CONSTANT = 0.9
 
 
 def generate_seed():

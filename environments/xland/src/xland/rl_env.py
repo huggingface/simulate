@@ -1,35 +1,15 @@
 """RL env generation."""
 
-from simenv import RLEnv
-
-from .gen_env import generate_env
+from .xland_env import XLandEnv
 
 
 def create_env(executable, width, height, sample_from, tiles, neighbors, seed, port=None, headless=None, **kwargs):
     """
     Create Xland RL env.
     """
-
-    success, scene = generate_env(
-        engine="Unity",
-        executable=executable,
-        width=width,
-        height=height,
-        sample_map=sample_from,
-        tiles=tiles,
-        neighbors=neighbors,
-        seed=seed,
-        port=port,
-        headless=headless,
-        **kwargs,
-    )
-
-    if not success:
-        raise Exception("Could not generate env.")
-
-    # scene.show()
-    env = RLEnv(scene)
-
+    env = XLandEnv(executable=executable, width=width, height=height, 
+                    sample_map=sample_from, tiles=tiles, neighbors=neighbors, 
+                    seed=seed, port=port, headless=headless, **kwargs)
     return env
 
 
