@@ -1,5 +1,7 @@
 """RL env generation."""
 
+from simenv import RLEnv
+
 from .gen_env import generate_env
 
 
@@ -25,7 +27,7 @@ def create_env(executable, width, height, sample_from, tiles, neighbors, seed, p
     if not success:
         raise Exception("Could not generate env.")
 
-    scene.show()
+    # scene.show()
     env = RLEnv(scene)
 
     return env

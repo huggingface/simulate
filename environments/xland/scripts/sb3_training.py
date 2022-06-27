@@ -14,7 +14,8 @@ if __name__ == "__main__":
     n_parallel = 4
     example_map = create_2d_map("example_map_01")
     env_fn = make_env(
-        "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64", sample_from=example_map
+        "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64",
+        sample_from=example_map,
     )
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)

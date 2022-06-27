@@ -22,7 +22,7 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=72, camera_he
     agents = []
 
     for i, pos in enumerate(agent_pos):
-        agent = sm.RL_Agent(
+        agent = sm.RlAgent(
             name=f"agent_{i}",
             camera_width=camera_width,
             camera_height=camera_height,
@@ -36,7 +36,7 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=72, camera_he
         # Sample n_agents objects with replacement, so that we associate each
         # agent with an object
         object_idxs = np.random.choice(np.arange(len(objects)), size=len(agent_pos), replace=True)
-        timeout_reward_function = sm.RLAgentRewardFunction(
+        timeout_reward_function = sm.RlAgentRewardFunction(
             function="timeout",
             entity1=agent,
             entity2=agent,
@@ -48,7 +48,7 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=72, camera_he
 
         # Create Reward function
         for obj_idx, agent in zip(object_idxs, agents):
-            reward_function = sm.RLAgentRewardFunction(
+            reward_function = sm.RlAgentRewardFunction(
                 function="sparse",
                 entity1=agent,
                 entity2=objects[obj_idx],

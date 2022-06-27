@@ -1,6 +1,2 @@
 [build-system]
-<<<<<<< HEAD
 requires = ["setuptools", "wheel", "Cython", "numpy>=1.17"]
-=======
-requires = ["setuptools", "wheel", "Cython", "numpy>=1.17"]
->>>>>>> a0b9f5f (Modifying pyproject.toml to match numpy version of setup.py and add python wrapper to C++ functions.)
