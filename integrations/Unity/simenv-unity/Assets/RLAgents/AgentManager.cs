@@ -60,7 +60,7 @@ namespace SimEnv.Agents {
                     Debug.LogWarning("Attempting to step environment without an Agent");
                 }
                 Simulator.Step(1, FRAME_RATE);
-                // Reward has to be updated after the simulate start as it is the result of the action the agent just took.
+                // RewardFunction has to be updated after the simulate start as it is the result of the action the agent just took.
                 if (agents != null) {
                     for (int i = 0; i < agents.Count; i++) {
                         Agent agent = agents[i] as Agent;

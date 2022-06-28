@@ -37,14 +37,14 @@ def create_env(executable=None, port=None, headless=None):
 
     reward_function = sm.RlAgentRewardFunction(
         function="dense",
-        entity1="agent",
+        entity_a="agent",
         entity2="collectable",
         distance_metric="euclidean"
     )
 
     reward_function2 = sm.RlAgentRewardFunction(
         function="sparse",
-        entity1="agent",
+        entity_a="agent",
         entity2="collectable",
         distance_metric="euclidean",
         threshold=0.2,
@@ -52,7 +52,7 @@ def create_env(executable=None, port=None, headless=None):
     )
     timeout_reward_function = sm.RlAgentRewardFunction(
         function="timeout",
-        entity1="agent",
+        entity_a="agent",
         entity2="agent",
         distance_metric="euclidean",
         threshold=200,

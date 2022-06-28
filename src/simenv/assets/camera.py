@@ -28,7 +28,6 @@ class Camera(Asset):
 
     def __init__(
         self,
-        *,
         width=256,
         height=256,
         aspect_ratio: Optional[float] = None,

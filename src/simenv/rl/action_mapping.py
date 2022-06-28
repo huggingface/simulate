@@ -1,6 +1,5 @@
 from dataclasses import dataclass
-from optparse import Option
-from typing import List, Optional
+from typing import Optional
 
 
 ALLOWED_PHYSICS = [

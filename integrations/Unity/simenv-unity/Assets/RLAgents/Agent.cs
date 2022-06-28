@@ -126,7 +126,7 @@ namespace SimEnv.Agents {
         private float accumReward = 0.0f;
 
         public Color color = Color.white;
-        private List<Reward> rewardFunctions = new List<Reward>();
+        private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
 
         public Node node;
         public RenderCamera cam;
@@ -188,19 +188,19 @@ namespace SimEnv.Agents {
             for (int i = 0; i < agentData.reward_functions.Count; i++) {
                 Debug.Log("Creating reward function");
                 // get the shared properties
-                Debug.Log("Finding entity1 " + agentData.reward_entity1s[i]);
-                Debug.Log("Finding entity2 " + agentData.reward_entity2s[i]);
-                GameObject entity1 = GameObject.Find(agentData.reward_entity1s[i]);
+                Debug.Log("Finding entity_a " + agentData.reward_entity1s[i]);
+                Debug.Log("Finding entity_b " + agentData.reward_entity2s[i]);
+                GameObject entity_a = GameObject.Find(agentData.reward_entity1s[i]);
 
-                GameObject entity2 = GameObject.Find(agentData.reward_entity2s[i]);
-                if (entity1 == null) {
-                    Debug.Log("Failed to find entity1 " + agentData.reward_entity1s[i]);
+                GameObject entity_b = GameObject.Find(agentData.reward_entity2s[i]);
+                if (entity_a == null) {
+                    Debug.Log("Failed to find entity_a " + agentData.reward_entity1s[i]);
                 }
-                if (entity2 == null) {
-                    Debug.Log("Failed to find entity2 " + agentData.reward_entity2s[i]);
+                if (entity_b == null) {
+                    Debug.Log("Failed to find entity_b " + agentData.reward_entity2s[i]);
                 }
                 IDistanceMetric distanceMetric = null; // refactor this to a reward factory?
-                Reward rewardFunction = null;
+                RewardFunction rewardFunction = null;
 
                 switch (agentData.reward_distance_metrics[i]) {
                     case "euclidean":
@@ -217,16 +217,16 @@ namespace SimEnv.Agents {
                 switch (agentData.reward_functions[i]) {
                     case "dense":
                         rewardFunction = new DenseRewardFunction(
-                            entity1, entity2, distanceMetric, agentData.reward_scalars[i]
+                            entity_a, entity_b, distanceMetric, agentData.reward_scalars[i]
                         );
                         break;
                     case "sparse":
                         rewardFunction = new SparseRewardFunction(
-                            entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
+                            entity_a, entity_b, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
                         break;
                     case "timeout":
                         rewardFunction = new TimeoutRewardFunction(
-                            entity1, entity2, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
+                            entity_a, entity_b, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
                         break;
 
                     default:
@@ -288,7 +288,7 @@ namespace SimEnv.Agents {
             // Reset reward objects?
             // Reset reward functions
 
-            foreach (Reward rewardFunction in rewardFunctions) {
+            foreach (RewardFunction rewardFunction in rewardFunctions) {
                 rewardFunction.Reset();
             }
         }
@@ -296,7 +296,7 @@ namespace SimEnv.Agents {
         public float CalculateReward() {
             float reward = 0.0f;
 
-            foreach (Reward rewardFunction in rewardFunctions) {
+            foreach (RewardFunction rewardFunction in rewardFunctions) {
                 reward += rewardFunction.CalculateReward();
             }
             return reward;
@@ -313,7 +313,7 @@ namespace SimEnv.Agents {
             // TODO: currently the reward functions identify which objects correspond to terminal states
             // Implement: episode termination
             bool done = false;
-            foreach (Reward rewardFunction in rewardFunctions) {
+            foreach (RewardFunction rewardFunction in rewardFunctions) {
                 if (rewardFunction is SparseRewardFunction) {
                     var sparseRewardFunction = rewardFunction as SparseRewardFunction;
                     done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);

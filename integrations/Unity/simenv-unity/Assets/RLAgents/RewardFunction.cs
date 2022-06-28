@@ -18,9 +18,9 @@ namespace SimEnv.Agents {
 
         }
     }
-    public abstract class Reward {
-        public GameObject entity1;
-        public GameObject entity2;
+    public abstract class RewardFunction {
+        public GameObject entity_a;
+        public GameObject entity_b;
         public float rewardScalar = 1.0f;
         public IDistanceMetric distanceMetric;
         public abstract void Reset();
@@ -28,20 +28,20 @@ namespace SimEnv.Agents {
 
     }
 
-    public class DenseRewardFunction : Reward {
+    public class DenseRewardFunction : RewardFunction {
         float bestDistance = float.PositiveInfinity;
 
         public override void Reset() {
-            bestDistance = distanceMetric.Calculate(entity1, entity2);
+            bestDistance = distanceMetric.Calculate(entity_a, entity_b);
         }
-        public DenseRewardFunction(GameObject entity1, GameObject entity2, IDistanceMetric distanceMetric, float rewardScalar) {
-            this.entity1 = entity1;
-            this.entity2 = entity2;
+        public DenseRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar) {
+            this.entity_a = entity_a;
+            this.entity_b = entity_b;
             this.distanceMetric = distanceMetric;
             this.rewardScalar = rewardScalar;
         }
         public override float CalculateReward() {
-            float distance = distanceMetric.Calculate(entity1, entity2);
+            float distance = distanceMetric.Calculate(entity_a, entity_b);
 
             float reward = 0.0f;
 
@@ -55,13 +55,13 @@ namespace SimEnv.Agents {
         }
     }
 
-    public class SparseRewardFunction : Reward {
+    public class SparseRewardFunction : RewardFunction {
         public bool hasTriggered = false;
         public bool isTerminal = false;
         public float threshold = 1.0f;
-        public SparseRewardFunction(GameObject entity1, GameObject entity2, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal) {
-            this.entity1 = entity1;
-            this.entity2 = entity2;
+        public SparseRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal) {
+            this.entity_a = entity_a;
+            this.entity_b = entity_b;
             this.distanceMetric = distanceMetric;
             this.threshold = threshold;
             this.isTerminal = isTerminal;
@@ -73,7 +73,7 @@ namespace SimEnv.Agents {
 
         public override float CalculateReward() {
             float reward = 0.0f;
-            float distance = distanceMetric.Calculate(entity1, entity2);
+            float distance = distanceMetric.Calculate(entity_a, entity_b);
             if (!hasTriggered && (distance < threshold)) {
                 hasTriggered = true;
                 reward += rewardScalar;
@@ -86,8 +86,8 @@ namespace SimEnv.Agents {
     public class TimeoutRewardFunction : SparseRewardFunction {
         int steps = 0;
 
-        public TimeoutRewardFunction(GameObject entity1, GameObject entity2, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal) :
-                base(entity1, entity2, distanceMetric, rewardScalar, threshold, isTerminal) { }
+        public TimeoutRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal) :
+                base(entity_a, entity_b, distanceMetric, rewardScalar, threshold, isTerminal) { }
         public override void Reset() {
             hasTriggered = false;
             steps = 0;

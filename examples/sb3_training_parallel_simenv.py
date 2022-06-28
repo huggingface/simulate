@@ -38,7 +38,7 @@ def create_env(executable=None, port=None, headless=None):
     agent = sm.RlAgent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
     reward_function = sm.RlAgentRewardFunction(
         function="dense",
-        entity1=agent,
+        entity_a=agent,
         entity2=cube,
         distance_metric="euclidean",
 

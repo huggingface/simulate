@@ -14,10 +14,9 @@
 
 # Lint as: python3
 """ Export a Scene as a GLTF file."""
-import json
-from dataclasses import asdict
+from dataclasses import asdict, fields
 from io import BytesIO
-from typing import Any, ByteString, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, ByteString, Dict, List, Optional
 
 import numpy as np
 import pyvista as pv
@@ -29,8 +28,15 @@ try:
 except ImportError:
     pass
 
+try:
+    from gym import spaces
+except ImportError:
+    space = None
 
-from . import Asset, Camera, Light, Material, Object3D, RlAgent
+if TYPE_CHECKING:
+    from ..rl import RLComponent, GenericActionMapping, RewardFunction
+
+from . import Asset, Camera, Light, Material, Object3D
 from . import gltflib as gl
 
 
@@ -534,6 +540,50 @@ def add_collider_to_model(
     return collider_id
 
 
+def add_rl_component_to_model(
+    node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+) -> gl.HFRlAgentsRlComponent:
+    rl_component: "RLComponent" = node.rl_component
+
+    space: "spaces.Space" = rl_component.action_space
+    space_type = space.__class__.__name__
+    if space_type not in ["Discrete", "Box"]:
+        raise ValueError(f"Unsupported action space type: {space_type}")
+    gl_space = gl.HFRlAgentsActionSpace(
+        type=space_type,
+        n=space.n if space_type == "Discrete" else None,
+        low=space.low if space_type == "Box" else None,
+        high=space.high if space_type == "Box" else None,
+        shape=space.shape if space_type == "Box" else None,
+        dtype=space.dtype if space_type == "Box" else None,
+    )
+
+    mappings: "List[GenericActionMapping]" = rl_component.action_mappings
+    gl_mappings = [gl.HFRlAgentsActionMapping(**asdict(mapping)) for mapping in mappings]
+
+    rewards: "List[RewardFunction]" = rl_component.reward_functions
+    gl_rewards = [
+        gl.HFRlAgentsRewardFunction(
+            type=reward.type,
+            entity_a=reward.entity_a.name,
+            entity_b=reward.entity_b.name,
+            distance_metric=reward.distance_metric,
+            scalar=reward.scalar,
+            threshold=reward.threshold,
+            is_terminal=reward.is_terminal,
+        )
+        for reward in rewards
+    ]
+
+    gl_rl_component = gl.HFRlAgentsRlComponent(
+        action_space=gl_space,
+        action_mappings=gl_mappings,
+        observation_devices=[device.name for device in rl_component.observation_devices],
+        reward_functions=gl_rewards,
+    )
+    return gl_rl_component
+
+
 def add_node_to_scene(
     node: Asset,
     gltf_model: gl.GLTFModel,
@@ -548,6 +598,7 @@ def add_node_to_scene(
         rotation=node.rotation.tolist(),
         scale=node.scaling.tolist(),
     )
+    extensions = gl.Extensions()
     if isinstance(node, Camera):
         gl_node.camera = add_camera_to_model(
             camera=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
@@ -556,42 +607,30 @@ def add_node_to_scene(
         light_id = add_light_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
-        gl_node.extensions = gl.Extensions(KHR_lights_punctual=gl.KHRLightsPunctual(light=light_id))
+        extensions.KHR_lights_punctual = gl.KHRLightsPunctual(light=light_id)
 
     elif isinstance(node, Object3D):
         gl_node.mesh = add_mesh_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
-    elif isinstance(node, RlAgent):
-        agent = gl.HFRlAgent(
-            color=node.color,
-            height=node.height,
-            move_speed=node.move_speed,
-            turn_speed=node.turn_speed,
-            action_name=node.actions.name,
-            action_dist=node.actions.dist,
-            available_actions=node.actions.available_actions,
-            reward_functions=[rf.function for rf in node.reward_functions],
-            reward_entity1s=[rf.entity1.name for rf in node.reward_functions],
-            reward_entity2s=[rf.entity2.name for rf in node.reward_functions],
-            reward_distance_metrics=[rf.distance_metric for rf in node.reward_functions],
-            reward_scalars=[rf.scalar for rf in node.reward_functions],
-            reward_thresholds=[rf.threshold for rf in node.reward_functions],
-            reward_is_terminals=[rf.is_terminal for rf in node.reward_functions],
+
+    # Add RL component if node has one
+    if getattr(node, "rl_component", None) is not None:
+        rl_component = add_rl_component_to_model(
+            node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
-        if gl_node.extensions is None:
-            gl_node.extensions = gl.Extensions(HF_custom=[])
-        elif gl_node.extensions.HF_custom is None:
-            gl_node.extensions.HF_custom = []
-        wrapper = json.dumps({"type": "HFRlAgent", "contents": json.dumps(gl.utils.del_none(asdict(agent)))})
-        gl_node.extensions.HF_custom.append(wrapper)
+        extensions.HF_rl_agents = rl_component
 
     # Add collider if node has one
-    if node.collider is not None:
+    if getattr(node, "collider", None) is not None:
         collider_id = add_collider_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
-        gl_node.extensions = gl.Extensions(HF_colliders=gl.HFColliders(collider=collider_id))
+        extensions.HF_colliders = gl.HFColliders(collider=collider_id)
+
+    # Add the extensions to the node if anything not none
+    if any(getattr(extensions, field.name) is not None for field in fields(extensions)):
+        gl_node.extensions = extensions
 
     # Add the new node
     gltf_model.nodes.append(gl_node)

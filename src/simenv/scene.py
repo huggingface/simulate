@@ -15,8 +15,6 @@
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
 import itertools
-import os
-import tempfile
 from typing import Any, List, Optional, Tuple, Union
 
 from .assets import Asset, Camera, Light, Object3D
@@ -124,13 +122,13 @@ class Scene(Asset, Env):
         """Tuple with all Object3D in the Scene"""
         return self.tree_filtered_descendants(lambda node: isinstance(node, Object3D))
 
-    ##################################
-    ### RL engines specific methods ##
-    ##################################
+    ###############################
+    # RL engines specific methods #
+    ###############################
 
     @property
     def agents(self) -> Tuple[Asset]:
-        return self.tree_filtered_descendants(lambda node: node.agent is not None)
+        return self.tree_filtered_descendants(lambda node: hasattr(node, "rl_component"))
 
     @property
     def observation_space(self):

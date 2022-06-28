@@ -1,4 +1,4 @@
-from .asset import *
+from .asset import Asset
 from .camera import Camera
 from .collider import *
 from .light import Light

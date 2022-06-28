@@ -3,8 +3,8 @@ from typing import List, Optional, Union
 import numpy as np
 
 from ..assets import Asset, Camera
-from . import mapping
-from .rewards import Reward
+from .action_mapping import Continuous, Discrete, GenericActionMapping
+from .reward_function import RewardFunction
 
 
 try:
@@ -19,8 +19,8 @@ def map_observation_devices_to_spaces(asset: Asset) -> spaces:
     raise NotImplementedError(f"This Asset ({type(Asset)})is not yet implemented as an RlAgent type of observation.")
 
 
-class RlAgent:
-    """A reinforcement learning agent component for an Asset.
+class RLComponent:
+    """A reinforcement learning component to make an RL Agent from an Asset.
 
     Provide (all is optional at the moment):
     - action space as List of gym.space
@@ -36,16 +36,26 @@ class RlAgent:
     def __init__(
         self,
         action_space: spaces.Space = None,
-        action_mappings: Optional[List[mapping.GenericActionMapping]] = None,
+        action_mappings: Optional[List[GenericActionMapping]] = None,
         observation_devices: Optional[Union[Asset, List[Asset]]] = None,
-        reward_functions: Optional[Union[Reward, List[Reward]]] = None,
+        reward_functions: Optional[Union[RewardFunction, List[RewardFunction]]] = None,
     ):
         if reward_functions is None:
             reward_functions = []
 
         self.action_space = action_space
         self.action_mappings = action_mappings
+
+        if observation_devices is None:
+            observation_devices = []
+        elif not isinstance(observation_devices, (list, tuple)):
+            observation_devices = [observation_devices]
         self.observation_devices = observation_devices
+
+        if reward_functions is None:
+            reward_functions = []
+        elif not isinstance(reward_functions, (list, tuple)):
+            reward_functions = [reward_functions]
         self.reward_functions = reward_functions
 
         self.observation_space = [map_observation_devices_to_spaces(device) for device in observation_devices]
@@ -64,7 +74,7 @@ class RlAgent:
         # TODO handle observation devices as well
 
 
-class RlAgentGrid(RlAgent):
+class RLComponentGrid(RLComponent):
     """An RL agent moving with discret actions:
     - turn left
     - turn right
@@ -74,13 +84,13 @@ class RlAgentGrid(RlAgent):
     def __init__(
         self,
         observation_devices: Optional[List[Asset]] = None,
-        reward_functions: Optional[List[Reward]] = None,
+        reward_functions: Optional[List[RewardFunction]] = None,
     ):
         action_space = spaces.Discrete(3)
         action_mappings = [
-            mapping.Discrete("rotation_y", value=-np.pi / 2),
-            mapping.Discrete("rotation_y", value=np.pi / 2),
-            mapping.Discrete("position_x", value=1.0),
+            Discrete("rotation_y", value=-np.pi / 2),
+            Discrete("rotation_y", value=np.pi / 2),
+            Discrete("position_x", value=1.0),
         ]
         super().__init__(
             action_space=action_space,
@@ -90,16 +100,16 @@ class RlAgentGrid(RlAgent):
         )
 
 
-class RlAgentContinuous1D(RlAgent):
+class RLComponentContinuous1D(RLComponent):
     """An RL agent moving continously along the x axis"""
 
     def __init__(
         self,
         observation_devices: Optional[List[Asset]] = None,
-        reward_functions: Optional[List[Reward]] = None,
+        reward_functions: Optional[List[RewardFunction]] = None,
     ):
         action_space = spaces.Box(low=-1.0, high=1.0, shape=(1,), dtype=np.float32)
-        action_mappings = [mapping.Continuous("position_x")]
+        action_mappings = [Continuous("position_x")]
         super().__init__(
             action_space=action_space,
             action_mappings=action_mappings,

@@ -19,9 +19,6 @@ import itertools
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
-import numpy as np
-import pyvista
-
 from .utils import camelcase_to_snakecase
 
 

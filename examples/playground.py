@@ -1,5 +1,4 @@
 import simenv as sm
-from simenv.rl_env import RLEnv
 import matplotlib.pyplot as plt
 import numpy as np
 import random
@@ -17,24 +16,14 @@ scene += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1
 scene += sm.Box(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=red_material)
 
 material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
-cube = sm.Box(name=f"cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
-scene += cube
-
-material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
 for i in range(20):
     scene += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 
+material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
+cube = sm.Box(name=f"cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
+scene += cube
 
-agent = sm.RlAgent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
-
-reward_function = sm.RlAgentRewardFunction(
-    function="dense",
-    entity1=agent,
-    entity2=cube,
-    distance_metric="euclidean"
-)
-agent.add_reward_function(reward_function)
-
+agent = sm.SimpleAgent(camera_width=64, camera_height=40, reward_target= cube, position=[0, 0, 0.0])
 scene += agent
 
 scene.show()
@@ -43,13 +32,12 @@ fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(agent.camera.height, agent.camera.width, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
-env = RLEnv(scene)
-env.reset()
+scene.reset()
 for i in range(1000):
-    action = env.action_space.sample()
+    action = scene.action_space.sample()
     if type(action) != int:  # discrete are ints, continuous are numpy arrays
         action = action.tolist()
-    obs, reward, done, info = env.step([action])
+    obs, reward, done, info = scene.step([action])
 
     print(done, reward, info)
     axim1.set_data(obs[0].transpose(1,2,0))
