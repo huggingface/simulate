@@ -150,7 +150,7 @@ class UnityEngine(Engine):
     def reset_recv(self):
         return self._get_response()
 
-    def get_observation(self):
+    def get_obs(self):
         command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
         encoded_obs = self.run_command(command)
         decoded_obs = json.loads(encoded_obs)

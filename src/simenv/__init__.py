@@ -24,9 +24,8 @@ from huggingface_hub import logging
 from .assets import *
 from .assets.utils import *
 from .engine import PyVistaEngine, UnityEngine
-from .rl_env import RLEnv
+from .rl import *
 from .scene import Scene
-from .wrappers import ParallelSimEnv
 
 
 # Set Hugging Face hub debug verbosity (TODO remove)

@@ -126,7 +126,7 @@ namespace SimEnv.Agents {
         private float accumReward = 0.0f;
 
         public Color color = Color.white;
-        private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
+        private List<Reward> rewardFunctions = new List<Reward>();
 
         public Node node;
         public RenderCamera cam;
@@ -200,7 +200,7 @@ namespace SimEnv.Agents {
                     Debug.Log("Failed to find entity2 " + agentData.reward_entity2s[i]);
                 }
                 IDistanceMetric distanceMetric = null; // refactor this to a reward factory?
-                RewardFunction rewardFunction = null;
+                Reward rewardFunction = null;
 
                 switch (agentData.reward_distance_metrics[i]) {
                     case "euclidean":
@@ -288,7 +288,7 @@ namespace SimEnv.Agents {
             // Reset reward objects?
             // Reset reward functions
 
-            foreach (RewardFunction rewardFunction in rewardFunctions) {
+            foreach (Reward rewardFunction in rewardFunctions) {
                 rewardFunction.Reset();
             }
         }
@@ -296,7 +296,7 @@ namespace SimEnv.Agents {
         public float CalculateReward() {
             float reward = 0.0f;
 
-            foreach (RewardFunction rewardFunction in rewardFunctions) {
+            foreach (Reward rewardFunction in rewardFunctions) {
                 reward += rewardFunction.CalculateReward();
             }
             return reward;
@@ -313,7 +313,7 @@ namespace SimEnv.Agents {
             // TODO: currently the reward functions identify which objects correspond to terminal states
             // Implement: episode termination
             bool done = false;
-            foreach (RewardFunction rewardFunction in rewardFunctions) {
+            foreach (Reward rewardFunction in rewardFunctions) {
                 if (rewardFunction is SparseRewardFunction) {
                     var sparseRewardFunction = rewardFunction as SparseRewardFunction;
                     done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);

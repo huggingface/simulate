@@ -1,11 +1,11 @@
 from dataclasses import dataclass
 from typing import Optional
 
-from ..asset import Asset
+from ..assets import Asset
 
 
 @dataclass
-class RewardFunction:
+class Reward:
     type: Optional[str] = "dense"
     entity1: Optional[Asset] = None
     entity2: Optional[Asset] = None
@@ -14,7 +14,7 @@ class RewardFunction:
     threshold: Optional[float] = 1.0
     is_terminal: Optional[bool] = False
 
-    def _post_copy(self, agent):
+    def _post_copy(self, agent: Asset):
         root = agent.tree_root
 
         new_instance = type(self)(

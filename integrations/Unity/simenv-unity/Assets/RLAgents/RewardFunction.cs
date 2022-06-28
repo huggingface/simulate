@@ -18,7 +18,7 @@ namespace SimEnv.Agents {
 
         }
     }
-    public abstract class RewardFunction {
+    public abstract class Reward {
         public GameObject entity1;
         public GameObject entity2;
         public float rewardScalar = 1.0f;
@@ -28,7 +28,7 @@ namespace SimEnv.Agents {
 
     }
 
-    public class DenseRewardFunction : RewardFunction {
+    public class DenseRewardFunction : Reward {
         float bestDistance = float.PositiveInfinity;
 
         public override void Reset() {
@@ -55,7 +55,7 @@ namespace SimEnv.Agents {
         }
     }
 
-    public class SparseRewardFunction : RewardFunction {
+    public class SparseRewardFunction : Reward {
         public bool hasTriggered = false;
         public bool isTerminal = false;
         public float threshold = 1.0f;

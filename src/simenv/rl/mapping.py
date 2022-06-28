@@ -2,6 +2,7 @@ from dataclasses import dataclass
 from optparse import Option
 from typing import List, Optional
 
+
 ALLOWED_PHYSICS = [
     "position_x",
     "position_y",
@@ -26,7 +27,9 @@ class GenericActionMapping:
 
     def __post_init__(self):
         if self.physics not in ALLOWED_PHYSICS:
-            raise ValueError(f"{self.physics} is not a valid physics magnitude to modify, should be in {ALLOWED_PHYSICS}")
+            raise ValueError(
+                f"{self.physics} is not a valid physics magnitude to modify, should be in {ALLOWED_PHYSICS}"
+            )
 
 
 @dataclass

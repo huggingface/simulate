@@ -9,7 +9,7 @@ import random
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
-from simenv.wrappers import ParallelSimEnv
+from simenv import ParallelSimEnv
 
 ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"

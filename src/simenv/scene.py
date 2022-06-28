@@ -19,28 +19,20 @@ import os
 import tempfile
 from typing import Any, List, Optional, Tuple, Union
 
-from simenv.assets import agent
-
-from .assets import Asset, Camera, Light, Object3D, RlAgent
+from .assets import Asset, Camera, Light, Object3D
 from .assets.anytree import RenderTree
 from .engine import GodotEngine, PyVistaEngine, UnityEngine
 
 
 try:
-    import gym
-    import numpy as np
-    from gym import spaces
+    from gym import Env
 except ImportError:
 
-    class RlEnv:
+    class Env:
         pass  # Dummy class if gym is not here
 
 
-class SceneNotBuiltError(Exception):
-    pass
-
-
-class Scene(Asset, RlEnv):
+class Scene(Asset, Env):
     """A Scene is the main place to add objects and object tree.
     In addition to a root node, it has an engine that can be used to diplay and interact with the scene.
 
@@ -102,10 +94,11 @@ class Scene(Asset, RlEnv):
         return len(self.tree_descendants)
 
     def __repr__(self):
-        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}')\n{RenderTree(self).print_tree()}"
+        spacer = "\n" if len(self) else ""
+        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
 
     def show(self, **engine_kwargs):
-        """Render the Scene using the engine if provided."""
+        """Render the Scene using the engine."""
         self.engine.show(**engine_kwargs)
 
     def clear(self):
@@ -136,9 +129,8 @@ class Scene(Asset, RlEnv):
     ##################################
 
     @property
-    def agents(self) -> Tuple[RlAgent]:
-        """Tuple with all RLAgent in the Scene"""
-        return self.tree_filtered_descendants(lambda node: isinstance(node, RlAgent))
+    def agents(self) -> Tuple[Asset]:
+        return self.tree_filtered_descendants(lambda node: node.agent is not None)
 
     @property
     def observation_space(self):
@@ -148,22 +140,23 @@ class Scene(Asset, RlEnv):
     def action_space(self):
         return self.agents[0].action_space if self.agents else None
 
+    @property
+    def action_mapping(self):
+        return self.agents[0].action_mapping if self.agents else None
+
     def reset(self):
         """Reset the environment / episode"""
-        return self.engine.reset()
+        self.engine.reset()
+        obs = self.engine.get_obs()
+        return obs
 
     def step(self, action):
         """Step the Scene"""
-        return self.engine.step(action)
+        self.engine.step(action)
 
-    def get_done(self):
-        """Find out if the episode has ended"""
-        return self.engine.get_done()
+        obs = self.engine.get_obs()
+        reward = self.engine.get_reward()
+        done = self.engine.get_done()
+        info = {}  # TODO: Add info to the backend, if we require it
 
-    def get_reward(self):
-        """Get the reward from the agent"""
-        return self.engine.get_reward()
-
-    def get_observation(self):
-        """Get the observations"""
-        return self.engine.get_observation()
+        return obs, reward, done, info
