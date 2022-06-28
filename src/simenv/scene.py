@@ -131,8 +131,8 @@ class Scene(Asset, Env):
         return self.tree_filtered_descendants(lambda node: hasattr(node, "rl_component"))
 
     @property
-    def observation_space(self):
-        return self.agents[0].observation_space if self.agents else None
+    def observation_spaces(self):
+        return self.agents[0].observation_spaces if self.agents else None
 
     @property
     def action_space(self):

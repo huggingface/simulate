@@ -24,6 +24,9 @@ from .rl_component import RLComponentGrid
 
 class SimpleRlAgent(Asset):
     """Create a Simple RL Agent in the Scene
+        An Rl Agent is just an Asset with an RLComponent.
+
+        Here we create a mesh with a Capsule and an observation device: a Camera
 
     Parameters
     ----------

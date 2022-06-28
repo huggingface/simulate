@@ -15,8 +15,10 @@ except ImportError:
 
 def map_observation_devices_to_spaces(asset: Asset) -> spaces:
     if isinstance(asset, Camera):
-        return spaces.Box(low=0, high=255, shape=[3, asset.height, asset.width], dtype=np.uint8)
-    raise NotImplementedError(f"This Asset ({type(Asset)})is not yet implemented as an RlAgent type of observation.")
+        return spaces.Box(low=0, high=255, shape=[asset.height, asset.width, 3], dtype=np.uint8)
+    raise NotImplementedError(
+        f"This Asset ({type(Asset)})is not yet implemented " f"as an RlAgent type of observation."
+    )
 
 
 class RLComponent:
@@ -58,7 +60,7 @@ class RLComponent:
             reward_functions = [reward_functions]
         self.reward_functions = reward_functions
 
-        self.observation_space = [map_observation_devices_to_spaces(device) for device in observation_devices]
+        self.observation_spaces = [map_observation_devices_to_spaces(device) for device in observation_devices]
 
     def copy(self):
         instance_copy = type(self)(

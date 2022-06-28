@@ -17,11 +17,11 @@ class ParallelSimEnv(VecEnv):
             self.n_agents = env.n_agents
             num_envs = self.n_agents * self.n_parallel
 
-            observation_space = env.observation_space
+            observation_spaces = env.observation_spaces
             action_space = env.action_space
 
             self.envs.append(env)
-        super().__init__(num_envs, observation_space, action_space)
+        super().__init__(num_envs, observation_spaces, action_space)
 
     #
     def reset(self):

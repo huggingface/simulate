@@ -18,7 +18,7 @@ import itertools
 import os
 import tempfile
 import uuid
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
@@ -26,6 +26,10 @@ from huggingface_hub import create_repo, hf_hub_download, upload_file
 from .anytree import NodeMixin
 from .collider import Collider
 from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler
+
+
+if TYPE_CHECKING:
+    from ..rl.rl_component import RLComponent
 
 
 class Asset(NodeMixin, object):
@@ -53,6 +57,7 @@ class Asset(NodeMixin, object):
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
         collider: Optional[Collider] = None,
+        rl_component: Optional["RLComponent"] = None,
         parent=None,
         children=None,
     ):
@@ -77,12 +82,33 @@ class Asset(NodeMixin, object):
             self.transformation_matrix = transformation_matrix
 
         self.collider = collider
+        self._rl_component = rl_component
         self._n_copies = 0
 
     @property
     def uuid(self):
         """A unique identifier of the node if needed."""
         return self._uuid
+
+    @property
+    def rl_component(self):
+        return self._rl_component
+
+    @rl_component.setter
+    def rl_component(self, rl_component: "RLComponent"):
+        self._rl_component = rl_component
+        if rl_component is not None:
+            self.action_space = rl_component.action_space
+            self.action_mappings = rl_component.action_mappings
+            self.observation_spaces = rl_component.observation_spaces
+            self.observation_devices = rl_component.observation_devices
+            self.reward_functions = rl_component.reward_functions
+        else:
+            self.action_space = None
+            self.action_mappings = None
+            self.observation_spaces = None
+            self.observation_devices = None
+            self.reward_functions = None
 
     def get(self, name: str):
         """Return the first children tree node with the given name."""

@@ -20,16 +20,18 @@ for i in range(20):
     scene += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 
 material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
-cube = sm.Box(name=f"cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
-scene += cube
+target = sm.Box(name=f"cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
+scene += target
 
-agent = sm.SimpleAgent(camera_width=64, camera_height=40, reward_target= cube, position=[0, 0, 0.0])
+agent = sm.SimpleRlAgent(camera_width=64, camera_height=40, reward_target=target, position=[0, 0, 0.0])
 scene += agent
+
+agent.observation_spaces
 
 scene.show()
 plt.ion()
 fig1, ax1 = plt.subplots()
-dummy_obs = np.zeros(shape=(agent.camera.height, agent.camera.width, 3), dtype=np.uint8)
+dummy_obs = np.zeros(shape=agent.observation_spaces[0].shape, dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 scene.reset()
