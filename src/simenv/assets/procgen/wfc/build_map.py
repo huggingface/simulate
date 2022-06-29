@@ -6,7 +6,8 @@ import numpy as np
 
 from wfc_binding import run_wfc
 
-from .wfc_utils import GRANULARITY, decode_rgb
+from ..constants import GRANULARITY
+from .wfc_utils import decode_rgb, generate_seed
 
 
 def generate_2d_map(
@@ -19,7 +20,6 @@ def generate_2d_map(
     nb_samples=1,
     symmetry=1,
     sample_map=None,
-    seed=None,
     verbose=False,
     tiles=None,
     neighbors=None,
@@ -33,6 +33,9 @@ def generate_2d_map(
     Returns:
         image: PIL image
     """
+
+    # Generate seed for C++
+    seed = generate_seed()
 
     # Otherwise, generate it
     if sample_map is not None:
@@ -87,7 +90,6 @@ def generate_map(
     verbose=False,
     tiles=None,
     neighbors=None,
-    seed=None,
 ):
     """
     Generate the map.
@@ -122,7 +124,6 @@ def generate_map(
             ground=ground,
             nb_samples=nb_samples,
             symmetry=symmetry,
-            seed=seed,
             verbose=verbose,
             tiles=tiles,
             neighbors=neighbors,

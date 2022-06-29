@@ -4,7 +4,7 @@ Generate tiles for debugging purposes, and for generating maps on the prototype.
 
 import numpy as np
 
-from simenv import build_wfc_neighbor, build_wfc_tile
+from simenv.assets.procgen.wfc import build_wfc_neighbor, build_wfc_tile
 
 
 def img_from_tiles():

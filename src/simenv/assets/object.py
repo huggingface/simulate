@@ -24,7 +24,7 @@ from .asset import Asset
 from .collider import Collider
 from .gltflib.enums.collider_type import ColliderType
 from .material import Material
-from .procgen.wfc import *
+from .procgen.wfc import generate_2d_map, generate_map
 
 
 class Object3D(Asset):
@@ -1103,11 +1103,19 @@ class ProcgenGrid(Object3D):
         height: Optional[int] = 9,
         shallow: Optional[bool] = False,
         algorithm_args: Optional[dict] = None,
+        seed: int = None,
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
+
+        if seed is None:
+            seed = np.random.randint(0, 100000)
+            print("Seed:", seed)
+
+        # Seeding
+        np.random.seed(seed)
 
         if sample_map is not None and not isinstance(sample_map, np.ndarray):
             sample_map = np.array(sample_map)
@@ -1122,9 +1130,6 @@ class ProcgenGrid(Object3D):
         if (tiles is None or neighbors is None) and sample_map is None and specific_map is None:
             raise ValueError("Insert tiles / neighbors or a map to sample from.")
 
-        # Generate seed for C++
-        seed = generate_seed()
-
         # Get coordinates and image from procedural generation
         all_args = {
             "width": width,
@@ -1132,7 +1137,6 @@ class ProcgenGrid(Object3D):
             "sample_map": sample_map,
             "tiles": tiles,
             "neighbors": neighbors,
-            "seed": seed,
             **algorithm_args,
         }
 
