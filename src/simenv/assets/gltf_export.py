@@ -34,7 +34,7 @@ except ImportError:
     space = None
 
 if TYPE_CHECKING:
-    from ..rl import RLComponent, GenericActionMapping, RewardFunction
+    from ..rl import RlComponent, RewardFunction
 
 from . import Asset, Camera, Light, Material, Object3D
 from . import gltflib as gl
@@ -542,28 +542,34 @@ def add_collider_to_model(
 
 def add_rl_component_to_model(
     node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
-) -> gl.HFRlAgentsRlComponent:
-    rl_component: "RLComponent" = node.rl_component
+) -> gl.HFRlAgentsComponent:
+    rl_component: "RlComponent" = node.rl_component
 
-    space: "spaces.Space" = rl_component.action_space
-    space_type = space.__class__.__name__
-    if space_type not in ["Discrete", "Box"]:
-        raise ValueError(f"Unsupported action space type: {space_type}")
-    gl_space = gl.HFRlAgentsActionSpace(
-        type=space_type,
-        n=space.n if space_type == "Discrete" else None,
-        low=space.low if space_type == "Box" else None,
-        high=space.high if space_type == "Box" else None,
-        shape=space.shape if space_type == "Box" else None,
-        dtype=space.dtype if space_type == "Box" else None,
+    actions = rl_component.actions
+    actions_type = actions.__class__.__name__
+    if actions_type not in ["Discrete", "Box", "MappedDiscrete", "MappedBox"]:
+        raise ValueError(f"Unsupported action space type: {actions_type}")
+
+    gl_actions = gl.HFRlAgentsActions(
+        type=actions_type,
+        n=actions.n if "Discrete" in actions_type else None,
+        low=actions.low if "Box" in actions_type else None,
+        high=actions.high if "Box" in actions_type else None,
+        shape=actions.shape if "Box" in actions_type else None,
+        dtype=actions.dtype if "Box" in actions_type else None,
     )
 
-    mappings: "List[GenericActionMapping]" = rl_component.action_mappings
-    gl_mappings = [gl.HFRlAgentsActionMapping(**asdict(mapping)) for mapping in mappings]
+    if "Mapped" in actions_type:
+        gl_actions.physics = actions.physics
+        gl_actions.clip_high = actions.clip_high
+        gl_actions.clip_low = actions.clip_low
+        gl_actions.amplitudes = actions.amplitudes if actions_type == "MappedDiscrete" else None
+        gl_actions.scaling = actions.scaling if actions_type == "MappedBox" else None
+        gl_actions.offset = actions.offset if actions_type == "MappedBox" else None
 
-    rewards: "List[RewardFunction]" = rl_component.reward_functions
+    rewards: "List[RewardFunction]" = rl_component.rewards
     gl_rewards = [
-        gl.HFRlAgentsRewardFunction(
+        gl.HFRlAgentsReward(
             type=reward.type,
             entity_a=reward.entity_a.name,
             entity_b=reward.entity_b.name,
@@ -575,11 +581,10 @@ def add_rl_component_to_model(
         for reward in rewards
     ]
 
-    gl_rl_component = gl.HFRlAgentsRlComponent(
-        action_space=gl_space,
-        action_mappings=gl_mappings,
-        observation_devices=[device.name for device in rl_component.observation_devices],
-        reward_functions=gl_rewards,
+    gl_rl_component = gl.HFRlAgentsComponent(
+        actions=gl_actions,
+        observations=[asset.name for asset in rl_component.observations],
+        rewards=gl_rewards,
     )
     return gl_rl_component
 

@@ -17,16 +17,20 @@
 import itertools
 from typing import List, Optional, Union
 
+import numpy as np
+
+from simenv.rl.actions import MappedBox, MappedDiscrete
+
 from ..assets import Asset, Camera, Capsule, Collider
-from .reward_function import RewardFunction
-from .rl_component import RLComponentGrid
+from .actions import Physics
+from .components import RlComponent
+from .rewards import RewardFunction
 
 
 class SimpleRlAgent(Asset):
     """Create a Simple RL Agent in the Scene
-        An Rl Agent is just an Asset with an RLComponent.
 
-        Here we create a mesh with a Capsule and an observation device: a Camera
+        A capsule mesh with a Camera as observation device, 3 discrete actions, and a reward function as the distance to a target.
 
     Parameters
     ----------
@@ -44,9 +48,9 @@ class SimpleRlAgent(Asset):
 
     def __init__(
         self,
+        reward_target: Optional[Asset] = None,
         camera_width: Optional[int] = 64,
         camera_height: Optional[int] = 64,
-        reward_target: Optional[Asset] = None,
         name=None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
@@ -64,14 +68,24 @@ class SimpleRlAgent(Asset):
             parent=parent,
             children=children,
             collider=collider,
+            transformation_matrix=transformation_matrix,
         )
-        obj = Capsule()
+
+        # Add a capsule and a camera as children
+        capsule = Capsule()
         camera = Camera(width=camera_width, height=camera_height)
-        self.tree_children = [obj, camera]
+        self.tree_children = [capsule, camera]
 
+        # Create a reward function if a target is provided
+        rewards = None
         if reward_target is not None:
-            reward_function = RewardFunction(self, reward_target)
-        else:
-            reward_function = None
+            rewards = RewardFunction(self, reward_target)
 
-        self.rl_component = RLComponentGrid(observation_devices=camera, reward_functions=reward_function)
+        # Create our action space mapped to physics engine
+        actions = MappedDiscrete(
+            n=3,
+            physics=[Physics.ROTATION_Y, Physics.ROTATION_Y, Physics.POSITION_X],
+            amplitudes=[-np.pi / 2, np.pi / 2, 1.0],
+        )
+
+        self.rl_component = RlComponent(actions=actions, observations=camera, rewards=rewards)

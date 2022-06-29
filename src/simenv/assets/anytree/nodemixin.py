@@ -4,6 +4,7 @@ from typing import Callable, Sequence, Union
 
 from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
+from .render import RenderTree
 
 
 class NodeMixin(object):
@@ -369,8 +370,12 @@ class NodeMixin(object):
     def __sub__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
         return self.remove(assets)
 
-    def __repr__(self):
+    def _get_one_line_repr(self):
         return f"{self.name} ({self.__class__.__name__})"
+
+    def __repr__(self):
+        node_str = self._get_one_line_repr() + "\n" if self.tree_children else ""
+        return f"{node_str}{RenderTree(self).print_tree()}"
 
     def tree_filtered_descendants(self, filter_fn: Callable, stop=None, maxlevel=None):
         """

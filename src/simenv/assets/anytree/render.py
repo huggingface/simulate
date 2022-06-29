@@ -364,7 +364,7 @@ class RenderTree(object):
             iterable = iter(self)
             next(iterable)  # Skip root node
             for pre, fill, node in iterable:
-                attr = str(node)
+                attr = node._get_one_line_repr()
                 if isinstance(attr, (list, tuple)):
                     lines = attr
                 else:

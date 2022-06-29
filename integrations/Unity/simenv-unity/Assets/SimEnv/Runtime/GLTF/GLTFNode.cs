@@ -84,6 +84,8 @@ namespace SimEnv.GLTF {
                     IsCompleted = true;
                     yield break;
                 }
+    
+                // Populate all our node list with basic info (transform, name, create a scene node)
                 result = new ImportResult[nodes.Count];
                 for (int i = 0; i < result.Length; i++) {
                     result[i] = new GLTFNode.ImportResult();
@@ -93,6 +95,8 @@ namespace SimEnv.GLTF {
                     if(Application.isPlaying)
                         result[i].node.Initialize();
                 }
+
+                // Connect children and parents in our node list and create a hierarchy with local tranformations
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].children != null) {
                         int[] children = nodes[i].children;
@@ -106,6 +110,8 @@ namespace SimEnv.GLTF {
                 }
                 for (int i = 0; i < result.Length; i++)
                     nodes[i].ApplyMatrix(result[i].transform);
+
+                // Add more complex properties now (Mesh, Lights, Colliders, Cameras, RL Agents, etc)
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].mesh.HasValue) {
                         GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
@@ -140,6 +146,10 @@ namespace SimEnv.GLTF {
                         RenderCamera camera = new RenderCamera(result[i].node, cameraData);
                     }
                     if (nodes[i].extensions != null) {
+                        if (nodes[i].extensions.HF_rl_agents != null) {
+                            HFRlAgentsRlComponent agentData = nodes[i].extensions.HF_rl_agents;
+                            Agent agent = new Agent(result[i].node, agentData);
+                        }
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
                             int lightValue = nodes[i].extensions.KHR_lights_punctual.light;
                             if (extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {

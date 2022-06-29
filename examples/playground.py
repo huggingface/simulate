@@ -26,12 +26,12 @@ scene += target
 agent = sm.SimpleRlAgent(camera_width=64, camera_height=40, reward_target=target, position=[0, 0, 0.0])
 scene += agent
 
-agent.observation_spaces
+agent.observation_space
 
 scene.show()
 plt.ion()
 fig1, ax1 = plt.subplots()
-dummy_obs = np.zeros(shape=agent.observation_spaces[0].shape, dtype=np.uint8)
+dummy_obs = np.zeros(shape=agent.observation_space[0].shape, dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 scene.reset()
