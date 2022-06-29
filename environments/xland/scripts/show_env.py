@@ -7,18 +7,16 @@ In this instance, we don't interact with the environment but rather just show it
 import argparse
 from collections import defaultdict
 
-import numpy as np
-from matplotlib import pyplot as plt
-from xland import generate_env
+from xland import create_scene
 from xland.utils import create_2d_map, generate_tiles
 
-from simenv.rl_env import RLEnv
 
+ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    # Check generate_env for more information about the arguments where
+    # Check create_scene for more information about the arguments where
     # `help`` is not provided
     # Main arguments are the following:
     parser.add_argument("--show", type=bool, default=False, help="Show the map")
@@ -57,10 +55,13 @@ if __name__ == "__main__":
         else:
             extra_args["sample_map"] = m
 
-    success, scene = generate_env(**vars(args), **extra_args)
+    success, scene = create_scene(executable=ALICIA_UNITY_BUILD_URL, **vars(args), **extra_args)
 
     # If we want to show the map and we were successful
     if args.show and success:
+        if args.engine is None or args.engine.lower() == "pyvista":
+            scene.remove(scene.agents_root)
+
         scene.show()
 
         input("Press Enter to continue...")

@@ -1,7 +1,6 @@
 """Example with training on SB3"""
 
 import numpy as np
-from matplotlib import pyplot as plt
 from stable_baselines3 import PPO
 from xland import make_env
 from xland.utils import create_2d_map
@@ -18,7 +17,12 @@ if __name__ == "__main__":
     example_map = create_2d_map("example_map_01")
     env_fn = make_env(
         "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64",
-        sample_from=example_map, seed=None, n_agents=1, n_objects=6, width=6, height=6,
+        sample_from=example_map,
+        seed=None,
+        n_agents=1,
+        n_objects=6,
+        width=6,
+        height=6,
     )
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
