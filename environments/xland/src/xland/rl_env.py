@@ -7,9 +7,18 @@ def create_env(executable, width, height, sample_from, tiles, neighbors, seed, p
     """
     Create Xland RL env.
     """
-    env = XLandEnv(executable=executable, width=width, height=height, 
-                    sample_map=sample_from, tiles=tiles, neighbors=neighbors, 
-                    seed=seed, port=port, headless=headless, **kwargs)
+    env = XLandEnv(
+        executable=executable,
+        width=width,
+        height=height,
+        sample_map=sample_from,
+        tiles=tiles,
+        neighbors=neighbors,
+        seed=seed,
+        port=port,
+        headless=headless,
+        **kwargs,
+    )
     return env
 
 

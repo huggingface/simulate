@@ -4,11 +4,11 @@ Python file to call map, game and agents generation.
 
 import simenv as sm
 
-from .utils import convert_to_actual_pos, seed_env
-from .world import generate_scene, get_pos
+from .utils import seed_env
+from .world import generate_scene, get_positions
 
 
-def generate_env(
+def create_scene(
     width,
     height,
     n_objects=3,
@@ -112,14 +112,24 @@ def generate_env(
 
         # TODO return playable area and use it for agent placement
         # TODO: Add corner case where there are no objects
-        obj_pos, agent_pos, success = get_pos(sg.map_2d, n_objects=n_objects, n_agents=n_agents, **threshold_kwargs)
+        obj_pos, agent_pos, success = get_positions(
+            sg.map_2d, n_objects=n_objects, n_agents=n_agents, **threshold_kwargs
+        )
 
         # If there is no enough area, we should try again and continue the loop
         if success:
             # Set objects in scene:
             scene = generate_scene(
-                sg, obj_pos, agent_pos, frame_rate, engine=engine, executable=executable, 
-                port=port, headless=headless, verbose=verbose)
+                sg,
+                obj_pos,
+                agent_pos,
+                frame_rate,
+                engine=engine,
+                executable=executable,
+                port=port,
+                headless=headless,
+                verbose=verbose,
+            )
 
             # Generate the game
             # generate_game(generated_map, scene)

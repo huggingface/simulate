@@ -2,35 +2,34 @@
 XLand environment wrapper to RLEnv so that we can make a custom reset.
 """
 
-from .gen_env import generate_env
 from simenv import RLEnv
 
+from .gen_scene import create_scene
+
+
 class XLandEnv(RLEnv):
-    def __init__(self, port=None, **kwargs):
+    def __init__(self, port=None, engine="Unity", **kwargs):
         self.kwargs = kwargs
+        self.port = port
 
-        success, scene = generate_env(engine="Unity", port=port, **kwargs)
-        scene.show()
-        
-        if not success:
-            raise Exception("Could not generate env.")
-        
+        scene = self.get_scene(engine=engine, port=port)
         super().__init__(scene)
-    
-    def reset(self):
-        # TODO: Not working due to Unity backend
-        success, new_scene = generate_env(engine=None, **self.kwargs)
 
-        if not success:
-            raise Exception("Could not generate env.")
+    def reset(self):
+        # This function is not called when using ParallelSimEnv
+        # TODO: implement replacing of objects / agents
+        new_scene = self.get_scene()
 
         self.scene.map_root.remove(self.scene.map_root.tree_children)
         self.scene.map_root += new_scene.map_root
-        # self.scene.reset()
-        obs = super().reset()
+        self.scene.show()
 
-        # print(self.scene)
-        # obs = self.scene.get_observation()
-        # obs = self._reshape_obs(obs)
+        return super().reset()
 
-        return obs
+    def get_scene(self, engine=None, **port_args):
+        success, scene = create_scene(engine=engine, **port_args, **self.kwargs)
+
+        if not success:
+            raise Exception("Could not generate env.")
+
+        return scene

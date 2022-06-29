@@ -39,14 +39,14 @@ make style
 A minimalistic example to generate from an example map:
 
 ```
-from xland import generate_env
+from xland import create_scene
 from xland.utils import create_2d_map
 
 # Create example map from csv file on examples
 example_map = create_2d_map(name="example_map_01")
 
 # Sample from example map and show interactive mode
-generate_env(width=8, height=8, sample_from=example_map, show=True)
+create_scene(width=8, height=8, sample_from=example_map, show=True)
 ```
 
 Other scripts might be found in the folder `scripts`. The map that is used as example is in CSV format for human readability inside the `benchmark/examples`.

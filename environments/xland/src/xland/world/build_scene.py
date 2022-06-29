@@ -5,7 +5,7 @@ Files used for scene generation.
 import numpy as np
 
 import simenv as sm
-from simenv.assets.procgen import GRANULARITY, HEIGHT_CONSTANT
+from simenv.assets.procgen import HEIGHT_CONSTANT
 
 from ..utils import convert_to_actual_pos
 from .set_agent import create_agents
@@ -33,28 +33,28 @@ def add_walls(x, z, height=None, thickness=0.1):
 
     return [
         sm.Asset(
-            position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2], 
+            position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2],
             collider=sm.Collider(
                 type=sm.ColliderType.BOX,
                 bounding_box=[x_max - x_min, height, thickness],
             ),
         ),
         sm.Asset(
-            position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2], 
+            position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2],
             collider=sm.Collider(
                 type=sm.ColliderType.BOX,
                 bounding_box=[x_max - x_min, height, thickness],
             ),
         ),
         sm.Asset(
-            position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0], 
+            position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0],
             collider=sm.Collider(
                 type=sm.ColliderType.BOX,
                 bounding_box=[thickness, height, z_max - z_min],
             ),
         ),
         sm.Asset(
-            position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0], 
+            position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0],
             collider=sm.Collider(
                 type=sm.ColliderType.BOX,
                 bounding_box=[thickness, height, z_max - z_min],
@@ -182,16 +182,18 @@ def generate_colliders(sg):
     return collider_assets
 
 
-def generate_scene(sg, obj_pos, agent_pos, frame_rate,
-                    engine=None, executable=None, port=None, headless=None, verbose=False):
+def generate_scene(
+    sg, obj_pos, agent_pos, frame_rate, engine=None, executable=None, port=None, headless=None, verbose=False
+):
     """
     Generate scene using simenv library.
     """
     # Create scene and add camera
     if engine is not None and engine != "pyvista":
         if port is not None:
-            scene = sm.Scene(engine=engine, engine_exe=executable, engine_port=port, 
-                    frame_rate=frame_rate, engine_headless=headless)
+            scene = sm.Scene(
+                engine=engine, engine_exe=executable, engine_port=port, frame_rate=frame_rate, engine_headless=headless
+            )
         else:
             scene = sm.Scene(engine=engine, engine_exe=executable, frame_rate=frame_rate, engine_headless=headless)
 

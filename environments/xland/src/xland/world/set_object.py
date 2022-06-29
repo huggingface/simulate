@@ -220,7 +220,7 @@ def create_objects(positions, object_type=None, object_size=0.5):
 
 
 # TODO: move this to utils
-def get_pos(y, n_objects, n_agents, threshold=0.5, distribution="uniform"):
+def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform"):
     """
     Returns None if there isn't enough playable area.
     """

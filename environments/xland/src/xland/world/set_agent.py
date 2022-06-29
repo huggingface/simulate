@@ -25,7 +25,7 @@ def add_random_collectables_rewards(agents, objects, verbose):
             entity1=agent,
             entity2=objects[obj_idx],
             distance_metric="euclidean",
-            threshold=0.2,
+            threshold=1.0,
             is_terminal=True,
             is_collectable=True,
         )
@@ -34,7 +34,6 @@ def add_random_collectables_rewards(agents, objects, verbose):
 
         if verbose:
             print("Agent {} will collect object {}".format(agent.name, objects[obj_idx].name))
-
 
 
 def add_collect_all_rewards(agents, objects, verbose):
@@ -65,7 +64,7 @@ def add_timeout_rewards(agents):
             entity1=agent,
             entity2=agent,
             distance_metric="euclidean",
-            threshold=2000,
+            threshold=500,
             is_terminal=True,
             scalar=-1.0,
         )
@@ -96,6 +95,7 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=72, camera_he
             camera_height=camera_height,
             position=pos,
             height=0.8,
+            color=[0.1, 0.1, 0.0],
             rl_agent_actions=rl_agent_actions.DiscreteRLAgentActions.simple(),
         )
         agents.append(agent)
@@ -106,4 +106,3 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=72, camera_he
         add_timeout_rewards(agents)
 
     return agents
-
