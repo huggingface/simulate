@@ -5,7 +5,7 @@ namespace SimEnv.Agents {
         }
 
         public void OnReleased() {
-            
+
         }
 
         public void OnEnvironmentLoaded() {
@@ -13,7 +13,7 @@ namespace SimEnv.Agents {
         }
 
         public void OnBeforeEnvironmentUnloaded() {
-            
+            AgentManager.instance.agents.Clear();
         }
     }
 }
