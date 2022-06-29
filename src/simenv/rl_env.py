@@ -36,7 +36,8 @@ class RLEnv(gym.Env):
         obs = self.scene.get_observation()
 
         obs = self._reshape_obs(obs)
-
+        if self.n_agents == 1:
+            return obs[0]
         return obs
 
     def _reshape_obs(self, obs):
@@ -47,6 +48,8 @@ class RLEnv(gym.Env):
         ).transpose(0, 3, 1, 2)
 
     def step(self, action):
+        if self.n_agents == 1:
+            action = [int(action)]
         self.scene.step(action)
 
         obs = self.scene.get_observation()
@@ -55,8 +58,9 @@ class RLEnv(gym.Env):
 
         reward = self.scene.get_reward()
         done = self.scene.get_done()
-        info = {}  # TODO: Add info to the backend, if we require it
-
+        info = [{}]*self.n_agents  # TODO: Add info to the backend, if we require it
+        if self.n_agents == 1:
+            return obs[0], reward[0], done[0], info[0]
         return obs, reward, done, info
 
     def close(self):
