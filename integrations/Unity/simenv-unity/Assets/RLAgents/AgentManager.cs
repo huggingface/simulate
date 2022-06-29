@@ -17,8 +17,8 @@ namespace SimEnv.Agents {
             }
         }
 
-        readonly float FRAME_RATE = 30;
-        readonly float FRAME_SKIP = 15;
+        float physicsUpdateRate;
+        float frameSkip;
 
         public AgentManager() {
 
@@ -33,6 +33,9 @@ namespace SimEnv.Agents {
                 }
                 agents[i].cam = camera;
             }
+          
+            frameSkip = Client.instance.frameSkip;
+            physicsUpdateRate = Client.instance.physicsUpdateRate;
         }
 
         public void Register(Agent agent) {
@@ -50,16 +53,16 @@ namespace SimEnv.Agents {
             } else {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
-            for (int j = 0; j < FRAME_SKIP; j++) {
+            for (int j = 0; j < frameSkip; j++) {
                 if (agents != null) {
                     for (int i = 0; i < agents.Count; i++) {
                         Agent agent = agents[i] as Agent;
-                        agent.AgentUpdate(FRAME_RATE);
+                        agent.AgentUpdate(physicsUpdateRate);
                     }
                 } else {
                     Debug.LogWarning("Attempting to step environment without an Agent");
                 }
-                Simulator.Step(1, FRAME_RATE);
+                Simulator.Step(1, physicsUpdateRate);
                 // Reward has to be updated after the simulate start as it is the result of the action the agent just took.
                 if (agents != null) {
                     for (int i = 0; i < agents.Count; i++) {
