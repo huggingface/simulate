@@ -17,9 +17,10 @@ namespace SimEnv.Agents {
             }
         }
 
-        float physicsUpdateRate;
+        int obsSize;
+        uint[] agentPixelValues;
         int frameSkip;
-
+        float physicsUpdateRate;
         public AgentManager() {
 
         }
@@ -33,6 +34,10 @@ namespace SimEnv.Agents {
                 }
                 agents[i].cam = camera;
             }
+            Agent exampleAgent = agents[0] as Agent;
+            obsSize = exampleAgent.cam.camera.pixelWidth * exampleAgent.cam.camera.pixelHeight * 3;
+            agentPixelValues = new uint[agents.Count * obsSize];
+
           
             frameSkip = Client.instance.frameSkip;
             physicsUpdateRate = Client.instance.physicsUpdateRate;
@@ -80,17 +85,10 @@ namespace SimEnv.Agents {
         }
 
         private IEnumerator GetObservationCoroutine(UnityAction<string> callback) {
-            Agent exampleAgent = agents[0] as Agent;
-            // the coroutine has to be started from a monobehavior or something like that
-
-            int obsSize = exampleAgent.cam.camera.pixelWidth * exampleAgent.cam.camera.pixelHeight * 3;
-            uint[] pixel_values = new uint[agents.Count * obsSize]; // make this a member variable somewhere
-
-
             List<Coroutine> coroutines = new List<Coroutine>();
             for (int i = 0; i < agents.Count; i++) {
                 Agent agent = agents[i] as Agent;
-                Coroutine coroutine = agent.GetObservationCoroutine(pixel_values, i * obsSize).RunCoroutine();
+                Coroutine coroutine = agent.GetObservationCoroutine(agentPixelValues, i * obsSize).RunCoroutine();
                 coroutines.Add(coroutine);
             }
 
@@ -99,7 +97,7 @@ namespace SimEnv.Agents {
             }
 
 
-            string string_array = JsonHelper.ToJson(pixel_values);
+            string string_array = JsonHelper.ToJson(agentPixelValues);
             callback(string_array);
         }
 
@@ -129,7 +127,7 @@ namespace SimEnv.Agents {
                     dones.Add(agent.IsDone());
                 }
             } else {
-                Debug.LogWarning("Attempting to get a reward without an Agent");
+                Debug.LogWarning("Attempting to get a done without an Agent");
             }
             return dones.ToArray<bool>();
         }
