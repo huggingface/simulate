@@ -75,8 +75,10 @@ namespace SimEnv.GLTF {
             }
             if (occlusionTexture != null) {
                 coroutine = TryGetTexture(textures, occlusionTexture, true, tex => {
-                    if (tex != null)
+                    if (tex != null) {
                         mat.SetTexture("_OcclusionMap", tex);
+                        mat.SetFloat("_OcclusionStrength", occlusionTexture.strength);
+                    }
                 });
                 while (coroutine.MoveNext())
                     yield return null;
@@ -239,10 +241,12 @@ namespace SimEnv.GLTF {
             [JsonProperty(Required = Required.Always)] public int index;
             public int texCoord = 0;
             public float scale = 1;
+            public float strength = 1;
             public Extensions extensions;
 
             public bool ShouldSerializetexCoord() => texCoord != 0;
             public bool ShouldSerializescale() => scale != 1;
+            public bool ShouldSerializestrength() => strength != 1;
 
             public class Extensions {
                 public KHR_texture_transform KHR_texture_transform;
@@ -323,12 +327,12 @@ namespace SimEnv.GLTF {
             ExportResult result = new ExportResult();
             result.name = material.name;
             GLTFMaterial.PbrMetallicRoughness pbrMetallicRoughness = new GLTFMaterial.PbrMetallicRoughness();
-            if(material.HasProperty("_Surface")) {
+            if (material.HasProperty("_Surface")) {
                 bool transparent = material.GetFloat("_Surface") > 0;
-                if(transparent) {
-                    if(material.HasProperty("_AlphaClip") && material.GetFloat("_AlphaClip") > 0) {
+                if (transparent) {
+                    if (material.HasProperty("_AlphaClip") && material.GetFloat("_AlphaClip") > 0) {
                         result.alphaMode = AlphaMode.MASK;
-                        if(material.HasProperty("_Cutoff"))
+                        if (material.HasProperty("_Cutoff"))
                             result.alphaCutoff = material.GetFloat("_Cutoff");
                     } else {
                         result.alphaMode = AlphaMode.BLEND;
@@ -362,10 +366,13 @@ namespace SimEnv.GLTF {
                 if (emissionMap != null)
                     result.emissiveTexture = GLTFTexture.Export((Texture2D)emissionMap, images, filepath);
             }
-            if (material.HasTexture("_OcclussionMap")) {
+            if (material.HasTexture("_OcclusionMap")) {
                 Texture occlusionMap = material.GetTexture("_OcclusionMap");
-                if (occlusionMap != null)
+                if (occlusionMap != null) {
                     result.occlusionTexture = GLTFTexture.Export((Texture2D)occlusionMap, images, filepath);
+                    if (material.HasProperty("_OcclusionStrength"))
+                        result.occlusionTexture.strength = material.GetFloat("_OcclusionStrength");
+                }
             }
             if (material.IsKeywordEnabled("_NORMALMAP")) {
                 Texture bumpMap = material.GetTexture("_BumpMap");
