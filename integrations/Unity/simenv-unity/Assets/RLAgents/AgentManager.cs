@@ -18,7 +18,7 @@ namespace SimEnv.Agents {
         }
 
         float physicsUpdateRate;
-        float frameSkip;
+        int frameSkip;
 
         public AgentManager() {
 

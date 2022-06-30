@@ -18,7 +18,7 @@ ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/s
 
 def create_env(executable=None, port=None, headless=None):
     scene = sm.Scene(engine="Unity", engine_exe=executable, engine_port=port, engine_headless=headless,
-                        frame_skip=15, physics_update_rate=30)
+                        frame_skip=15, physics_update_rate=32.3)
     scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
     blue_material = sm.Material(base_color=(0, 0, 0.8))
     red_material = sm.Material(base_color=(0.8, 0, 0))
@@ -93,8 +93,8 @@ def make_env(executable, seed=0, headless=None):
 
 
 if __name__ == "__main__":
-    n_parallel = 16
-    env_fn = make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")
+    n_parallel = 1
+    env_fn = make_env(ALICIA_UNITY_BUILD_URL)
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
     obs = env.reset()

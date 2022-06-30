@@ -28,7 +28,7 @@ class UnityEngine(Engine):
         engine_exe=None,
         engine_headless=None,
         engine_port=55000,
-        physics_update_rate=30,
+        physics_update_rate=30.,
         frame_skip=15,
     ):
         super().__init__(scene=scene, auto_update=auto_update)
