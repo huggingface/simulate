@@ -11,6 +11,8 @@ namespace SimEnv {
     public class Client : Singleton<Client> {
         public string host;
         public int port;
+        public float physicsUpdateRate;
+        public int frameSkip;
 
         TcpClient _client;
         TcpClient client {
@@ -33,11 +35,23 @@ namespace SimEnv {
         /// <summary>
         /// Connect to server and begin listening for commands.
         /// </summary>
-        public void Initialize(string host = "localhost", int port = 55000) {
+        public void Initialize(string host = "localhost", int port = 55000, float physicsUpdateRate=30, 
+                                int frameSkip=15) {
+
             if(TryGetArg("port", out string portArg))
                 int.TryParse(portArg, out port);
+
+            if(TryGetArg("physics_update_rate", out string physicsUpdateRateArg))
+                float.TryParse(physicsUpdateRateArg, out physicsUpdateRate);
+
+            if(TryGetArg("frame_skip", out string frameSkipArg))
+                int.TryParse(frameSkipArg, out frameSkip);
+
             this.host = host;
+            this.frameSkip = frameSkip;
+            this.physicsUpdateRate = physicsUpdateRate;
             this.port = port;
+
             LoadCommands();
             if (listenCoroutine == null)
                 listenCoroutine = ListenCoroutine().RunCoroutine();
