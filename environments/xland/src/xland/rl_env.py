@@ -22,6 +22,7 @@ def create_env(executable, width, height, sample_from, tiles, neighbors, seed, p
     return env
 
 
+# TODO: bug with seed
 def make_env(
     executable, width=9, height=9, sample_from=None, tiles=None, neighbors=None, seed=0, headless=None, **kwargs
 ):

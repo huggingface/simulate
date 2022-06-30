@@ -8,7 +8,6 @@ from xland.utils import create_2d_map
 
 
 if __name__ == "__main__":
-    done = False
     plt.ion()
 
     fig1, ax1 = plt.subplots()
@@ -22,13 +21,14 @@ if __name__ == "__main__":
         seed=None,
         n_agents=1,
         n_objects=6,
-        width=6,
-        height=6,
+        width=9,
+        height=9,
     )(port=56000)
 
+    done = False
     obs = env.reset()
     obs = obs.reshape(
-        (3, env.scene.agents_root.agent_0.camera_height, env.scene.agents_root.agent_0.camera_width)
+        (3, env.scene.root.agents_root.agent_0.camera_height, env.scene.root.agents_root.agent_0.camera_width)
     ).transpose((1, 2, 0))
 
     axim1 = ax1.imshow(obs, vmin=0, vmax=255)
@@ -52,7 +52,7 @@ if __name__ == "__main__":
             done = done[0]
 
         obs = obs.reshape(
-            (3, env.scene.agents_root.agent_0.camera_height, env.scene.agents_root.agent_0.camera_width)
+            (3, env.scene.root.agents_root.agent_0.camera_height, env.scene.root.agents_root.agent_0.camera_width)
         ).transpose((1, 2, 0))
 
         axim1.set_data(obs)

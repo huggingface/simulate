@@ -203,10 +203,8 @@ def generate_scene(
     else:
         scene = sm.Scene(engine=engine)
 
-    # Add empty roots
-    scene += sm.Asset(name="map_root")
-    scene += sm.Asset(name="agents_root")
-    scene += sm.Asset(name="objects_root")
+    # Create root
+    root = sm.Asset(name="root")
 
     # Add colliders to StructuredGrid
     material = sm.Material(base_color=[0.0, 0.67, 0.66])
@@ -222,18 +220,25 @@ def generate_scene(
     sg += generate_colliders(sg)
 
     # Add procedurally generated grid and sides and bottom
-    scene.map_root += sg
-    scene.map_root += get_sides_and_bottom(x, y, z, material=material)
+    map_root = sm.Asset(name="map_root")
+    map_root += sg
+    map_root += get_sides_and_bottom(x, y, z, material=material)
 
     # Add walls to prevent agent from falling
-    scene.map_root += add_walls(x, z)
+    map_root += add_walls(x, z)
+    root += map_root
 
     # Add objects
+    objects_root = sm.Asset(name="objects_root")
     objects = create_objects(obj_pos)
-    scene.objects_root += objects
+    objects_root += objects
+    root += objects_root
 
     # Add agent
     # TODO: Generate random predicates
-    scene.agents_root += create_agents(agent_pos, objects, predicate=None, verbose=verbose)
+    agents_root = sm.Asset(name="agents_root")
+    agents_root += create_agents(agent_pos, objects, predicate=None, verbose=verbose)
+    root += agents_root
+    scene += root
 
     return scene

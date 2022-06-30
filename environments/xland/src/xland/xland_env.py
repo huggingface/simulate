@@ -20,8 +20,8 @@ class XLandEnv(RLEnv):
         # TODO: implement replacing of objects / agents
         new_scene = self.get_scene()
 
-        self.scene.map_root.remove(self.scene.map_root.tree_children)
-        self.scene.map_root += new_scene.map_root
+        self.scene.remove(self.scene.tree_children)
+        self.scene += new_scene.tree_children
         self.scene.show()
 
         return super().reset()

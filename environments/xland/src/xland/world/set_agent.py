@@ -64,7 +64,7 @@ def add_timeout_rewards(agents):
             entity1=agent,
             entity2=agent,
             distance_metric="euclidean",
-            threshold=500,
+            threshold=1500,
             is_terminal=True,
             scalar=-1.0,
         )
@@ -72,7 +72,7 @@ def add_timeout_rewards(agents):
         agent.add_reward_function(timeout_reward_function)
 
 
-def create_agents(agent_pos, objects, predicate=None, camera_width=72, camera_height=96, verbose=True):
+def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_height=72, verbose=True):
     """
     Create agents in simenv.
 
