@@ -111,10 +111,10 @@ def generate_map(
     """
 
     if specific_map is not None:
-        img = specific_map
+        all_imgs = np.expand_dims(specific_map, axis=0)
 
     else:
-        img = generate_2d_map(
+        all_imgs = generate_2d_map(
             width,
             height,
             sample_map=sample_map,
@@ -130,36 +130,41 @@ def generate_map(
         )
 
     # Get the dimensions of map - since if plotting a specific_map, we might have different ones
-    width = img.shape[0]
-    height = img.shape[1]
+    true_nb_samples = all_imgs.shape[0]
+    width = all_imgs.shape[1]
+    height = all_imgs.shape[2]
 
-    img_np = decode_rgb(img)
+    def build_single_map(img):
+        img_np = decode_rgb(img)
 
-    # Let's say we want tiles of final_tile_size x final_tile_size pixels
-    # TODO: change variables and make this clearer
+        # Let's say we want tiles of final_tile_size x final_tile_size pixels
+        # TODO: change variables and make this clearer
 
-    # We create the mesh centered in (0,0)
-    x = np.linspace(-height / 2, height / 2, GRANULARITY * height)
-    z = np.linspace(-width / 2, width / 2, GRANULARITY * width)
+        # We create the mesh centered in (0,0)
+        x = np.linspace(-height / 2, height / 2, GRANULARITY * height)
+        z = np.linspace(-width / 2, width / 2, GRANULARITY * width)
 
-    # Create mesh grid
-    x, z = np.meshgrid(x, z)
+        # Create mesh grid
+        x, z = np.meshgrid(x, z)
 
-    # Nowm we create the z coordinates
-    # First we split the procedurally generated image into tiles a format (:,:,2,2) in order to
-    # do the interpolation and get the z values on our grid
-    img_np = np.array(np.hsplit(np.array(np.hsplit(img_np, height)), width))
+        # Nowm we create the z coordinates
+        # First we split the procedurally generated image into tiles a format (:,:,2,2) in order to
+        # do the interpolation and get the z values on our grid
+        img_np = np.array(np.hsplit(np.array(np.hsplit(img_np, height)), width))
 
-    # Here, we create the mesh
-    # As we are using tiles of two by two, first we have to find a interpolation on
-    # the x axis for each tile
-    # and then on the y axis for each tile
-    # In order to do so, we can use np.linspace, and then transpose the tensor and
-    # get the right order
-    y = np.linspace(img_np[:, :, :, 0], img_np[:, :, :, 1], GRANULARITY)
-    y = np.linspace(y[:, :, :, 0], y[:, :, :, 1], GRANULARITY)
-    y = np.transpose(y, (2, 0, 3, 1)).reshape((width * GRANULARITY, height * GRANULARITY), order="A")
+        # Here, we create the mesh
+        # As we are using tiles of two by two, first we have to find a interpolation on
+        # the x axis for each tile
+        # and then on the y axis for each tile
+        # In order to do so, we can use np.linspace, and then transpose the tensor and
+        # get the right order
+        y = np.linspace(img_np[:, :, :, 0], img_np[:, :, :, 1], GRANULARITY)
+        y = np.linspace(y[:, :, :, 0], y[:, :, :, 1], GRANULARITY)
+        y = np.transpose(y, (2, 0, 3, 1)).reshape((width * GRANULARITY, height * GRANULARITY), order="A")
 
-    coordinates = np.stack([x, y, z])
+        coordinates = np.stack([x, y, z])
 
-    return coordinates, img
+        return coordinates
+
+    all_coordinates = [build_single_map(all_imgs[i]) for i in range(true_nb_samples)]
+    return all_coordinates, all_imgs

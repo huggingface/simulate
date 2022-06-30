@@ -1141,11 +1141,17 @@ class ProcgenGrid(Object3D):
         }
 
         if shallow:
-            self.map_2d = generate_2d_map(**all_args)
+            map_2ds = generate_2d_map(**all_args)
+            # We take the first map (if nb_samples > 1), since this object has
+            # support for a single map for now
+            self.map_2d = map_2ds[0]
 
         else:
             # Saves these for other functions that might use them
-            self.coordinates, self.map_2d = generate_map(specific_map=specific_map, **all_args)
+            # We take index 0 since generate_map is now vectorized, but we don't have
+            # support for multiple maps on this object yet.
+            coordinates, map_2ds = generate_map(specific_map=specific_map, **all_args)
+            self.coordinates, self.map_2d = coordinates[0], map_2ds[0]
 
             # If it is a structured grid, extract the surface mesh (PolyData)
             mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
@@ -1161,7 +1167,8 @@ class ProcgenGrid(Object3D):
         """
         Function for creating the mesh in case the creation of map was shallow.
         """
-        self.coordinates, _ = generate_map(specific_map=self.map_2d)
+        coordinates, _ = generate_map(specific_map=self.map_2d)
+        self.coordinates = coordinates[0]
 
         # If it is a structured grid, extract the surface mesh (PolyData)
         mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
