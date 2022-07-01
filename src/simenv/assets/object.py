@@ -1141,10 +1141,14 @@ class ProcgenGrid(Object3D):
         }
 
         if shallow:
-            map_2ds = generate_2d_map(**all_args)
-            # We take the first map (if nb_samples > 1), since this object has
-            # support for a single map for now
-            self.map_2d = map_2ds[0]
+            if specific_map is None:
+                map_2ds = generate_2d_map(**all_args)
+                # We take the first map (if nb_samples > 1), since this object has
+                # support for a single map for now
+                self.map_2d = map_2ds[0]
+
+            else:
+                self.map_2d = specific_map
 
         else:
             # Saves these for other functions that might use them

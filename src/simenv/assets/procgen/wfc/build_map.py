@@ -137,9 +137,6 @@ def generate_map(
     def build_single_map(img):
         img_np = decode_rgb(img)
 
-        # Let's say we want tiles of final_tile_size x final_tile_size pixels
-        # TODO: change variables and make this clearer
-
         # We create the mesh centered in (0,0)
         x = np.linspace(-height / 2, height / 2, GRANULARITY * height)
         z = np.linspace(-width / 2, width / 2, GRANULARITY * width)
