@@ -16,7 +16,7 @@
 """ Some mapping from Discrete and Box Spaces to physics actions."""
 from dataclasses import dataclass
 from enum import Enum
-from typing import List, Optional
+from typing import List, Optional, Union
 
 import numpy as np
 
@@ -61,17 +61,24 @@ class MappedBox(spaces.Box, MappedActions):
 
     def __init__(
         self,
-        low,
-        high,
+        low: Union[float, List[float]],
+        high: Union[float, List[float]],
+        shape: Optional[List[int]] = None,
+        dtype = np.float32,
+        seed: Optional[int] = None,
+
         physics: Physics = None,
-        shape=None,
         scaling: Optional[float] = 1.0,
         offset: Optional[float] = 0.0,
-        clip_low: Optional[float] = None,
-        clip_high: Optional[float] = None,
-        dtype=np.float32,
-        seed=None,
+        clip_low: Optional[List[float]] = None,
+        clip_high: Optional[List[float]] = None,
     ):
+        if isinstance(low, float):
+            low = [low]
+        if isinstance(high, float):
+            high = [high]
+        if shape is None:
+            shape = [1] * len(low)
         super().__init__(low=low, high=high, shape=shape, dtype=dtype, seed=seed)
         self.physics = physics
         self.scaling = scaling
@@ -93,12 +100,13 @@ class MappedDiscrete(spaces.Discrete, MappedActions):
 
     def __init__(
         self,
-        n,
+        n: int,
+        seed: Optional[int] = None,
+
         physics: List[Physics] = None,
         amplitudes: Optional[List[float]] = None,
         clip_low: Optional[List[float]] = None,
         clip_high: Optional[List[float]] = None,
-        seed=None,
     ):
 
         super().__init__(n=n, seed=seed)

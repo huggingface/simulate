@@ -3,6 +3,8 @@ using UnityEngine;
 using UnityEngine.Events;
 using System;
 using System.Collections;
+using SimEnv.RlActions;
+using SimEnv.GLTF.HFRlAgents;
 
 namespace SimEnv.Agents {
     public static class JsonHelper {
@@ -29,180 +31,101 @@ namespace SimEnv.Agents {
         }
     }
 
-    public abstract class Actions {
-        public string name;
-        public string dist;
-        public List<string> available = new List<string>();
-        public float forward = 0.0f;
-        public float moveRight = 0.0f;
-        public float turnRight = 0.0f;
-
-        public abstract void SetAction(List<float> stepAction);
-    }
-
-    public class DiscreteActions : Actions {
-
-        public override void SetAction(List<float> stepAction) {
-            Debug.Assert(dist == "discrete");
-            Debug.Assert(stepAction.Count == 1, "in the discrete case step action must be of length 1");
-
-            // in the case of discrete actions, this list is just one value
-            // the value is casted to an int, this is a bit hacky and I am sure there is a more elegant way to do this.
-            int iStepAction = (int)stepAction[0];
-            // Clear previous actions
-            forward = 0.0f;
-            moveRight = 0.0f;
-            turnRight = 0.0f;
-            switch (available[iStepAction]) {
-                case "move_forward":
-                    forward = 1.0f;
-                    break;
-                case "move_backward":
-                    forward = -1.0f;
-                    break;
-                case "move_left":
-                    moveRight = 1.0f;
-                    break;
-                case "move_right":
-                    moveRight = -1.0f;
-                    break;
-                case "turn_left":
-                    turnRight = -1.0f;
-                    break;
-                case "turn_right":
-                    turnRight = 1.0f;
-                    break;
-                default:
-                    Debug.Assert(false, "invalid action");
-                    break;
-            }
-        }
-    }
-
-    public class ContinuousActions : Actions {
-        public override void SetAction(List<float> stepAction) {
-            Debug.Assert(dist == "continuous");
-            Debug.Assert(stepAction.Count == available.Count, "step action and avaiable count mismatch");
-
-            for (int i = 0; i < stepAction.Count; i++) {
-                switch (available[i]) {
-                    case "move_forward_backward":
-                        forward = stepAction[i];
-                        break;
-                    case "move_left_right":
-                        moveRight = stepAction[i];
-                        break;
-                    case "turn_left_right":
-                        turnRight = stepAction[i];
-                        break;
-                    default:
-                        Debug.Assert(false, "invalid action");
-                        break;
-                }
-            }
-        }
-
-        public void Print() {
-            Debug.Log("Printing actions");
-            Debug.Log("name: " + name);
-            Debug.Log("dist: " + dist);
-            Debug.Log("name: " + name);
-            foreach (var avail in available) {
-                Debug.Log("type: " + avail);
-            }
-        }
-    }
 
     public class Agent {
-        public float move_speed = 1f;
-
-        private Vector3 originalPosition;
-        public float turn_speed = 1f;
-        public float height = 1f;
-
-        private const float radius = .25f;
-        private const bool HUMAN = false;
-
-        private float accumReward = 0.0f;
-
-        public Color color = Color.white;
+        public Node node;
+        public Rigidbody body;
+        public RlAction actions;
+        private List<Node> observations = new List<Node>();
         private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
 
-        public Node node;
-        public RenderCamera cam;
+        // TODO check and update in particular with reset
+        private const bool HUMAN = false;
+        private float accumReward = 0.0f;
+        private Vector3 originalPosition;
 
-        CharacterController controller;
+        // TODO remove
+        // private const float radius = .25f;
+        // public RenderCamera cam;
 
-        public Actions actions;
-
-        public Agent(Node node, HFRlAgentsRlComponent agentData) {
+        public Agent(Node node, HFRlAgentsComponent agentData, List<Node> observationDevices) {
             this.node = node;
-            SetProperties(agentData);
+            SetProperties(agentData, observationDevices);
             AgentManager.instance.Register(this);
         }
 
-        public void SetProperties(HFRlAgentsRlComponent agentData) {
+        public void SetProperties(HFRlAgentsComponent agentData, List<Node> observationDevices) {
             Debug.Log("Setting Agent properties");
-            originalPosition = new Vector3(node.gameObject.transform.position.x, node.gameObject.transform.position.y, node.gameObject.transform.position.z);
-            color = new Color(agentData.color[0], agentData.color[1], agentData.color[2]);
-            height = agentData.height;
-            move_speed = agentData.move_speed;
-            turn_speed = agentData.turn_speed;
 
-            foreach (Transform child in node.gameObject.transform) {
-                if (child.gameObject.name == "Capsule") {
-                    child.gameObject.GetComponent<MeshRenderer>().material.color = color;
-                    break;
-                }
+            originalPosition = node.transform.position;
+
+            // Store pointers to all our observation devices
+            observations = observationDevices;
+            if (observations.Count > 1) {
+                Debug.Log("More than one observation device not implemented yet.");
             }
 
-            switch (agentData.action_dist) {
-                case "discrete":
-                    actions = new DiscreteActions();
+            // Create our agent actions
+            HFRlAgentsActions gl_act = agentData.actions;
+            switch (gl_act.type) {
+                case "MappedDiscrete":
+                    actions = new MappedDiscreteAction(
+                        n: gl_act.n,
+                        physics: gl_act.physics,
+                        amplitudes: gl_act.amplitudes, 
+                        clip_low: gl_act.clip_low,
+                        clip_high: gl_act.clip_high);
                     break;
-                case "continuous":
-                    actions = new ContinuousActions();
+                case "MappedBox":
+                    actions = new MappedContinuousAction(
+                        low: gl_act.low,
+                        high: gl_act.high,
+                        shape: gl_act.shape,
+                        dtype: gl_act.dtype,
+                        physics: gl_act.physics,
+                        scaling: gl_act.scaling,
+                        offset: gl_act.offset,
+                        clip_low: gl_act.clip_low,
+                        clip_high: gl_act.clip_high);
                     break;
                 default:
-                    Debug.Assert(false, "action distribution was not discrete or continuous");
+                    Debug.Assert(false, "We currently only support MappedDiscrete and MappedBox actions");
                     break;
             }
 
-            actions.name = agentData.action_name;
-            actions.dist = agentData.action_dist;
-            actions.available = agentData.available_actions;
+            // set up rigidbody component
+            body = node.gameObject.AddComponent<Rigidbody>();
 
-            // set up components
-            controller = node.gameObject.AddComponent<CharacterController>();
-            controller.slopeLimit = 45;
-            controller.stepOffset = .3f;
-            controller.skinWidth = .08f;
-            controller.minMoveDistance = .001f;
-            controller.center = Vector3.up * height / 2f;
-            controller.radius = radius;
-            controller.height = height;
-            SetupModel();
+            // TODO(thom, dylan, ed) Do we want to emulate this at some point?
+            // controller.slopeLimit = 45;
+            // controller.stepOffset = .3f;
+            // controller.skinWidth = .08f;
+            // controller.minMoveDistance = .001f;
+            // controller.center = Vector3.y * height / 2f;
+            // controller.radius = radius;
+            // controller.height = height;
+            // SetupModel();
 
-            //
             // add the reward functions to the agent
-            for (int i = 0; i < agentData.reward_functions.Count; i++) {
+            List<HFRlAgentsReward> gl_rewardFunctions = agentData.rewards;
+            foreach (var reward in gl_rewardFunctions) {
                 Debug.Log("Creating reward function");
                 // get the shared properties
-                Debug.Log("Finding entity_a " + agentData.reward_entity1s[i]);
-                Debug.Log("Finding entity_b " + agentData.reward_entity2s[i]);
-                GameObject entity_a = GameObject.Find(agentData.reward_entity1s[i]);
+                Debug.Log("Finding entity_a " + reward.entity_a);
+                Debug.Log("Finding entity_b " + reward.entity_b);
+                GameObject entity_a = GameObject.Find(reward.entity_a);
 
-                GameObject entity_b = GameObject.Find(agentData.reward_entity2s[i]);
+                GameObject entity_b = GameObject.Find(reward.entity_b);
                 if (entity_a == null) {
-                    Debug.Log("Failed to find entity_a " + agentData.reward_entity1s[i]);
+                    Debug.Log("Failed to find entity_a " + reward.entity_a);
                 }
                 if (entity_b == null) {
-                    Debug.Log("Failed to find entity_b " + agentData.reward_entity2s[i]);
+                    Debug.Log("Failed to find entity_b " + reward.entity_b);
                 }
                 IDistanceMetric distanceMetric = null; // refactor this to a reward factory?
                 RewardFunction rewardFunction = null;
 
-                switch (agentData.reward_distance_metrics[i]) {
+                switch (reward.distance_metric) {
                     case "euclidean":
                         distanceMetric = new EuclideanDistance();
                         break;
@@ -214,19 +137,19 @@ namespace SimEnv.Agents {
                         break;
                 }
 
-                switch (agentData.reward_functions[i]) {
+                switch (reward.type) {
                     case "dense":
                         rewardFunction = new DenseRewardFunction(
-                            entity_a, entity_b, distanceMetric, agentData.reward_scalars[i]
+                            entity_a, entity_b, distanceMetric, reward.scalar
                         );
                         break;
                     case "sparse":
                         rewardFunction = new SparseRewardFunction(
-                            entity_a, entity_b, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
+                            entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal);
                         break;
                     case "timeout":
                         rewardFunction = new TimeoutRewardFunction(
-                            entity_a, entity_b, distanceMetric, agentData.reward_scalars[i], agentData.reward_thresholds[i], agentData.reward_is_terminals[i]);
+                            entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal);
                         break;
 
                     default:
@@ -238,18 +161,6 @@ namespace SimEnv.Agents {
             }
         }
 
-        void SetupModel() {
-            GameObject capsule = GameObject.CreatePrimitive(PrimitiveType.Capsule);
-            capsule.name = "Capsule";
-            capsule.transform.SetParent(node.gameObject.transform);
-            capsule.transform.localPosition = Vector3.up * height / 2f;
-            capsule.transform.localScale = new Vector3(radius * 2f, height / 2f, radius * 2f);
-            MeshRenderer capsuleRenderer = capsule.GetComponent<MeshRenderer>();
-            capsuleRenderer.material = Resources.Load<Material>("DefaultLit");
-            capsuleRenderer.material.color = color;
-            capsule.GetComponent<Collider>().enabled = false;
-        }
-
         public void AgentUpdate() {
             if (HUMAN) {
                 // Human control
@@ -257,19 +168,38 @@ namespace SimEnv.Agents {
                 float z = Input.GetAxis("Vertical");
                 float r = 0.0f;
 
-                Vector3 move = node.gameObject.transform.right * x + node.gameObject.transform.forward * z;
+                Vector3 positionOffset = new Vector3(x, 0, z);
+                Quaternion rotation = Quaternion.Euler(0, r, 0);
 
-                node.gameObject.transform.Rotate(Vector3.up * r);
+                Vector3 newPosition = body.position + node.gameObject.transform.TransformDirection(positionOffset);
+                Quaternion newRotation = body.rotation * rotation;
+
+                body.MovePosition(newPosition);
+                body.MoveRotation(newRotation);
+
                 if (Input.GetKeyUp("r")) {
                     Debug.Log("Agent reset");
-                    node.gameObject.transform.position = new Vector3(0.0f, 0.0f, 0.0f);
+                    body.MovePosition(Vector3.zero);
+                    body.MoveRotation(Quaternion.identity);
                 }
             } else {
                 // RL control
-                Vector3 move = node.gameObject.transform.right * actions.moveRight + node.gameObject.transform.forward * actions.forward;
-                controller.Move(move * move_speed * Time.deltaTime);
-                float rotate = actions.turnRight;
-                node.gameObject.transform.Rotate(Vector3.up * rotate * turn_speed);
+                if (actions.positionOffset != Vector3.zero) {
+                    Vector3 newPosition = body.position + node.gameObject.transform.TransformDirection(actions.positionOffset);
+                    body.MovePosition(newPosition);
+                }
+                if (actions.rotation != Quaternion.identity) {
+                    Quaternion newRotation = body.rotation * actions.rotation;
+                    body.MoveRotation(newRotation);
+                }
+                if (actions.velocity != Vector3.zero) {
+                    Vector3 localForce = node.gameObject.transform.TransformDirection(actions.velocity);
+                    body.AddRelativeForce(localForce);
+                }
+                if (actions.torque != Vector3.zero) {
+                    Vector3 localTorque = node.gameObject.transform.TransformDirection(actions.torque);
+                    body.AddRelativeTorque(localTorque);
+                }
             }
         }
 
@@ -280,9 +210,7 @@ namespace SimEnv.Agents {
         public void Reset() {
             accumReward = 0.0f;
             // Reset the agent
-            controller.enabled = false; // the Character Controller takes control of the tranform and must be disabled
             node.gameObject.transform.position = originalPosition;
-            controller.enabled = true;
 
 
             // Reset reward objects?
@@ -323,8 +251,20 @@ namespace SimEnv.Agents {
             return done;
         }
 
+        public int getObservationSizes() {
+            if (observations.Count > 0 && observations[0].camera != null) {
+                int observationSize = observations[0].camera.getObservationSizes();
+                return observationSize;
+            }
+            return 0;
+        }
+
         public IEnumerator GetObservationCoroutine(uint[] pixelValues, int startingIndex) {
-            yield return cam.RenderCoroutine(colors => {
+            if (observations.Count > 0 && observations[0].camera != null) {
+                int observationSize = observations[0].camera.getObservationSizes();
+                return observationSize;
+            }
+            yield return (RenderCamera) observations[0].camera.RenderCoroutine(colors => {
                 for (int i = 0; i < colors.Length; i++) {
                     pixelValues[startingIndex + i * 3] = colors[i].r;
                     pixelValues[startingIndex + i * 3 + 1] = colors[i].g;

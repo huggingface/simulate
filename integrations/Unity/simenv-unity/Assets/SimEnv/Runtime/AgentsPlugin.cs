@@ -9,7 +9,7 @@ namespace SimEnv.Agents {
         }
 
         public void OnEnvironmentLoaded() {
-            AgentManager.instance.Initialize();
+            // AgentManager.instance.Initialize();
         }
 
         public void OnBeforeEnvironmentUnloaded() {

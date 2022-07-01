@@ -693,10 +693,26 @@ class Asset(NodeMixin, object):
 
     def _post_attach_parent(self, parent):
         """NodeMixing nethod call after attaching to a `parent`."""
-        if getattr(parent.tree_root, "engine", None) is not None and parent.tree_root.engine.auto_update:
-            parent.tree_root.engine.update_asset(self)
+        if getattr(parent.tree_root, "engine", None) is not None:
+            parent.tree_root._check_all_names_unique()  # Check that all names are unique if we are in a Scene
+            if parent.tree_root.engine.auto_update:
+                parent.tree_root.engine.update_asset(self)
 
     def _post_detach_parent(self, parent):
         """NodeMixing nethod call after detaching from a `parent`."""
         if getattr(parent.tree_root, "engine", None) is not None and parent.tree_root.engine.auto_update:
             parent.tree_root.engine.remove_asset(self)
+
+    def _post_name_change(self, value):
+        """NodeMixing nethod call after changing the name of a node."""
+        if getattr(self.tree_root, "engine", None) is not None:
+            self.tree_root._check_all_names_unique()  # Check that all names are unique if we are in a Scene
+
+    def _check_all_names_unique(self):
+        """Check that all names are unique in the whole tree."""
+        seen = set()  # O(1) lookups
+        for node in self.tree_descendants:
+            if node.name not in seen:
+                seen.add(node.name)
+            else:
+                raise ValueError("Node name '{}' is not unique".format(node.name))

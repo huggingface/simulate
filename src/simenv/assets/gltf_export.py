@@ -596,7 +596,7 @@ def add_node_to_scene(
     gl_parent_node_id: Optional[int] = None,
     buffer_id: Optional[int] = 0,
     cache: Optional[Dict] = None,
-):
+) -> set[str]:
     gl_node = gl.Node(
         name=node.name,
         translation=node.position.tolist(),
@@ -604,6 +604,7 @@ def add_node_to_scene(
         scale=node.scaling.tolist(),
     )
     extensions = gl.Extensions()
+    extension_used = set()
     if isinstance(node, Camera):
         gl_node.camera = add_camera_to_model(
             camera=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
@@ -613,6 +614,7 @@ def add_node_to_scene(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
         extensions.KHR_lights_punctual = gl.KHRLightsPunctual(light=light_id)
+        extension_used.add("KHR_lights_punctual")
 
     elif isinstance(node, Object3D):
         gl_node.mesh = add_mesh_to_model(
@@ -625,6 +627,7 @@ def add_node_to_scene(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
         extensions.HF_rl_agents = rl_component
+        extension_used.add("HF_rl_agents")
 
     # Add collider if node has one
     if getattr(node, "collider", None) is not None:
@@ -632,9 +635,10 @@ def add_node_to_scene(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
         extensions.HF_colliders = gl.HFColliders(collider=collider_id)
+        extension_used.add("HF_colliders")
 
     # Add the extensions to the node if anything not none
-    if any(getattr(extensions, field.name) is not None for field in fields(extensions)):
+    if extension_used:
         gl_node.extensions = extensions
 
     # Add the new node
@@ -650,7 +654,7 @@ def add_node_to_scene(
 
     # Add the child nodes to the scene
     for child_node in node.tree_children:
-        add_node_to_scene(
+        new_extensions = add_node_to_scene(
             node=child_node,
             gl_parent_node_id=gl_node_id,
             gltf_model=gltf_model,
@@ -658,8 +662,9 @@ def add_node_to_scene(
             buffer_id=buffer_id,
             cache=cache,
         )
+        extension_used.update(new_extensions)
 
-    return
+    return extension_used
 
 
 def tree_as_gltf(root_node: Asset) -> gl.GLTF:
@@ -684,12 +689,12 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
         extensions=gl.Extensions(),
     )
     cache = {}  # A mapping for Mesh/material/Texture already added
-    add_node_to_scene(node=root_node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=0, cache=cache)
+    extension_used = add_node_to_scene(node=root_node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=0, cache=cache)
 
     # Update scene requirements with the GLTF extensions we need
     if gltf_model.extensions.KHR_lights_punctual is not None:
-        gltf_model.extensionsRequired = ["KHRLightsPunctual"]
-        gltf_model.extensionsUsed = ["KHRLightsPunctual"]
+        # gltf_model.extensionsRequired = ["KHRLightsPunctual"]
+        gltf_model.extensionsUsed = extension_used
 
     resource = gl.FileResource("scene.bin", data=buffer_data)
     # TODO: refactor adding buffer

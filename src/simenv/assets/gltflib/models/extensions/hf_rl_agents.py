@@ -35,10 +35,10 @@ class HFRlAgentsActions:
 
     physics: Optional[List[str]] = None
     amplitudes: Optional[List[float]] = None
-    scaling: Optional[float] = None
-    offset: Optional[float] = None
-    clip_low: Optional[float] = None
-    clip_high: Optional[float] = None
+    scaling: Optional[List[float]] = None
+    offset: Optional[List[float]] = None
+    clip_low: Optional[List[float]] = None
+    clip_high: Optional[List[float]] = None
 
 
 @dataclass_json

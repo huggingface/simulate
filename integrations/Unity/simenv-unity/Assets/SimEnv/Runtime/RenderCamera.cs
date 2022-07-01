@@ -33,11 +33,16 @@ namespace SimEnv {
                     break;
             }
             camera.enabled = false;
+            m_node.camera = this;
             Simulator.Register(this);
         }
 
         public void Render(UnityAction<Color32[]> callback) {
             RenderCoroutine(callback).RunCoroutine();
+        }
+
+        public int getObservationSizes() {
+            return camera.targetTexture.width * camera.targetTexture.height * 3;
         }
 
         public IEnumerator RenderCoroutine(UnityAction<Color32[]> callback) {

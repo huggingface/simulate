@@ -24,16 +24,11 @@ namespace SimEnv.Agents {
 
         }
 
-        public void Initialize() {
-            for (int i = 0; i < agents.Count; i++) {
-                Camera agentCamera = agents[i].node.gameObject.GetComponentInChildren<Camera>();
-                if (!Simulator.Cameras.TryGetValue(agentCamera, out RenderCamera camera)) {
-                    Debug.LogWarning("Couldn't find agent camera.");
-                    return;
-                }
-                agents[i].cam = camera;
-            }
-        }
+        // public void Initialize() {
+        //     for (int i = 0; i < agents.Count; i++) {
+        //         agents[i].Initialize();
+        //     }
+        // }
 
         public void Register(Agent agent) {
             if (!agents.Contains(agent))
@@ -80,7 +75,7 @@ namespace SimEnv.Agents {
             Agent exampleAgent = agents[0] as Agent;
             // the coroutine has to be started from a monobehavior or something like that
 
-            int obsSize = exampleAgent.cam.camera.pixelWidth * exampleAgent.cam.camera.pixelHeight * 3;
+            int obsSize = exampleAgent.getObservationSizes();
             uint[] pixel_values = new uint[agents.Count * obsSize]; // make this a member variable somewhere
 
 

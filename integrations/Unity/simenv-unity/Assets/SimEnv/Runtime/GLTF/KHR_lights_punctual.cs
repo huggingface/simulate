@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 
 namespace SimEnv.GLTF {
-    public class KHR_lights_punctual {
+    public class KHRLightsPunctual {
         public List<GLTFLight> lights;
 
         public class GLTFLight {

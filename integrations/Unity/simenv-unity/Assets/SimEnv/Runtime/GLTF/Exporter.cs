@@ -82,7 +82,7 @@ namespace SimEnv.GLTF {
             }
 
             // TODO(dylan/thom) fix collider export
-            // nodes.ForEach(node => HF_colliders.Export(node));
+            // nodes.ForEach(node => HFColliders.Export(node));
 
             List<GLTFMaterial.ExportResult> materials = GLTFMaterial.Export(meshes);
             Dictionary<string, GLTFImage.ExportResult> images = new Dictionary<string, GLTFImage.ExportResult>();

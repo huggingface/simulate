@@ -5,6 +5,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using SimEnv.Agents;
 
 namespace SimEnv.GLTF {
     public class GLTFNode {
@@ -26,8 +27,9 @@ namespace SimEnv.GLTF {
         public bool ShouldSerializescale() { return scale != Vector3.one; }
 
         public class Extensions {
-            public KHR_light KHR_lights_punctual;
-            public HF_collider HF_colliders;
+            public KHRLight KHR_lights_punctual;
+            public HFCollider HF_colliders;
+            public HFRlAgents.HFRlAgentsComponent HF_rl_agents;
             public string[] HF_custom;
         }
 
@@ -37,11 +39,11 @@ namespace SimEnv.GLTF {
             public string contents;
         }
 
-        public class KHR_light {
+        public class KHRLight {
             public int light;
         }
 
-        public class HF_collider {
+        public class HFCollider {
             public int collider;
         }
 
@@ -147,15 +149,20 @@ namespace SimEnv.GLTF {
                     }
                     if (nodes[i].extensions != null) {
                         if (nodes[i].extensions.HF_rl_agents != null) {
-                            HFRlAgentsRlComponent agentData = nodes[i].extensions.HF_rl_agents;
-                            Agent agent = new Agent(result[i].node, agentData);
+                            HFRlAgents.HFRlAgentsComponent agentData = nodes[i].extensions.HF_rl_agents;
+                            List<Node> observationsNodes = new List<Node>();
+                            foreach (string observation in agentData.observations) {
+                                RenderCamera observationData = new RenderCamera(result[observationIndex].node, cameras[observationIndex]);
+                                observationsNodes.Add(observationData);
+                            }
+                            Agents.Agent agent = new Agent(result[i].node, agentData, observationsNodes);
                         }
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
                             int lightValue = nodes[i].extensions.KHR_lights_punctual.light;
                             if (extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {
                                 Debug.LogWarning("Error importing light");
                             } else {
-                                KHR_lights_punctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
+                                KHRLightsPunctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
                                 Light light = result[i].transform.gameObject.AddComponent<Light>();
                                 result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                                 if (!string.IsNullOrEmpty(lightData.name))
@@ -182,7 +189,7 @@ namespace SimEnv.GLTF {
                             if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.colliders == null || extensions.HF_colliders.colliders.Count < colliderValue) {
                                 Debug.LogWarning("Error importing collider");
                             } else {
-                                HF_colliders.GLTFCollider collider = extensions.HF_colliders.colliders[colliderValue];
+                                HFColliders.GLTFCollider collider = extensions.HF_colliders.colliders[colliderValue];
                                 if (collider.mesh.HasValue) {
                                     Debug.LogWarning("Ignoring collider mesh value");
                                 }

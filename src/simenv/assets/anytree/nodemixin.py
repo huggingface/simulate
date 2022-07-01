@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Callable, Sequence, Union
+from typing import Callable, Sequence, Union, Tuple, Optional
 
 from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
@@ -79,7 +79,7 @@ class NodeMixin(object):
     """
 
     @property
-    def name(self):
+    def name(self) -> Optional[str]:
         try:
             return self.__name
         except AttributeError:
@@ -96,6 +96,12 @@ class NodeMixin(object):
             if not hasattr(self.tree_parent, value):
                 setattr(self.tree_parent, value, self)
         self.__name = value
+        self._post_name_change(value)
+
+    def _post_name_change(self, value):
+        """Method called after changing the name."""
+        pass
+
 
     @property
     def tree_parent(self):
@@ -459,7 +465,7 @@ class NodeMixin(object):
         return self.tree_parent.tree_path
 
     @property
-    def tree_descendants(self):
+    def tree_descendants(self) -> Tuple["NodeMixin", ...]:
         """
         All child nodes and all their child nodes.
 
