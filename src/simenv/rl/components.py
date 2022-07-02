@@ -14,13 +14,14 @@
 
 # Lint as: python3
 """ An RL component."""
-from typing import List, Optional, Union
+from typing import List, Optional, Union, TYPE_CHECKING
 
-from ..assets import Asset
 from .actions import MappedBox, MappedDiscrete
 from .observations import map_observation_devices_to_spaces
 from .rewards import RewardFunction
 
+if TYPE_CHECKING:
+    from ..assets import Asset
 
 try:
     from gym import spaces
@@ -40,7 +41,7 @@ class RlComponent:
     def __init__(
         self,
         actions: Union[MappedBox, MappedDiscrete] = None,
-        observations: Optional[Union[Asset, List[Asset]]] = None,
+        observations: Optional[Union["Asset", List["Asset"]]] = None,
         rewards: Optional[Union[RewardFunction, List[RewardFunction]]] = None,
     ):
         # Action space mapped to physics engine variables

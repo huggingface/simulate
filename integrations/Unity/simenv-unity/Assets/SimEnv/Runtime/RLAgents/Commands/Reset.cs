@@ -1,6 +1,6 @@
 using UnityEngine.Events;
 
-namespace SimEnv.Agents {
+namespace SimEnv.RlAgents {
     public class Reset : ICommand {
         public string message;
 

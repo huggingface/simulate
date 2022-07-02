@@ -20,8 +20,8 @@ namespace SimEnv.GLTF.HFRlAgents {
         public List<float> amplitudes;
         public List<float> scaling;
         public List<float> offset;
-        public List<float> clip_low;
-        public List<float> clip_high;
+        public List<float> clip_low = new List<float>();
+        public List<float> clip_high = new List<float>();
     }
 
     // A serialization of a reward function

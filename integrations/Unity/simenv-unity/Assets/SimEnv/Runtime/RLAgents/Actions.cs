@@ -11,15 +11,25 @@ namespace SimEnv.RlActions {
         protected List<float> clip_high = new List<float>();
 
         public Vector3 positionOffset = Vector3.zero;
-        public Quaternion rotation = Quaternion.identity;
+        public Vector3 rotation = Vector3.zero;
         public Vector3 velocity = Vector3.zero;
         public Vector3 torque = Vector3.zero;
+
+        protected void ResetVectors() {
+            positionOffset = Vector3.zero;
+            rotation = Vector3.zero;
+            velocity = Vector3.zero;
+            torque = Vector3.zero;
+        }
 
         public abstract void SetAction(List<float> stepAction);
 
         public void Print() {
             Debug.Log("Printing actions");
-            Debug.Log("type: " + this.GetType().Name);
+            Debug.Log(" - type: " + this.GetType().Name
+                    + " - physics: " + physics
+                    + " - clip_low: " + clip_low
+                    + " - clip_high: " + clip_high);
         }
     }
 
@@ -49,56 +59,54 @@ namespace SimEnv.RlActions {
             Debug.Assert(stepAction.Count == 1, "in the discrete case step action must be of length 1");
 
             // Clear previous actions
-            positionOffset = Vector3.zero;
-            rotation = Quaternion.identity;
-            velocity = Vector3.zero;
-            torque = Vector3.zero;
+            ResetVectors();
 
-            // in the case of discrete actions, this list is just one value
-            // the value is casted to an int, this is a bit hacky and I am sure there is a more elegant way to do this.
-            int iStepAction = (int)stepAction[0];
-            string physicsAction = physics[iStepAction];
-            float physicsAmplitude = amplitudes[iStepAction];
-            switch (physicsAction) {
-                case "position_x":
-                    positionOffset.x = CheckBounds(iStepAction, positionOffset.x + physicsAmplitude);
-                    break;
-                case "position_y":
-                    positionOffset.y = CheckBounds(iStepAction, positionOffset.y + physicsAmplitude);
-                    break;
-                case "position_z":
-                    positionOffset.z = CheckBounds(iStepAction, positionOffset.z + physicsAmplitude);
-                    break;
-                case "rotation_x":
-                    rotation *= Quaternion.Euler(physicsAmplitude, 0, 0);  // TODO(Thom) See if we can do some chekcbound here as well
-                    break;
-                case "rotation_y":
-                    rotation *= Quaternion.Euler(0, physicsAmplitude, 0);
-                    break;
-                case "rotation_z":
-                    rotation *= Quaternion.Euler(0, 0, physicsAmplitude);
-                    break;
-                case "velocity_x":
-                    velocity.x = CheckBounds(iStepAction, velocity.x + physicsAmplitude);
-                    break;
-                case "velocity_y":
-                    velocity.y = CheckBounds(iStepAction, velocity.y + physicsAmplitude);
-                    break;
-                case "velocity_z":
-                    velocity.z = CheckBounds(iStepAction, velocity.z + physicsAmplitude);
-                    break;
-                case "angular_velocity_x":
-                    torque.x = CheckBounds(iStepAction, torque.x + physicsAmplitude);
-                    break;
-                case "angular_velocity_y":
-                    torque.y = CheckBounds(iStepAction, torque.y + physicsAmplitude);
-                    break;
-                case "angular_velocity_z":
-                    torque.z = CheckBounds(iStepAction, torque.z + physicsAmplitude);
-                    break;
-                default:
-                    Debug.Assert(false, "invalid action");
-                    break;
+            for (int i = 0; i <stepAction.Count; i++) {
+                // the action value is casted to an int, this is a bit hacky and I am sure there is a more elegant way to do this.
+                int iStepAction = (int)stepAction[0];
+                string physicsAction = physics[iStepAction];
+                float physicsAmplitude = amplitudes[iStepAction];
+                switch (physicsAction) {
+                    case "position_x":
+                        positionOffset.x = CheckBounds(iStepAction, positionOffset.x + physicsAmplitude);
+                        break;
+                    case "position_y":
+                        positionOffset.y = CheckBounds(iStepAction, positionOffset.y + physicsAmplitude);
+                        break;
+                    case "position_z":
+                        positionOffset.z = CheckBounds(iStepAction, positionOffset.z + physicsAmplitude);
+                        break;
+                    case "rotation_x":
+                        rotation.x = CheckBounds(iStepAction, rotation.x + physicsAmplitude);
+                        break;
+                    case "rotation_y":
+                        rotation.y = CheckBounds(iStepAction, rotation.y + physicsAmplitude);
+                        break;
+                    case "rotation_z":
+                        rotation.z = CheckBounds(iStepAction, rotation.z + physicsAmplitude);
+                        break;
+                    case "velocity_x":
+                        velocity.x = CheckBounds(iStepAction, velocity.x + physicsAmplitude);
+                        break;
+                    case "velocity_y":
+                        velocity.y = CheckBounds(iStepAction, velocity.y + physicsAmplitude);
+                        break;
+                    case "velocity_z":
+                        velocity.z = CheckBounds(iStepAction, velocity.z + physicsAmplitude);
+                        break;
+                    case "angular_velocity_x":
+                        torque.x = CheckBounds(iStepAction, torque.x + physicsAmplitude);
+                        break;
+                    case "angular_velocity_y":
+                        torque.y = CheckBounds(iStepAction, torque.y + physicsAmplitude);
+                        break;
+                    case "angular_velocity_z":
+                        torque.z = CheckBounds(iStepAction, torque.z + physicsAmplitude);
+                        break;
+                    default:
+                        Debug.Assert(false, "invalid action");
+                        break;
+                }
             }
         }
     }
@@ -144,12 +152,7 @@ namespace SimEnv.RlActions {
         }
 
         public override void SetAction(List<float> stepAction) {
-            // Clear previous actions
-            positionOffset = Vector3.zero;
-            rotation = Quaternion.identity;
-            velocity = Vector3.zero;
-            torque = Vector3.zero;
-            float value = 0f;
+            ResetVectors();
             string physicsAction = physics[0];
             for (int i = 0; i <stepAction.Count; i++) {
                 switch (physicsAction) {
@@ -163,16 +166,13 @@ namespace SimEnv.RlActions {
                         positionOffset.z = ConvertValue(positionOffset.z, stepAction[i]);
                         break;
                     case "rotation_x":
-                        value = ConvertValue(0, stepAction[i]);
-                        rotation *= Quaternion.Euler(value, 0, 0);
+                        rotation.x = ConvertValue(rotation.x, stepAction[i]);
                         break;
                     case "rotation_y":
-                        value = ConvertValue(0, stepAction[i]);
-                        rotation *= Quaternion.Euler(0, value, 0);
+                        rotation.y = ConvertValue(rotation.y, stepAction[i]);
                         break;
                     case "rotation_z":
-                        value = ConvertValue(0, stepAction[i]);
-                        rotation *= Quaternion.Euler(0, 0, value);
+                        rotation.z = ConvertValue(rotation.z, stepAction[i]);
                         break;
                     case "velocity_x":
                         velocity.x = ConvertValue(velocity.x, stepAction[i]);

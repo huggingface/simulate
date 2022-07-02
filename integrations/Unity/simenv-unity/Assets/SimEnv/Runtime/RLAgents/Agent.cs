@@ -6,37 +6,13 @@ using System.Collections;
 using SimEnv.RlActions;
 using SimEnv.GLTF.HFRlAgents;
 
-namespace SimEnv.Agents {
-    public static class JsonHelper {
-        public static T[] FromJson<T>(string json) {
-            Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
-            return wrapper.Items;
-        }
-
-        public static string ToJson<T>(T[] array) {
-            Wrapper<T> wrapper = new Wrapper<T>();
-            wrapper.Items = array;
-            return JsonUtility.ToJson(wrapper);
-        }
-
-        public static string ToJson<T>(T[] array, bool prettyPrint) {
-            Wrapper<T> wrapper = new Wrapper<T>();
-            wrapper.Items = array;
-            return JsonUtility.ToJson(wrapper, prettyPrint);
-        }
-
-        [Serializable]
-        private class Wrapper<T> {
-            public T[] Items;
-        }
-    }
-
-
+namespace SimEnv.RlAgents {
     public class Agent {
         public Node node;
         public Rigidbody body;
         public RlAction actions;
-        private List<Node> observations = new List<Node>();
+        private List<string> obsDeviceNames = new List<string>();
+        private List<RenderCamera> obsDevices = new List<RenderCamera>();
         private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
 
         // TODO check and update in particular with reset
@@ -48,21 +24,39 @@ namespace SimEnv.Agents {
         // private const float radius = .25f;
         // public RenderCamera cam;
 
-        public Agent(Node node, HFRlAgentsComponent agentData, List<Node> observationDevices) {
+        public Agent(Node node, HFRlAgentsComponent agentData) {
             this.node = node;
-            SetProperties(agentData, observationDevices);
+            SetProperties(agentData);
             AgentManager.instance.Register(this);
         }
 
-        public void SetProperties(HFRlAgentsComponent agentData, List<Node> observationDevices) {
+        public void Initialize() {
+            // We connect the observation devices to the agent now that the whole scene is imported
+            foreach (string obsDeviceName in obsDeviceNames)
+            {
+                RenderCamera obsDevice = GameObject.Find(obsDeviceName).GetComponent<Node>().renderCamera;
+                if (obsDevice != null)
+                {
+                    Debug.Log("Adding observation device " + obsDeviceName + obsDevice);
+                    obsDevices.Add(obsDevice);
+                }
+                else
+                {
+                    Debug.LogError("Could not find observation device " + obsDeviceName);
+                }
+            }
+            actions.Print();
+        }
+
+        public void SetProperties(HFRlAgentsComponent agentData) {
             Debug.Log("Setting Agent properties");
 
             originalPosition = node.transform.position;
 
             // Store pointers to all our observation devices
-            observations = observationDevices;
-            if (observations.Count > 1) {
-                Debug.Log("More than one observation device not implemented yet.");
+            obsDeviceNames = agentData.observations;
+            if (obsDeviceNames.Count != 1) {
+                Debug.LogError("More or less than one observation device not implemented yet.");
             }
 
             // Create our agent actions
@@ -161,7 +155,8 @@ namespace SimEnv.Agents {
             }
         }
 
-        public void AgentUpdate() {
+        public void AgentUpdate(float frameRate) {
+            float timeStep = 1.0f / frameRate;
             if (HUMAN) {
                 // Human control
                 float x = Input.GetAxis("Horizontal");
@@ -185,19 +180,27 @@ namespace SimEnv.Agents {
             } else {
                 // RL control
                 if (actions.positionOffset != Vector3.zero) {
-                    Vector3 newPosition = body.position + node.gameObject.transform.TransformDirection(actions.positionOffset);
+                    Debug.Log("Position offset: " + actions.positionOffset);
+                    Vector3 newPosition = body.position + node.gameObject.transform.TransformDirection(actions.positionOffset * timeStep);
+                    Debug.Log("body.position: " + body.position);
+                    Debug.Log("newPosition: " + newPosition);
                     body.MovePosition(newPosition);
                 }
-                if (actions.rotation != Quaternion.identity) {
-                    Quaternion newRotation = body.rotation * actions.rotation;
+                if (actions.rotation != Vector3.zero) {
+                    Debug.Log("Rotation offset: " + actions.rotation);
+                    Quaternion newRotation = body.rotation * Quaternion.Euler(actions.rotation * timeStep);
+                    Debug.Log("body.rotation: " + body.rotation);
+                    Debug.Log("newRotation: " + newRotation);
                     body.MoveRotation(newRotation);
                 }
                 if (actions.velocity != Vector3.zero) {
-                    Vector3 localForce = node.gameObject.transform.TransformDirection(actions.velocity);
+                    Debug.Log("Velocity change: " + actions.velocity);
+                    Vector3 localForce = node.gameObject.transform.TransformDirection(actions.velocity * timeStep);
                     body.AddRelativeForce(localForce);
                 }
                 if (actions.torque != Vector3.zero) {
-                    Vector3 localTorque = node.gameObject.transform.TransformDirection(actions.torque);
+                    Debug.Log("Torque change: " + actions.torque);
+                    Vector3 localTorque = node.gameObject.transform.TransformDirection(actions.torque * timeStep);
                     body.AddRelativeTorque(localTorque);
                 }
             }
@@ -252,19 +255,15 @@ namespace SimEnv.Agents {
         }
 
         public int getObservationSizes() {
-            if (observations.Count > 0 && observations[0].camera != null) {
-                int observationSize = observations[0].camera.getObservationSizes();
-                return observationSize;
-            }
-            return 0;
+            return obsDevices[0].getObservationSizes();
+        }
+
+        public int[] getObservationShape() {
+            return obsDevices[0].getObservationShape();
         }
 
         public IEnumerator GetObservationCoroutine(uint[] pixelValues, int startingIndex) {
-            if (observations.Count > 0 && observations[0].camera != null) {
-                int observationSize = observations[0].camera.getObservationSizes();
-                return observationSize;
-            }
-            yield return (RenderCamera) observations[0].camera.RenderCoroutine(colors => {
+            yield return obsDevices[0].RenderCoroutine(colors => {
                 for (int i = 0; i < colors.Length; i++) {
                     pixelValues[startingIndex + i * 3] = colors[i].r;
                     pixelValues[startingIndex + i * 3 + 1] = colors[i].g;

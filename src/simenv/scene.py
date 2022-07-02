@@ -20,7 +20,7 @@ from typing import Any, List, Optional, Tuple, Union
 from .assets import Asset, Camera, Light, Object3D
 from .assets.anytree import RenderTree
 from .engine import GodotEngine, PyVistaEngine, UnityEngine
-
+from .rl import RlComponent
 
 try:
     from gym import Env
@@ -128,19 +128,21 @@ class Scene(Asset, Env):
 
     @property
     def agents(self) -> Tuple[Asset]:
-        return self.tree_filtered_descendants(lambda node: hasattr(node, "rl_component"))
+        return self.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))
 
     @property
     def observation_space(self):
-        return self.agents[0].observation_space if self.agents else None
+        agents = self.agents
+        if agents:
+            return agents[0].observation_space
+        return None
 
     @property
     def action_space(self):
-        return self.agents[0].action_space if self.agents else None
-
-    @property
-    def action_mapping(self):
-        return self.agents[0].action_mapping if self.agents else None
+        agents = self.agents
+        if agents:
+            return agents[0].action_space
+        return None
 
     def reset(self):
         """Reset the environment / episode"""

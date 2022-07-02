@@ -72,8 +72,8 @@ class SimpleRlAgent(Asset):
         )
 
         # Add a capsule and a camera as children
-        capsule = Capsule()
-        camera = Camera(width=camera_width, height=camera_height)
+        capsule = Capsule(position=[0, 0.51, 0])
+        camera = Camera(width=camera_width, height=camera_height, position=[0, 0.75, 0])
         self.tree_children = [capsule, camera]
 
         # Create a reward function if a target is provided

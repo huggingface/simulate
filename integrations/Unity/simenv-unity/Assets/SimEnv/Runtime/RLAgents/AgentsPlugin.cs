@@ -1,4 +1,4 @@
-namespace SimEnv.Agents {
+namespace SimEnv.RlAgents {
     public class AgentsPlugin : IPlugin {
         public void OnCreated() {
             AgentManager.instance ??= new AgentManager();
@@ -9,7 +9,7 @@ namespace SimEnv.Agents {
         }
 
         public void OnEnvironmentLoaded() {
-            // AgentManager.instance.Initialize();
+            AgentManager.instance.Initialize();
         }
 
         public void OnBeforeEnvironmentUnloaded() {

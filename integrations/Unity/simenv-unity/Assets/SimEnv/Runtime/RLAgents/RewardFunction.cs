@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SimEnv.Agents {
+namespace SimEnv.RlAgents {
     public interface IDistanceMetric {
         public float Calculate(GameObject e1, GameObject e2);
     }

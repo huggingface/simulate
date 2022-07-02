@@ -28,6 +28,8 @@ scene += agent
 
 agent.observation_space
 
+scene.save("../playground/test.gltf")
+
 scene.show()
 plt.ion()
 fig1, ax1 = plt.subplots()
@@ -39,6 +41,7 @@ for i in range(1000):
     action = scene.action_space.sample()
     if type(action) != int:  # discrete are ints, continuous are numpy arrays
         action = action.tolist()
+    print(action)
     obs, reward, done, info = scene.step([action])
 
     print(done, reward, info)

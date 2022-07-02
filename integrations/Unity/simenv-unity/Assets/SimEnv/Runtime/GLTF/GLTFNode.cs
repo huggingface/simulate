@@ -5,7 +5,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
-using SimEnv.Agents;
+using SimEnv.RlAgents;
 
 namespace SimEnv.GLTF {
     public class GLTFNode {
@@ -87,7 +87,7 @@ namespace SimEnv.GLTF {
                     yield break;
                 }
     
-                // Populate all our node list with basic info (transform, name, create a scene node)
+                // Create gameObjects - give names and register Nodes with the Simulator
                 result = new ImportResult[nodes.Count];
                 for (int i = 0; i < result.Length; i++) {
                     result[i] = new GLTFNode.ImportResult();
@@ -98,7 +98,7 @@ namespace SimEnv.GLTF {
                         result[i].node.Initialize();
                 }
 
-                // Connect children and parents in our node list and create a hierarchy with local tranformations
+                // Connect children and parents in our gameObjects transforms
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].children != null) {
                         int[] children = nodes[i].children;
@@ -110,10 +110,13 @@ namespace SimEnv.GLTF {
                         }
                     }
                 }
+
+                // Set position, rotation, scale
                 for (int i = 0; i < result.Length; i++)
                     nodes[i].ApplyMatrix(result[i].transform);
 
-                // Add more complex properties now (Mesh, Lights, Colliders, Cameras, RL Agents, etc)
+                // Now we add the more complex properties to the nodes (Mesh, Lights, Colliders, Cameras, RL Agents, etc)
+                // Mesh
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].mesh.HasValue) {
                         GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
@@ -142,21 +145,23 @@ namespace SimEnv.GLTF {
                             result[i].transform.name = "node" + i;
                     }
 
+                    // Camera
                     if (nodes[i].camera.HasValue) {
                         result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                         GLTFCamera cameraData = cameras[nodes[i].camera.Value];
                         RenderCamera camera = new RenderCamera(result[i].node, cameraData);
                     }
+
+                    // Extensions (lights, colliders, RL agents, etc)
                     if (nodes[i].extensions != null) {
+
+                        // RL Agents
                         if (nodes[i].extensions.HF_rl_agents != null) {
                             HFRlAgents.HFRlAgentsComponent agentData = nodes[i].extensions.HF_rl_agents;
-                            List<Node> observationsNodes = new List<Node>();
-                            foreach (string observation in agentData.observations) {
-                                RenderCamera observationData = new RenderCamera(result[observationIndex].node, cameras[observationIndex]);
-                                observationsNodes.Add(observationData);
-                            }
-                            Agents.Agent agent = new Agent(result[i].node, agentData, observationsNodes);
+                            Agent agent = new Agent(result[i].node, agentData);
                         }
+
+                        // Lights
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
                             int lightValue = nodes[i].extensions.KHR_lights_punctual.light;
                             if (extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {
@@ -184,6 +189,8 @@ namespace SimEnv.GLTF {
                                 }
                             }
                         }
+
+                        // Colliders
                         if (nodes[i].extensions.HF_colliders != null) {
                             int colliderValue = nodes[i].extensions.HF_colliders.collider;
                             if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.colliders == null || extensions.HF_colliders.colliders.Count < colliderValue) {

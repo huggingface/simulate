@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SimEnv.Agents {
+namespace SimEnv.RlAgents {
     public class AgentManager {
         public static AgentManager instance;
 
@@ -24,11 +24,11 @@ namespace SimEnv.Agents {
 
         }
 
-        // public void Initialize() {
-        //     for (int i = 0; i < agents.Count; i++) {
-        //         agents[i].Initialize();
-        //     }
-        // }
+        public void Initialize() {
+            for (int i = 0; i < agents.Count; i++) {
+                agents[i].Initialize();
+            }
+        }
 
         public void Register(Agent agent) {
             if (!agents.Contains(agent))
@@ -45,6 +45,7 @@ namespace SimEnv.Agents {
             } else {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
+            Debug.Log("Doing " + FRAME_SKIP + " steps");
             for (int j = 0; j < FRAME_SKIP; j++) {
                 if (agents != null) {
                     for (int i = 0; i < agents.Count; i++) {
@@ -78,6 +79,7 @@ namespace SimEnv.Agents {
             int obsSize = exampleAgent.getObservationSizes();
             uint[] pixel_values = new uint[agents.Count * obsSize]; // make this a member variable somewhere
 
+            int[] obsShape = exampleAgent.getObservationShape();
 
             List<Coroutine> coroutines = new List<Coroutine>();
             for (int i = 0; i < agents.Count; i++) {
@@ -90,8 +92,13 @@ namespace SimEnv.Agents {
                 yield return coroutine;
             }
 
+            int[] shapeWithAgents = new int[obsShape.Length + 1];
+            shapeWithAgents[0] = agents.Count;                                // set the prepended value
+            Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values
 
-            string string_array = JsonHelper.ToJson(pixel_values);
+            Debug.Log("Casting back observations in JSON");
+            string string_array = JsonHelper.ToJson(pixel_values, shapeWithAgents);
+            Debug.Log("Sending back observations");
             callback(string_array);
         }
 

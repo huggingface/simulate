@@ -560,7 +560,7 @@ def add_rl_component_to_model(
     )
 
     if "Mapped" in actions_type:
-        gl_actions.physics = actions.physics
+        gl_actions.physics = [phys.value for phys in actions.physics]
         gl_actions.clip_high = actions.clip_high
         gl_actions.clip_low = actions.clip_low
         gl_actions.amplitudes = actions.amplitudes if actions_type == "MappedDiscrete" else None
@@ -694,7 +694,7 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
     # Update scene requirements with the GLTF extensions we need
     if gltf_model.extensions.KHR_lights_punctual is not None:
         # gltf_model.extensionsRequired = ["KHRLightsPunctual"]
-        gltf_model.extensionsUsed = extension_used
+        gltf_model.extensionsUsed = list(extension_used)
 
     resource = gl.FileResource("scene.bin", data=buffer_data)
     # TODO: refactor adding buffer
