@@ -144,3 +144,5 @@ dmypy.json
 # ignore generated cpp file from cython
 wfc_binding.cpp
 .gen_files/
+
+.config/
