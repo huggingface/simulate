@@ -17,8 +17,8 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        readonly float FRAME_RATE = 30;
-        readonly float FRAME_SKIP = 15;
+        float physicsUpdateRate;
+        int frameSkip;
 
         public AgentManager() {
 
@@ -28,6 +28,8 @@ namespace SimEnv.RlAgents {
             for (int i = 0; i < agents.Count; i++) {
                 agents[i].Initialize();
             }
+            frameSkip = Client.instance.frameSkip;
+            physicsUpdateRate = Client.instance.physicsUpdateRate;
         }
 
         public void Register(Agent agent) {
@@ -45,17 +47,17 @@ namespace SimEnv.RlAgents {
             } else {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
-            Debug.Log("Doing " + FRAME_SKIP + " steps");
-            for (int j = 0; j < FRAME_SKIP; j++) {
+            Debug.Log("Doing " + frameSkip + " steps");
+            for (int j = 0; j < frameSkip; j++) {
                 if (agents != null) {
                     for (int i = 0; i < agents.Count; i++) {
                         Agent agent = agents[i] as Agent;
-                        agent.AgentUpdate();
+                        agent.AgentUpdate(physicsUpdateRate);
                     }
                 } else {
                     Debug.LogWarning("Attempting to step environment without an Agent");
                 }
-                Simulator.Step(1, FRAME_RATE);
+                Simulator.Step(1, physicsUpdateRate);
                 // RewardFunction has to be updated after the simulate start as it is the result of the action the agent just took.
                 if (agents != null) {
                     for (int i = 0; i < agents.Count; i++) {

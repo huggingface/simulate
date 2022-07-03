@@ -59,13 +59,15 @@ namespace SimEnv.RlAgents {
         public bool hasTriggered = false;
         public bool isTerminal = false;
         public float threshold = 1.0f;
-        public SparseRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal) {
+        public bool isCollectable = false;
+        public SparseRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal, bool isCollectable) {
             this.entity_a = entity_a;
             this.entity_b = entity_b;
             this.distanceMetric = distanceMetric;
             this.threshold = threshold;
             this.isTerminal = isTerminal;
             this.rewardScalar = rewardScalar;
+            this.isCollectable = isCollectable;
         }
         public override void Reset() {
             hasTriggered = false;
@@ -77,6 +79,9 @@ namespace SimEnv.RlAgents {
             if (!hasTriggered && (distance < threshold)) {
                 hasTriggered = true;
                 reward += rewardScalar;
+                if (isCollectable) {
+                    entity2.SetActive(false);
+                }
             }
             return reward * rewardScalar;
         }

@@ -33,6 +33,7 @@ namespace SimEnv.GLTF.HFRlAgents {
         public float scalar = 1f;
         public float threshold = 1f;
         public bool is_terminal = false;
+        public bool is_collectable = false;
     }
 
 }

@@ -21,6 +21,7 @@ class RewardFunction:
     scalar: Optional[float] = 1.0
     threshold: Optional[float] = 1.0
     is_terminal: Optional[bool] = False
+    is_collectable: Optional[bool] = False
 
     def __post_init__(self):
         if self.type is None:
@@ -39,6 +40,7 @@ class RewardFunction:
             scalar=self.scalar,
             threshold=self.threshold,
             is_terminal=self.is_terminal,
+            is_collectable=self.is_collectable,
         )
 
         return new_instance
