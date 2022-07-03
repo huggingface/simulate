@@ -143,7 +143,7 @@ namespace SimEnv.RlAgents {
                         break;
                     case "timeout":
                         rewardFunction = new TimeoutRewardFunction(
-                            entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal);
+                            entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable);
                         break;
 
                     default:

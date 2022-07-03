@@ -80,7 +80,7 @@ namespace SimEnv.RlAgents {
                 hasTriggered = true;
                 reward += rewardScalar;
                 if (isCollectable) {
-                    entity2.SetActive(false);
+                    entity_b.SetActive(false);
                 }
             }
             return reward * rewardScalar;
@@ -91,8 +91,8 @@ namespace SimEnv.RlAgents {
     public class TimeoutRewardFunction : SparseRewardFunction {
         int steps = 0;
 
-        public TimeoutRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal) :
-                base(entity_a, entity_b, distanceMetric, rewardScalar, threshold, isTerminal) { }
+        public TimeoutRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal, bool isCollectable) :
+                base(entity_a, entity_b, distanceMetric, rewardScalar, threshold, isTerminal, isCollectable) { }
         public override void Reset() {
             hasTriggered = false;
             steps = 0;
