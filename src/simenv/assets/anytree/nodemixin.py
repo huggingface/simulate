@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import Callable, Sequence, Union, Tuple, Optional
+from typing import Callable, Optional, Sequence, Tuple, Union
 
 from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
@@ -101,7 +101,6 @@ class NodeMixin(object):
     def _post_name_change(self, value):
         """Method called after changing the name."""
         pass
-
 
     @property
     def tree_parent(self):

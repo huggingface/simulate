@@ -45,7 +45,7 @@ class ParallelSimEnv(VecEnv):
 
         self.auto_reset(dones)
         obs = self._get_observations()
-        return obs, rewards, dones, [{}]*self.n_parallel*self.n_agents
+        return obs, rewards, dones, [{}] * self.n_parallel * self.n_agents
 
     def auto_reset(self, dones):
         # need to reset if done

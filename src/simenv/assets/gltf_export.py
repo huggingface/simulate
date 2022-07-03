@@ -690,7 +690,9 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
         extensions=gl.Extensions(),
     )
     cache = {}  # A mapping for Mesh/material/Texture already added
-    extension_used = add_node_to_scene(node=root_node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=0, cache=cache)
+    extension_used = add_node_to_scene(
+        node=root_node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=0, cache=cache
+    )
 
     # Update scene requirements with the GLTF extensions we need
     if gltf_model.extensions.KHR_lights_punctual is not None:

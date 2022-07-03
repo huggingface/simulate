@@ -64,9 +64,8 @@ class MappedBox(spaces.Box, MappedActions):
         low: Union[float, List[float]],
         high: Union[float, List[float]],
         shape: Optional[List[int]] = None,
-        dtype = np.float32,
+        dtype=np.float32,
         seed: Optional[int] = None,
-
         physics: Physics = None,
         scaling: Optional[float] = 1.0,
         offset: Optional[float] = 0.0,
@@ -102,7 +101,6 @@ class MappedDiscrete(spaces.Discrete, MappedActions):
         self,
         n: int,
         seed: Optional[int] = None,
-
         physics: List[Physics] = None,
         amplitudes: Optional[List[float]] = None,
         clip_low: Optional[List[float]] = None,

@@ -14,11 +14,12 @@
 
 # Lint as: python3
 """ An RL component."""
-from typing import List, Optional, Union, TYPE_CHECKING
+from typing import TYPE_CHECKING, List, Optional, Union
 
 from .actions import MappedBox, MappedDiscrete
 from .observations import map_observation_devices_to_spaces
 from .rewards import RewardFunction
+
 
 if TYPE_CHECKING:
     from ..assets import Asset
