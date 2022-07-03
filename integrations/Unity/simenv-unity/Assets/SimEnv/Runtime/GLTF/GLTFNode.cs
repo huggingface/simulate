@@ -29,7 +29,7 @@ namespace SimEnv.GLTF {
         public class Extensions {
             public KHRLight KHR_lights_punctual;
             public HFCollider HF_colliders;
-            public HFRlAgents.HFRlAgentsComponent HF_rl_agents;
+            public HFRlAgent HF_rl_agents;
             public HFRigidbody HF_rigidbodies;
             public string[] HF_custom;
         }
@@ -38,6 +38,10 @@ namespace SimEnv.GLTF {
         public class CustomExtensionWrapper {
             public string type;
             public string contents;
+        }
+
+        public class HFRlAgent {
+            public int agent;
         }
 
         public class HFRigidbody {
@@ -162,8 +166,13 @@ namespace SimEnv.GLTF {
 
                         // RL Agents
                         if (nodes[i].extensions.HF_rl_agents != null) {
-                            HFRlAgents.HFRlAgentsComponent agentData = nodes[i].extensions.HF_rl_agents;
-                            Agent agent = new Agent(result[i].node, agentData);
+                            int agentValue = nodes[i].extensions.HF_rl_agents.agent;
+                            if (extensions == null || extensions.HF_rl_agents == null || extensions.HF_rl_agents.agents == null || extensions.HF_rl_agents.agents.Count < agentValue) {
+                                Debug.LogWarning("Error importing agent");
+                            } else {
+                                HFRlAgents.HFRlAgentsComponent agentData = extensions.HF_rl_agents.agents[agentValue];
+                                Agent agent = new Agent(result[i].node, agentData);
+                            }
                         }
 
                         // Lights
@@ -237,9 +246,34 @@ namespace SimEnv.GLTF {
                                 Rigidbody rb = result[i].transform.gameObject.AddComponent<Rigidbody>();
                                 rb.mass = rigidbody.mass;
                                 rb.drag = rigidbody.drag;
+                                rb.angularDrag = rigidbody.angular_drag;
 
-                                // TODO continue
-                                rb.constraints = rigidbody.constraints;
+                                foreach (string constraint in rigidbody.constraints)
+                                {
+                                    switch (constraint) {
+                                        case "freeze_position_x":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezePositionX;
+                                            break;
+                                        case "freeze_position_y":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezePositionY;
+                                            break;
+                                        case "freeze_position_z":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezePositionZ;
+                                            break;
+                                        case "freeze_rotation_x":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezeRotationX;
+                                            break;
+                                        case "freeze_rotation_y":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezeRotationY;
+                                            break;
+                                        case "freeze_rotation_z":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezeRotationZ;
+                                            break;
+                                        default:
+                                            Debug.LogWarning(string.Format("Constraint {0} not implemented", constraint));
+                                            break;
+                                    }
+                                }
                             }
                         }
 

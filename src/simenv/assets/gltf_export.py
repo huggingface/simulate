@@ -543,11 +543,12 @@ def add_collider_to_model(
 def add_rigidbody_to_model(
     node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
+    node_rb = node.physics_component
     rigidbody = gl.HFRigidbodiesRigidbody(
-        mass=node.rigidbody.mass,
-        drag=node.rigidbody.drag,
-        angular_drag=node.rigidbody.angular_drag,
-        constraints=node.rigidbody.constraints,
+        mass=node_rb.mass,
+        drag=node_rb.drag,
+        angular_drag=node_rb.angular_drag,
+        constraints=node_rb.constraints,
     )
 
     # If we have already created exactly the same rigidbody we avoid double storing
@@ -569,7 +570,7 @@ def add_rigidbody_to_model(
 
 def add_rl_component_to_model(
     node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
-) -> gl.HFRlAgentsComponent:
+) -> int:
     rl_component: "RlComponent" = node.rl_component
 
     actions = rl_component.actions
@@ -609,12 +610,27 @@ def add_rl_component_to_model(
         for reward in rewards
     ]
 
-    gl_rl_component = gl.HFRlAgentsComponent(
+    agent = gl.HFRlAgentsComponent(
         actions=gl_actions,
         observations=[asset.name for asset in rl_component.observations],
         rewards=gl_rewards,
     )
-    return gl_rl_component
+
+    # If we have already created exactly the same agent we avoid double storing
+    cached_id = is_data_cached(data=agent.to_json(), cache=cache)
+    if cached_id is not None:
+        return cached_id
+
+    # Add the new agent
+    if gltf_model.extensions.HF_rl_agents is None:
+        gltf_model.extensions.HF_rl_agents = gl.HFRlAgents(agents=[agent])
+    else:
+        gltf_model.extensions.HF_rl_agents.agents.append(agent)
+    agent_id = len(gltf_model.extensions.HF_rl_agents.agents) - 1
+
+    cache_data(data=agent.to_json(), data_id=agent_id, cache=cache)
+
+    return agent_id
 
 
 def add_node_to_scene(
@@ -651,18 +667,18 @@ def add_node_to_scene(
 
     # Add RL component if node has one
     if getattr(node, "rl_component", None) is not None:
-        rl_component = add_rl_component_to_model(
+        agent_id = add_rl_component_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
-        extensions.HF_rl_agents = rl_component
+        extensions.HF_rl_agents = gl.HFRlAgents(agent=agent_id)
         extension_used.add("HF_rl_agents")
 
     # Add Rigidbody if node has one
-    if getattr(node, "rigidbody", None) is not None:
-        rigidbody = add_rigidbody_to_model(
+    if getattr(node, "physics_component", None) is not None:
+        rigidbody_id = add_rigidbody_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
-        extensions.HF_rl_agents = rigidbody
+        extensions.HF_rigidbodies = gl.HFRigidbodies(rigidbody=rigidbody_id)
         extension_used.add("HF_rigidbodies")
 
     # Add collider if node has one
@@ -730,8 +746,7 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
     )
 
     # Update scene requirements with the GLTF extensions we need
-    if gltf_model.extensions.KHR_lights_punctual is not None:
-        # gltf_model.extensionsRequired = ["KHRLightsPunctual"]
+    if extension_used:
         gltf_model.extensionsUsed = list(extension_used)
 
     resource = gl.FileResource("scene.bin", data=buffer_data)

@@ -71,7 +71,7 @@ class RigidBody:
             self.drag = 0.0
         self.drag = float(self.drag)
         if self.angular_drag is None:
-            self.angular_drag = 0.05
+            self.angular_drag = 0.0
         self.angular_drag = float(self.angular_drag)
 
         if self.constraints is None:

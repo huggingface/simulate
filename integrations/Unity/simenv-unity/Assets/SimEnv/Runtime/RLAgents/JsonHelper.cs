@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using System;
 using System.Collections;
 using SimEnv.RlActions;
-using SimEnv.GLTF.HFRlAgents;
+using SimEnv.GLTF;
 
 namespace SimEnv.RlAgents {
     public static class JsonHelper {

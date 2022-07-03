@@ -72,7 +72,7 @@ class SimpleRlAgent(Capsule):
             transformation_matrix=transformation_matrix,
         )
 
-        self.translate_y += 0.51  # Move our agent a bit higher than the ground
+        self.translate_y(0.51)  # Move our agent a bit higher than the ground
         # Add a camera as children
         camera = Camera(width=camera_width, height=camera_height, position=[0, 0.75, 0])
         self.tree_children = [camera]
@@ -90,4 +90,4 @@ class SimpleRlAgent(Capsule):
         )
 
         self.rl_component = RlComponent(actions=actions, observations=camera, rewards=rewards)
-        self.rigidbody = RigidBody(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
+        self.physics_component = RigidBody(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])

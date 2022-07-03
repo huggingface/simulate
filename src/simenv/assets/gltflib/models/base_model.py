@@ -5,7 +5,7 @@ from dataclasses_json import dataclass_json
 
 from .extensions.hf_collider import HFColliders
 from .extensions.hf_rigidbodies import HFRigidbodies
-from .extensions.hf_rl_agents import HFRlAgentsComponent
+from .extensions.hf_rl_agents import HFRlAgents
 from .extensions.khr_lights_ponctual import KHRLightsPunctual
 
 
@@ -18,7 +18,7 @@ class Extensions:
 
     KHR_lights_punctual: Optional[KHRLightsPunctual] = None
     HF_colliders: Optional[HFColliders] = None
-    HF_rl_agents: Optional[HFRlAgentsComponent] = None
+    HF_rl_agents: Optional[HFRlAgents] = None
     HF_rigidbodies: Optional[HFRigidbodies] = None
     HF_custom: Optional[List[str]] = None
 

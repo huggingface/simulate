@@ -59,7 +59,7 @@ class Asset(NodeMixin, object):
         transformation_matrix=None,
         collider: Optional[Collider] = None,
         rl_component: Optional["RlComponent"] = None,
-        rigidbody: Optional[RigidBody] = None,
+        physics_component: Optional[RigidBody] = None,
         parent=None,
         children=None,
     ):
@@ -85,7 +85,7 @@ class Asset(NodeMixin, object):
 
         self.collider = collider
         self._rl_component = rl_component
-        self._rigidbody = rigidbody
+        self._physics_component = physics_component
         self._n_copies = 0
 
     @property
@@ -108,12 +108,12 @@ class Asset(NodeMixin, object):
             self.observation_space = None
 
     @property
-    def rigidbody(self):
-        return self._rigidbody
+    def physics_component(self):
+        return self._physics_component
 
-    @rigidbody.setter
-    def rigidbody(self, rigidbody: RigidBody):
-        self._rigidbody = rigidbody
+    @physics_component.setter
+    def physics_component(self, physics_component: RigidBody):
+        self._physics_component = physics_component
 
     def get(self, name: str):
         """Return the first children tree node with the given name."""

@@ -4,7 +4,7 @@ using UnityEngine.Events;
 using System;
 using System.Collections;
 using SimEnv.RlActions;
-using SimEnv.GLTF.HFRlAgents;
+using SimEnv.GLTF;
 
 namespace SimEnv.RlAgents {
     public class Agent {
@@ -24,7 +24,7 @@ namespace SimEnv.RlAgents {
         // private const float radius = .25f;
         // public RenderCamera cam;
 
-        public Agent(Node node, HFRlAgentsComponent agentData) {
+        public Agent(Node node, HFRlAgents.HFRlAgentsComponent agentData) {
             this.node = node;
             SetProperties(agentData);
             AgentManager.instance.Register(this);
@@ -51,7 +51,7 @@ namespace SimEnv.RlAgents {
             actions.Print();
         }
 
-        public void SetProperties(HFRlAgentsComponent agentData) {
+        public void SetProperties(HFRlAgents.HFRlAgentsComponent agentData) {
             Debug.Log("Setting Agent properties");
 
             originalPosition = node.transform.position;
@@ -63,7 +63,7 @@ namespace SimEnv.RlAgents {
             }
 
             // Create our agent actions
-            HFRlAgentsActions gl_act = agentData.actions;
+            HFRlAgents.HFRlAgentsActions gl_act = agentData.actions;
             switch (gl_act.type) {
                 case "MappedDiscrete":
                     actions = new MappedDiscreteAction(
@@ -101,7 +101,7 @@ namespace SimEnv.RlAgents {
             // SetupModel();
 
             // add the reward functions to the agent
-            List<HFRlAgentsReward> gl_rewardFunctions = agentData.rewards;
+            List<HFRlAgents.HFRlAgentsReward> gl_rewardFunctions = agentData.rewards;
             foreach (var reward in gl_rewardFunctions) {
                 Debug.Log("Creating reward function");
                 // get the shared properties

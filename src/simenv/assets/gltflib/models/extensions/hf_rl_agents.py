@@ -77,3 +77,14 @@ class HFRlAgentsComponent:
     actions: Optional[HFRlAgentsActions] = None
     observations: Optional[List[str]] = None
     rewards: Optional[List[HFRlAgentsReward]] = None
+
+
+@dataclass_json
+@dataclass
+class HFRlAgents:
+    """
+    An extension defining a RL agent
+    """
+
+    agents: Optional[List[HFRlAgentsComponent]] = None
+    agent: Optional[int] = None

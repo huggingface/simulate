@@ -25,10 +25,10 @@ class HFRigidbodiesRigidbody:
 @dataclass
 class HFRigidbodies:
     """
-    A collider within a scene. This extension defines colliders.
+    A rigidbody within a scene. This extension defines rigidbodies.
 
     Properties:
-    colliders (list) Array of colliders
+    rigidbodies (list) Array of rigidbodies
     """
 
     rigidbodies: Optional[List[HFRigidbodiesRigidbody]] = None

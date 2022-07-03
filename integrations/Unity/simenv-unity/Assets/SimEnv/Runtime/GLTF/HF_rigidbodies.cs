@@ -10,12 +10,12 @@ using System.Linq;
 
 namespace SimEnv.GLTF {
     public class HFRigidbodies {
-        public List<GLTFCollider> rigidbodies;
+        public List<GLTFRigidbody> rigidbodies;
 
         public class GLTFRigidbody{
             [JsonProperty(Required = Required.Always)] public float mass;
-            public float? drag;
-            public float? angular_drag;
+            public float drag = 0f;
+            public float angular_drag = 0f;
             [JsonProperty(Required = Required.Always)] public List<string> constraints = new List<string>();
             public string name = "";
 
