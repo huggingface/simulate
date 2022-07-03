@@ -82,7 +82,7 @@ class GodotEngine(Engine):
         command = {"type": "Reset", "contents": {"message": "message"}}
         self.run_command(command)
 
-    def get_observation(self):
+    def get_obs(self):
         command = {"type": "GetObservation", "contents": {"message": "message"}}
 
         encoded_obs = self.run_command(command)

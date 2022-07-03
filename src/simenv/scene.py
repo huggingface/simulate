@@ -15,32 +15,33 @@
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
 import itertools
-import os
-import tempfile
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Tuple, Union
 
-from huggingface_hub import create_repo, hf_hub_download, logging, upload_file
-
-from .assets import Asset, Camera, Light, Object3D, RlAgent
+from .assets import Asset, Camera, Light, Object3D
 from .assets.anytree import RenderTree
 from .engine import GodotEngine, PyVistaEngine, UnityEngine
+from .rl import RlComponent
+
+try:
+    from gym import Env
+except ImportError:
+
+    class Env:
+        pass  # Dummy class if gym is not here
 
 
-# Set Hugging Face hub debug verbosity (TODO remove)
-logging.set_verbosity_debug()
-
-
-class UnsetRendererError(Exception):
-    pass
-
-
-class SceneNotBuiltError(Exception):
-    pass
-
-
-class Scene(Asset):
+class Scene(Asset, Env):
     """A Scene is the main place to add objects and object tree.
     In addition to a root node, it has an engine that can be used to diplay and interact with the scene.
+
+    Parameters
+    ----------
+
+    Returns
+    -------
+
+    Examples
+    --------
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -53,6 +54,8 @@ class Scene(Asset):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
+        parameters: Optional[Any] = None,
+        state: Optional[Any] = None,
         transformation_matrix=None,
         children=None,
         **kwargs,
@@ -66,8 +69,6 @@ class Scene(Asset):
             children=children,
         )
         self.engine = None
-        self._built = False
-        self._created_from_file = created_from_file
         if engine is not None:
             engine = engine.lower()
         if engine == "unity":
@@ -81,186 +82,30 @@ class Scene(Asset):
         elif engine is not None:
             raise ValueError("engine should be selected in the list [None, 'unity', 'blender', 'pyvista']")
 
-    @staticmethod
-    def _get_node_tree_from_hub_or_local(
-        hub_or_local_filepath: str,
-        use_auth_token: Optional[str] = None,
-        revision: Optional[str] = None,
-        is_local: Optional[bool] = None,
-        file_type: Optional[str] = None,
-        **kwargs,
-    ):
-        """Return a root tree loaded from the HuggingFace hub or from a local GLTF file.
+        self.parameters = None
+        self.state = None
 
-        First argument is either:
-        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
-        - or a path to a local file on the drive.
+        self._built = False
+        self._created_from_file = created_from_file
 
-        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+    def __len__(self):
+        return len(self.tree_descendants)
 
-        Examples:
-        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
-        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
-        """
-        if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and is_local is not False:
-            nodes = Asset.create_from(hub_or_local_filepath, file_type=file_type)
-            return nodes, hub_or_local_filepath
+    def __repr__(self):
+        spacer = "\n" if len(self) else ""
+        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
 
-        splitted_hub_path = hub_or_local_filepath.split("/")
-        repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
-        filename = splitted_hub_path[-1]
-        subfolder = "/".join(splitted_hub_path[2:-1])
-        gltf_file = hf_hub_download(
-            repo_id=repo_id,
-            filename=filename,
-            subfolder=subfolder,
-            revision=revision,
-            repo_type="space",
-            use_auth_token=use_auth_token,
-            # force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
-            **kwargs,
-        )
-        nodes = Asset.create_from(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
-        return nodes, gltf_file
-
-    @classmethod
-    def create_from(
-        cls,
-        hub_or_local_filepath: str,
-        use_auth_token: Optional[str] = None,
-        revision: Optional[str] = None,
-        is_local: Optional[bool] = None,
-        hf_hub_kwargs: Optional[dict] = None,
-        **kwargs,
-    ) -> "Scene":
-        """Load a Scene from the HuggingFace hub or from a local GLTF file.
-
-        First argument is either:
-        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
-        - or a path to a local file on the drive.
-
-        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
-
-        Examples:
-        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
-        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
-        """
-        root_node, gltf_file = Scene._get_node_tree_from_hub_or_local(
-            hub_or_local_filepath=hub_or_local_filepath,
-            use_auth_token=use_auth_token,
-            revision=revision,
-            is_local=is_local,
-            **(hf_hub_kwargs if hf_hub_kwargs is not None else {}),
-        )
-        return cls(
-            name=root_node.name,
-            position=root_node.position,
-            rotation=root_node.rotation,
-            scaling=root_node.scaling,
-            children=root_node.tree_children,
-            created_from_file=gltf_file,
-            **kwargs,
-        )
-
-    def load(
-        self,
-        hub_or_local_filepath: str,
-        use_auth_token: Optional[str] = None,
-        revision: Optional[str] = None,
-        is_local: Optional[bool] = None,
-        **kwargs,
-    ) -> "Scene":
-        """Load a Scene from the HuggingFace hub or from a local GLTF file.
-
-        First argument is either:
-        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
-        - or a path to a local file on the drive.
-
-        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
-
-        Examples:
-        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
-        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
-        """
-        root_node, gltf_file = Scene._get_node_tree_from_hub_or_local(
-            hub_or_local_filepath=hub_or_local_filepath,
-            use_auth_token=use_auth_token,
-            revision=revision,
-            is_local=is_local,
-            **kwargs,
-        )
-
-        self.clear()
-        self.name = root_node.name
-        self.position = root_node.position
-        self.rotation = root_node.rotation
-        self.scaling = root_node.scaling
-        self.tree_children = root_node.tree_children
-        self.created_from_file = gltf_file
-
-    def push_to_hub(
-        self,
-        hub_filepath: str,
-        token: Optional[str] = None,
-        revision: Optional[str] = None,
-        identical_ok: bool = True,
-        private: bool = False,
-        **kwargs,
-    ) -> List[str]:
-        """Push a GLTF Scene to the hub.
-
-        First argument is a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
-        Return the url on the hub of the file.
-
-        Example:
-        - scene.push_to_hub('simenv-tests/Box/glTF-Embedded/Box.gltf')
-        """
-        splitted_hub_path = hub_filepath.split("/")
-        hub_repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
-        hub_filename = splitted_hub_path[-1]
-        hub_subfolder = "/".join(splitted_hub_path[2:-1])
-
-        repo_url = create_repo(
-            repo_id=hub_repo_id,
-            token=token,
-            private=private,
-            repo_type="space",
-            space_sdk="gradio",
-            exist_ok=identical_ok,
-        )
-
-        with tempfile.TemporaryDirectory() as tmpdirname:
-            full_filename = os.path.join(tmpdirname, hub_filename)
-            saved_filepaths = self.save(full_filename)
-            hub_urls = []
-            for saved_filepath in saved_filepaths:
-                saved_filename = os.path.basename(saved_filepath)
-                repo_filepath = os.path.join(hub_subfolder, saved_filename)
-                hub_url = upload_file(
-                    path_or_fileobj=saved_filepath,
-                    path_in_repo=repo_filepath,
-                    repo_id=hub_repo_id,
-                    token=token,
-                    repo_type="space",
-                    revision=revision,
-                    identical_ok=identical_ok,
-                )
-                hub_urls.append(hub_url)
-        return repo_url
-
-    def save(self, filepath: str) -> List[str]:
-        """Save a Scene as a GLTF file (with optional ressources in the same folder)."""
-        return self.save_to_gltf_file(filepath)
+    def show(self, **engine_kwargs):
+        """Render the Scene using the engine."""
+        self.engine.show(**engine_kwargs)
 
     def clear(self):
-        """ " Remove all assets in the scene."""
+        """Remove all assets in the scene."""
         self.tree_children = []
         return self
 
-    @property
-    def agents(self):
-        """Tuple with all RLAgent in the Scene"""
-        return self.tree_filtered_descendants(lambda node: isinstance(node, RlAgent))
+    def close(self):
+        self.engine.close()
 
     @property
     def lights(self):
@@ -273,54 +118,45 @@ class Scene(Asset):
         return self.tree_filtered_descendants(lambda node: isinstance(node, Camera))
 
     @property
-    def objets(self):
+    def objects(self):
         """Tuple with all Object3D in the Scene"""
         return self.tree_filtered_descendants(lambda node: isinstance(node, Object3D))
 
-    def show(self, **engine_kwargs):
-        """Render the Scene using the engine if provided."""
-        if self.engine is None:
-            raise UnsetRendererError()
+    ###############################
+    # RL engines specific methods #
+    ###############################
 
-        self.engine.show(**engine_kwargs)
-        self._built = True
+    @property
+    def agents(self) -> Tuple[Asset]:
+        return self.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))
 
-    def _check_backend(self):
-        if not self._built:
-            raise SceneNotBuiltError()
-        if self.engine is None:
-            raise UnsetRendererError()
+    @property
+    def observation_space(self):
+        agents = self.agents
+        if agents:
+            return agents[0].observation_space
+        return None
+
+    @property
+    def action_space(self):
+        agents = self.agents
+        if agents:
+            return agents[0].action_space
+        return None
 
     def reset(self):
         """Reset the environment / episode"""
-        self._check_backend()
-        return self.engine.reset()
-
-    def get_done(self):
-        """Find out if the episode has ended"""
-        self._check_backend()
-        return self.engine.get_done()
-
-    def get_reward(self):
-        """Get the reward from the agent"""
-        self._check_backend()
-        return self.engine.get_reward()
+        self.engine.reset()
+        obs = self.engine.get_obs()
+        return obs
 
     def step(self, action):
-        """Step the Scene using the engine if provided."""
-        self._check_backend()
-        return self.engine.step(action)
+        """Step the Scene"""
+        self.engine.step(action)
 
-    def get_observation(self):
-        """Step the Scene using the engine if provided."""
-        self._check_backend()
-        return self.engine.get_observation()
+        obs = self.engine.get_obs()
+        reward = self.engine.get_reward()
+        done = self.engine.get_done()
+        info = {}  # TODO: Add info to the backend, if we require it
 
-    def __len__(self):
-        return len(self.tree_descendants)
-
-    def __repr__(self):
-        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}')\n{RenderTree(self).print_tree()}"
-
-    def close(self):
-        self.engine.close()
+        return obs, reward, done, info

@@ -5,7 +5,7 @@ using System.Linq;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SimEnv.Agents {
+namespace SimEnv.RlAgents {
     public class AgentManager {
         public static AgentManager instance;
 
@@ -17,25 +17,18 @@ namespace SimEnv.Agents {
             }
         }
 
-        float physicsUpdateRate;
+         float physicsUpdateRate;
         int frameSkip;
-
         public AgentManager() {
 
         }
 
         public void Initialize() {
             for (int i = 0; i < agents.Count; i++) {
-                Camera agentCamera = agents[i].node.gameObject.GetComponentInChildren<Camera>();
-                if (!Simulator.Cameras.TryGetValue(agentCamera, out RenderCamera camera)) {
-                    Debug.LogWarning("Couldn't find agent camera.");
-                    return;
-                }
-                agents[i].cam = camera;
+                agents[i].Initialize();
             }
-          
-            frameSkip = Client.instance.frameSkip;
-            physicsUpdateRate = Client.instance.physicsUpdateRate;
+           physicsUpdateRate = Client.instance.physicsUpdateRate;
+            frameSkip = Client.instance.frameSkip;            
         }
 
         public void Register(Agent agent) {
@@ -53,6 +46,7 @@ namespace SimEnv.Agents {
             } else {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
+            Debug.Log("Doing " + frameSkip + " steps");
             for (int j = 0; j < frameSkip; j++) {
                 if (agents != null) {
                     for (int i = 0; i < agents.Count; i++) {
@@ -63,7 +57,7 @@ namespace SimEnv.Agents {
                     Debug.LogWarning("Attempting to step environment without an Agent");
                 }
                 Simulator.Step(1, physicsUpdateRate);
-                // Reward has to be updated after the simulate start as it is the result of the action the agent just took.
+                // RewardFunction has to be updated after the simulate start as it is the result of the action the agent just took.
                 if (agents != null) {
                     for (int i = 0; i < agents.Count; i++) {
                         Agent agent = agents[i] as Agent;
@@ -83,9 +77,10 @@ namespace SimEnv.Agents {
             Agent exampleAgent = agents[0] as Agent;
             // the coroutine has to be started from a monobehavior or something like that
 
-            int obsSize = exampleAgent.cam.camera.pixelWidth * exampleAgent.cam.camera.pixelHeight * 3;
+            int obsSize = exampleAgent.getObservationSizes();
             uint[] pixel_values = new uint[agents.Count * obsSize]; // make this a member variable somewhere
 
+            int[] obsShape = exampleAgent.getObservationShape();
 
             List<Coroutine> coroutines = new List<Coroutine>();
             for (int i = 0; i < agents.Count; i++) {
@@ -98,8 +93,13 @@ namespace SimEnv.Agents {
                 yield return coroutine;
             }
 
+            int[] shapeWithAgents = new int[obsShape.Length + 1];
+            shapeWithAgents[0] = agents.Count;                                // set the prepended value
+            Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values
 
-            string string_array = JsonHelper.ToJson(pixel_values);
+            Debug.Log("Casting back observations in JSON");
+            string string_array = JsonHelper.ToJson(pixel_values, shapeWithAgents);
+            Debug.Log("Sending back observations");
             callback(string_array);
         }
 

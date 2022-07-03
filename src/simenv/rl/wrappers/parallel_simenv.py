@@ -5,7 +5,8 @@ from simenv.rl_env import RLEnv
 
 
 class ParallelSimEnv(VecEnv):
-    # Launched several env processes and communicates with the in a semi-async manner
+    # Launched several env processes and communicates with
+    # them in a semi-async manner
 
     def __init__(self, env_fn: RLEnv, n_parallel: int, starting_port=55000):
         self.n_parallel = n_parallel
@@ -60,44 +61,44 @@ class ParallelSimEnv(VecEnv):
         # unpack and send the actions
         for i in range(self.n_parallel):
             action = actions[i * self.n_agents : (i + 1) * self.n_agents]
-            self.envs[i].step_send(action)
+            self.envs[i].engine.step_send(action)
 
         # receive the acks
         for i in range(self.n_parallel):
-            self.envs[i].step_recv()
+            self.envs[i].engine.step_recv()
 
     def _get_rewards(self):
         for i in range(self.n_parallel):
-            self.envs[i].get_reward_send()
+            self.envs[i].engine.get_reward_send()
 
         # receive the acks
         rewards = []
         for i in range(self.n_parallel):
-            reward = self.envs[i].get_reward_recv()
+            reward = self.envs[i].engine.get_reward_recv()
             rewards.extend(reward)
 
         return rewards
 
     def _get_done(self):
         for i in range(self.n_parallel):
-            self.envs[i].get_done_send()
+            self.envs[i].engine.get_done_send()
 
         # receive the acks
         dones = []
         for i in range(self.n_parallel):
-            done = self.envs[i].get_done_recv()
+            done = self.envs[i].engine.get_done_recv()
             dones.extend(done)
 
         return np.array(dones)
 
     def _get_observations(self):
         for i in range(self.n_parallel):
-            self.envs[i].get_observation_send()
+            self.envs[i].engine.get_observation_send()
 
         # receive the acks
         obss = []
         for i in range(self.n_parallel):
-            obs = self.envs[i].get_observation_recv()
+            obs = self.envs[i].engine.get_observation_recv()
             obss.append(obs)
 
         obss = np.concatenate(obss, 0)

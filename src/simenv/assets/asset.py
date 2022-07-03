@@ -15,14 +15,21 @@
 # Lint as: python3
 """ A simenv Asset - Objects in the scene (mesh, primitives, camera, lights)."""
 import itertools
+import os
+import tempfile
 import uuid
-from typing import List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union
 
 import numpy as np
+from huggingface_hub import create_repo, hf_hub_download, upload_file
 
-from .anytree import NodeMixin
+from .anytree import NodeMixin, RenderTree
 from .collider import Collider
 from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler
+
+
+if TYPE_CHECKING:
+    from ..rl.components import RlComponent
 
 
 class Asset(NodeMixin, object):
@@ -50,6 +57,7 @@ class Asset(NodeMixin, object):
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
         collider: Optional[Collider] = None,
+        rl_component: Optional["RlComponent"] = None,
         parent=None,
         children=None,
     ):
@@ -70,16 +78,31 @@ class Asset(NodeMixin, object):
         self.position = position
         self.rotation = rotation
         self.scaling = scaling
-        self.collider = collider
         if transformation_matrix is not None:
             self.transformation_matrix = transformation_matrix
 
+        self.collider = collider
+        self._rl_component = rl_component
         self._n_copies = 0
 
     @property
     def uuid(self):
         """A unique identifier of the node if needed."""
         return self._uuid
+
+    @property
+    def rl_component(self):
+        return self._rl_component
+
+    @rl_component.setter
+    def rl_component(self, rl_component: "RlComponent"):
+        self._rl_component = rl_component
+        if rl_component is not None:
+            self.action_space = rl_component.action_space
+            self.observation_space = rl_component.observation_space
+        else:
+            self.action_space = None
+            self.observation_space = None
 
     def get(self, name: str):
         """Return the first children tree node with the given name."""
@@ -114,38 +137,191 @@ class Asset(NodeMixin, object):
     def _post_copy(self):
         return
 
-    def get_last_copy_name(self):
+    def _get_last_copy_name(self):
         assert self._n_copies > 0, "this object is yet to be copied"
         return self.name + f"_copy{self._n_copies-1}"
 
-    @classmethod
-    def create_from(
-        cls,
-        file_path: str,
-        file_type: Optional[str] = None,
-        repo_id: Optional[str] = None,
-        subfolder: Optional[str] = None,
+    @staticmethod
+    def _get_node_tree_from_hub_or_local(
+        hub_or_local_filepath: str,
+        use_auth_token: Optional[str] = None,
         revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
+        file_type: Optional[str] = None,
+        **kwargs,
     ):
-        """Loading function to create a tree of asset nodes from a GLTF file.
-        Return a tree with a root nodes in the GLTF files.
-        The tree can be walked from the root nodes.
-        If the glTF file has several root node a root node is added to it.
+        """Return a root tree loaded from the HuggingFace hub or from a local GLTF file.
+
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
+
+        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         # We import dynamically here to avoid circular import (tried many other options...)
         from .gltf_import import load_gltf_as_tree
 
+        if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and is_local is not False:
+            gltf_file = hub_or_local_filepath
+        else:
+            splitted_hub_path = hub_or_local_filepath.split("/")
+            repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
+            filename = splitted_hub_path[-1]
+            subfolder = "/".join(splitted_hub_path[2:-1])
+            gltf_file = hf_hub_download(
+                repo_id=repo_id,
+                filename=filename,
+                subfolder=subfolder,
+                revision=revision,
+                repo_type="space",
+                use_auth_token=use_auth_token,
+                # force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
+                **kwargs,
+            )
+        nodes = Asset.create_from(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
+
         nodes = load_gltf_as_tree(
-            file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
+            gltf_file=gltf_file, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
         )
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
         else:
-            root = cls(name="Scene", children=nodes)  # Otherwise we build a main root node
+            root = Asset(name="Scene", children=nodes)  # Otherwise we build a main root node
         return root
 
-    def save_to_gltf_file(self, file_path: str) -> List[str]:
-        """Save the tree in a GLTF file + additional (binary) ressource files if if shoulf be the case.
+        return nodes, gltf_file
+
+    @classmethod
+    def create_from(
+        cls,
+        hub_or_local_filepath: str,
+        use_auth_token: Optional[str] = None,
+        revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
+        hf_hub_kwargs: Optional[dict] = None,
+        **kwargs,
+    ) -> "Asset":
+        """Load a Scene or Asset from the HuggingFace hub or from a local GLTF file.
+
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
+
+        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
+        """
+        root_node, gltf_file = Asset._get_node_tree_from_hub_or_local(
+            hub_or_local_filepath=hub_or_local_filepath,
+            use_auth_token=use_auth_token,
+            revision=revision,
+            is_local=is_local,
+            **(hf_hub_kwargs if hf_hub_kwargs is not None else {}),
+        )
+        return cls(
+            name=root_node.name,
+            position=root_node.position,
+            rotation=root_node.rotation,
+            scaling=root_node.scaling,
+            children=root_node.tree_children,
+            created_from_file=gltf_file,
+            **kwargs,
+        )
+
+    def load(
+        self,
+        hub_or_local_filepath: str,
+        use_auth_token: Optional[str] = None,
+        revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
+        **kwargs,
+    ) -> "Asset":
+        """Load a Scene from the HuggingFace hub or from a local GLTF file.
+
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
+
+        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
+        """
+        root_node, gltf_file = Asset._get_node_tree_from_hub_or_local(
+            hub_or_local_filepath=hub_or_local_filepath,
+            use_auth_token=use_auth_token,
+            revision=revision,
+            is_local=is_local,
+            **kwargs,
+        )
+
+        self.clear()
+        self.name = root_node.name
+        self.position = root_node.position
+        self.rotation = root_node.rotation
+        self.scaling = root_node.scaling
+        self.tree_children = root_node.tree_children
+        self.created_from_file = gltf_file
+
+    def push_to_hub(
+        self,
+        hub_filepath: str,
+        token: Optional[str] = None,
+        revision: Optional[str] = None,
+        identical_ok: bool = True,
+        private: bool = False,
+        **kwargs,
+    ) -> List[str]:
+        """Push a GLTF Scene to the hub.
+
+        First argument is a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        Return the url on the hub of the file.
+
+        Example:
+        - scene.push_to_hub('simenv-tests/Box/glTF-Embedded/Box.gltf')
+        """
+        splitted_hub_path = hub_filepath.split("/")
+        hub_repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
+        hub_filename = splitted_hub_path[-1]
+        hub_subfolder = "/".join(splitted_hub_path[2:-1])
+
+        repo_url = create_repo(
+            repo_id=hub_repo_id,
+            token=token,
+            private=private,
+            repo_type="space",
+            space_sdk="gradio",
+            exist_ok=identical_ok,
+        )
+
+        with tempfile.TemporaryDirectory() as tmpdirname:
+            full_filename = os.path.join(tmpdirname, hub_filename)
+            saved_filepaths = self.save(full_filename)
+            hub_urls = []
+            for saved_filepath in saved_filepaths:
+                saved_filename = os.path.basename(saved_filepath)
+                repo_filepath = os.path.join(hub_subfolder, saved_filename)
+                hub_url = upload_file(
+                    path_or_fileobj=saved_filepath,
+                    path_in_repo=repo_filepath,
+                    repo_id=hub_repo_id,
+                    token=token,
+                    repo_type="space",
+                    revision=revision,
+                    identical_ok=identical_ok,
+                )
+                hub_urls.append(hub_url)
+        return repo_url
+
+    def save(self, file_path: str) -> List[str]:
+        """Save in a GLTF file + additional (binary) ressource files if if shoulf be the case.
         Return the list of all the path to the saved files (glTF file + ressource files)
         """
         # We import here to avoid circular deps
@@ -357,6 +533,66 @@ class Asset(NodeMixin, object):
         self.scaling = np.multiply(self.scaling, scaling)
         return self
 
+    def scale_x(self, value: Optional[float] = None):
+        """scale the asset around the ``x`` axis with a given scaling value.
+
+        Parameters
+        ----------
+        value : float, optional
+            scaling value to apply to the object around the ``x`` axis.
+            Default to applying no scaling.
+
+        Returns
+        -------
+        self : Asset modified in-place with the scaling.
+
+        Examples
+        --------
+
+        """
+
+        return self.scale(vector=[1.0, 0.0, 0.0], value=value)
+
+    def scale_y(self, value: Optional[float] = None):
+        """scale the asset around the ``y`` axis with a given scaling value.
+
+        Parameters
+        ----------
+        value : float, optional
+            scaling value to apply to the object around the ``y`` axis .
+            Default to applying no scaling.
+
+        Returns
+        -------
+        self : Asset modified in-place with the scaling.
+
+        Examples
+        --------
+
+        """
+
+        return self.scale(vector=[0.0, 1.0, 0.0], value=value)
+
+    def scale_z(self, value: Optional[float] = None):
+        """scale the asset around the ``z`` axis with a given value.
+
+        Parameters
+        ----------
+        value : float, optional
+            Scale value to apply to the object around the ``z`` axis.
+            Default to applying no scaling.
+
+        Returns
+        -------
+        self : Asset modified in-place with the scaling.
+
+        Examples
+        --------
+
+        """
+
+        return self.scale(vector=[0.0, 0.0, 1.0], value=value)
+
     # getters for position/rotation/scale
 
     @property
@@ -457,10 +693,26 @@ class Asset(NodeMixin, object):
 
     def _post_attach_parent(self, parent):
         """NodeMixing nethod call after attaching to a `parent`."""
-        if getattr(parent.tree_root, "engine", None) is not None and parent.tree_root.engine.auto_update:
-            parent.tree_root.engine.update_asset(self)
+        if getattr(parent.tree_root, "engine", None) is not None:
+            parent.tree_root._check_all_names_unique()  # Check that all names are unique if we are in a Scene
+            if parent.tree_root.engine.auto_update:
+                parent.tree_root.engine.update_asset(self)
 
     def _post_detach_parent(self, parent):
         """NodeMixing nethod call after detaching from a `parent`."""
         if getattr(parent.tree_root, "engine", None) is not None and parent.tree_root.engine.auto_update:
             parent.tree_root.engine.remove_asset(self)
+
+    def _post_name_change(self, value):
+        """NodeMixing nethod call after changing the name of a node."""
+        if getattr(self.tree_root, "engine", None) is not None:
+            self.tree_root._check_all_names_unique()  # Check that all names are unique if we are in a Scene
+
+    def _check_all_names_unique(self):
+        """Check that all names are unique in the whole tree."""
+        seen = set()  # O(1) lookups
+        for node in self.tree_descendants:
+            if node.name not in seen:
+                seen.add(node.name)
+            else:
+                raise ValueError("Node name '{}' is not unique".format(node.name))

@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from typing import Callable, Sequence, Union
+from typing import Callable, Sequence, Union, Tuple, Optional
 
 from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
+from .render import RenderTree
 
 
 class NodeMixin(object):
@@ -78,7 +79,7 @@ class NodeMixin(object):
     """
 
     @property
-    def name(self):
+    def name(self) -> Optional[str]:
         try:
             return self.__name
         except AttributeError:
@@ -95,6 +96,12 @@ class NodeMixin(object):
             if not hasattr(self.tree_parent, value):
                 setattr(self.tree_parent, value, self)
         self.__name = value
+        self._post_name_change(value)
+
+    def _post_name_change(self, value):
+        """Method called after changing the name."""
+        pass
+
 
     @property
     def tree_parent(self):
@@ -369,8 +376,12 @@ class NodeMixin(object):
     def __sub__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
         return self.remove(assets)
 
-    def __repr__(self):
+    def _get_one_line_repr(self):
         return f"{self.name} ({self.__class__.__name__})"
+
+    def __repr__(self):
+        node_str = self._get_one_line_repr() + "\n" if self.tree_children else ""
+        return f"{node_str}{RenderTree(self).print_tree()}"
 
     def tree_filtered_descendants(self, filter_fn: Callable, stop=None, maxlevel=None):
         """
@@ -454,7 +465,7 @@ class NodeMixin(object):
         return self.tree_parent.tree_path
 
     @property
-    def tree_descendants(self):
+    def tree_descendants(self) -> Tuple["NodeMixin", ...]:
         """
         All child nodes and all their child nodes.
 

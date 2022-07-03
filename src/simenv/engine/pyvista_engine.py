@@ -283,4 +283,5 @@ class PyVistaEngine(Engine):
         self.plotter.show()
 
     def close(self):
-        self.plotter.close()
+        if self.plotter is not None:
+            self.plotter.close()
