@@ -23,15 +23,12 @@ from .utils import camelcase_to_snakecase
 
 
 ALLOWED_CONSTRAINTS = [
-    "FreezePositionX",
-    "FreezePositionY",
-    "FreezePositionZ",
-    "FreezeRotationX",
-    "FreezeRotationY",
-    "FreezeRotationZ",
-    "FreezePosition",
-    "FreezeRotation",
-    "FreezeAll",
+    "freeze_position_x",
+    "freeze_position_y",
+    "freeze_position_z",
+    "freeze_rotation_x",
+    "freeze_rotation_y",
+    "freeze_rotation_z",
 ]
 
 
@@ -59,7 +56,8 @@ class RigidBody:
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     mass: Optional[float] = None
-
+    drag: Optional[float] = None
+    angular_drag: Optional[float] = None
     constraints: Optional[List[str]] = None
 
     name: Optional[str] = None
@@ -69,6 +67,12 @@ class RigidBody:
         if self.mass is None:
             self.mass = 1.0
         self.mass = float(self.mass)
+        if self.drag is None:
+            self.drag = 0.0
+        self.drag = float(self.drag)
+        if self.angular_drag is None:
+            self.angular_drag = 0.05
+        self.angular_drag = float(self.angular_drag)
 
         if self.constraints is None:
             self.constraints = []

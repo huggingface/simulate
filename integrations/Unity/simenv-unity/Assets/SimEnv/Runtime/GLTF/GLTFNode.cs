@@ -30,6 +30,7 @@ namespace SimEnv.GLTF {
             public KHRLight KHR_lights_punctual;
             public HFCollider HF_colliders;
             public HFRlAgents.HFRlAgentsComponent HF_rl_agents;
+            public HFRigidbody HF_rigidbodies;
             public string[] HF_custom;
         }
 
@@ -37,6 +38,10 @@ namespace SimEnv.GLTF {
         public class CustomExtensionWrapper {
             public string type;
             public string contents;
+        }
+
+        public class HFRigidbody {
+            public int rigidbody;
         }
 
         public class KHRLight {
@@ -221,6 +226,23 @@ namespace SimEnv.GLTF {
                                 }
                             }
                         }
+
+                        // Rigidbody
+                        if (nodes[i].extensions.HF_rigidbodies != null) {
+                            int rigidbodyValue = nodes[i].extensions.HF_rigidbodies.rigidbody;
+                            if (extensions == null || extensions.HF_rigidbodies == null || extensions.HF_rigidbodies.rigidbodies == null || extensions.HF_rigidbodies.rigidbodies.Count < rigidbodyValue) {
+                                Debug.LogWarning("Error importing rigidbody");
+                            } else {
+                                HFRigidbodies.GLTFRigidbody rigidbody = extensions.HF_rigidbodies.rigidbodies[rigidbodyValue];
+                                Rigidbody rb = result[i].transform.gameObject.AddComponent<Rigidbody>();
+                                rb.mass = rigidbody.mass;
+                                rb.drag = rigidbody.drag;
+
+                                // TODO continue
+                                rb.constraints = rigidbody.constraints;
+                            }
+                        }
+
                         if(nodes[i].extensions.HF_custom != null) {
                             for(int j = 0; j < nodes[i].extensions.HF_custom.Length; j++) {
                                 string json = nodes[i].extensions.HF_custom[j];

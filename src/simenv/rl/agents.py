@@ -21,13 +21,13 @@ import numpy as np
 
 from simenv.rl.actions import MappedBox, MappedDiscrete
 
-from ..assets import Asset, Camera, Capsule, Collider
+from ..assets import Asset, Camera, Capsule, Collider, RigidBody
 from .actions import Physics
 from .components import RlComponent
 from .rewards import RewardFunction
 
 
-class SimpleRlAgent(Asset):
+class SimpleRlAgent(Capsule):
     """Create a Simple RL Agent in the Scene
 
         A capsule mesh with a Camera as observation device, 3 discrete actions, and a reward function as the distance to a target.
@@ -51,6 +51,7 @@ class SimpleRlAgent(Asset):
         reward_target: Optional[Asset] = None,
         camera_width: Optional[int] = 64,
         camera_height: Optional[int] = 64,
+        mass: Optional[float] = 1.0,
         name=None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
@@ -71,10 +72,10 @@ class SimpleRlAgent(Asset):
             transformation_matrix=transformation_matrix,
         )
 
-        # Add a capsule and a camera as children
-        capsule = Capsule(position=[0, 0.51, 0])
+        self.translate_y += 0.51  # Move our agent a bit higher than the ground
+        # Add a camera as children
         camera = Camera(width=camera_width, height=camera_height, position=[0, 0.75, 0])
-        self.tree_children = [capsule, camera]
+        self.tree_children = [camera]
 
         # Create a reward function if a target is provided
         rewards = None
@@ -89,3 +90,4 @@ class SimpleRlAgent(Asset):
         )
 
         self.rl_component = RlComponent(actions=actions, observations=camera, rewards=rewards)
+        self.rigidbody = RigidBody(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])

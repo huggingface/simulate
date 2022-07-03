@@ -31,6 +31,9 @@ namespace SimEnv.RlAgents {
         }
 
         public void Initialize() {
+            // We setup the rigid body
+            body = node.gameObject.GetComponent<Rigidbody>();
+
             // We connect the observation devices to the agent now that the whole scene is imported
             foreach (string obsDeviceName in obsDeviceNames)
             {
@@ -86,9 +89,6 @@ namespace SimEnv.RlAgents {
                     Debug.Assert(false, "We currently only support MappedDiscrete and MappedBox actions");
                     break;
             }
-
-            // set up rigidbody component
-            body = node.gameObject.AddComponent<Rigidbody>();
 
             // TODO(thom, dylan, ed) Do we want to emulate this at some point?
             // controller.slopeLimit = 45;

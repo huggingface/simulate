@@ -25,6 +25,7 @@ from huggingface_hub import create_repo, hf_hub_download, upload_file
 
 from .anytree import NodeMixin, RenderTree
 from .collider import Collider
+from .rigidbody import RigidBody
 from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler
 
 
@@ -58,6 +59,7 @@ class Asset(NodeMixin, object):
         transformation_matrix=None,
         collider: Optional[Collider] = None,
         rl_component: Optional["RlComponent"] = None,
+        rigidbody: Optional[RigidBody] = None,
         parent=None,
         children=None,
     ):
@@ -83,6 +85,7 @@ class Asset(NodeMixin, object):
 
         self.collider = collider
         self._rl_component = rl_component
+        self._rigidbody = rigidbody
         self._n_copies = 0
 
     @property
@@ -103,6 +106,14 @@ class Asset(NodeMixin, object):
         else:
             self.action_space = None
             self.observation_space = None
+
+    @property
+    def rigidbody(self):
+        return self._rigidbody
+
+    @rigidbody.setter
+    def rigidbody(self, rigidbody: RigidBody):
+        self._rigidbody = rigidbody
 
     def get(self, name: str):
         """Return the first children tree node with the given name."""

@@ -6,3 +6,4 @@ from .camera_type import CameraType
 from .component_type import ComponentType
 from .interpolation import Interpolation
 from .primitive_mode import PrimitiveMode
+from .rigidbody_constraints import RigidbodyConstraints

@@ -4,4 +4,5 @@ from .collider import *
 from .light import Light
 from .material import *
 from .object import *
+from .rigidbody import *
 from .utils import *
