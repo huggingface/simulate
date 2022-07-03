@@ -5,6 +5,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using SimEnv.RlAgents;
 
 namespace SimEnv.GLTF {
     public class GLTFNode {
@@ -26,8 +27,10 @@ namespace SimEnv.GLTF {
         public bool ShouldSerializescale() { return scale != Vector3.one; }
 
         public class Extensions {
-            public KHR_light KHR_lights_punctual;
-            public HF_collider HF_colliders;
+            public KHRLight KHR_lights_punctual;
+            public HFCollider HF_colliders;
+            public HFRlAgent HF_rl_agents;
+            public HFRigidbody HF_rigidbodies;
             public string[] HF_custom;
         }
 
@@ -37,11 +40,19 @@ namespace SimEnv.GLTF {
             public string contents;
         }
 
-        public class KHR_light {
+        public class HFRlAgent {
+            public int agent;
+        }
+
+        public class HFRigidbody {
+            public int rigidbody;
+        }
+
+        public class KHRLight {
             public int light;
         }
 
-        public class HF_collider {
+        public class HFCollider {
             public int collider;
         }
 
@@ -84,6 +95,8 @@ namespace SimEnv.GLTF {
                     IsCompleted = true;
                     yield break;
                 }
+    
+                // Create gameObjects - give names and register Nodes with the Simulator
                 result = new ImportResult[nodes.Count];
                 for (int i = 0; i < result.Length; i++) {
                     result[i] = new GLTFNode.ImportResult();
@@ -93,6 +106,8 @@ namespace SimEnv.GLTF {
                     if(Application.isPlaying)
                         result[i].node.Initialize();
                 }
+
+                // Connect children and parents in our gameObjects transforms
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].children != null) {
                         int[] children = nodes[i].children;
@@ -104,8 +119,13 @@ namespace SimEnv.GLTF {
                         }
                     }
                 }
+
+                // Set position, rotation, scale
                 for (int i = 0; i < result.Length; i++)
                     nodes[i].ApplyMatrix(result[i].transform);
+
+                // Now we add the more complex properties to the nodes (Mesh, Lights, Colliders, Cameras, RL Agents, etc)
+                // Mesh
                 for (int i = 0; i < result.Length; i++) {
                     if (nodes[i].mesh.HasValue) {
                         GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
@@ -134,18 +154,34 @@ namespace SimEnv.GLTF {
                             result[i].transform.name = "node" + i;
                     }
 
+                    // Camera
                     if (nodes[i].camera.HasValue) {
                         result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                         GLTFCamera cameraData = cameras[nodes[i].camera.Value];
                         RenderCamera camera = new RenderCamera(result[i].node, cameraData);
                     }
+
+                    // Extensions (lights, colliders, RL agents, etc)
                     if (nodes[i].extensions != null) {
+
+                        // RL Agents
+                        if (nodes[i].extensions.HF_rl_agents != null) {
+                            int agentValue = nodes[i].extensions.HF_rl_agents.agent;
+                            if (extensions == null || extensions.HF_rl_agents == null || extensions.HF_rl_agents.agents == null || extensions.HF_rl_agents.agents.Count < agentValue) {
+                                Debug.LogWarning("Error importing agent");
+                            } else {
+                                HFRlAgents.HFRlAgentsComponent agentData = extensions.HF_rl_agents.agents[agentValue];
+                                Agent agent = new Agent(result[i].node, agentData);
+                            }
+                        }
+
+                        // Lights
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
                             int lightValue = nodes[i].extensions.KHR_lights_punctual.light;
                             if (extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {
                                 Debug.LogWarning("Error importing light");
                             } else {
-                                KHR_lights_punctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
+                                KHRLightsPunctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
                                 Light light = result[i].transform.gameObject.AddComponent<Light>();
                                 result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                                 if (!string.IsNullOrEmpty(lightData.name))
@@ -167,12 +203,14 @@ namespace SimEnv.GLTF {
                                 }
                             }
                         }
+
+                        // Colliders
                         if (nodes[i].extensions.HF_colliders != null) {
                             int colliderValue = nodes[i].extensions.HF_colliders.collider;
                             if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.colliders == null || extensions.HF_colliders.colliders.Count < colliderValue) {
                                 Debug.LogWarning("Error importing collider");
                             } else {
-                                HF_colliders.GLTFCollider collider = extensions.HF_colliders.colliders[colliderValue];
+                                HFColliders.GLTFCollider collider = extensions.HF_colliders.colliders[colliderValue];
                                 if (collider.mesh.HasValue) {
                                     Debug.LogWarning("Ignoring collider mesh value");
                                 }
@@ -197,6 +235,48 @@ namespace SimEnv.GLTF {
                                 }
                             }
                         }
+
+                        // Rigidbody
+                        if (nodes[i].extensions.HF_rigidbodies != null) {
+                            int rigidbodyValue = nodes[i].extensions.HF_rigidbodies.rigidbody;
+                            if (extensions == null || extensions.HF_rigidbodies == null || extensions.HF_rigidbodies.rigidbodies == null || extensions.HF_rigidbodies.rigidbodies.Count < rigidbodyValue) {
+                                Debug.LogWarning("Error importing rigidbody");
+                            } else {
+                                HFRigidbodies.GLTFRigidbody rigidbody = extensions.HF_rigidbodies.rigidbodies[rigidbodyValue];
+                                Rigidbody rb = result[i].transform.gameObject.AddComponent<Rigidbody>();
+                                rb.mass = rigidbody.mass;
+                                rb.drag = rigidbody.drag;
+                                rb.angularDrag = rigidbody.angular_drag;
+
+                                foreach (string constraint in rigidbody.constraints)
+                                {
+                                    switch (constraint) {
+                                        case "freeze_position_x":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezePositionX;
+                                            break;
+                                        case "freeze_position_y":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezePositionY;
+                                            break;
+                                        case "freeze_position_z":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezePositionZ;
+                                            break;
+                                        case "freeze_rotation_x":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezeRotationX;
+                                            break;
+                                        case "freeze_rotation_y":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezeRotationY;
+                                            break;
+                                        case "freeze_rotation_z":
+                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezeRotationZ;
+                                            break;
+                                        default:
+                                            Debug.LogWarning(string.Format("Constraint {0} not implemented", constraint));
+                                            break;
+                                    }
+                                }
+                            }
+                        }
+
                         if(nodes[i].extensions.HF_custom != null) {
                             for(int j = 0; j < nodes[i].extensions.HF_custom.Length; j++) {
                                 string json = nodes[i].extensions.HF_custom[j];

@@ -9,7 +9,7 @@ using System.Linq;
 
 
 namespace SimEnv.GLTF {
-    public class HF_colliders {
+    public class HFColliders {
         public List<GLTFCollider> colliders;
 
         public class GLTFCollider{
@@ -34,7 +34,7 @@ namespace SimEnv.GLTF {
             //         Debug.LogWarning(string.Format("Node {0} has multiple colliders. Ignoring extras.", node.name));
             //     }
             //     Collider col = cols[0];
-            //     HF_colliders collider = new HF_colliders.GLTFCollider();
+            //     HFColliders collider = new HFColliders.GLTFCollider();
             //     if(col is BoxCollider) {
             //         collider.type = ColliderType.BOX;
             //         collider.offset = ((BoxCollider)col).center;

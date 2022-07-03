@@ -12,6 +12,7 @@ namespace SimEnv {
 
         public RenderCamera(Node node, GLTF.GLTFCamera data) {
             m_node = node;
+
             m_camera = node.gameObject.AddComponent<Camera>();
             camera.targetTexture = new RenderTexture(data.width, data.height, 24, RenderTextureFormat.Default);
             camera.targetTexture.name = "RenderTexture";            
@@ -33,11 +34,21 @@ namespace SimEnv {
                     break;
             }
             camera.enabled = false;
+            node.renderCamera = this;
             Simulator.Register(this);
         }
 
         public void Render(UnityAction<Color32[]> callback) {
             RenderCoroutine(callback).RunCoroutine();
+        }
+
+        public int getObservationSizes() {
+            return camera.targetTexture.width * camera.targetTexture.height * 3;
+        }
+
+        public int[] getObservationShape() {
+            int[] shape = {camera.targetTexture.height, camera.targetTexture.width, 3};
+            return shape;
         }
 
         public IEnumerator RenderCoroutine(UnityAction<Color32[]> callback) {

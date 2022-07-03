@@ -4,6 +4,8 @@ import json
 import socket
 import subprocess
 
+import numpy as np
+
 from .engine import Engine
 
 
@@ -28,7 +30,7 @@ class UnityEngine(Engine):
         engine_exe=None,
         engine_headless=None,
         engine_port=55000,
-        physics_update_rate=30.,
+        physics_update_rate=30.0,
         frame_skip=15,
     ):
         super().__init__(scene=scene, auto_update=auto_update)
@@ -158,10 +160,11 @@ class UnityEngine(Engine):
     def reset_recv(self):
         return self._get_response()
 
-    def get_observation(self):
+    def get_obs(self):
         command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
         encoded_obs = self.run_command(command)
-        decoded_obs = json.loads(encoded_obs)
+        data = json.loads(encoded_obs)
+        decoded_obs = self._reshape_obs(data)
         return decoded_obs
 
     def get_observation_send(self):
@@ -170,8 +173,16 @@ class UnityEngine(Engine):
 
     def get_observation_recv(self):
         encoded_obs = self._get_response()
-        decoded_obs = json.loads(encoded_obs)
+        data = json.loads(encoded_obs)
+        decoded_obs = self._reshape_obs(data)
         return decoded_obs
+
+    def _reshape_obs(self, obs):
+        # TODO: remove np.flip for training (the agent does not care the world is upside-down
+        # TODO: have unity side send in B,C,H,W order
+        shape = obs["shape"]
+        print("shape", shape)
+        return np.flip(np.array(obs["Items"]).astype(np.uint8).reshape(*shape), 1).transpose(0, 3, 1, 2)
 
     def run_command(self, command, ack=True):
         message = json.dumps(command)
