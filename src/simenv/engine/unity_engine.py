@@ -30,6 +30,8 @@ class UnityEngine(Engine):
         engine_exe=None,
         engine_headless=None,
         engine_port=55000,
+        physics_update_rate=30.,
+        frame_skip=15,
     ):
         super().__init__(scene=scene, auto_update=auto_update)
         self.start_frame = start_frame
@@ -40,18 +42,24 @@ class UnityEngine(Engine):
         self.port = engine_port
 
         if engine_exe is not None:
-            self._launch_executable(engine_exe, engine_port, engine_headless)
+            self._launch_executable(engine_exe, engine_port, engine_headless, physics_update_rate, frame_skip)
 
         self._initialize_server()
         atexit.register(self._close)
 
-    def _launch_executable(self, executable, port, headless):
+    def _launch_executable(self, executable, port, headless, physics_update_rate, frame_skip):
         # TODO: improve headless training check on a headless machine
         if headless:
             print("launching env headless")
-            launch_command = f"{executable} -batchmode -nographics --args port {port}".split(" ")
+            launch_command = f"{executable} -batchmode -nographics --args port {port} \
+                physics_update_rate {physics_update_rate} frame_skip {frame_skip}".split(
+                " "
+            )
         else:
-            launch_command = f"{executable} --args port {port}".split(" ")
+            launch_command = f"{executable} --args port {port} \
+                physics_update_rate {physics_update_rate} frame_skip {frame_skip}".split(
+                " "
+            )
         self.proc = subprocess.Popen(
             launch_command,
             start_new_session=False,
@@ -130,7 +138,7 @@ class UnityEngine(Engine):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
         response = self.run_command(command)
         data = json.loads(response)
-        return [d == "True" for d in data["Items"]]
+        return [d for d in data["Items"]]
 
     def get_done_send(self):
         command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
@@ -139,9 +147,9 @@ class UnityEngine(Engine):
     def get_done_recv(self):
         response = self._get_response()
         data = json.loads(response)
-        return [d == "True" for d in data["Items"]]
+        return [d for d in data["Items"]]
 
-    def reset(self, ack=True):
+    def reset(self):
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command)
 
