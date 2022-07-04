@@ -49,7 +49,7 @@ class Material:
 
     metallic_factor : float, optional
         The metalness of the material.
-        Default: 1.0
+        Default: 0.0
 
     roughness_factor : float, optional
         The roughness of the material.
@@ -118,7 +118,7 @@ class Material:
             self.base_color = self.base_color + [1.0]
 
         if self.metallic_factor is None:
-            self.metallic_factor = 1.0
+            self.metallic_factor = 0.0
 
         if self.roughness_factor is None:
             self.roughness_factor = 1.0
