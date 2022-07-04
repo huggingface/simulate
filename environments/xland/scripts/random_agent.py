@@ -16,7 +16,7 @@ if __name__ == "__main__":
 
     # Maybe the executable is not something to be exposed? Can't we generate it and use it by default
     env = make_env(
-        "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64",
+        "/home/alicia/github/split/keep_last_commit/simenv/integrations/Unity/builds/simenv_unity.x86_64",
         sample_from=example_map,
         engine="Unity",
         seed=None,
@@ -25,6 +25,8 @@ if __name__ == "__main__":
         width=9,
         height=9,
     )(port=56000)
+    
+    env.show()
 
     done = False
     obs = env.reset()

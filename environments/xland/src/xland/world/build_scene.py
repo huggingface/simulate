@@ -183,7 +183,7 @@ def generate_colliders(sg):
 
 
 def generate_scene(
-    sg, obj_pos, agent_pos, frame_rate, engine=None, executable=None, port=None, headless=None, verbose=False
+    sg, obj_pos, agent_pos, engine=None, executable=None, port=None, headless=None, verbose=False
 ):
     """
     Generate scene using simenv library.
@@ -192,10 +192,11 @@ def generate_scene(
     if engine is not None and engine != "pyvista":
         if port is not None:
             scene = sm.Scene(
-                engine=engine, engine_exe=executable, engine_port=port, frame_rate=frame_rate, engine_headless=headless
+                engine=engine, engine_exe=executable, engine_port=port, engine_headless=headless,
             )
+            
         else:
-            scene = sm.Scene(engine=engine, engine_exe=executable, frame_rate=frame_rate, engine_headless=headless)
+            scene = sm.Scene(engine=engine, engine_exe=executable, engine_headless=headless)
 
         scene += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
         scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)

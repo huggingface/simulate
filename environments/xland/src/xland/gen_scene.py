@@ -79,6 +79,7 @@ def create_scene(
     # Initialize success and curr_try variables
     success = False
     curr_try = 0
+    scene = None
 
     while not success and curr_try < nb_tries:
 
@@ -123,7 +124,6 @@ def create_scene(
                 sg,
                 obj_pos,
                 agent_pos,
-                frame_rate,
                 engine=engine,
                 executable=executable,
                 port=port,

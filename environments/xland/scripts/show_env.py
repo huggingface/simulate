@@ -12,7 +12,8 @@ from xland import create_scene
 from xland.utils import create_2d_map, generate_tiles
 
 
-ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+ALICIA_UNITY_BUILD_URL = "/home/alicia/github/split/keep_last_commit/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
@@ -63,7 +64,7 @@ if __name__ == "__main__":
     # If we want to show the map and we were successful
     if args.show and success:
         if args.engine is None or args.engine.lower() == "pyvista":
-            scene.remove(scene.agents_root)
+            scene.remove(scene.root.agents_root)
 
         scene.show()
 
