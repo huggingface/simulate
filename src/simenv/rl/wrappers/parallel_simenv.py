@@ -1,14 +1,13 @@
 import numpy as np
 from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 
-from simenv.rl_env import RLEnv
 
 
 class ParallelSimEnv(VecEnv):
     # Launched several env processes and communicates with
     # them in a semi-async manner
 
-    def __init__(self, env_fn: RLEnv, n_parallel: int, starting_port=55000):
+    def __init__(self, env_fn, n_parallel: int, starting_port=55000):
         self.n_parallel = n_parallel
         self.envs = []
         # create the environments
@@ -30,10 +29,10 @@ class ParallelSimEnv(VecEnv):
 
     def _reset(self):
         for i in range(self.n_parallel):
-            self.envs[i].reset_send()
+            self.envs[i].engine.reset_send()
 
         for i in range(self.n_parallel):
-            self.envs[i].reset_recv()
+            self.envs[i].engine.reset_recv()
 
         return self._get_observations()
 
@@ -51,17 +50,17 @@ class ParallelSimEnv(VecEnv):
         # need to reset if done
         for i in range(self.n_parallel):
             if dones[i]:
-                self.envs[i].reset_send()
+                self.envs[i].engine.reset_send()
 
         for i in range(self.n_parallel):
             if dones[i]:
-                self.envs[i].reset_recv()
+                self.envs[i].engine.reset_recv()
 
     def _step(self, actions):
         # unpack and send the actions
         for i in range(self.n_parallel):
             action = actions[i * self.n_agents : (i + 1) * self.n_agents]
-            self.envs[i].engine.step_send(action)
+            self.envs[i].engine.step_send(action.tolist())
 
         # receive the acks
         for i in range(self.n_parallel):
@@ -107,7 +106,7 @@ class ParallelSimEnv(VecEnv):
 
     def close(self):
         for i in range(self.n_parallel):
-            self.envs[i].close()
+            self.envs[i].engine.close()
 
     def env_is_wrapped(self):
         return [False] * self.n_agents * self.n_parallel
