@@ -368,7 +368,7 @@ namespace SimEnv.GLTF {
                     int[] triangles = mesh.triangles.Reverse().ToArray();
                     primitive.indices = Exporter.WriteInt(triangles, gltfObject, ref bufferData);
                 }
-                if(mesh.uv != null && mesh.uv.Length > 0) {
+                if (mesh.uv != null && mesh.uv.Length > 0) {
                     Vector2[] uvs = mesh.uv.Select(v => { v.y = 1 - v.y; return v; }).ToArray();
                     attributes.TEXCOORD_0 = Exporter.WriteVec2(uvs, gltfObject, ref bufferData);
                 }

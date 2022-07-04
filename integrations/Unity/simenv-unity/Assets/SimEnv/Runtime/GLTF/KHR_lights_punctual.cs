@@ -6,7 +6,7 @@ namespace SimEnv.GLTF {
     public class KHRLightsPunctual {
         public List<GLTFLight> lights;
 
-        public KHR_lights_punctual() {
+        public KHRLightsPunctual() {
             lights = new List<GLTFLight>();
         }
 
@@ -45,11 +45,11 @@ namespace SimEnv.GLTF {
                 if (!lights.Contains(light))
                     lights.Add(light);
                 node.extensions ??= new GLTFNode.Extensions();
-                node.extensions.KHR_lights_punctual = new GLTFNode.KHR_light() { light = lights.IndexOf(light) };
+                node.extensions.KHR_lights_punctual = new GLTFNode.KHRLight() { light = lights.IndexOf(light) };
             }
             if (lights.Count == 0) return;
             gltfObject.extensions ??= new GLTFExtensions();
-            gltfObject.extensions.KHR_lights_punctual ??= new KHR_lights_punctual();
+            gltfObject.extensions.KHR_lights_punctual ??= new KHRLightsPunctual();
             gltfObject.extensions.KHR_lights_punctual.lights.AddRange(lights);
         }
 

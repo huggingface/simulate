@@ -16,9 +16,9 @@ namespace SimEnv {
         static Simulator _instance;
         public static Simulator instance {
             get {
-                if(_instance == null) {
+                if (_instance == null) {
                     _instance = GameObject.FindObjectOfType<Simulator>();
-                    if(_instance == null)
+                    if (_instance == null)
                         _instance = new GameObject("Simulator").AddComponent<Simulator>();
                 }
                 return _instance;
@@ -81,19 +81,19 @@ namespace SimEnv {
         /// <param name="frames">Number of frames to step forward.</param>
         /// <param name="frameRate">Frames per second to simulate at.</param>
         public static void Step(int frames = 1, float frameRate = 30) {
-            for(int i = 0; i < frames; i++) {
+            for (int i = 0; i < frames; i++) {
                 Physics.Simulate(1 / frameRate);
             }
         }
 
         public static void Register(RenderCamera camera) {
-            if(Cameras.TryGetValue(camera.camera, out RenderCamera existing))
+            if (Cameras.TryGetValue(camera.camera, out RenderCamera existing))
                 Debug.LogWarning($"Found existing camera on node with name: {camera.node.name}.");
             Cameras[camera.camera] = camera;
         }
 
         public static void Register(Node node) {
-            if(Nodes.TryGetValue(node.name, out Node existing))
+            if (Nodes.TryGetValue(node.name, out Node existing))
                 Debug.LogWarning($"Found existing node with name: {node.name}.");
             Nodes[node.name] = node;
         }
@@ -108,7 +108,7 @@ namespace SimEnv {
 
         private static IEnumerator RenderCoroutine(UnityAction<List<Color32[]>> callback) {
             List<Color32[]> buffers = new List<Color32[]>();
-            foreach(RenderCamera camera in Cameras.Values)
+            foreach (RenderCamera camera in Cameras.Values)
                 camera.Render(buffer => buffers.Add(buffer));
             yield return new WaitUntil(() => buffers.Count == Cameras.Count);
             callback(buffers);
@@ -119,7 +119,7 @@ namespace SimEnv {
         /// </summary>
         /// <param name="bytes">GLTF scene as bytes.</param>
         public static void LoadEnvironmentFromBytes(byte[] bytes) {
-            if(CurrentState > State.Default) {
+            if (CurrentState > State.Default) {
                 Debug.LogWarning("Attempting to load while already loading. Ignoring request.");
                 return;
             }
@@ -135,7 +135,7 @@ namespace SimEnv {
         /// <param name="bytes">GLTF scene as bytes.</param>
         /// <returns></returns>
         public static async Task LoadEnvironmentFromBytesAsync(byte[] bytes) {
-            if(CurrentState > State.Default) {
+            if (CurrentState > State.Default) {
                 Debug.LogWarning("Attempting to load while already loading. Ignoring request.");
                 return;
             }
@@ -153,7 +153,7 @@ namespace SimEnv {
         private static void OnAfterLoad() {
             CurrentState = State.Default;
             Physics.autoSimulation = false;
-            for(int i = 0; i < Plugins.Count; i++)
+            for (int i = 0; i < Plugins.Count; i++)
                 Plugins[i].OnEnvironmentLoaded();
             EnvironmentLoaded?.Invoke();
         }
@@ -162,8 +162,8 @@ namespace SimEnv {
         /// Unloads the current loaded environment.
         /// </summary>
         public static void Unload() {
-            if(Root == null) return;
-            for(int i = 0; i < Plugins.Count; i++)
+            if (Root == null) return;
+            for (int i = 0; i < Plugins.Count; i++)
                 Plugins[i].OnBeforeEnvironmentUnloaded();
             BeforeEnvironmentUnloaded?.Invoke();
             CurrentState = State.Unloading;
@@ -171,7 +171,7 @@ namespace SimEnv {
             Nodes.Clear();
             Cameras.Clear();
             CurrentState = State.Undefined;
-            for(int i = 0; i < Plugins.Count; i++)
+            for (int i = 0; i < Plugins.Count; i++)
                 EnvironmentUnloaded?.Invoke();
         }
 
@@ -181,12 +181,12 @@ namespace SimEnv {
         private static void LoadCustomAssemblies() {
             string modPath = Application.dataPath + "/Resources/Plugins";
             DirectoryInfo modDirectory = new DirectoryInfo(Application.dataPath + "/Resources/Plugins");
-            if(!modDirectory.Exists) {
+            if (!modDirectory.Exists) {
                 Debug.LogWarning("Plugin directory doesn't exist at path: " + modPath);
                 return;
             }
-            foreach(FileInfo file in modDirectory.GetFiles()) {
-                if(file.Extension == ".dll") {
+            foreach (FileInfo file in modDirectory.GetFiles()) {
+                if (file.Extension == ".dll") {
                     Assembly.LoadFile(file.FullName);
                     Debug.Log("Loaded plugin assembly: " + file.Name);
                 }

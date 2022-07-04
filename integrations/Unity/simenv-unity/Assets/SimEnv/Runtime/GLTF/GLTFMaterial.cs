@@ -122,19 +122,19 @@ namespace SimEnv.GLTF {
         public class PbrMetallicRoughness {
             [JsonConverter(typeof(ColorRGBAConverter))] public Color baseColorFactor = Color.white;
             public TextureInfo baseColorTexture;
-            public float metallicFactor;
-            public float roughnessFactor;
+            public float metallicFactor = 1f;
+            public float roughnessFactor = 1f;
             public TextureInfo metallicRoughnessTexture;
 
             public bool ShouldSerializebaseColorFactor() { return baseColorFactor != Color.white; }
-            public bool ShouldSerializemetallicFactor() { return metallicFactor != 0f; }
-            public bool ShouldSerializeroughnessFactor() { return roughnessFactor != 0f; }
+            public bool ShouldSerializemetallicFactor() { return metallicFactor != 1f; }
+            public bool ShouldSerializeroughnessFactor() { return roughnessFactor != 1f; }
 
             public IEnumerator InitializeMaterial(Material mat, GLTFTexture.ImportResult[] textures, Action<Material> onFinish) {
                 mat.color = baseColorFactor;
                 mat.SetFloat("_WorkflowMode", 1f);
                 mat.SetFloat("_Metallic", metallicFactor);
-                mat.SetFloat("_Smoothness", roughnessFactor);
+                mat.SetFloat("_Smoothness", 1 - roughnessFactor);
 
                 if (textures != null) {
                     if (baseColorTexture != null && baseColorTexture.index >= 0) {
@@ -177,6 +177,8 @@ namespace SimEnv.GLTF {
             [JsonConverter(typeof(ColorRGBConverter))] public Color specularFactor = Color.white;
             public float glossinessFactor = 1f;
             public TextureInfo specularGlossinessTexture;
+
+            public bool ShouldSerializeglossinessFactor() => glossinessFactor != 1f;
 
             public IEnumerator InitializeMaterial(Material mat, GLTFTexture.ImportResult[] textures, Action<Material> onFinish) {
                 mat.color = diffuseFactor;

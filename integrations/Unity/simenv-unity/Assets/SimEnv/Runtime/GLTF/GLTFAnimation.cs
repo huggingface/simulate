@@ -39,45 +39,45 @@ namespace SimEnv.GLTF {
             result.clip.name = name;
             result.clip.frameRate = importSettings.animationSettings.frameRate;
 
-            for(int i = 0; i < channels.Length; i++) {
+            for (int i = 0; i < channels.Length; i++) {
                 Channel channel = channels[i];
-                if(samplers.Length <= channel.sampler) {
+                if (samplers.Length <= channel.sampler) {
                     Debug.LogWarning(string.Format("Animation channel at index {0} doesn't exist", channel.sampler));
                     continue;
                 }
                 Sampler sampler = samplers[channel.sampler];
 
                 InterpolationMode interpolationMode = importSettings.animationSettings.interpolationMode;
-                if(interpolationMode == InterpolationMode.ImportFromFile)
+                if (interpolationMode == InterpolationMode.ImportFromFile)
                     interpolationMode = sampler.interpolation;
-                if(interpolationMode == InterpolationMode.CUBICSPLINE)
+                if (interpolationMode == InterpolationMode.CUBICSPLINE)
                     throw new System.NotImplementedException();
 
                 string relativePath = "";
                 GLTFNode.ImportResult node = nodes[channel.target.node.Value];
-                while(node != null && !node.IsRoot) {
-                    if(string.IsNullOrEmpty(relativePath))
+                while (node != null && !node.IsRoot) {
+                    if (string.IsNullOrEmpty(relativePath))
                         relativePath = node.transform.name;
                     else
                         relativePath = node.transform.name + "/" + relativePath;
-                    if(node.parent.HasValue)
+                    if (node.parent.HasValue)
                         node = nodes[node.parent.Value];
                     else
                         node = null;
                 }
 
-                if(multiRoots)
+                if (multiRoots)
                     relativePath = node.transform.name + "/" + relativePath;
 
                 System.Threading.Thread.CurrentThread.CurrentCulture = System.Globalization.CultureInfo.InvariantCulture;
                 float[] keyframeInput = accessors[sampler.input].ReadFloat().ToArray();
-                switch(channel.target.path) {
+                switch (channel.target.path) {
                     case "translation":
                         Vector3[] pos = accessors[sampler.output].ReadVec3().ToArray();
                         AnimationCurve posX = new AnimationCurve();
                         AnimationCurve posY = new AnimationCurve();
                         AnimationCurve posZ = new AnimationCurve();
-                        for(int k = 0; k < keyframeInput.Length; k++) {
+                        for (int k = 0; k < keyframeInput.Length; k++) {
                             posX.AddKey(CreateKeyframe(k, keyframeInput, pos, x => -x.x, interpolationMode));
                             posY.AddKey(CreateKeyframe(k, keyframeInput, pos, x => x.y, interpolationMode));
                             posZ.AddKey(CreateKeyframe(k, keyframeInput, pos, x => x.z, interpolationMode));
@@ -92,7 +92,7 @@ namespace SimEnv.GLTF {
                         AnimationCurve rotY = new AnimationCurve();
                         AnimationCurve rotZ = new AnimationCurve();
                         AnimationCurve rotW = new AnimationCurve();
-                        for(int k = 0; k < keyframeInput.Length; k++) {
+                        for (int k = 0; k < keyframeInput.Length; k++) {
                             // The Animation window in Unity shows keyframes incorrectly converted to euler. This is only to deceive you. The quaternions underneath work correctly
                             rotX.AddKey(CreateKeyframe(k, keyframeInput, rot, x => x.x, interpolationMode));
                             rotY.AddKey(CreateKeyframe(k, keyframeInput, rot, x => -x.y, interpolationMode));
@@ -109,7 +109,7 @@ namespace SimEnv.GLTF {
                         AnimationCurve scaleX = new AnimationCurve();
                         AnimationCurve scaleY = new AnimationCurve();
                         AnimationCurve scaleZ = new AnimationCurve();
-                        for(int k = 0; k < keyframeInput.Length; k++) {
+                        for (int k = 0; k < keyframeInput.Length; k++) {
                             scaleX.AddKey(CreateKeyframe(k, keyframeInput, scale, x => x.x, interpolationMode));
                             scaleY.AddKey(CreateKeyframe(k, keyframeInput, scale, x => x.y, interpolationMode));
                             scaleZ.AddKey(CreateKeyframe(k, keyframeInput, scale, x => x.z, interpolationMode));
@@ -124,21 +124,21 @@ namespace SimEnv.GLTF {
 
                         int numberOfBlendShapes = skinnedMeshRenderer.sharedMesh.blendShapeCount;
                         AnimationCurve[] blendShapeCurves = new AnimationCurve[numberOfBlendShapes];
-                        for(int j = 0; j < numberOfBlendShapes; ++j)
+                        for (int j = 0; j < numberOfBlendShapes; ++j)
                             blendShapeCurves[j] = new AnimationCurve();
 
                         float[] weights = accessors[sampler.output].ReadFloat().ToArray();
                         float[] weightValues = new float[keyframeInput.Length];
                         float[] previouslyKeyedValues = new float[numberOfBlendShapes];
-                        for(int k = 0; k < keyframeInput.Length; ++k) {
-                            for(int j = 0; j < numberOfBlendShapes; ++j) {
+                        for (int k = 0; k < keyframeInput.Length; ++k) {
+                            for (int j = 0; j < numberOfBlendShapes; ++j) {
                                 int weightIndex = (k * numberOfBlendShapes) + j;
                                 weightValues[k] = weights[weightIndex];
 
                                 bool addKey = true;
-                                if(importSettings.animationSettings.compressBlendShapeKeyFrames) {
-                                    if(k == 0 || !Mathf.Approximately(weightValues[k], previouslyKeyedValues[j])) {
-                                        if(k > 0) {
+                                if (importSettings.animationSettings.compressBlendShapeKeyFrames) {
+                                    if (k == 0 || !Mathf.Approximately(weightValues[k], previouslyKeyedValues[j])) {
+                                        if (k > 0) {
                                             weightValues[k - 1] = previouslyKeyedValues[j];
                                             blendShapeCurves[j].AddKey(CreateKeyframe(k - 1, keyframeInput, weightValues, x => x, interpolationMode));
                                         }
@@ -149,12 +149,12 @@ namespace SimEnv.GLTF {
                                     }
                                 }
 
-                                if(addKey)
+                                if (addKey)
                                     blendShapeCurves[j].AddKey(CreateKeyframe(k, keyframeInput, weightValues, x => x, interpolationMode));
                             }
                         }
 
-                        for(int j = 0; j < numberOfBlendShapes; ++j) {
+                        for (int j = 0; j < numberOfBlendShapes; ++j) {
                             string propertyName = "blendShape." + skinnedMeshRenderer.sharedMesh.GetBlendShapeName(j);
                             result.clip.SetCurve(relativePath, typeof(SkinnedMeshRenderer), propertyName, blendShapeCurves[j]);
                         }
@@ -167,9 +167,9 @@ namespace SimEnv.GLTF {
         public static UnityEngine.Keyframe CreateKeyframe<T>(int index, float[] timeArray, T[] valueArray, Func<T, float> getValue, InterpolationMode interpolationMode) {
             float time = timeArray[index];
             UnityEngine.Keyframe keyframe;
-            if(interpolationMode == InterpolationMode.STEP) {
+            if (interpolationMode == InterpolationMode.STEP) {
                 keyframe = new UnityEngine.Keyframe(time, getValue(valueArray[index]), float.PositiveInfinity, float.PositiveInfinity, 1, 1);
-            } else if(interpolationMode == InterpolationMode.CUBICSPLINE) {
+            } else if (interpolationMode == InterpolationMode.CUBICSPLINE) {
                 float inTangent = getValue(valueArray[index * 3]);
                 float outTangent = getValue(valueArray[(index * 3) + 2]);
                 keyframe = new UnityEngine.Keyframe(time, getValue(valueArray[(index * 3) + 1]), inTangent, outTangent, 1, 1);
@@ -182,12 +182,12 @@ namespace SimEnv.GLTF {
 
     public static class GLTFAnimationExtensions {
         public static GLTFAnimation.ImportResult[] Import(this List<GLTFAnimation> animations, GLTFAccessor.ImportResult[] accessors, GLTFNode.ImportResult[] nodes, ImportSettings importSettings) {
-            if(animations == null) return null;
+            if (animations == null) return null;
 
             GLTFAnimation.ImportResult[] results = new GLTFAnimation.ImportResult[animations.Count];
-            for(int i = 0; i < results.Length; i++) {
+            for (int i = 0; i < results.Length; i++) {
                 results[i] = animations[i].Import(accessors, nodes, importSettings);
-                if(string.IsNullOrEmpty(results[i].clip.name)) results[i].clip.name = "animation" + i;
+                if (string.IsNullOrEmpty(results[i].clip.name)) results[i].clip.name = "animation" + i;
             }
             return results;
         }

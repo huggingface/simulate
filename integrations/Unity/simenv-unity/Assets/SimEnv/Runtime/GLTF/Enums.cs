@@ -14,7 +14,7 @@ namespace SimEnv.GLTF {
 
     public static class EnumExtensions {
         public static int ByteSize(this GLType gltype) {
-            switch(gltype) {
+            switch (gltype) {
                 case GLType.BYTE:
                     return sizeof(sbyte);
                 case GLType.UNSIGNED_BYTE:
@@ -34,7 +34,7 @@ namespace SimEnv.GLTF {
         }
 
         public static int ComponentCount(this AccessorType accessorType) {
-            switch(accessorType) {
+            switch (accessorType) {
                 case AccessorType.SCALAR:
                     return 1;
                 case AccessorType.VEC2:

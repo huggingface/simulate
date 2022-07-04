@@ -10,7 +10,7 @@ namespace SimEnv.GLTF {
             GLTFScene scene = new GLTFScene();
             scene.nodes = new List<int>();
             for (int i = 0; i < nodes.Count; i++) {
-                if(nodes[i].transform.parent == null)
+                if (nodes[i].transform.parent == null)
                     scene.nodes.Add(i);
             }
             gltfObject.scenes = new List<GLTFScene>() { scene };

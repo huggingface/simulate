@@ -19,28 +19,28 @@ namespace SimEnv.GLTF {
             public SkinnedMeshRenderer SetupSkinnedMeshRenderer(GameObject gameObject, Mesh mesh, GLTFNode.ImportResult[] nodes) {
                 SkinnedMeshRenderer skinnedMeshRenderer = gameObject.AddComponent<SkinnedMeshRenderer>();
                 Transform[] bones = new Transform[joints.Length];
-                for(int i = 0; i < bones.Length; i++) {
+                for (int i = 0; i < bones.Length; i++) {
                     int jointNodeIndex = joints[i];
                     GLTFNode.ImportResult jointNode = nodes[jointNodeIndex];
                     bones[i] = jointNode.transform;
-                    if(string.IsNullOrEmpty(jointNode.transform.name))
+                    if (string.IsNullOrEmpty(jointNode.transform.name))
                         jointNode.transform.name = "joint" + i;
                 }
                 skinnedMeshRenderer.bones = bones;
                 skinnedMeshRenderer.rootBone = bones[0];
 
-                if(inverseBindMatrices != null) {
-                    if(inverseBindMatrices.Length != joints.Length)
+                if (inverseBindMatrices != null) {
+                    if (inverseBindMatrices.Length != joints.Length)
                         Debug.LogWarning("InverseBindMatrices count and joints count mismatch");
                     Matrix4x4 m = nodes[0].transform.localToWorldMatrix;
                     Matrix4x4[] bindPoses = new Matrix4x4[joints.Length];
-                    for(int i = 0; i < joints.Length; i++)
+                    for (int i = 0; i < joints.Length; i++)
                         bindPoses[i] = inverseBindMatrices[i];
                     mesh.bindposes = bindPoses;
                 } else {
                     Matrix4x4 m = nodes[0].transform.localToWorldMatrix;
                     Matrix4x4[] bindPoses = new Matrix4x4[joints.Length];
-                    for(int i = 0; i < joints.Length; i++)
+                    for (int i = 0; i < joints.Length; i++)
                         bindPoses[i] = nodes[joints[i]].transform.worldToLocalMatrix * m;
                     mesh.bindposes = bindPoses;
                 }
@@ -52,9 +52,9 @@ namespace SimEnv.GLTF {
         public ImportResult Import(GLTFAccessor.ImportResult[] accessors) {
             ImportResult result = new ImportResult();
             result.joints = joints;
-            if(inverseBindMatrices.HasValue) {
+            if (inverseBindMatrices.HasValue) {
                 result.inverseBindMatrices = accessors[inverseBindMatrices.Value].ReadMatrix4x4();
-                for(int i = 0; i < result.inverseBindMatrices.Length; i++) {
+                for (int i = 0; i < result.inverseBindMatrices.Length; i++) {
                     Matrix4x4 m = result.inverseBindMatrices[i];
                     Vector4 row0 = m.GetRow(0);
                     row0.y = -row0.y;
@@ -78,9 +78,9 @@ namespace SimEnv.GLTF {
         public class ImportTask : Importer.ImportTask<ImportResult[]> {
             public ImportTask(List<GLTFSkin> skins, GLTFAccessor.ImportTask accessorTask) : base(accessorTask) {
                 task = new Task(() => {
-                    if(skins == null) return;
+                    if (skins == null) return;
                     result = new ImportResult[skins.Count];
-                    for(int i = 0; i < result.Length; i++)
+                    for (int i = 0; i < result.Length; i++)
                         result[i] = skins[i].Import(accessorTask.result);
                 });
             }

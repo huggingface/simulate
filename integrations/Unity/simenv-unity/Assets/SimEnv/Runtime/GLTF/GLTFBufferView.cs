@@ -24,7 +24,7 @@ namespace SimEnv.GLTF {
             public ImportTask(List<GLTFBufferView> bufferViews, GLTFBuffer.ImportTask bufferTask) : base(bufferTask) {
                 task = new Task(() => {
                     result = new ImportResult[bufferViews.Count];
-                    for(int i = 0; i < result.Length; i++) {
+                    for (int i = 0; i < result.Length; i++) {
                         GLTFBuffer.ImportResult buffer = bufferTask.result[bufferViews[i].buffer];
                         ImportResult result = new ImportResult();
                         result.stream = buffer.stream;

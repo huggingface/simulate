@@ -8,7 +8,7 @@ namespace SimEnv.GLTF {
     public class HFColliders {
         public List<GLTFCollider> colliders;
 
-        public HF_colliders() {
+        public HFColliders() {
             colliders = new List<GLTFCollider>();
         }
 
@@ -49,15 +49,15 @@ namespace SimEnv.GLTF {
             List<GLTFCollider> colliders = new List<GLTFCollider>();
             foreach (GLTFNode.ExportResult node in nodes) {
                 GLTFCollider collider = Export(node);
-                if(collider == null) continue;
+                if (collider == null) continue;
                 if (!colliders.Contains(collider))
                     colliders.Add(collider);
                 node.extensions ??= new GLTFNode.Extensions();
-                node.extensions.HF_colliders = new GLTFNode.HF_collider() { collider = colliders.IndexOf(collider) };
+                node.extensions.HF_colliders = new GLTFNode.HFCollider() { collider = colliders.IndexOf(collider) };
             }
-            if(colliders.Count == 0) return;
+            if (colliders.Count == 0) return;
             gltfObject.extensions ??= new GLTFExtensions();
-            gltfObject.extensions.HF_colliders ??= new HF_colliders();
+            gltfObject.extensions.HF_colliders ??= new HFColliders();
             gltfObject.extensions.HF_colliders.colliders.AddRange(colliders);
             gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
         }

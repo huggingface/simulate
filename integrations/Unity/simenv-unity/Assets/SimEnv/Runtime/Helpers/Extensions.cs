@@ -6,7 +6,7 @@ using UnityEngine;
 namespace SimEnv {
     public static class Extensions {
         public static Coroutine RunCoroutine(this IEnumerator item) {
-            if(Simulator.instance == null) {
+            if (Simulator.instance == null) {
                 Debug.LogWarning("No simulator found");
                 return null;
             }

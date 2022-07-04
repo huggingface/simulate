@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Linq;
 using SimEnv.RlAgents;
+using UnityEngine.Rendering.Universal;
 
 namespace SimEnv.GLTF {
     public class GLTFNode {
@@ -95,7 +96,7 @@ namespace SimEnv.GLTF {
                     IsCompleted = true;
                     yield break;
                 }
-    
+
                 // Create gameObjects - give names and register Nodes with the Simulator
                 result = new ImportResult[nodes.Count];
                 for (int i = 0; i < result.Length; i++) {
@@ -103,7 +104,7 @@ namespace SimEnv.GLTF {
                     result[i].transform = new GameObject().transform;
                     result[i].transform.gameObject.name = nodes[i].name;
                     result[i].node = result[i].transform.gameObject.AddComponent<Node>();
-                    if(Application.isPlaying)
+                    if (Application.isPlaying)
                         result[i].node.Initialize();
                 }
 
@@ -183,6 +184,7 @@ namespace SimEnv.GLTF {
                             } else {
                                 KHRLightsPunctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
                                 Light light = result[i].transform.gameObject.AddComponent<Light>();
+                                light.gameObject.AddComponent<UniversalAdditionalLightData>();
                                 result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                                 if (!string.IsNullOrEmpty(lightData.name))
                                     light.transform.gameObject.name = lightData.name;
@@ -190,7 +192,7 @@ namespace SimEnv.GLTF {
                                 light.intensity = lightData.intensity;
                                 light.range = lightData.range;
                                 light.shadows = LightShadows.Soft;
-                                switch(lightData.type) {
+                                switch (lightData.type) {
                                     case LightType.directional:
                                         light.type = UnityEngine.LightType.Directional;
                                         break;
@@ -248,8 +250,7 @@ namespace SimEnv.GLTF {
                                 rb.drag = rigidbody.drag;
                                 rb.angularDrag = rigidbody.angular_drag;
 
-                                foreach (string constraint in rigidbody.constraints)
-                                {
+                                foreach (string constraint in rigidbody.constraints) {
                                     switch (constraint) {
                                         case "freeze_position_x":
                                             rb.constraints = rb.constraints | RigidbodyConstraints.FreezePositionX;
@@ -277,27 +278,27 @@ namespace SimEnv.GLTF {
                             }
                         }
 
-                        if(nodes[i].extensions.HF_custom != null) {
-                            for(int j = 0; j < nodes[i].extensions.HF_custom.Length; j++) {
+                        if (nodes[i].extensions.HF_custom != null) {
+                            for (int j = 0; j < nodes[i].extensions.HF_custom.Length; j++) {
                                 string json = nodes[i].extensions.HF_custom[j];
                                 CustomExtensionWrapper wrapper = JsonUtility.FromJson<CustomExtensionWrapper>(json);
-                                if(wrapper == null) {
+                                if (wrapper == null) {
                                     Debug.LogWarning($"Invalid custom extension JSON: {json}");
                                     continue;
                                 }
-                                if(!Simulator.GLTFExtensions.TryGetValue(wrapper.type, out Type extensionType)) {
+                                if (!Simulator.GLTFExtensions.TryGetValue(wrapper.type, out Type extensionType)) {
                                     Debug.LogWarning($"Extension type {wrapper.type} not found.");
                                     continue;
                                 }
                                 IGLTFExtension extension = JsonConvert.DeserializeObject(wrapper.contents, extensionType) as IGLTFExtension;
-                                if(Application.isPlaying)
+                                if (Application.isPlaying)
                                     extension.Initialize(result[i].node);
                             }
                         }
                     }
                 }
-                if(!Application.isPlaying) {
-                    for(int i = 0; i < result.Length; i++) {
+                if (!Application.isPlaying) {
+                    for (int i = 0; i < result.Length; i++) {
                         GameObject.DestroyImmediate(result[i].node);
                     }
                 }

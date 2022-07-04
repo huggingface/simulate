@@ -53,8 +53,8 @@ namespace SimEnv.GLTF {
             List<GLTFMesh.ExportResult> meshes = GLTFMesh.Export(gltfObject, nodes, ref bufferData);
             GLTFMaterial.Export(gltfObject, imageDict, meshes, filepath);
             GLTFImage.Export(gltfObject, imageDict);
-            KHR_lights_punctual.Export(gltfObject, nodes);
-            HF_colliders.Export(gltfObject, nodes);
+            KHRLightsPunctual.Export(gltfObject, nodes);
+            HFColliders.Export(gltfObject, nodes);
             GLTFBuffer.Export(gltfObject, bufferData, filepath);
 
             return gltfObject;

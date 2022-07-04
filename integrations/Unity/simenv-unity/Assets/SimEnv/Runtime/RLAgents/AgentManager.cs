@@ -21,10 +21,6 @@ namespace SimEnv.RlAgents {
         float physicsUpdateRate;
         int frameSkip;
 
-        public AgentManager() {
-
-        }
-
         public void Initialize() {
             for (int i = 0; i < agents.Count; i++) {
                 agents[i].Initialize();
@@ -52,7 +48,7 @@ namespace SimEnv.RlAgents {
             } else {
                 Debug.LogWarning("Attempting to step environment without an Agent");
             }
-            Debug.Log("Doing " + frameSkip + " steps");
+            // Debug.Log("Doing " + frameSkip + " steps");
             for (int j = 0; j < frameSkip; j++) {
                 if (agents != null) {
                     for (int i = 0; i < agents.Count; i++) {
