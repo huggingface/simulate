@@ -49,8 +49,8 @@ for x in [0, 21, 42, 63]:
         #scene += sm.ProcgenGrid(specific_map=specific_map)
 
 
-camera_height = scene.observation_space[0].shape[0]
-camera_width = scene.observation_space[0].shape[1]
+camera_height = scene.observation_space.shape[1]
+camera_width = scene.observation_space.shape[2]
 
 scene.show()
 
