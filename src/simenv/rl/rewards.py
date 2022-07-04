@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 ALLOWED_REWARD_TYPES = ["dense", "sparse"]
-ALLOWER_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO(Ed) other metrics?
+ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO(Ed) other metrics?
 
 
 @dataclass
@@ -34,8 +34,8 @@ class RewardFunction:
 
         new_instance = type(self)(
             type=self.type,
-            entity_a=root.get(self.entity_a._get_last_copy_name()),
-            entity_b=root.get(self.entity_b._get_last_copy_name()),
+            entity_a=root.get_in_descendants(self.entity_a._get_last_copy_name()),
+            entity_b=root.get_in_descendants(self.entity_b._get_last_copy_name()),
             distance_metric=self.distance_metric,
             scalar=self.scalar,
             threshold=self.threshold,

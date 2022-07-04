@@ -132,6 +132,10 @@ class Scene(Asset, Env):
         return self.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))
 
     @property
+    def n_agents(self) -> int:
+        return len(self.agents)
+
+    @property
     def observation_space(self):
         agents = self.agents
         if agents:
