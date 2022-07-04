@@ -3,7 +3,6 @@
 import numpy as np
 
 import simenv as sm
-from simenv.assets.agent import rl_agent_actions
 
 
 def add_random_collectables_rewards(agents, objects, verbose):
@@ -20,17 +19,17 @@ def add_random_collectables_rewards(agents, objects, verbose):
 
     # Create Reward function
     for obj_idx, agent in zip(object_idxs, agents):
-        reward_function = sm.RlAgentRewardFunction(
-            function="sparse",
-            entity1=agent,
-            entity2=objects[obj_idx],
+        reward_function = sm.RewardFunction(
+            type="sparse",
+            entity_a=agent,
+            entity_b=objects[obj_idx],
             distance_metric="euclidean",
             threshold=1.0,
             is_terminal=True,
             is_collectable=True,
         )
 
-        agent.add_reward_function(reward_function)
+        agent.rl_component.rewards.append(reward_function)
 
         if verbose:
             print("Agent {} will collect object {}".format(agent.name, objects[obj_idx].name))
@@ -44,32 +43,32 @@ def add_collect_all_rewards(agents, objects, verbose):
     """
     for agent in agents:
         for obj in objects:
-            reward_function = sm.RlAgentRewardFunction(
-                function="sparse",
-                entity1=agent,
-                entity2=obj,
+            reward_function = sm.RewardFunction(
+                type="sparse",
+                entity_a=agent,
+                entity_b=obj,
                 distance_metric="euclidean",
                 threshold=1.0,
                 is_terminal=False,
                 is_collectable=True,
             )
 
-            agent.add_reward_function(reward_function)
+            agent.rl_component.rewards.append(reward_function)
 
 
 def add_timeout_rewards(agents):
     for agent in agents:
-        timeout_reward_function = sm.RlAgentRewardFunction(
-            function="timeout",
-            entity1=agent,
-            entity2=agent,
+        timeout_reward_function = sm.RewardFunction(
+            type="timeout",
+            entity_a=agent,
+            entity_b=agent,
             distance_metric="euclidean",
             threshold=1500,
             is_terminal=True,
             scalar=-1.0,
         )
-
-        agent.add_reward_function(timeout_reward_function)
+        
+        agent.rl_component.rewards.append(timeout_reward_function)
 
 
 def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_height=72, verbose=True):
@@ -89,14 +88,11 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_he
     agents = []
 
     for i, pos in enumerate(agent_pos):
-        agent = sm.RlAgent(
-            name=f"agent_{i}",
+        agent = sm.SimpleRlAgent(
             camera_width=camera_width,
             camera_height=camera_height,
             position=pos,
-            height=0.8,
-            color=[0.1, 0.1, 0.0],
-            rl_agent_actions=rl_agent_actions.DiscreteRLAgentActions.simple(),
+            scaling=[0.8],
         )
         agents.append(agent)
 

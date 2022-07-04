@@ -18,6 +18,7 @@ if __name__ == "__main__":
     env = make_env(
         "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64",
         sample_from=example_map,
+        engine="Unity",
         seed=None,
         n_agents=1,
         n_objects=6,

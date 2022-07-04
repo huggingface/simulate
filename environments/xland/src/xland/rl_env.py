@@ -1,13 +1,14 @@
 """RL env generation."""
 
-from .xland_env import XLandEnv
+from .gen_scene import create_scene
 
 
 def create_env(executable, width, height, sample_from, tiles, neighbors, seed, port=None, headless=None, **kwargs):
     """
     Create Xland RL env.
     """
-    env = XLandEnv(
+    
+    success, scene = create_scene(
         executable=executable,
         width=width,
         height=height,
@@ -19,7 +20,11 @@ def create_env(executable, width, height, sample_from, tiles, neighbors, seed, p
         headless=headless,
         **kwargs,
     )
-    return env
+
+    if not success:
+        raise Exception("Could not generate env.")
+
+    return scene
 
 
 # TODO: bug with seed
