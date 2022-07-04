@@ -1,2 +1,2 @@
 from .constants import GRANULARITY, HEIGHT_CONSTANT
-from .wfc import generate_seed, build_wfc_tile, build_wfc_neighbor
+from .wfc import build_wfc_neighbor, build_wfc_tile, generate_seed
