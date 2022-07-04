@@ -123,7 +123,6 @@ class Asset(NodeMixin, object):
 
     def get_in_descendants(self, name:str):
         for node in self.tree_descendants:
-            print("getting", name, node.name, self.name)
             if node.name == name:
                 return node
 

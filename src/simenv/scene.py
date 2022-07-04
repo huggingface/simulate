@@ -88,6 +88,7 @@ class Scene(Asset, Env):
 
         self._built = False
         self._created_from_file = created_from_file
+        self._n_agents = None
 
     def __len__(self):
         return len(self.tree_descendants)
@@ -133,7 +134,9 @@ class Scene(Asset, Env):
 
     @property
     def n_agents(self) -> int:
-        return len(self.agents)
+        if self._n_agents is None:
+            self._n_agents = len(self.agents) # potentially expensive operation
+        return self._n_agents
 
     @property
     def observation_space(self):
@@ -153,15 +156,22 @@ class Scene(Asset, Env):
         """Reset the environment / episode"""
         self.engine.reset()
         obs = self.engine.get_obs()
+        if self.n_agents == 1:
+            return obs[0]
         return obs
 
     def step(self, action):
         """Step the Scene"""
+
+        if self.n_agents == 1:
+            action = [int(action)]
+
         self.engine.step(action)
 
         obs = self.engine.get_obs()
         reward = self.engine.get_reward()
         done = self.engine.get_done()
-        info = {}  # TODO: Add info to the backend, if we require it
-
+        info = [{}]*self.n_agents  # TODO: Add info to the backend, if we require it
+        if self.n_agents == 1:
+            return obs[0], reward[0], done[0], info[0]
         return obs, reward, done, info

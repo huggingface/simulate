@@ -3,19 +3,18 @@ from requests import head
 import simenv as sm
 import simenv.assets.utils as utils
 import os, time
-from simenv.rl_env import RLEnv
+
 import matplotlib.pyplot as plt
 import numpy as np
 import random
 from stable_baselines3.common.vec_env import SubprocVecEnv
 from stable_baselines3 import PPO
-from stable_baselines3.common.env_checker import check_env
 
 ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
 
 def create_env(executable=None, port=None, headless=None):
-    scene = sm.Scene(engine="Unity", executable=executable, port=port, headless=headless)
+    scene = sm.Scene(engine="Unity", engine_exe=executable, engine_port=port, engine_headless=headless)
 
 
     scene += sm.Light(
@@ -32,28 +31,30 @@ def create_env(executable=None, port=None, headless=None):
     scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
 
-    agent = sm.RlAgent(name="agent", turn_speed=5.0,camera_width=36, camera_height=36,  position=[0, 0, 0.0], rotation=utils.quat_from_degrees(0, -180, 0))
-    scene += sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
+    
+    agent = sm.SimpleRlAgent(camera_width=64, camera_height=40, position=[0.0, 0.0, 0.0])
+    collectable = sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
+    scene += collectable
 
-    reward_function = sm.RlAgentRewardFunction(
-        function="dense",
-        entity_a="agent",
-        entity2="collectable",
+    reward_function = sm.RewardFunction(
+        type="dense",
+        entity_a=agent,
+        entity_b=collectable,
         distance_metric="euclidean"
     )
 
-    reward_function2 = sm.RlAgentRewardFunction(
-        function="sparse",
-        entity_a="agent",
-        entity2="collectable",
+    reward_function2 = sm.RewardFunction(
+        type="sparse",
+        entity_a=agent,
+        entity_b=collectable,
         distance_metric="euclidean",
         threshold=0.2,
         is_terminal=True
     )
-    timeout_reward_function = sm.RlAgentRewardFunction(
-        function="timeout",
-        entity_a="agent",
-        entity2="agent",
+    timeout_reward_function = sm.RewardFunction(
+        type="timeout",
+        entity_a=agent,
+        entity_b=agent,
         distance_metric="euclidean",
         threshold=200,
         is_terminal=True,
@@ -65,9 +66,7 @@ def create_env(executable=None, port=None, headless=None):
     scene += agent
     scene.show()
 
-    env = RLEnv(scene)
-
-    return env
+    return scene
 
 def make_env(executable, rank, seed=0, headless=None):
     def _make_env():
@@ -78,12 +77,10 @@ def make_env(executable, rank, seed=0, headless=None):
     return _make_env
 
 if __name__ == "__main__":
-
-
-    n_envs = 16
-
+    n_envs = 1
     # envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i) for i in range(n_envs)])
-    envs = SubprocVecEnv([make_env(ED_UNITY_BUILD_URL, i) for i in range(n_envs)])
+    envs = SubprocVecEnv([make_env(None, i) for i in range(n_envs)])
+    print(envs.observation_space)
 
     obs = envs.reset()
     model = PPO("CnnPolicy", envs, verbose=3)
