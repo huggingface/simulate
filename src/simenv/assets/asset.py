@@ -121,6 +121,12 @@ class Asset(NodeMixin, object):
             if node.name == name:
                 return node
 
+    def get_in_descendants(self, name:str):
+        for node in self.tree_descendants:
+            print("getting", name, node.name, self.name)
+            if node.name == name:
+                return node
+
     def copy(self, with_children=True, **kwargs):
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
 
