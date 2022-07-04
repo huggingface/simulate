@@ -5,8 +5,8 @@ In this instance, we don't interact with the environment but rather just show it
 """
 
 import argparse
-from collections import defaultdict
 import time
+from collections import defaultdict
 
 from xland import create_scene
 from xland.utils import create_2d_map, generate_tiles
@@ -55,7 +55,7 @@ if __name__ == "__main__":
             extra_args["specific_map"] = m
         else:
             extra_args["sample_map"] = m
-    
+
     t = time.time()
     success, scene = create_scene(executable=ALICIA_UNITY_BUILD_URL, **vars(args), **extra_args)
     print("Time in seconds to generate map: {}".format(time.time() - t))
