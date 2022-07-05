@@ -93,10 +93,10 @@ class SimpleRlAgent(Capsule):
         self.rl_component = RlComponent(actions=actions, observations=camera, rewards=rewards)
         self.physics_component = RigidBody(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
 
-    def add_reward_function(self, reward_function):
+    def add_reward_function(self, reward_function: RewardFunction):
         self.rl_component.rewards.append(reward_function)
 
-    def copy(self, with_children=True, **kwargs):
+    def copy(self, with_children=True, **kwargs) -> 'SimpleRlAgent':
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
 
         copy_name = self.name + f"_copy{self._n_copies}"
