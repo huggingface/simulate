@@ -49,7 +49,9 @@ def create_env(executable=None, port=None, headless=None):
         entity_b=collectable,
         distance_metric="euclidean",
         threshold=0.2,
-        is_terminal=True
+        is_terminal=True,
+        is_collectable=True
+
     )
     timeout_reward_function = sm.RewardFunction(
         type="timeout",
