@@ -2,7 +2,6 @@ import numpy as np
 from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 
 
-
 class ParallelSimEnv(VecEnv):
     # Launched several env processes and communicates with
     # them in a semi-async manner

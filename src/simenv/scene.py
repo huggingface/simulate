@@ -135,7 +135,7 @@ class Scene(Asset, Env):
     @property
     def n_agents(self) -> int:
         if self._n_agents is None:
-            self._n_agents = len(self.agents) # potentially expensive operation
+            self._n_agents = len(self.agents)  # potentially expensive operation
         return self._n_agents
 
     @property
@@ -171,8 +171,9 @@ class Scene(Asset, Env):
         obs = self.engine.get_obs()
         reward = self.engine.get_reward()
         done = self.engine.get_done()
-        info = [{}]*self.n_agents  # TODO: Add info to the backend, if we require it
+        info = [{}] * self.n_agents  # TODO: Add info to the backend, if we require it
         if self.n_agents == 1:
             return obs[0], reward[0], done[0], info[0]
+
     def render(self, path: str):
         return self.engine.render(path=path)

@@ -96,7 +96,7 @@ class SimpleRlAgent(Capsule):
     def add_reward_function(self, reward_function: RewardFunction):
         self.rl_component.rewards.append(reward_function)
 
-    def copy(self, with_children=True, **kwargs) -> 'SimpleRlAgent':
+    def copy(self, with_children=True, **kwargs) -> "SimpleRlAgent":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
 
         copy_name = self.name + f"_copy{self._n_copies}"
@@ -117,13 +117,14 @@ class SimpleRlAgent(Capsule):
 
             for child in instance_copy.tree_children:
                 child._post_copy()
-        
-        instance_copy.rl_component = RlComponent(self.rl_component.actions,
-        self.rl_component.observations, self.rl_component.rewards)
-        
+
+        instance_copy.rl_component = RlComponent(
+            self.rl_component.actions, self.rl_component.observations, self.rl_component.rewards
+        )
+
         instance_copy.physics_component = self.physics_component
 
         return instance_copy
-    
+
     def _post_copy(self):
         self.rl_component._post_copy(self)

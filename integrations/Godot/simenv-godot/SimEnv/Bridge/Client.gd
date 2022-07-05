@@ -8,6 +8,8 @@ signal error
 
 var _status: int = 0
 var _stream: StreamPeerTCP = StreamPeerTCP.new()
+var _chunk_size: int = 1024
+var _warmed_up: bool = false
 
 func _ready() -> void:
 	_status = _stream.get_status()
@@ -15,7 +17,10 @@ func _ready() -> void:
 func _physics_process(_delta):
 	# this is called at a fixed rate
 	update_status()
-	read()	
+
+	if _status == _stream.STATUS_CONNECTED:
+		get_tree().paused = true
+		read()
 
 func update_status():
 	_stream.poll()
@@ -36,26 +41,39 @@ func update_status():
 				emit_signal("error")
 
 func read():
-	if _status == _stream.STATUS_CONNECTED:
-		var available_bytes: int = _stream.get_available_bytes()
-		if available_bytes > 0:
-			print("Available bytes: ", available_bytes)
-			var stream_data: Array = _stream.get_partial_data(available_bytes)
+	update_status()
+	var available_bytes: int = _stream.get_available_bytes()
+	var bytes_data: PackedByteArray = PackedByteArray()
+	if available_bytes > 0:
+		var msg_length: int = _stream.get_32()
+		print("Message length: " + str(msg_length))
+		available_bytes = _stream.get_available_bytes()
+		while len(bytes_data) < msg_length:
+			var stream_data: Array = _stream.get_partial_data(min(_chunk_size, msg_length - len(bytes_data)))
 			if stream_data[0] != OK:
 				print("Error getting data from stream: ", stream_data[0])
 				emit_signal("error")
+				break
 			else:
-				emit_signal("data", stream_data[1])
+				bytes_data += stream_data[1]
+				available_bytes = _stream.get_available_bytes()
+	if len(bytes_data) > 0:
+		emit_signal("data", bytes_data)
+		_warmed_up = true
+	else:
+		if _warmed_up:
+			read()
+		else:
+			get_tree().paused = false
 
 func connect_to_host(host: String, port: int) -> void:
 	print("Connecting to %s:%d" % [host, port])
-	
 	if _status == _stream.STATUS_CONNECTED:
 		_stream.disconnect_from_host()
-	
 	_status = _stream.STATUS_NONE
 	if _stream.connect_to_host(host, port) != OK:
 		print("Error connecting to host.")
+		_stream.disconnect_from_host()
 		emit_signal("error")
 
 func send(out_data: PackedByteArray) -> bool:
