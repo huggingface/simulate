@@ -2,6 +2,7 @@ namespace SimEnv.RlAgents {
     public class AgentsPlugin : IPlugin {
         public void OnCreated() {
             AgentManager.instance ??= new AgentManager();
+            EnvironmentManager.instance ??= new EnvironmentManager();
         }
 
         public void OnReleased() {

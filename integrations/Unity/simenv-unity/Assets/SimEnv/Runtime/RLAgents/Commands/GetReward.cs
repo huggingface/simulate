@@ -5,7 +5,7 @@ namespace SimEnv.RlAgents {
         public string message;
 
         public void Execute(UnityAction<string> callback) {
-            float[] reward = AgentManager.instance.GetReward();
+            float[] reward = EnvironmentManager.instance.GetReward();
             callback(JsonHelper.ToJson(reward));
         }
     }

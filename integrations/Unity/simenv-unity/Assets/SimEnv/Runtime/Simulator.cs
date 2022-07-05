@@ -56,6 +56,10 @@ namespace SimEnv {
         /// </summary>
         public static GameObject Root;
 
+        public static List<GameObject> MapPool;
+        public static bool poolInitialized = false;
+        public static int envId = 0;
+
         /// <summary>
         /// Whether the current environment is undefined, active, loading, or unloading.
         /// </summary>
@@ -128,6 +132,23 @@ namespace SimEnv {
             Root = GLTF.Importer.LoadFromBytes(bytes);
             OnAfterLoad();
         }
+
+        // public static void AddToPool(byte[] bytes) {
+        //     Debug.Log("adding map to pool");
+
+        //     if (!poolInitialized) {
+        //         Unload();
+        //         OnBeforeLoad();
+        //     }
+
+        //     RlAgents.EnvironmentManager.instance.Register(map);
+
+        //     if (!poolInitialized) {
+        //         poolInitialized = true;
+        //         OnAfterLoad();
+        //     }
+        //     Debug.Log("Map added to pool");
+        // }
 
         /// <summary>
         /// Asynchronously loads an environment from bytes.

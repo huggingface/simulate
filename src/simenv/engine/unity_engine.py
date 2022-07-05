@@ -108,6 +108,15 @@ class UnityEngine(Engine):
     def show(self, **engine_kwargs):
         self._send_gltf(self._scene.as_glb_bytes())
 
+    def activate_environments(self, n_agents):
+        command = {"type": "ActivateEnvironments", "contents": json.dumps({"n_agents": n_agents})}
+        return self.run_command(command)
+
+    def add_to_pool(self, map_bytes):
+        b64_bytes = base64.b64encode(map_bytes).decode("ascii")
+        command = {"type": "AddToPool", "contents": json.dumps({"b64bytes": b64_bytes})}
+        self.run_command(command, ack=True)        
+
     def step(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
         return self.run_command(command)
@@ -150,10 +159,12 @@ class UnityEngine(Engine):
         return [d for d in data["Items"]]
 
     def reset(self):
+        print("reset")
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command)
 
     def reset_send(self):
+        print("reset")
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command, ack=False)
 

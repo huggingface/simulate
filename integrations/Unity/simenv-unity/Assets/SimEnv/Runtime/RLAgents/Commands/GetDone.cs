@@ -5,7 +5,7 @@ namespace SimEnv.RlAgents {
         public string message;
 
         public void Execute(UnityAction<string> callback) {
-            bool[] done = AgentManager.instance.GetDone();
+            bool[] done = EnvironmentManager.instance.GetDone();
             callback(JsonHelper.ToJson(done));
         }
     }
