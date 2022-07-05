@@ -98,8 +98,6 @@ class Camera(Asset):
 
         return instance_copy
 
-
-
     @Asset.position.setter
     def position(self, value):  # override default position a distance from the origin
         if self.dimensionality == 3:

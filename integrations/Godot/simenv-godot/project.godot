@@ -10,6 +10,11 @@ config_version=5
 
 _global_script_classes=[{
 "base": "Node",
+"class": &"Agent",
+"language": &"GDScript",
+"path": "res://SimEnv/Simulation/Agent.gd"
+}, {
+"base": "Node",
 "class": &"Client",
 "language": &"GDScript",
 "path": "res://SimEnv/Bridge/Client.gd"
@@ -20,6 +25,7 @@ _global_script_classes=[{
 "path": "res://SimEnv/Bridge/Command.gd"
 }]
 _global_script_class_icons={
+"Agent": "",
 "Client": "",
 "Command": ""
 }
