@@ -31,7 +31,7 @@ except ImportError:
 
 def map_observation_devices_to_spaces(asset: Asset):
     if isinstance(asset, Camera):
-        return spaces.Box(low=0, high=255, shape=[asset.height, asset.width, 3], dtype=np.uint8)
+        return spaces.Box(low=0, high=255, shape=[3, asset.height, asset.width], dtype=np.uint8)
     raise NotImplementedError(
         f"This Asset ({type(Asset)})is not yet implemented " f"as an RlAgent type of observation."
     )

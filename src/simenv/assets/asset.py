@@ -117,7 +117,7 @@ class Asset(NodeMixin, object):
 
     def get(self, name: str):
         """Return the first children tree node with the given name."""
-        for node in self.tree_children:
+        for node in self.tree_descendants:
             if node.name == name:
                 return node
 

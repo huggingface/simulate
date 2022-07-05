@@ -67,8 +67,12 @@ class Camera(Asset):
 
     def copy(self, with_children=True, **kwargs):
         """Return a copy of the Camera with copy of the children attached to the copy."""
+
+        copy_name = self.name + f"_copy{self._n_copies}"
+        self._n_copies += 1
+
         instance_copy = type(self)(
-            name=None,
+            name=copy_name,
             position=self.position,
             rotation=self.rotation,
             scaling=self.scaling,
@@ -89,8 +93,12 @@ class Camera(Asset):
             for child in self.tree_children:
                 copy_children.append(child.copy(**kwargs))
             instance_copy.tree_children = copy_children
+            for child in instance_copy.tree_children:
+                child._post_copy()
 
         return instance_copy
+
+
 
     @Asset.position.setter
     def position(self, value):  # override default position a distance from the origin

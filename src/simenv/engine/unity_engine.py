@@ -181,7 +181,6 @@ class UnityEngine(Engine):
         # TODO: remove np.flip for training (the agent does not care the world is upside-down
         # TODO: have unity side send in B,C,H,W order
         shape = obs["shape"]
-        print("shape", shape)
         return np.flip(np.array(obs["Items"]).astype(np.uint8).reshape(*shape), 1).transpose(0, 3, 1, 2)
 
     def run_command(self, command, ack=True):

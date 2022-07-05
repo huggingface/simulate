@@ -16,7 +16,8 @@ namespace SimEnv.RlAgents {
                 return _agents;
             }
         }
-
+        int obsSize;
+        uint[] agentPixelValues;
         float physicsUpdateRate;
         int frameSkip;
 
@@ -28,6 +29,10 @@ namespace SimEnv.RlAgents {
             for (int i = 0; i < agents.Count; i++) {
                 agents[i].Initialize();
             }
+            Agent exampleAgent = agents[0] as Agent;
+            obsSize = exampleAgent.getObservationSizes();
+            agentPixelValues = new uint[agents.Count * obsSize];
+
             frameSkip = Client.instance.frameSkip;
             physicsUpdateRate = Client.instance.physicsUpdateRate;
         }
@@ -78,15 +83,12 @@ namespace SimEnv.RlAgents {
             Agent exampleAgent = agents[0] as Agent;
             // the coroutine has to be started from a monobehavior or something like that
 
-            int obsSize = exampleAgent.getObservationSizes();
-            uint[] pixel_values = new uint[agents.Count * obsSize]; // make this a member variable somewhere
-
             int[] obsShape = exampleAgent.getObservationShape();
 
             List<Coroutine> coroutines = new List<Coroutine>();
             for (int i = 0; i < agents.Count; i++) {
                 Agent agent = agents[i] as Agent;
-                Coroutine coroutine = agent.GetObservationCoroutine(pixel_values, i * obsSize).RunCoroutine();
+                Coroutine coroutine = agent.GetObservationCoroutine(agentPixelValues, i * obsSize).RunCoroutine();
                 coroutines.Add(coroutine);
             }
 
@@ -99,7 +101,7 @@ namespace SimEnv.RlAgents {
             Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values
 
             Debug.Log("Casting back observations in JSON");
-            string string_array = JsonHelper.ToJson(pixel_values, shapeWithAgents);
+            string string_array = JsonHelper.ToJson(agentPixelValues, shapeWithAgents);
             Debug.Log("Sending back observations");
             callback(string_array);
         }

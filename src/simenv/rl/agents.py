@@ -75,6 +75,7 @@ class SimpleRlAgent(Capsule):
         self.translate_y(0.51)  # Move our agent a bit higher than the ground
         # Add a camera as children
         camera = Camera(width=camera_width, height=camera_height, position=[0, 0.75, 0])
+
         self.tree_children = [camera]
 
         # Create a reward function if a target is provided
@@ -91,3 +92,38 @@ class SimpleRlAgent(Capsule):
 
         self.rl_component = RlComponent(actions=actions, observations=camera, rewards=rewards)
         self.physics_component = RigidBody(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
+
+    def add_reward_function(self, reward_function: RewardFunction):
+        self.rl_component.rewards.append(reward_function)
+
+    def copy(self, with_children=True, **kwargs) -> 'SimpleRlAgent':
+        """Return a copy of the Asset. Parent and children are not attached to the copy."""
+
+        copy_name = self.name + f"_copy{self._n_copies}"
+        self._n_copies += 1
+        instance_copy = type(self)(
+            name=copy_name,
+            position=self.position,
+            rotation=self.rotation,
+            scaling=self.scaling,
+            collider=self.collider,
+        )
+
+        if with_children:
+            copy_children = []
+            for child in self.tree_children:
+                copy_children.append(child.copy(**kwargs))
+            instance_copy.tree_children = copy_children
+
+            for child in instance_copy.tree_children:
+                child._post_copy()
+        
+        instance_copy.rl_component = RlComponent(self.rl_component.actions,
+        self.rl_component.observations, self.rl_component.rewards)
+        
+        instance_copy.physics_component = self.physics_component
+
+        return instance_copy
+    
+    def _post_copy(self):
+        self.rl_component._post_copy(self)

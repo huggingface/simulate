@@ -7,7 +7,7 @@ if TYPE_CHECKING:
 
 
 ALLOWED_REWARD_TYPES = ["dense", "sparse"]
-ALLOWER_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO(Ed) other metrics?
+ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO(Ed) other metrics?
 
 
 @dataclass
