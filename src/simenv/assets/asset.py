@@ -18,7 +18,7 @@ import itertools
 import os
 import tempfile
 import uuid
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional, Union, Tuple
 
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
@@ -160,7 +160,7 @@ class Asset(NodeMixin, object):
         is_local: Optional[bool] = None,
         file_type: Optional[str] = None,
         **kwargs,
-    ):
+    ) -> Tuple["Asset", str]:
         """Return a root tree loaded from the HuggingFace hub or from a local GLTF file.
 
         First argument is either:
@@ -176,14 +176,17 @@ class Asset(NodeMixin, object):
         # We import dynamically here to avoid circular import (tried many other options...)
         from .gltf_import import load_gltf_as_tree
 
+        repo_id = None
+        subfolder = None
+
         if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and is_local is not False:
-            gltf_file = hub_or_local_filepath
+            file_path = hub_or_local_filepath
         else:
             splitted_hub_path = hub_or_local_filepath.split("/")
             repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
             filename = splitted_hub_path[-1]
             subfolder = "/".join(splitted_hub_path[2:-1])
-            gltf_file = hf_hub_download(
+            file_path = hf_hub_download(
                 repo_id=repo_id,
                 filename=filename,
                 subfolder=subfolder,
@@ -193,18 +196,15 @@ class Asset(NodeMixin, object):
                 # force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
                 **kwargs,
             )
-        nodes = Asset.create_from(gltf_file, repo_id=repo_id, subfolder=subfolder, revision=revision)
 
         nodes = load_gltf_as_tree(
-            gltf_file=gltf_file, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
+            file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
         )
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
         else:
             root = Asset(name="Scene", children=nodes)  # Otherwise we build a main root node
-        return root
-
-        return nodes, gltf_file
+        return root, file_path
 
     @classmethod
     def create_from(

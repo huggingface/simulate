@@ -19,7 +19,7 @@ from typing import Any, List, Optional, Tuple, Union
 
 from .assets import Asset, Camera, Light, Object3D
 from .assets.anytree import RenderTree
-from .engine import GodotEngine, PyVistaEngine, UnityEngine
+from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
 from .rl import RlComponent
 
 
@@ -77,11 +77,11 @@ class Scene(Asset, Env):
         elif engine == "godot":
             self.engine = GodotEngine(self)
         elif engine == "blender":
-            raise NotImplementedError()
+            self.engine = BlenderEngine(self)
         elif engine == "pyvista" or engine is None:
             self.engine = PyVistaEngine(self, **kwargs)
         elif engine is not None:
-            raise ValueError("engine should be selected in the list [None, 'unity', 'blender', 'pyvista']")
+            raise ValueError("engine should be selected in the list [None, 'unity', 'godot', 'blender', 'pyvista']")
 
         self.parameters = None
         self.state = None
@@ -174,4 +174,5 @@ class Scene(Asset, Env):
         info = [{}]*self.n_agents  # TODO: Add info to the backend, if we require it
         if self.n_agents == 1:
             return obs[0], reward[0], done[0], info[0]
-        return obs, reward, done, info
+    def render(self, path: str):
+        return self.engine.render(path=path)
