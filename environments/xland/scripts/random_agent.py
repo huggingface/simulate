@@ -6,6 +6,8 @@ from matplotlib import pyplot as plt
 from xland import make_env
 from xland.utils import create_2d_map
 
+ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+
 
 if __name__ == "__main__":
     plt.ion()
@@ -16,7 +18,7 @@ if __name__ == "__main__":
 
     # Maybe the executable is not something to be exposed? Can't we generate it and use it by default
     env = make_env(
-        "/home/alicia/github/split/keep_last_commit/simenv/integrations/Unity/builds/simenv_unity.x86_64",
+        executable=None,
         sample_from=example_map,
         engine="Unity",
         seed=None,

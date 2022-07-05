@@ -7,6 +7,8 @@ from xland.utils import create_2d_map
 
 from simenv.wrappers import ParallelSimEnv
 
+ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+
 
 # TODO: check if seeding works properly and maybe migrate to using rng keys
 if __name__ == "__main__":
@@ -16,7 +18,7 @@ if __name__ == "__main__":
 
     example_map = create_2d_map("example_map_01")
     env_fn = make_env(
-        "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64",
+        executable=None,
         sample_from=example_map,
         seed=None,
         n_agents=1,

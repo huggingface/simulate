@@ -12,7 +12,7 @@ from xland import create_scene
 from xland.utils import create_2d_map, generate_tiles
 
 
-ALICIA_UNITY_BUILD_URL = "/home/alicia/github/split/keep_last_commit/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 
 
 if __name__ == "__main__":
@@ -58,7 +58,7 @@ if __name__ == "__main__":
             extra_args["sample_map"] = m
 
     t = time.time()
-    success, scene = create_scene(executable=ALICIA_UNITY_BUILD_URL, **vars(args), **extra_args)
+    success, scene = create_scene(executable=None, **vars(args), **extra_args)
     print("Time in seconds to generate map: {}".format(time.time() - t))
 
     # If we want to show the map and we were successful
