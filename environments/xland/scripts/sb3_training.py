@@ -5,14 +5,15 @@ from stable_baselines3 import PPO
 from xland import make_env
 from xland.utils import create_2d_map
 
-from simenv.wrappers import ParallelSimEnv
+from simenv import ParallelSimEnv
+
 
 ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 
 
 # TODO: check if seeding works properly and maybe migrate to using rng keys
 if __name__ == "__main__":
-    n_parallel = 16
+    n_parallel = 1
     seed = 10
     np.random.seed(seed)
 
@@ -20,6 +21,7 @@ if __name__ == "__main__":
     env_fn = make_env(
         executable=None,
         sample_from=example_map,
+        engine="Unity",
         seed=None,
         n_agents=1,
         n_objects=6,

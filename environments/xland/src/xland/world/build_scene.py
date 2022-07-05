@@ -182,9 +182,7 @@ def generate_colliders(sg):
     return collider_assets
 
 
-def generate_scene(
-    sg, obj_pos, agent_pos, engine=None, executable=None, port=None, headless=None, verbose=False
-):
+def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=None, headless=None, verbose=False):
     """
     Generate scene using simenv library.
     """
@@ -192,9 +190,12 @@ def generate_scene(
     if engine is not None and engine != "pyvista":
         if port is not None:
             scene = sm.Scene(
-                engine=engine, engine_exe=executable, engine_port=port, engine_headless=headless,
+                engine=engine,
+                engine_exe=executable,
+                engine_port=port,
+                engine_headless=headless,
             )
-            
+
         else:
             scene = sm.Scene(engine=engine, engine_exe=executable, engine_headless=headless)
 

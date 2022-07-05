@@ -7,7 +7,7 @@ def create_env(executable, width, height, sample_from, tiles, neighbors, seed, p
     """
     Create Xland RL env.
     """
-    
+
     success, scene = create_scene(
         executable=executable,
         width=width,
@@ -23,6 +23,8 @@ def create_env(executable, width, height, sample_from, tiles, neighbors, seed, p
 
     if not success:
         raise Exception("Could not generate env.")
+    else:
+        scene.show()
 
     return scene
 

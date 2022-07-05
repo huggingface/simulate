@@ -6,6 +6,7 @@ from matplotlib import pyplot as plt
 from xland import make_env
 from xland.utils import create_2d_map
 
+
 ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 
 
@@ -26,16 +27,15 @@ if __name__ == "__main__":
         n_objects=6,
         width=9,
         height=9,
-    )(port=56000)
-    
-    env.show()
+    )(port=55000)
 
     done = False
     obs = env.reset()
-    obs = obs.reshape(
-        (3, env.scene.root.agents_root.agent_0.camera_height, env.scene.root.agents_root.agent_0.camera_width)
-    ).transpose((1, 2, 0))
 
+    camera_height = env.observation_space.shape[1]
+    camera_width = env.observation_space.shape[2]
+
+    obs = obs.transpose((1, 2, 0))
     axim1 = ax1.imshow(obs, vmin=0, vmax=255)
 
     t = time.time()
@@ -44,7 +44,7 @@ if __name__ == "__main__":
         action = env.action_space.sample()
 
         if type(action) == int:
-            action = [action]
+            action = action
         else:
             action = action.tolist()
 
@@ -54,11 +54,8 @@ if __name__ == "__main__":
 
         else:
             obs, reward, done, info = env.step(action)
-            done = done[0]
 
-        obs = obs.reshape(
-            (3, env.scene.root.agents_root.agent_0.camera_height, env.scene.root.agents_root.agent_0.camera_width)
-        ).transpose((1, 2, 0))
+        obs = obs.transpose((1, 2, 0))
 
         axim1.set_data(obs)
         fig1.canvas.flush_events()

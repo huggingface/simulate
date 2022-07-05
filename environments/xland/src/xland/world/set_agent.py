@@ -29,7 +29,7 @@ def add_random_collectables_rewards(agents, objects, verbose):
             is_collectable=True,
         )
 
-        agent.rl_component.rewards.append(reward_function)
+        agent.add_reward_function(reward_function)
 
         if verbose:
             print("Agent {} will collect object {}".format(agent.name, objects[obj_idx].name))
@@ -53,7 +53,7 @@ def add_collect_all_rewards(agents, objects, verbose):
                 is_collectable=True,
             )
 
-            agent.rl_component.rewards.append(reward_function)
+            agent.add_reward_function(reward_function)
 
 
 def add_timeout_rewards(agents):
@@ -67,8 +67,8 @@ def add_timeout_rewards(agents):
             is_terminal=True,
             scalar=-1.0,
         )
-        
-        agent.rl_component.rewards.append(timeout_reward_function)
+
+        agent.add_reward_function(timeout_reward_function)
 
 
 def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_height=72, verbose=True):
@@ -89,10 +89,11 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_he
 
     for i, pos in enumerate(agent_pos):
         agent = sm.SimpleRlAgent(
+            name="agent_" + str(i),
             camera_width=camera_width,
             camera_height=camera_height,
             position=pos,
-            scaling=[0.8],
+            scaling=0.9,
         )
         agents.append(agent)
 
