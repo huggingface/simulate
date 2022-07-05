@@ -16,7 +16,7 @@
 """ Export a Scene as a GLTF file."""
 from dataclasses import asdict, fields
 from io import BytesIO
-from typing import TYPE_CHECKING, Any, ByteString, Dict, List, Optional
+from typing import TYPE_CHECKING, Any, ByteString, Dict, List, Optional, Set
 
 import numpy as np
 import pyvista as pv
@@ -640,7 +640,7 @@ def add_node_to_scene(
     gl_parent_node_id: Optional[int] = None,
     buffer_id: Optional[int] = 0,
     cache: Optional[Dict] = None,
-) -> set[str]:
+) -> Set[str]:
     gl_node = gl.Node(
         name=node.name,
         translation=node.position.tolist(),

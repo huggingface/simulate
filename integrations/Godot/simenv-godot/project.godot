@@ -28,8 +28,8 @@ _global_script_class_icons={
 
 config/name="simenv-godot"
 run/main_scene="res://Scenes/Scene.tscn"
-config/icon="res://icon.png"
 config/features=PackedStringArray("4.0", "Vulkan Clustered")
+config/icon="res://icon.png"
 
 [rendering]
 
