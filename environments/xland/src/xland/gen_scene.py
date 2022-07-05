@@ -26,6 +26,8 @@ def create_scene(
     verbose=False,
     show=False,
     tiles=None,
+    symmetries=None,
+    weights=None,
     neighbors=None,
     executable=None,
     port=None,
@@ -60,7 +62,7 @@ def create_scene(
         show: Whether to show the map.
         tiles: tiles for simpletiled generation
         neighbors: neighborhood constraints to the tiles
-        TODO: Add executable, port, and headless descriptions.
+        TODO: Add symmetries, weights, executable, port, and headless descriptions.
         frame_rate: The frame rate of the simulation.
         **kwargs: Additional arguments. Handles unused args as well.
 
@@ -95,6 +97,8 @@ def create_scene(
             specific_map=specific_map,
             sample_map=sample_map,
             tiles=tiles,
+            symmetries=symmetries,
+            weights=weights,
             neighbors=neighbors,
             shallow=True,
             algorithm_args={

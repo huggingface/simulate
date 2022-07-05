@@ -7,9 +7,11 @@ In this instance, we don't interact with the environment but rather just show it
 import argparse
 import time
 from collections import defaultdict
+from os.path import join
 
+import numpy as np
 from xland import create_scene
-from xland.utils import create_2d_map, generate_tiles
+from xland.utils import generate_tiles
 
 
 ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
@@ -41,18 +43,21 @@ if __name__ == "__main__":
     parser.add_argument("--symmetry", type=int, default=1)
     parser.add_argument("--N", type=int, default=2)
     parser.add_argument("--nb_samples", type=int, default=1)
+    parser.add_argument("--benchmark", type=str, default="benchmark/examples", help="Benchmarks folder path.")
 
     args = parser.parse_args()
     extra_args = defaultdict(lambda: None)
 
     if args.sample_from is None and args.map is None:
-        tiles, neighbors = generate_tiles(args.max_height)
+        tiles, symmetries, weights, neighbors = generate_tiles(args.max_height)
         extra_args["tiles"] = tiles
+        extra_args["symmetries"] = symmetries
+        extra_args["weights"] = weights
         extra_args["neighbors"] = neighbors
 
     else:
         name = args.map or args.sample_from
-        m = create_2d_map(name)
+        m = np.load(join(args.benchmark, name) + ".npy")
         if args.map is not None:
             extra_args["specific_map"] = m
         else:

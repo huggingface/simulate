@@ -1,7 +1,8 @@
 """Python wrapper for constructors of C++ classes."""
 
 import numpy as np
-from wfc_binding import build_neighbor, build_tile, transform_to_id_pair, run_wfc
+
+from wfc_binding import build_neighbor, build_tile, run_wfc, transform_to_id_pair
 
 
 def build_wfc_neighbor(left, right, left_or=0, right_or=0):
@@ -57,10 +58,11 @@ def preprocess_neighbors(neighbors, tile_to_idx):
 
     for neighbor in neighbors:
         preprocessed_neighbor = (
-            str(tile_to_idx[tuple(map(tuple, neighbor[0]))]), 
-            str(tile_to_idx[tuple(map(tuple, neighbor[1]))]), 
-            *neighbor[2:])
-        
+            str(tile_to_idx[tuple(map(tuple, neighbor[0]))]),
+            str(tile_to_idx[tuple(map(tuple, neighbor[1]))]),
+            *neighbor[2:],
+        )
+
         preprocessed_neighbors.append(build_wfc_neighbor(*preprocessed_neighbor))
 
     return preprocessed_neighbors
@@ -110,7 +112,7 @@ def get_tiles_back(gen_map, tile_conversion, nb_samples, width, height, tile_sha
     for i in range(nb_samples * width * height):
         # TODO: add rotation
         converted_map.append(tile_conversion[gen_map[i][0]])
-    
+
     return np.reshape(np.array(converted_map), (nb_samples, width, height, *tile_shape))
 
 
@@ -135,8 +137,9 @@ def apply_wfc(
 
     if tiles is not None and neighbors is not None:
         input_width, input_height = 0, 0
-        tiles, neighbors, tile_conversion, tile_shape = \
-            preprocess_tiles_and_neighbors(tiles, neighbors, symmetries, weights)
+        tiles, neighbors, tile_conversion, tile_shape = preprocess_tiles_and_neighbors(
+            tiles, neighbors, symmetries, weights
+        )
         sample_type = 0
 
     elif input_img is not None:
