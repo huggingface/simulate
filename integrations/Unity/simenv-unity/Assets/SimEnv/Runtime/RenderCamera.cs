@@ -1,6 +1,7 @@
 using System.Collections;
 using UnityEngine;
 using UnityEngine.Events;
+using UnityEngine.Rendering.Universal;
 
 namespace SimEnv {
     public class RenderCamera {
@@ -14,6 +15,8 @@ namespace SimEnv {
             m_node = node;
 
             m_camera = node.gameObject.AddComponent<Camera>();
+            camera.clearFlags = CameraClearFlags.SolidColor;
+            camera.backgroundColor = Color.gray;
             camera.targetTexture = new RenderTexture(data.width, data.height, 24, RenderTextureFormat.Default);
             camera.targetTexture.name = "RenderTexture";
             switch (data.type) {
@@ -33,10 +36,14 @@ namespace SimEnv {
                     camera.fieldOfView = Mathf.Rad2Deg * data.perspective.yfov;
                     break;
             }
+            UniversalAdditionalCameraData cameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
+            cameraData.renderPostProcessing = true;
+            cameraData.antialiasing = AntialiasingMode.FastApproximateAntialiasing;
             camera.enabled = false;
             tex = new Texture2D(camera.targetTexture.width, camera.targetTexture.height);
             node.renderCamera = this;
-            Simulator.Register(this);
+            if (Application.isPlaying)
+                Simulator.Register(this);
         }
 
         public void Render(UnityAction<Color32[]> callback) {

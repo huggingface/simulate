@@ -39,8 +39,8 @@ namespace SimEnv.GLTF {
         public void FillBuffer(int byteCount) {
             int unreadBytes = bufferedBytes - bufferOffset;
 
-            if(unreadBytes < byteCount) {
-                if(unreadBytes != 0)
+            if (unreadBytes < byteCount) {
+                if (unreadBytes != 0)
                     Buffer.BlockCopy(buffer, bufferOffset, buffer, 0, unreadBytes);
                 bufferedBytes = stream.Read(buffer, unreadBytes, bufferSize - unreadBytes) + unreadBytes;
                 bufferOffset = 0;

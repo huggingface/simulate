@@ -47,10 +47,18 @@ namespace SimEnv.GLTF {
         }
 
         public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, Action<Material> onFinish) {
-            Material mat = null;
+            bool emissive = emissiveFactor != Color.black;
+            Material mat = CreateMaterial(alphaMode, emissive);
+            mat.name = name;
+
             IEnumerator coroutine = null;
             if (pbrMetallicRoughness != null) {
-                coroutine = pbrMetallicRoughness.CreateMaterial(textures, alphaMode, x => mat = x);
+                coroutine = pbrMetallicRoughness.InitializeMaterial(mat, textures, x => mat = x);
+                while (coroutine.MoveNext())
+                    yield return null;
+            }
+            if (extensions != null && extensions.KHR_materials_pbrSpecularGlossiness != null) {
+                coroutine = extensions.KHR_materials_pbrSpecularGlossiness.InitializeMaterial(mat, textures, x => mat = x);
                 while (coroutine.MoveNext())
                     yield return null;
             }
@@ -67,8 +75,10 @@ namespace SimEnv.GLTF {
             }
             if (occlusionTexture != null) {
                 coroutine = TryGetTexture(textures, occlusionTexture, true, tex => {
-                    if (tex != null)
+                    if (tex != null) {
                         mat.SetTexture("_OcclusionMap", tex);
+                        mat.SetFloat("_OcclusionStrength", occlusionTexture.strength);
+                    }
                 });
                 while (coroutine.MoveNext())
                     yield return null;
@@ -88,8 +98,7 @@ namespace SimEnv.GLTF {
                     yield return null;
             }
             if (alphaMode == AlphaMode.MASK)
-                mat.SetFloat("_AlphaCutoff", alphaCutoff);
-            mat.name = name;
+                mat.SetFloat("_Cutoff", alphaCutoff);
             onFinish(mat);
         }
 
@@ -113,20 +122,19 @@ namespace SimEnv.GLTF {
         public class PbrMetallicRoughness {
             [JsonConverter(typeof(ColorRGBAConverter))] public Color baseColorFactor = Color.white;
             public TextureInfo baseColorTexture;
-            public float metallicFactor;
-            public float roughnessFactor;
+            public float metallicFactor = 1f;
+            public float roughnessFactor = 1f;
             public TextureInfo metallicRoughnessTexture;
 
             public bool ShouldSerializebaseColorFactor() { return baseColorFactor != Color.white; }
-            public bool ShouldSerializemetallicFactor() { return metallicFactor != 0f; }
-            public bool ShouldSerializeroughnessFactor() { return roughnessFactor != 0f; }
+            public bool ShouldSerializemetallicFactor() { return metallicFactor != 1f; }
+            public bool ShouldSerializeroughnessFactor() { return roughnessFactor != 1f; }
 
-            public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, Action<Material> onFinish) {
-                Material mat = new Material(Resources.Load<Material>("DefaultLit"));
+            public IEnumerator InitializeMaterial(Material mat, GLTFTexture.ImportResult[] textures, Action<Material> onFinish) {
                 mat.color = baseColorFactor;
                 mat.SetFloat("_WorkflowMode", 1f);
                 mat.SetFloat("_Metallic", metallicFactor);
-                mat.SetFloat("_Smoothness", roughnessFactor);
+                mat.SetFloat("_Smoothness", 1 - roughnessFactor);
 
                 if (textures != null) {
                     if (baseColorTexture != null && baseColorTexture.index >= 0) {
@@ -170,8 +178,9 @@ namespace SimEnv.GLTF {
             public float glossinessFactor = 1f;
             public TextureInfo specularGlossinessTexture;
 
-            public IEnumerator CreateMaterial(GLTFTexture.ImportResult[] textures, AlphaMode alphaMode, Action<Material> onFinish) {
-                Material mat = new Material(Resources.Load<Material>("DefaultLit"));
+            public bool ShouldSerializeglossinessFactor() => glossinessFactor != 1f;
+
+            public IEnumerator InitializeMaterial(Material mat, GLTFTexture.ImportResult[] textures, Action<Material> onFinish) {
                 mat.color = diffuseFactor;
                 mat.SetFloat("_WorkflowMode", 0f);
                 mat.SetColor("_SpecColor", specularFactor);
@@ -216,14 +225,30 @@ namespace SimEnv.GLTF {
             }
         }
 
+        static Material CreateMaterial(AlphaMode alphaMode = AlphaMode.OPAQUE, bool emissive = false) {
+            Material mat;
+            if (emissive)
+                mat = new Material(Resources.Load<Material>("DefaultEmissive"));
+            else
+                mat = new Material(Resources.Load<Material>("DefaultLit"));
+            if (alphaMode != AlphaMode.OPAQUE) {
+                mat.SetFloat("_Surface", 1f);
+                if (alphaMode == AlphaMode.MASK)
+                    mat.SetFloat("_AlphaClip", 1f);
+            }
+            return mat;
+        }
+
         public class TextureInfo {
             [JsonProperty(Required = Required.Always)] public int index;
             public int texCoord = 0;
             public float scale = 1;
+            public float strength = 1;
             public Extensions extensions;
 
             public bool ShouldSerializetexCoord() => texCoord != 0;
             public bool ShouldSerializescale() => scale != 1;
+            public bool ShouldSerializestrength() => strength != 1;
 
             public class Extensions {
                 public KHR_texture_transform KHR_texture_transform;
@@ -276,29 +301,91 @@ namespace SimEnv.GLTF {
         }
 
         public class ExportResult : GLTFMaterial {
-            [JsonIgnore] public Material material;
             [JsonIgnore] public int index;
         }
 
-        public static List<ExportResult> Export(List<GLTFMesh.ExportResult> meshes) {
+        public static List<GLTFMaterial.ExportResult> Export(GLTFObject gltfObject, Dictionary<string, GLTFImage.ExportResult> images,
+                                                             List<GLTFMesh.ExportResult> meshes, string filepath) {
+            gltfObject.materials = new List<GLTFMaterial>();
             Dictionary<Material, ExportResult> results = new Dictionary<Material, ExportResult>();
             for (int i = 0; i < meshes.Count; i++) {
                 if (meshes[i].node.renderer != null && meshes[i].node.renderer.sharedMaterial != null) {
                     Material material = meshes[i].node.renderer.sharedMaterial;
                     ExportResult result;
                     if (!results.TryGetValue(material, out result)) {
-                        result = new ExportResult() {
-                            name = material.name,
-                            material = material,
-                            index = results.Count
-                        };
+                        result = Export(material, images, filepath);
+                        result.index = results.Count;
                         results.Add(material, result);
                     }
                     for (int j = 0; j < meshes[i].primitives.Count; j++)
                         meshes[i].primitives[j].material = result.index;
                 }
             }
+            gltfObject.materials = results.Values.Cast<GLTFMaterial>().ToList();
             return results.Values.OrderBy(x => x.index).ToList();
+        }
+
+        public static ExportResult Export(Material material, Dictionary<string, GLTFImage.ExportResult> images, string filepath) {
+            ExportResult result = new ExportResult();
+            result.name = material.name;
+            GLTFMaterial.PbrMetallicRoughness pbrMetallicRoughness = new GLTFMaterial.PbrMetallicRoughness();
+            if (material.HasProperty("_Surface")) {
+                bool transparent = material.GetFloat("_Surface") > 0;
+                if (transparent) {
+                    if (material.HasProperty("_AlphaClip") && material.GetFloat("_AlphaClip") > 0) {
+                        result.alphaMode = AlphaMode.MASK;
+                        if (material.HasProperty("_Cutoff"))
+                            result.alphaCutoff = material.GetFloat("_Cutoff");
+                    } else {
+                        result.alphaMode = AlphaMode.BLEND;
+                    }
+                } else {
+                    result.alphaMode = AlphaMode.OPAQUE;
+                }
+            }
+            if (material.HasProperty("_Color")) {
+                pbrMetallicRoughness.baseColorFactor = material.color;
+            }
+            if (material.HasProperty("_MainTex") && material.mainTexture != null) {
+                pbrMetallicRoughness.baseColorTexture = GLTFTexture.Export((Texture2D)material.mainTexture, images, filepath);
+            }
+            if (material.HasProperty("_MetallicGlossMap")) {
+                Texture metallicGlossMap = material.GetTexture("_MetallicGlossMap");
+                if (metallicGlossMap != null)
+                    pbrMetallicRoughness.metallicRoughnessTexture = GLTFTexture.Export((Texture2D)metallicGlossMap, images, filepath);
+            }
+            if (material.HasProperty("_Metallic")) {
+                pbrMetallicRoughness.metallicFactor = material.GetFloat("_Metallic");
+            }
+            if (material.HasProperty("_Smoothness")) {
+                pbrMetallicRoughness.roughnessFactor = material.GetFloat("_Smoothness");
+            }
+            if (material.IsKeywordEnabled("_EMISSION")) {
+                Color emissionColor = material.GetColor("_EmissionColor");
+                if (emissionColor != null)
+                    result.emissiveFactor = emissionColor;
+                Texture emissionMap = material.GetTexture("_EmissionMap");
+                if (emissionMap != null)
+                    result.emissiveTexture = GLTFTexture.Export((Texture2D)emissionMap, images, filepath);
+            }
+            if (material.HasTexture("_OcclusionMap")) {
+                Texture occlusionMap = material.GetTexture("_OcclusionMap");
+                if (occlusionMap != null) {
+                    result.occlusionTexture = GLTFTexture.Export((Texture2D)occlusionMap, images, filepath);
+                    if (material.HasProperty("_OcclusionStrength"))
+                        result.occlusionTexture.strength = material.GetFloat("_OcclusionStrength");
+                }
+            }
+            if (material.IsKeywordEnabled("_NORMALMAP")) {
+                Texture bumpMap = material.GetTexture("_BumpMap");
+                if (bumpMap != null) {
+                    result.normalTexture = GLTFTexture.Export((Texture2D)bumpMap, images, filepath);
+                    if (material.HasProperty("_BumpScale"))
+                        result.normalTexture.scale = material.GetFloat("_BumpScale");
+                }
+            }
+            result.pbrMetallicRoughness = pbrMetallicRoughness;
+            return result;
         }
     }
 }

@@ -6,7 +6,7 @@ using UnityEngine;
 namespace SimEnv {
     public static class Extensions {
         public static Coroutine RunCoroutine(this IEnumerator item) {
-            if(Simulator.instance == null) {
+            if (Simulator.instance == null) {
                 Debug.LogWarning("No simulator found");
                 return null;
             }
@@ -25,6 +25,24 @@ namespace SimEnv {
             rotation = matrix.rotation;
             rotation = new Quaternion(rotation.x, -rotation.y, -rotation.z, rotation.w);
             scale = matrix.lossyScale;
+        }
+
+        public static Texture2D Decompress(this Texture2D source) {
+            RenderTexture renderTexture = RenderTexture.GetTemporary(
+                source.width,
+                source.height,
+                24,
+                RenderTextureFormat.Default
+            );
+            Graphics.Blit(source, renderTexture);
+            RenderTexture active = RenderTexture.active;
+            RenderTexture.active = renderTexture;
+            Texture2D tex = new Texture2D(source.width, source.height);
+            tex.ReadPixels(new Rect(0, 0, renderTexture.width, renderTexture.height), 0, 0);
+            tex.Apply();
+            RenderTexture.active = active;
+            RenderTexture.ReleaseTemporary(renderTexture);
+            return tex;
         }
     }
 }

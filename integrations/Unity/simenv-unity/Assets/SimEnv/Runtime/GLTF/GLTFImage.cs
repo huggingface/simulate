@@ -31,17 +31,8 @@ namespace SimEnv.GLTF {
             }
 
             public IEnumerator CreateTextureAsync(bool linear, Action<Texture2D> onFinish, Action<float> onProgress = null) {
-                if(!string.IsNullOrEmpty(path)) {
-#if UNITY_EDITOR
-                    Texture2D assetTexture = UnityEditor.AssetDatabase.LoadAssetAtPath<Texture2D>(path);
-                    if(assetTexture != null) {
-                        onFinish(assetTexture);
-                        if(onProgress != null)
-                            onProgress(1f);
-                        yield break;
-                    }
-#endif
-                    if(File.Exists(path)) {
+                if (!string.IsNullOrEmpty(path)) {
+                    if (File.Exists(path)) {
                         byte[] data = File.ReadAllBytes(path);
                         Texture2D tex = new Texture2D(2, 2, TextureFormat.ARGB32, true);
                         tex.LoadImage(data);
@@ -53,7 +44,7 @@ namespace SimEnv.GLTF {
                     }
                 } else {
                     Texture2D tex = new Texture2D(2, 2, TextureFormat.ARGB32, true, linear);
-                    if(!tex.LoadImage(bytes)) {
+                    if (!tex.LoadImage(bytes)) {
                         Debug.LogError("mimeType not supported");
                         yield break;
                     }
@@ -66,12 +57,12 @@ namespace SimEnv.GLTF {
         public class ImportTask : Importer.ImportTask<ImportResult[]> {
             public ImportTask(List<GLTFImage> images, string directoryRoot, GLTFBufferView.ImportTask bufferViewTask) : base(bufferViewTask) {
                 task = new Task(() => {
-                    if(images == null) return;
+                    if (images == null) return;
                     result = new ImportResult[images.Count];
-                    for(int i = 0; i < images.Count; i++) {
+                    for (int i = 0; i < images.Count; i++) {
                         string fullUri = directoryRoot + images[i].uri;
-                        if(!string.IsNullOrEmpty(images[i].uri)) {
-                            if(File.Exists(fullUri)) {
+                        if (!string.IsNullOrEmpty(images[i].uri)) {
+                            if (File.Exists(fullUri)) {
                                 byte[] bytes = File.ReadAllBytes(fullUri);
                                 result[i] = new ImportResult(bytes, fullUri);
                             } else {
@@ -79,7 +70,7 @@ namespace SimEnv.GLTF {
                                 byte[] imageBytes = Convert.FromBase64String(content);
                                 result[i] = new ImportResult(imageBytes);
                             }
-                        } else if(images[i].bufferView.HasValue && !string.IsNullOrEmpty(images[i].mimeType)) {
+                        } else if (images[i].bufferView.HasValue && !string.IsNullOrEmpty(images[i].mimeType)) {
                             GLTFBufferView.ImportResult view = bufferViewTask.result[images[i].bufferView.Value];
                             byte[] bytes = new byte[view.byteLength];
                             view.stream.Position = view.byteOffset;
@@ -91,6 +82,23 @@ namespace SimEnv.GLTF {
                     }
                 });
             }
+        }
+
+        public static List<GLTFImage.ExportResult> Export(GLTFObject gltfObject, Dictionary<string, ExportResult> images) {
+            if (images.Count > 0) {
+                gltfObject.textures = new List<GLTFTexture>();
+                gltfObject.images = new List<GLTFImage>();
+            }
+            images.Keys.OrderBy(x => images[x].index).ToList().ForEach(uri => {
+                GLTFImage.ExportResult image = images[uri];
+                File.WriteAllBytes(image.path, image.bytes);
+                GLTFTexture texture = new GLTFTexture();
+                texture.source = image.index;
+                texture.name = image.name;
+                gltfObject.textures.Add(texture);
+                gltfObject.images.Add((GLTFImage)image);
+            });
+            return images.Values.ToList();
         }
     }
 }

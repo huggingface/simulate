@@ -34,10 +34,10 @@ namespace SimEnv.GLTF {
             public ImportTask(params ImportTask[] waitFor) : base(waitFor) { }
 
             public T RunSynchronously() {
-                if(task != null)
+                if (task != null)
                     task.RunSynchronously();
                 IEnumerator coroutine = TaskCoroutine();
-                while(coroutine.MoveNext()) { };
+                while (coroutine.MoveNext()) { };
                 return result;
             }
         }
@@ -53,16 +53,16 @@ namespace SimEnv.GLTF {
         }
 
         public static GameObject LoadFromFile(string filepath, ImportSettings importSettings, out AnimationClip[] animations, Format format = Format.AUTO) {
-            switch(format) {
+            switch (format) {
                 case Format.GLB:
                     return ImportGLB(filepath, importSettings, out animations);
                 case Format.GLTF:
                     return ImportGLTF(filepath, null, importSettings, out animations);
                 default:
                     string extension = Path.GetExtension(filepath).ToLower();
-                    if(extension == ".glb")
+                    if (extension == ".glb")
                         return ImportGLB(filepath, importSettings, out animations);
-                    else if(extension == ".gltf")
+                    else if (extension == ".gltf")
                         return ImportGLTF(filepath, null, importSettings, out animations);
                     else {
                         Debug.LogWarning("Invalid extension " + extension);
@@ -74,7 +74,7 @@ namespace SimEnv.GLTF {
 
         public static GameObject LoadFromBytes(byte[] bytes, ImportSettings importSettings = null) {
             AnimationClip[] animations;
-            if(importSettings == null)
+            if (importSettings == null)
                 importSettings = new ImportSettings();
             return ImportGLB(bytes, importSettings, out animations);
         }
@@ -88,7 +88,7 @@ namespace SimEnv.GLTF {
             ImportGLBAsync(bytes, importSettings, (result, clips) => {
                 gameObject = result;
             });
-            while(gameObject == null)
+            while (gameObject == null)
                 await Task.Yield();
             return gameObject;
         }
@@ -149,13 +149,13 @@ namespace SimEnv.GLTF {
             // 4-8 version = 2
             // 8-12 total length
             string magic = Encoding.Default.GetString(buffer, 0, 4);
-            if(magic != "glTF") {
+            if (magic != "glTF") {
                 Debug.LogWarning("Input does not look like .glb");
                 binChunkStart = 0;
                 return null;
             }
             uint version = BitConverter.ToUInt32(buffer, 4);
-            if(version != 2) {
+            if (version != 2) {
                 Debug.LogWarning("Unsupported gltf version: " + version);
                 binChunkStart = 0;
                 return null;
@@ -172,7 +172,7 @@ namespace SimEnv.GLTF {
         }
 
         static GameObject ImportGLTF(string filepath, string json, ImportSettings importSettings, out AnimationClip[] animations) {
-            if(string.IsNullOrEmpty(json))
+            if (string.IsNullOrEmpty(json))
                 json = File.ReadAllText(filepath);
             GLTFObject gltfObject = JsonConvert.DeserializeObject<GLTFObject>(json);
             return gltfObject.LoadInternal(filepath, null, 0, importSettings, out animations);
@@ -205,12 +205,12 @@ namespace SimEnv.GLTF {
             GLTFNode.ImportTask nodeTask = new GLTFNode.ImportTask(gltfObject.nodes, meshTask, skinTask, gltfObject.cameras, gltfObject.extensions);
             nodeTask.RunSynchronously();
             GLTFAnimation.ImportResult[] animationResult = gltfObject.animations.Import(accessorTask.result, nodeTask.result, importSettings);
-            if(animationResult != null)
+            if (animationResult != null)
                 animations = animationResult.Select(x => x.clip).ToArray();
             else
                 animations = new AnimationClip[0];
 
-            foreach(var item in bufferTask.result)
+            foreach (var item in bufferTask.result)
                 item.Dispose();
 
             GameObject gameObject = nodeTask.result.GetRoot();
@@ -220,7 +220,7 @@ namespace SimEnv.GLTF {
         static IEnumerator LoadAsync(string json, string filepath, byte[] bytefile, long binChunkStart, ImportSettings importSettings, Action<GameObject, AnimationClip[]> onFinished, Action<float> onProgress = null) {
             Task<GLTFObject> deserializeTask = new Task<GLTFObject>(() => JsonConvert.DeserializeObject<GLTFObject>(json));
             deserializeTask.Start();
-            while(!deserializeTask.IsCompleted) yield return null;
+            while (!deserializeTask.IsCompleted) yield return null;
             GLTFObject gltfObject = deserializeTask.Result;
 
             string directoryRoot = filepath != null ? Directory.GetParent(filepath).ToString() + "/" : null;
@@ -246,31 +246,31 @@ namespace SimEnv.GLTF {
             GLTFNode.ImportTask nodeTask = new GLTFNode.ImportTask(gltfObject.nodes, meshTask, skinTask, gltfObject.cameras, gltfObject.extensions);
             importTasks.Add(nodeTask);
 
-            for(int i = 0; i < importTasks.Count; i++)
+            for (int i = 0; i < importTasks.Count; i++)
                 TaskSupervisor(importTasks[i], onProgress).RunCoroutine();
 
-            while(!importTasks.All(x => x.IsCompleted)) yield return null;
+            while (!importTasks.All(x => x.IsCompleted)) yield return null;
 
             GameObject root = nodeTask.result.GetRoot();
             GLTFAnimation.ImportResult[] animationResult = gltfObject.animations.Import(accessorTask.result, nodeTask.result, importSettings);
             AnimationClip[] animations = new AnimationClip[0];
-            if(animationResult != null) animations = animationResult.Select(x => x.clip).ToArray();
-            if(onFinished != null) onFinished(nodeTask.result.GetRoot(), animations);
+            if (animationResult != null) animations = animationResult.Select(x => x.clip).ToArray();
+            if (onFinished != null) onFinished(nodeTask.result.GetRoot(), animations);
 
-            foreach(var item in bufferTask.result)
+            foreach (var item in bufferTask.result)
                 item.Dispose();
         }
 
         static IEnumerator TaskSupervisor(ImportTask importTask, Action<float> onProgress = null) {
-            while(!importTask.IsReady) yield return null;
+            while (!importTask.IsReady) yield return null;
             yield return null;
-            if(importTask.task != null) {
+            if (importTask.task != null) {
                 importTask.task.Start();
-                while(!importTask.task.IsCompleted) yield return null;
+                while (!importTask.task.IsCompleted) yield return null;
                 yield return new WaitForSeconds(0.1f);
             }
             importTask.TaskCoroutine(onProgress).RunCoroutine();
-            while(!importTask.IsCompleted)
+            while (!importTask.IsCompleted)
                 yield return null;
             yield return new WaitForSeconds(0.1f);
         }

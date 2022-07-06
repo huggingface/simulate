@@ -16,11 +16,11 @@ public class Vector2Converter : JsonConverter {
         float[] floatArray = null;
         try {
             floatArray = serializer.Deserialize<float[]>(reader);
-        } catch(System.Exception) {
+        } catch (System.Exception) {
             floatArray = new float[] { serializer.Deserialize<float>(reader) };
         }
 
-        switch(floatArray.Length) {
+        switch (floatArray.Length) {
             case 1:
                 return new Vector2(floatArray[0], floatArray[0]);
             case 2:

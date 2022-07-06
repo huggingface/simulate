@@ -12,7 +12,7 @@ namespace SimEnv.GLTF {
     public class HFRigidbodies {
         public List<GLTFRigidbody> rigidbodies;
 
-        public class GLTFRigidbody{
+        public class GLTFRigidbody {
             [JsonProperty(Required = Required.Always)] public float mass;
             public float drag = 0f;
             public float angular_drag = 0f;

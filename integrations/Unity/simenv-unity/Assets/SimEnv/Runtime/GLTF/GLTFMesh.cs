@@ -51,18 +51,18 @@ namespace SimEnv.GLTF {
 
                 public MeshData(GLTFMesh gltfMesh, GLTFAccessor.ImportResult[] accessors, GLTFBufferView.ImportResult[] bufferViews) {
                     name = gltfMesh.name;
-                    if(gltfMesh.primitives.Count == 0) {
+                    if (gltfMesh.primitives.Count == 0) {
                         Debug.LogWarning("0 primitives in mesh");
                     } else {
-                        for(int i = 0; i < gltfMesh.primitives.Count; i++) {
+                        for (int i = 0; i < gltfMesh.primitives.Count; i++) {
                             GLTFPrimitive primitive = gltfMesh.primitives[i];
-                            if(primitive.extensions != null && primitive.extensions.KHR_draco_mesh_compression != null) {
+                            if (primitive.extensions != null && primitive.extensions.KHR_draco_mesh_compression != null) {
                                 throw new NotImplementedException("Draco not yet supported");
                             } else {
                                 int vertStartIndex = verts.Count;
                                 submeshVertexStart.Add(vertStartIndex);
 
-                                if(primitive.attributes.POSITION.HasValue) {
+                                if (primitive.attributes.POSITION.HasValue) {
                                     IEnumerable<Vector3> newVerts = accessors[primitive.attributes.POSITION.Value].ReadVec3(true)
                                         .Select(v => { v.x = -v.x; return v; });
                                     verts.AddRange(newVerts);
@@ -70,34 +70,34 @@ namespace SimEnv.GLTF {
 
                                 int vertCount = verts.Count;
 
-                                if(primitive.indices.HasValue) {
+                                if (primitive.indices.HasValue) {
                                     submeshTris.Add(new List<int>(accessors[primitive.indices.Value].ReadInt().Reverse()
                                         .Select(x => x + vertStartIndex)));
                                     submeshTrisMode.Add(primitive.mode);
                                 }
 
-                                if(primitive.attributes.NORMAL.HasValue) {
+                                if (primitive.attributes.NORMAL.HasValue) {
                                     IEnumerable<Vector3> newNorms = accessors[primitive.attributes.NORMAL.Value].ReadVec3(true)
                                         .Select(v => { v.x = -v.x; return v; });
                                     normals.AddRange(newNorms);
                                 }
 
-                                if(primitive.attributes.TANGENT.HasValue) {
+                                if (primitive.attributes.TANGENT.HasValue) {
                                     IEnumerable<Vector4> newTangents = accessors[primitive.attributes.TANGENT.Value].ReadVec4(true)
                                         .Select(v => { v.y = -v.y; v.z = -v.z; return v; });
                                     tangents.AddRange(newTangents);
                                 }
 
-                                if(primitive.attributes.COLOR_0.HasValue) {
+                                if (primitive.attributes.COLOR_0.HasValue) {
                                     colors.AddRange(accessors[primitive.attributes.COLOR_0.Value].ReadColor());
                                 }
 
-                                if(primitive.attributes.WEIGHTS_0.HasValue && primitive.attributes.JOINTS_0.HasValue) {
+                                if (primitive.attributes.WEIGHTS_0.HasValue && primitive.attributes.JOINTS_0.HasValue) {
                                     Vector4[] weights0 = accessors[primitive.attributes.WEIGHTS_0.Value].ReadVec4(true);
                                     Vector4[] joints0 = accessors[primitive.attributes.JOINTS_0.Value].ReadVec4();
-                                    if(joints0.Length == weights0.Length) {
+                                    if (joints0.Length == weights0.Length) {
                                         BoneWeight[] boneWeights = new BoneWeight[weights0.Length];
-                                        for(int k = 0; k < boneWeights.Length; k++) {
+                                        for (int k = 0; k < boneWeights.Length; k++) {
                                             NormalizeWeights(ref weights0[k]);
                                             boneWeights[k].weight0 = weights0[k].x;
                                             boneWeights[k].weight1 = weights0[k].y;
@@ -108,14 +108,14 @@ namespace SimEnv.GLTF {
                                             boneWeights[k].boneIndex2 = Mathf.RoundToInt(joints0[k].z);
                                             boneWeights[k].boneIndex3 = Mathf.RoundToInt(joints0[k].w);
                                         }
-                                        if(weights == null)
+                                        if (weights == null)
                                             weights = new List<BoneWeight>(new BoneWeight[vertCount - boneWeights.Length]);
                                         weights.AddRange(boneWeights);
                                     } else {
                                         Debug.LogWarning("WEIGHTS_0 and JOINTS_0 aren't the same length. Skipped");
                                     }
                                 } else {
-                                    if(weights != null)
+                                    if (weights != null)
                                         weights.AddRange(new BoneWeight[vertCount - weights.Count]);
                                 }
 
@@ -131,23 +131,23 @@ namespace SimEnv.GLTF {
                         }
 
                         bool hasTargetNames = gltfMesh.extras != null && gltfMesh.extras.targetNames != null;
-                        if(hasTargetNames) {
-                            if(gltfMesh.primitives.All(x => x.targets != null && x.targets.Count != gltfMesh.extras.targetNames.Length)) {
+                        if (hasTargetNames) {
+                            if (gltfMesh.primitives.All(x => x.targets != null && x.targets.Count != gltfMesh.extras.targetNames.Length)) {
                                 Debug.LogWarning("Morph target names found but don't match target array length");
                                 hasTargetNames = false;
                             }
                         }
 
                         int finalVertCount = verts.Count;
-                        for(int i = 0; i < gltfMesh.primitives.Count; i++) {
+                        for (int i = 0; i < gltfMesh.primitives.Count; i++) {
                             GLTFPrimitive primitive = gltfMesh.primitives[i];
-                            if(primitive.targets != null) {
-                                for(int k = 0; k < primitive.targets.Count; k++) {
+                            if (primitive.targets != null) {
+                                for (int k = 0; k < primitive.targets.Count; k++) {
                                     BlendShape blendShape = new BlendShape();
                                     blendShape.pos = GetMorphWeights(primitive.targets[k].POSITION, submeshVertexStart[i], finalVertCount, accessors);
                                     blendShape.norm = GetMorphWeights(primitive.targets[k].NORMAL, submeshVertexStart[i], finalVertCount, accessors);
                                     blendShape.tan = GetMorphWeights(primitive.targets[k].TANGENT, submeshVertexStart[i], finalVertCount, accessors);
-                                    if(hasTargetNames) blendShape.name = gltfMesh.extras.targetNames[k];
+                                    if (hasTargetNames) blendShape.name = gltfMesh.extras.targetNames[k];
                                     else blendShape.name = "morph-" + blendShapes.Count;
                                     blendShapes.Add(blendShape);
                                 }
@@ -157,14 +157,14 @@ namespace SimEnv.GLTF {
                 }
 
                 Vector3[] GetMorphWeights(int? accessor, int vertStartIndex, int vertCount, GLTFAccessor.ImportResult[] accessors) {
-                    if(accessor.HasValue) {
-                        if(accessors[accessor.Value] == null) {
+                    if (accessor.HasValue) {
+                        if (accessors[accessor.Value] == null) {
                             Debug.LogWarning("Accessor is null");
                             return new Vector3[vertCount];
                         }
                         Vector3[] accessorData = accessors[accessor.Value].ReadVec3(true)
                             .Select(v => { v.x = -v.x; return v; }).ToArray();
-                        if(accessorData.Length != vertCount) {
+                        if (accessorData.Length != vertCount) {
                             Vector3[] resized = new Vector3[vertCount];
                             Array.Copy(accessorData, 0, resized, vertStartIndex, accessorData.Length);
                             return resized;
@@ -177,13 +177,13 @@ namespace SimEnv.GLTF {
 
                 public Mesh ToMesh() {
                     Mesh mesh = new Mesh();
-                    if(verts.Count >= ushort.MaxValue)
+                    if (verts.Count >= ushort.MaxValue)
                         mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
                     mesh.vertices = verts.ToArray();
                     mesh.subMeshCount = submeshTris.Count;
                     var onlyTriangles = true;
-                    for(int i = 0; i < submeshTris.Count; i++) {
-                        switch(submeshTrisMode[i]) {
+                    for (int i = 0; i < submeshTris.Count; i++) {
+                        switch (submeshTrisMode[i]) {
                             case RenderingMode.POINTS:
                                 mesh.SetIndices(submeshTris[i].ToArray(), MeshTopology.Points, i);
                                 onlyTriangles = false;
@@ -206,28 +206,28 @@ namespace SimEnv.GLTF {
                     }
 
                     mesh.colors = colors.ToArray();
-                    if(uv1 != null) mesh.uv = uv1.ToArray();
-                    if(uv2 != null) mesh.uv2 = uv2.ToArray();
-                    if(uv3 != null) mesh.uv3 = uv3.ToArray();
-                    if(uv4 != null) mesh.uv4 = uv4.ToArray();
-                    if(uv5 != null) mesh.uv5 = uv5.ToArray();
-                    if(uv6 != null) mesh.uv6 = uv6.ToArray();
-                    if(uv7 != null) mesh.uv7 = uv7.ToArray();
-                    if(uv8 != null) mesh.uv8 = uv8.ToArray();
-                    if(weights != null) mesh.boneWeights = weights.ToArray();
+                    if (uv1 != null) mesh.uv = uv1.ToArray();
+                    if (uv2 != null) mesh.uv2 = uv2.ToArray();
+                    if (uv3 != null) mesh.uv3 = uv3.ToArray();
+                    if (uv4 != null) mesh.uv4 = uv4.ToArray();
+                    if (uv5 != null) mesh.uv5 = uv5.ToArray();
+                    if (uv6 != null) mesh.uv6 = uv6.ToArray();
+                    if (uv7 != null) mesh.uv7 = uv7.ToArray();
+                    if (uv8 != null) mesh.uv8 = uv8.ToArray();
+                    if (weights != null) mesh.boneWeights = weights.ToArray();
 
                     mesh.RecalculateBounds();
 
-                    for(int i = 0; i < blendShapes.Count; i++) {
+                    for (int i = 0; i < blendShapes.Count; i++) {
                         mesh.AddBlendShapeFrame(blendShapes[i].name, 1f, blendShapes[i].pos, blendShapes[i].norm, blendShapes[i].tan);
                     }
 
-                    if(normals.Count == 0 && onlyTriangles)
+                    if (normals.Count == 0 && onlyTriangles)
                         mesh.RecalculateNormals();
                     else
                         mesh.normals = normals.ToArray();
 
-                    if(tangents.Count == 0 && onlyTriangles)
+                    if (tangents.Count == 0 && onlyTriangles)
                         mesh.RecalculateTangents();
                     else
                         mesh.tangents = tangents.ToArray();
@@ -246,15 +246,15 @@ namespace SimEnv.GLTF {
                 }
 
                 public void ReadUVs(ref List<Vector2> uvs, GLTFAccessor.ImportResult[] accessors, int? texcoord, int vertCount) {
-                    if(!texcoord.HasValue) {
-                        if(uvs != null)
+                    if (!texcoord.HasValue) {
+                        if (uvs != null)
                             uvs.AddRange(new Vector2[vertCount - uvs.Count]);
                         return;
                     }
                     Vector2[] _uvs = accessors[texcoord.Value].ReadVec2(true);
-                    for(int i = 0; i < _uvs.Length; i++)
+                    for (int i = 0; i < _uvs.Length; i++)
                         _uvs[i].y = 1 - _uvs[i].y;
-                    if(uvs == null)
+                    if (uvs == null)
                         uvs = new List<Vector2>(_uvs);
                     else
                         uvs.AddRange(_uvs);
@@ -270,25 +270,25 @@ namespace SimEnv.GLTF {
                 this.materialTask = materialTask;
 
                 task = new Task(() => {
-                    if(meshes == null) return;
+                    if (meshes == null) return;
 
                     meshData = new MeshData[meshes.Count];
-                    for(int i = 0; i < meshData.Length; i++)
+                    for (int i = 0; i < meshData.Length; i++)
                         meshData[i] = new MeshData(meshes[i], accessorTask.result, bufferViewTask.result);
                 });
             }
 
             public override IEnumerator TaskCoroutine(Action<float> onProgress = null) {
-                if(meshData == null) {
-                    if(onProgress != null)
+                if (meshData == null) {
+                    if (onProgress != null)
                         onProgress(1f);
                     IsCompleted = true;
                     yield break;
                 }
 
                 result = new ImportResult[meshData.Length];
-                for(int i = 0; i < meshData.Length; i++) {
-                    if(meshData[i] == null) {
+                for (int i = 0; i < meshData.Length; i++) {
+                    if (meshData[i] == null) {
                         Debug.LogWarning(string.Format("Mesh {0} import error", i));
                         continue;
                     }
@@ -296,11 +296,11 @@ namespace SimEnv.GLTF {
                     result[i] = new ImportResult();
                     result[i].mesh = meshData[i].ToMesh();
                     result[i].materials = new Material[meshes[i].primitives.Count];
-                    for(int k = 0; k < meshes[i].primitives.Count; k++) {
+                    for (int k = 0; k < meshes[i].primitives.Count; k++) {
                         int? matIndex = meshes[i].primitives[k].material;
-                        if(matIndex.HasValue && materialTask.result != null && materialTask.result.Count() > matIndex.Value) {
+                        if (matIndex.HasValue && materialTask.result != null && materialTask.result.Count() > matIndex.Value) {
                             GLTFMaterial.ImportResult matImport = materialTask.result[matIndex.Value];
-                            if(matImport != null) {
+                            if (matImport != null) {
                                 result[i].materials[k] = matImport.material;
                             } else {
                                 Debug.LogWarning(string.Format("Mesh[{0}].matIndex points to null material", i));
@@ -311,7 +311,7 @@ namespace SimEnv.GLTF {
                         }
                     }
 
-                    if(string.IsNullOrEmpty(result[i].mesh.name))
+                    if (string.IsNullOrEmpty(result[i].mesh.name))
                         result[i].mesh.name = "mesh" + i;
                     onProgress?.Invoke((float)(i + 1) / (float)meshData.Length);
                 }
@@ -324,30 +324,55 @@ namespace SimEnv.GLTF {
             [JsonIgnore] public Mesh mesh;
         }
 
-        public static List<ExportResult> Export(List<GLTFNode.ExportResult> nodes) {
+        public static List<ExportResult> Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes, ref byte[] bufferData) {
             List<ExportResult> results = new List<ExportResult>();
-            for(int i = 0; i < nodes.Count; i++) {
-                if(nodes[i].filter) {
+            for (int i = 0; i < nodes.Count; i++) {
+                if (nodes[i].filter) {
                     Mesh mesh = nodes[i].filter.sharedMesh;
-                    if(mesh) {
+                    if (mesh != null) {
                         nodes[i].mesh = results.Count;
-                        ExportResult result = Export(mesh);
+                        ExportResult result = Export(gltfObject, mesh, ref bufferData);
                         result.node = nodes[i];
                         nodes[i].meshResult = result;
                         results.Add(result);
                     }
                 }
             }
+            gltfObject.meshes = results.Cast<GLTFMesh>().ToList();
             return results;
         }
 
-        public static ExportResult Export(Mesh mesh) {
+        public static ExportResult Export(GLTFObject gltfObject, Mesh mesh, ref byte[] bufferData) {
             ExportResult result = new ExportResult();
             result.name = mesh.name;
             result.mesh = mesh;
             result.primitives = new List<GLTFPrimitive>();
-            for(int i = 0; i < mesh.subMeshCount; i++) {
+            for (int i = 0; i < mesh.subMeshCount; i++) {
                 GLTFPrimitive primitive = new GLTFPrimitive();
+                GLTFPrimitive.GLTFAttributes attributes = new GLTFPrimitive.GLTFAttributes();
+                Vector3[] vertices = new Vector3[0];
+                if (mesh.vertices != null && mesh.vertices.Length > 0) {
+                    vertices = mesh.vertices.Select(v => { v.x = -v.x; return v; }).ToArray();
+                    attributes.POSITION = Exporter.WriteVec3(vertices, gltfObject, ref bufferData);
+                }
+                if (mesh.normals != null && mesh.normals.Length > 0) {
+                    Vector3[] normals = mesh.normals.Select(v => { v.x = -v.x; return v; }).ToArray();
+                    attributes.NORMAL = Exporter.WriteVec3(normals, gltfObject, ref bufferData);
+                }
+                /* if (mesh.tangents != null && mesh.tangents.Length > 0) {
+                    Vector4[] tangents = mesh.tangents.Select(v => { v.y = -v.y; v.z = -v.z; return v; }).ToArray();
+                    attributes.TANGENT = Exporter.WriteVec4(tangents, gltfObject, ref bufferData);
+                } */
+                // TODO: Support for multiple submeshes, alternate rendering modes
+                if (mesh.triangles != null && mesh.triangles.Length > 0) {
+                    int[] triangles = mesh.triangles.Reverse().ToArray();
+                    primitive.indices = Exporter.WriteInt(triangles, gltfObject, ref bufferData);
+                }
+                if (mesh.uv != null && mesh.uv.Length > 0) {
+                    Vector2[] uvs = mesh.uv.Select(v => { v.y = 1 - v.y; return v; }).ToArray();
+                    attributes.TEXCOORD_0 = Exporter.WriteVec2(uvs, gltfObject, ref bufferData);
+                }
+                primitive.attributes = attributes;
                 result.primitives.Add(primitive);
             }
             return result;

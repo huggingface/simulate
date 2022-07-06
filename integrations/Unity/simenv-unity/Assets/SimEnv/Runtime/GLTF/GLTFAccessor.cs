@@ -66,17 +66,17 @@ namespace SimEnv.GLTF {
             }
 
             public Matrix4x4[] ReadMatrix4x4() {
-                if(!ValidateAccessorType(type, AccessorType.MAT4))
+                if (!ValidateAccessorType(type, AccessorType.MAT4))
                     return new Matrix4x4[count];
 
                 Func<BufferedBinaryReader, float> floatReader = GetFloatReader(componentType);
 
                 Matrix4x4[] m = new Matrix4x4[count];
-                if(bufferView != null) {
+                if (bufferView != null) {
                     BufferedBinaryReader reader = new BufferedBinaryReader(bufferView.stream, 1024);
                     reader.Position = bufferView.byteOffset + byteOffset;
                     int byteSkip = byteStride.HasValue ? byteStride.Value - GetComponentSize() : 0;
-                    for(int i = 0; i < count; i++) {
+                    for (int i = 0; i < count; i++) {
                         m[i].m00 = floatReader(reader);
                         m[i].m01 = floatReader(reader);
                         m[i].m02 = floatReader(reader);
@@ -96,16 +96,16 @@ namespace SimEnv.GLTF {
                         reader.Skip(byteSkip);
                     }
                 }
-                if(sparse != null) {
+                if (sparse != null) {
                     Func<BufferedBinaryReader, int> indexIntReader = GetIntReader(sparse.indices.componentType);
                     BufferedBinaryReader indexReader = new BufferedBinaryReader(sparse.indices.bufferView.stream, 1024);
                     indexReader.Position = sparse.indices.bufferView.byteOffset + sparse.indices.byteOffset;
                     int[] indices = new int[sparse.count];
-                    for(int i = 0; i < sparse.count; i++)
+                    for (int i = 0; i < sparse.count; i++)
                         indices[i] = indexIntReader(indexReader);
                     BufferedBinaryReader valueReader = new BufferedBinaryReader(sparse.values.bufferView.stream, 1024);
                     indexReader.Position = sparse.values.bufferView.byteOffset + sparse.values.byteOffset;
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         int index = indices[i];
                         m[index].m00 = floatReader(valueReader);
                         m[index].m01 = floatReader(valueReader);
@@ -129,16 +129,16 @@ namespace SimEnv.GLTF {
             }
 
             public Vector4[] ReadVec4(bool normalize = false) {
-                if(!ValidateAccessorType(type, AccessorType.VEC4)) return new Vector4[count];
+                if (!ValidateAccessorType(type, AccessorType.VEC4)) return new Vector4[count];
 
                 Func<BufferedBinaryReader, float> floatReader = normalize ? GetNormalizedFloatReader(componentType) : GetFloatReader(componentType);
 
                 Vector4[] v = new Vector4[count];
-                if(bufferView != null) {
+                if (bufferView != null) {
                     BufferedBinaryReader reader = new BufferedBinaryReader(bufferView.stream, 1024);
                     reader.Position = bufferView.byteOffset + byteOffset;
                     int byteSkip = byteStride.HasValue ? byteStride.Value - GetComponentSize() : 0;
-                    for(int i = 0; i < count; i++) {
+                    for (int i = 0; i < count; i++) {
                         v[i].x = floatReader(reader);
                         v[i].y = floatReader(reader);
                         v[i].z = floatReader(reader);
@@ -146,17 +146,17 @@ namespace SimEnv.GLTF {
                         reader.Skip(byteSkip);
                     }
                 }
-                if(sparse != null) {
+                if (sparse != null) {
                     Func<BufferedBinaryReader, int> indexIntReader = GetIntReader(sparse.indices.componentType);
                     BufferedBinaryReader indexReader = new BufferedBinaryReader(sparse.indices.bufferView.stream, 1024);
                     indexReader.Position = sparse.indices.bufferView.byteOffset + sparse.indices.byteOffset;
                     int[] indices = new int[sparse.count];
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         indices[i] = indexIntReader(indexReader);
                     }
                     BufferedBinaryReader valueReader = new BufferedBinaryReader(sparse.values.bufferView.stream, 1024);
                     indexReader.Position = sparse.values.bufferView.byteOffset + sparse.values.byteOffset;
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         int index = indices[i];
                         v[index].x = floatReader(valueReader);
                         v[index].y = floatReader(valueReader);
@@ -168,24 +168,24 @@ namespace SimEnv.GLTF {
             }
 
             public Color[] ReadColor() {
-                if(!ValidateAccessorTypeAny(type, AccessorType.VEC3, AccessorType.VEC4)) return new Color[count];
+                if (!ValidateAccessorTypeAny(type, AccessorType.VEC3, AccessorType.VEC4)) return new Color[count];
 
                 Func<BufferedBinaryReader, float> floatReader = GetNormalizedFloatReader(componentType);
 
                 Color[] c = new Color[count];
-                if(bufferView != null) {
+                if (bufferView != null) {
                     BufferedBinaryReader reader = new BufferedBinaryReader(bufferView.stream, 1024);
                     reader.Position = bufferView.byteOffset + byteOffset;
                     int byteSkip = byteStride.HasValue ? byteStride.Value - GetComponentSize() : 0;
-                    if(type == AccessorType.VEC3) {
-                        for(int i = 0; i < count; i++) {
+                    if (type == AccessorType.VEC3) {
+                        for (int i = 0; i < count; i++) {
                             c[i].r = floatReader(reader);
                             c[i].g = floatReader(reader);
                             c[i].b = floatReader(reader);
                             reader.Skip(byteSkip);
                         }
-                    } else if(type == AccessorType.VEC4) {
-                        for(int i = 0; i < count; i++) {
+                    } else if (type == AccessorType.VEC4) {
+                        for (int i = 0; i < count; i++) {
                             c[i].r = floatReader(reader);
                             c[i].g = floatReader(reader);
                             c[i].b = floatReader(reader);
@@ -194,25 +194,25 @@ namespace SimEnv.GLTF {
                         }
                     }
                 }
-                if(sparse != null) {
+                if (sparse != null) {
                     Func<BufferedBinaryReader, int> indexIntReader = GetIntReader(sparse.indices.componentType);
                     BufferedBinaryReader indexReader = new BufferedBinaryReader(sparse.indices.bufferView.stream, 1024);
                     indexReader.Position = sparse.indices.bufferView.byteOffset + sparse.indices.byteOffset;
                     int[] indices = new int[sparse.count];
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         indices[i] = indexIntReader(indexReader);
                     }
                     BufferedBinaryReader valueReader = new BufferedBinaryReader(sparse.values.bufferView.stream, 1024);
                     indexReader.Position = sparse.values.bufferView.byteOffset + sparse.values.byteOffset;
-                    if(type == AccessorType.VEC3) {
-                        for(int i = 0; i < sparse.count; i++) {
+                    if (type == AccessorType.VEC3) {
+                        for (int i = 0; i < sparse.count; i++) {
                             int index = indices[i];
                             c[index].r = floatReader(valueReader);
                             c[index].g = floatReader(valueReader);
                             c[index].b = floatReader(valueReader);
                         }
-                    } else if(type == AccessorType.VEC4) {
-                        for(int i = 0; i < sparse.count; i++) {
+                    } else if (type == AccessorType.VEC4) {
+                        for (int i = 0; i < sparse.count; i++) {
                             int index = indices[i];
                             c[index].r = floatReader(valueReader);
                             c[index].g = floatReader(valueReader);
@@ -225,33 +225,33 @@ namespace SimEnv.GLTF {
             }
 
             public Vector3[] ReadVec3(bool normalize = false) {
-                if(!ValidateAccessorType(type, AccessorType.VEC3)) return new Vector3[count];
+                if (!ValidateAccessorType(type, AccessorType.VEC3)) return new Vector3[count];
 
                 Func<BufferedBinaryReader, float> floatReader = normalize ? GetNormalizedFloatReader(componentType) : GetFloatReader(componentType);
 
                 Vector3[] v = new Vector3[count];
-                if(bufferView != null) {
+                if (bufferView != null) {
                     BufferedBinaryReader reader = new BufferedBinaryReader(bufferView.stream, 1024);
                     reader.Position = bufferView.byteOffset + byteOffset;
                     int byteSkip = byteStride.HasValue ? byteStride.Value - GetComponentSize() : 0;
-                    for(int i = 0; i < count; i++) {
+                    for (int i = 0; i < count; i++) {
                         v[i].x = floatReader(reader);
                         v[i].y = floatReader(reader);
                         v[i].z = floatReader(reader);
                         reader.Skip(byteSkip);
                     }
                 }
-                if(sparse != null) {
+                if (sparse != null) {
                     Func<BufferedBinaryReader, int> indexIntReader = GetIntReader(sparse.indices.componentType);
                     BufferedBinaryReader indexReader = new BufferedBinaryReader(sparse.indices.bufferView.stream, 1024);
                     indexReader.Position = sparse.indices.bufferView.byteOffset + sparse.indices.byteOffset;
                     int[] indices = new int[sparse.count];
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         indices[i] = indexIntReader(indexReader);
                     }
                     BufferedBinaryReader valueReader = new BufferedBinaryReader(sparse.values.bufferView.stream, 1024);
                     valueReader.Position = sparse.values.bufferView.byteOffset + sparse.values.byteOffset;
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         int index = indices[i];
                         v[index].x = floatReader(valueReader);
                         v[index].y = floatReader(valueReader);
@@ -262,32 +262,32 @@ namespace SimEnv.GLTF {
             }
 
             public Vector2[] ReadVec2(bool normalize = false) {
-                if(!ValidateAccessorType(type, AccessorType.VEC2)) return new Vector2[count];
+                if (!ValidateAccessorType(type, AccessorType.VEC2)) return new Vector2[count];
 
                 Func<BufferedBinaryReader, float> floatReader = normalize ? GetNormalizedFloatReader(componentType) : GetFloatReader(componentType);
 
                 Vector2[] v = new Vector2[count];
-                if(bufferView != null) {
+                if (bufferView != null) {
                     BufferedBinaryReader reader = new BufferedBinaryReader(bufferView.stream, 1024);
                     reader.Position = bufferView.byteOffset + byteOffset;
                     int byteSkip = byteStride.HasValue ? byteStride.Value - GetComponentSize() : 0;
-                    for(int i = 0; i < count; i++) {
+                    for (int i = 0; i < count; i++) {
                         v[i].x = floatReader(reader);
                         v[i].y = floatReader(reader);
                         reader.Skip(byteSkip);
                     }
                 }
-                if(sparse != null) {
+                if (sparse != null) {
                     Func<BufferedBinaryReader, int> indexIntReader = GetIntReader(sparse.indices.componentType);
                     BufferedBinaryReader indexReader = new BufferedBinaryReader(sparse.indices.bufferView.stream, 1024);
                     indexReader.Position = sparse.indices.bufferView.byteOffset + sparse.indices.byteOffset;
                     int[] indices = new int[sparse.count];
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         indices[i] = indexIntReader(indexReader);
                     }
                     BufferedBinaryReader valueReader = new BufferedBinaryReader(sparse.values.bufferView.stream, 1024);
                     indexReader.Position = sparse.values.bufferView.byteOffset + sparse.values.byteOffset;
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         int index = indices[i];
                         v[index].x = floatReader(valueReader);
                         v[index].y = floatReader(valueReader);
@@ -297,31 +297,31 @@ namespace SimEnv.GLTF {
             }
 
             public float[] ReadFloat() {
-                if(!ValidateAccessorType(type, AccessorType.SCALAR)) return new float[count];
+                if (!ValidateAccessorType(type, AccessorType.SCALAR)) return new float[count];
 
                 Func<BufferedBinaryReader, float> floatReader = GetFloatReader(componentType);
 
                 float[] f = new float[count];
-                if(bufferView != null) {
+                if (bufferView != null) {
                     BufferedBinaryReader reader = new BufferedBinaryReader(bufferView.stream, 1024);
                     reader.Position = bufferView.byteOffset + byteOffset;
                     int byteSkip = byteStride.HasValue ? byteStride.Value - GetComponentSize() : 0;
-                    for(int i = 0; i < count; i++) {
+                    for (int i = 0; i < count; i++) {
                         f[i] = floatReader(reader);
                         reader.Skip(byteSkip);
                     }
                 }
-                if(sparse != null) {
+                if (sparse != null) {
                     Func<BufferedBinaryReader, int> indexIntReader = GetIntReader(sparse.indices.componentType);
                     BufferedBinaryReader indexReader = new BufferedBinaryReader(sparse.indices.bufferView.stream, 1024);
                     indexReader.Position = sparse.indices.bufferView.byteOffset + sparse.indices.byteOffset;
                     int[] indices = new int[sparse.count];
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         indices[i] = indexIntReader(indexReader);
                     }
                     BufferedBinaryReader valueReader = new BufferedBinaryReader(sparse.values.bufferView.stream, 1024);
                     indexReader.Position = sparse.values.bufferView.byteOffset + sparse.values.byteOffset;
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         int index = indices[i];
                         f[index] = floatReader(valueReader);
                     }
@@ -330,31 +330,31 @@ namespace SimEnv.GLTF {
             }
 
             public int[] ReadInt() {
-                if(!ValidateAccessorType(type, AccessorType.SCALAR)) return new int[count];
+                if (!ValidateAccessorType(type, AccessorType.SCALAR)) return new int[count];
 
                 Func<BufferedBinaryReader, int> intReader = GetIntReader(componentType);
 
                 int[] v = new int[count];
-                if(bufferView != null) {
+                if (bufferView != null) {
                     BufferedBinaryReader reader = new BufferedBinaryReader(bufferView.stream, 1024);
                     reader.Position = bufferView.byteOffset + byteOffset;
                     int byteSkip = byteStride.HasValue ? byteStride.Value - GetComponentSize() : 0;
-                    for(int i = 0; i < count; i++) {
+                    for (int i = 0; i < count; i++) {
                         v[i] = intReader(reader);
                         reader.Skip(byteSkip);
                     }
                 }
-                if(sparse != null) {
+                if (sparse != null) {
                     Func<BufferedBinaryReader, int> indexIntReader = GetIntReader(sparse.indices.componentType);
                     BufferedBinaryReader indexReader = new BufferedBinaryReader(sparse.indices.bufferView.stream, 1024);
                     indexReader.Position = sparse.indices.bufferView.byteOffset + sparse.indices.byteOffset;
                     int[] indices = new int[sparse.count];
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         indices[i] = indexIntReader(indexReader);
                     }
                     BufferedBinaryReader valueReader = new BufferedBinaryReader(sparse.values.bufferView.stream, 1024);
                     indexReader.Position = sparse.values.bufferView.byteOffset + sparse.values.byteOffset;
-                    for(int i = 0; i < sparse.count; i++) {
+                    for (int i = 0; i < sparse.count; i++) {
                         int index = indices[i];
                         v[index] = intReader(valueReader);
                     }
@@ -364,7 +364,7 @@ namespace SimEnv.GLTF {
 
             public Func<BufferedBinaryReader, int> GetIntReader(GLType componentType) {
                 Func<BufferedBinaryReader, int> readMethod;
-                switch(componentType) {
+                switch (componentType) {
                     case GLType.BYTE:
                         return x => x.ReadSByte();
                     case GLType.UNSIGNED_BYTE:
@@ -385,7 +385,7 @@ namespace SimEnv.GLTF {
 
             public Func<BufferedBinaryReader, float> GetFloatReader(GLType componentType) {
                 Func<BufferedBinaryReader, float> readMethod;
-                switch(componentType) {
+                switch (componentType) {
                     case GLType.BYTE:
                         return x => x.ReadSByte();
                     case GLType.UNSIGNED_BYTE:
@@ -406,7 +406,7 @@ namespace SimEnv.GLTF {
 
             public Func<BufferedBinaryReader, float> GetNormalizedFloatReader(GLType componentType) {
                 Func<BufferedBinaryReader, float> readMethod;
-                switch(componentType) {
+                switch (componentType) {
                     case GLType.BYTE:
                         return x => x.ReadSByte();
                     case GLType.UNSIGNED_BYTE:
@@ -430,20 +430,20 @@ namespace SimEnv.GLTF {
             }
 
             public static bool ValidateByteStride(int byteStride) {
-                if(byteStride >= 4 && byteStride <= 252 && byteStride % 4 == 0) return true;
+                if (byteStride >= 4 && byteStride <= 252 && byteStride % 4 == 0) return true;
                 Debug.LogError(string.Format("ByteStride {0} invalid", byteStride));
                 return false;
             }
 
             public static bool ValidateAccessorType(AccessorType type, AccessorType expected) {
-                if(type == expected) return true;
+                if (type == expected) return true;
                 Debug.LogError(string.Format("Type mismatch, expected {0}, got {1}", expected, type));
                 return false;
             }
 
             public static bool ValidateAccessorTypeAny(AccessorType type, params AccessorType[] expected) {
-                for(int i = 0; i < expected.Length; i++)
-                    if(type == expected[i]) return true;
+                for (int i = 0; i < expected.Length; i++)
+                    if (type == expected[i]) return true;
                 Debug.LogError(string.Format("Type mismatch, expected {0}, got {1}", string.Join("or ", expected), type));
                 return false;
             }
@@ -457,7 +457,7 @@ namespace SimEnv.GLTF {
             result.count = count;
             result.byteOffset = byteOffset;
             result.byteStride = result.bufferView != null ? result.bufferView.byteStride : null;
-            if(sparse != null) {
+            if (sparse != null) {
                 result.sparse = new ImportResult.Sparse() {
                     count = sparse.count,
                     indices = new ImportResult.Sparse.Indices() {
@@ -478,7 +478,7 @@ namespace SimEnv.GLTF {
             public ImportTask(List<GLTFAccessor> accessors, GLTFBufferView.ImportTask bufferViewTask) : base(bufferViewTask) {
                 task = new Task(() => {
                     result = new ImportResult[accessors.Count];
-                    for(int i = 0; i < result.Length; i++)
+                    for (int i = 0; i < result.Length; i++)
                         result[i] = accessors[i].Import(bufferViewTask.result);
                 });
             }

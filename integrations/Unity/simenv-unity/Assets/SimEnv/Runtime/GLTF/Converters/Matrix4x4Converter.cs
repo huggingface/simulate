@@ -7,7 +7,7 @@ public class Matrix4x4Converter : JsonConverter {
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
         Matrix4x4 matrix = (Matrix4x4)value;
         writer.WriteStartArray();
-        for(int i = 0; i < 16; i++)
+        for (int i = 0; i < 16; i++)
             writer.WriteValue(matrix[i]);
         writer.WriteEndArray();
     }

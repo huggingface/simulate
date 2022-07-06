@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.Events;
-using System;
 using System.Collections;
 using SimEnv.RlActions;
 using SimEnv.GLTF;
@@ -35,24 +33,20 @@ namespace SimEnv.RlAgents {
             body = node.gameObject.GetComponent<Rigidbody>();
 
             // We connect the observation devices to the agent now that the whole scene is imported
-            foreach (string obsDeviceName in obsDeviceNames)
-            {
+            foreach (string obsDeviceName in obsDeviceNames) {
                 RenderCamera obsDevice = GameObject.Find(obsDeviceName).GetComponent<Node>().renderCamera;
-                if (obsDevice != null)
-                {
-                    Debug.Log("Adding observation device " + obsDeviceName + obsDevice);
+                if (obsDevice != null) {
+                    // Debug.Log("Adding observation device " + obsDeviceName + obsDevice);
                     obsDevices.Add(obsDevice);
-                }
-                else
-                {
+                } else {
                     Debug.LogError("Could not find observation device " + obsDeviceName);
                 }
             }
-            actions.Print();
+            // actions.Print();
         }
 
         public void SetProperties(HFRlAgents.HFRlAgentsComponent agentData) {
-            Debug.Log("Setting Agent properties");
+            // Debug.Log("Setting Agent properties");
 
             originalPosition = node.transform.position;
 
@@ -69,7 +63,7 @@ namespace SimEnv.RlAgents {
                     actions = new MappedDiscreteAction(
                         n: gl_act.n,
                         physics: gl_act.physics,
-                        amplitudes: gl_act.amplitudes, 
+                        amplitudes: gl_act.amplitudes,
                         clip_low: gl_act.clip_low,
                         clip_high: gl_act.clip_high);
                     break;
@@ -103,18 +97,18 @@ namespace SimEnv.RlAgents {
             // add the reward functions to the agent
             List<HFRlAgents.HFRlAgentsReward> gl_rewardFunctions = agentData.rewards;
             foreach (var reward in gl_rewardFunctions) {
-                Debug.Log("Creating reward function");
+                // Debug.Log("Creating reward function");
                 // get the shared properties
-                Debug.Log("Finding entity_a " + reward.entity_a);
-                Debug.Log("Finding entity_b " + reward.entity_b);
+                // Debug.Log("Finding entity_a " + reward.entity_a);
+                // Debug.Log("Finding entity_b " + reward.entity_b);
                 GameObject entity_a = GameObject.Find(reward.entity_a);
 
                 GameObject entity_b = GameObject.Find(reward.entity_b);
                 if (entity_a == null) {
-                    Debug.Log("Failed to find entity_a " + reward.entity_a);
+                    Debug.LogWarning("Failed to find entity_a " + reward.entity_a);
                 }
                 if (entity_b == null) {
-                    Debug.Log("Failed to find entity_b " + reward.entity_b);
+                    Debug.LogWarning("Failed to find entity_b " + reward.entity_b);
                 }
                 IDistanceMetric distanceMetric = null; // refactor this to a reward factory?
                 RewardFunction rewardFunction = null;
@@ -173,33 +167,33 @@ namespace SimEnv.RlAgents {
                 body.MoveRotation(newRotation);
 
                 if (Input.GetKeyUp("r")) {
-                    Debug.Log("Agent reset");
+                    // Debug.Log("Agent reset");
                     body.MovePosition(Vector3.zero);
                     body.MoveRotation(Quaternion.identity);
                 }
             } else {
                 // RL control
                 if (actions.positionOffset != Vector3.zero) {
-                    Debug.Log("Position offset: " + actions.positionOffset);
+                    // Debug.Log("Position offset: " + actions.positionOffset);
                     Vector3 newPosition = body.position + node.gameObject.transform.TransformDirection(actions.positionOffset * timeStep);
-                    Debug.Log("body.position: " + body.position);
-                    Debug.Log("newPosition: " + newPosition);
+                    // Debug.Log("body.position: " + body.position);
+                    // Debug.Log("newPosition: " + newPosition);
                     body.MovePosition(newPosition);
                 }
                 if (actions.rotation != Vector3.zero) {
-                    Debug.Log("Rotation offset: " + actions.rotation);
+                    // Debug.Log("Rotation offset: " + actions.rotation);
                     Quaternion newRotation = body.rotation * Quaternion.Euler(actions.rotation * timeStep);
-                    Debug.Log("body.rotation: " + body.rotation);
-                    Debug.Log("newRotation: " + newRotation);
+                    // Debug.Log("body.rotation: " + body.rotation);
+                    // Debug.Log("newRotation: " + newRotation);
                     body.MoveRotation(newRotation);
                 }
                 if (actions.velocity != Vector3.zero) {
-                    Debug.Log("Velocity change: " + actions.velocity);
+                    // Debug.Log("Velocity change: " + actions.velocity);
                     Vector3 localForce = node.gameObject.transform.TransformDirection(actions.velocity * timeStep);
                     body.AddRelativeForce(localForce);
                 }
                 if (actions.torque != Vector3.zero) {
-                    Debug.Log("Torque change: " + actions.torque);
+                    // Debug.Log("Torque change: " + actions.torque);
                     Vector3 localTorque = node.gameObject.transform.TransformDirection(actions.torque * timeStep);
                     body.AddRelativeTorque(localTorque);
                 }

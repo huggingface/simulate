@@ -10,7 +10,7 @@ public class EnumConverter : JsonConverter {
 
     public override object ReadJson(JsonReader reader, Type objectType, object existingValue, JsonSerializer serializer) {
         string value = serializer.Deserialize<string>(reader);
-        if(Enum.IsDefined(objectType, value))
+        if (Enum.IsDefined(objectType, value))
             return Enum.Parse(objectType, value);
         else
             return existingValue;
