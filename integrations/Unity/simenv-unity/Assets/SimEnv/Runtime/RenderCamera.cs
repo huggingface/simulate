@@ -38,7 +38,6 @@ namespace SimEnv {
             }
             UniversalAdditionalCameraData cameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
             cameraData.renderPostProcessing = true;
-            cameraData.antialiasing = AntialiasingMode.FastApproximateAntialiasing;
             camera.enabled = false;
             tex = new Texture2D(camera.targetTexture.width, camera.targetTexture.height);
             node.renderCamera = this;
