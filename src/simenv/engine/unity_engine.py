@@ -108,7 +108,7 @@ class UnityEngine(Engine):
     def show(self, **engine_kwargs):
         self._send_gltf(self._scene.as_glb_bytes())
 
-    def activate_environments(self, n_agents):
+    def activate(self, n_agents):
         command = {"type": "ActivateEnvironments", "contents": json.dumps({"n_agents": n_agents})}
         return self.run_command(command)
 

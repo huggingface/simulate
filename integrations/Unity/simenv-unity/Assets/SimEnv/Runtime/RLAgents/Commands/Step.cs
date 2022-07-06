@@ -21,7 +21,7 @@ namespace SimEnv.RlAgents {
                 covertedActions.Add(covertedAction);
             }
 
-            AgentManager.instance.Step(covertedActions);
+            EnvironmentManager.instance.Step(covertedActions);
             callback("ack");
         }
     }

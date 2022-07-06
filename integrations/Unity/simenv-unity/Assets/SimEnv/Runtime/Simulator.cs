@@ -71,6 +71,7 @@ namespace SimEnv {
             CurrentState = State.Undefined;
             LoadCustomAssemblies();
             LoadPlugins();
+            Physics.autoSimulation = false;
             Client.instance.Initialize();
         }
 

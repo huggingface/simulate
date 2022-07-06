@@ -28,6 +28,7 @@ namespace SimEnv.RlAgents {
 
         public void ActivateEnvironments(int nEnvironments) {
             foreach (var env in environmentPool) {
+                env.Initialize();
                 env.Disable();
             }
 
@@ -40,7 +41,8 @@ namespace SimEnv.RlAgents {
 
             obsSize = activeEnvironments[0].GetObservationSize();
             agentPixelValues = new uint[nEnvironments * obsSize];
-
+            frameSkip = Client.instance.frameSkip;
+            physicsUpdateRate = Client.instance.physicsUpdateRate;
         }
 
         public void Step(List<List<float>> actions) {
@@ -87,23 +89,41 @@ namespace SimEnv.RlAgents {
             return rewards.ToArray<float>();
         }
 
-        public bool[] GetDone() {
+        public bool[] GetDone(bool autoReset = true) {
             // Check if the agent is in a terminal state 
             // TODO: add option for auto reset
             List<bool> dones = new List<bool>();
             for (int i = 0; i < activeEnvironments.Count; i++) {
-                dones.Add(activeEnvironments[i].GetDone());
+                bool done = activeEnvironments[i].GetDone();
+                dones.Add(done);
+                if (done && autoReset) {
+                    ResetAt(i);
+                }
             }
             return dones.ToArray<bool>();
 
         }
 
         public void GetObservation(UnityAction<string> callback) {
+            GetObservationCoroutine(callback).RunCoroutine();
+        }
+        private IEnumerator GetObservationCoroutine(UnityAction<string> callback) {
             // TODO: implement obs coroutine
             int[] obsShape = activeEnvironments[0].GetObservationShape();
             int[] shapeWithAgents = new int[obsShape.Length + 1];
             shapeWithAgents[0] = activeEnvironments.Count;                                // set the prepended value
             Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values
+
+            List<Coroutine> coroutines = new List<Coroutine>();
+            for (int i = 0; i < activeEnvironments.Count; i++) {
+                Coroutine coroutine = activeEnvironments[i].GetObservationCoroutine(agentPixelValues, i * obsSize).RunCoroutine();
+                coroutines.Add(coroutine);
+            }
+
+            foreach (var coroutine in coroutines) {
+                yield return coroutine;
+            }
+
             string string_array = JsonHelper.ToJson(agentPixelValues, shapeWithAgents);
             callback(string_array);
         }

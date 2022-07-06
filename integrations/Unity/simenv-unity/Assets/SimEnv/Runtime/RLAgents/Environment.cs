@@ -27,6 +27,12 @@ namespace SimEnv.RlAgents {
             }
         }
 
+        public void Initialize() {
+            for (int i = 0; i < agents.Count; i++) {
+                agents[i].Initialize();
+            }
+        }
+
         public void Step(List<float> actions, float physicsUpdateRate) {
             // step the agents in this environment
             // TODO: extend for multi-agent setting
@@ -66,5 +72,11 @@ namespace SimEnv.RlAgents {
         public void Enable() {
             root.SetActive(true);
         }
+
+        public IEnumerator GetObservationCoroutine(uint[] pixelValues, int startingIndex) {
+            yield return agents[0].GetObservationCoroutine(pixelValues, startingIndex);
+        }
+
+
     }
 }

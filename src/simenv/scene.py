@@ -101,6 +101,10 @@ class Scene(Asset, Env):
         """Render the Scene using the engine."""
         self.engine.show(**engine_kwargs)
 
+    def activate(self, n_agents):
+        self._n_agents = n_agents
+        self.engine.activate(n_agents)
+
     def clear(self):
         """Remove all assets in the scene."""
         self.tree_children = []
