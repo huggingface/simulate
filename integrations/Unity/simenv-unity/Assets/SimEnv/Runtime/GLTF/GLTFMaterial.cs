@@ -309,16 +309,21 @@ namespace SimEnv.GLTF {
             gltfObject.materials = new List<GLTFMaterial>();
             Dictionary<Material, ExportResult> results = new Dictionary<Material, ExportResult>();
             for (int i = 0; i < meshes.Count; i++) {
-                if (meshes[i].node.renderer != null && meshes[i].node.renderer.sharedMaterial != null) {
-                    Material material = meshes[i].node.renderer.sharedMaterial;
-                    ExportResult result;
-                    if (!results.TryGetValue(material, out result)) {
-                        result = Export(material, images, filepath);
-                        result.index = results.Count;
-                        results.Add(material, result);
+                if (meshes[i].node.renderer != null && meshes[i].node.renderer.sharedMaterials != null) {
+                    for (int j = 0; j < meshes[i].node.renderer.sharedMaterials.Length; j++) {
+                        try {
+                            Material material = meshes[i].node.renderer.sharedMaterials[j];
+                            ExportResult result;
+                            if (!results.TryGetValue(material, out result)) {
+                                result = Export(material, images, filepath);
+                                result.index = results.Count;
+                                results.Add(material, result);
+                            }
+                            meshes[i].primitives[j].material = result.index;
+                        } catch (Exception e) {
+                            Debug.LogWarning("Failed to exported material: " + meshes[i].node.renderer.sharedMaterials[j].name);
+                        }
                     }
-                    for (int j = 0; j < meshes[i].primitives.Count; j++)
-                        meshes[i].primitives[j].material = result.index;
                 }
             }
             gltfObject.materials = results.Values.Cast<GLTFMaterial>().ToList();
@@ -358,7 +363,7 @@ namespace SimEnv.GLTF {
                 pbrMetallicRoughness.metallicFactor = material.GetFloat("_Metallic");
             }
             if (material.HasProperty("_Smoothness")) {
-                pbrMetallicRoughness.roughnessFactor = material.GetFloat("_Smoothness");
+                pbrMetallicRoughness.roughnessFactor = 1 - material.GetFloat("_Smoothness");
             }
             if (material.IsKeywordEnabled("_EMISSION")) {
                 Color emissionColor = material.GetColor("_EmissionColor");

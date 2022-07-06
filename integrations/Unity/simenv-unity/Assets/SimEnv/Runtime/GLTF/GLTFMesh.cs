@@ -6,6 +6,7 @@ using System.Linq;
 using UnityEngine;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
+using UnityEngine.Rendering;
 
 namespace SimEnv.GLTF {
     public class GLTFMesh {
@@ -350,28 +351,30 @@ namespace SimEnv.GLTF {
             for (int i = 0; i < mesh.subMeshCount; i++) {
                 GLTFPrimitive primitive = new GLTFPrimitive();
                 GLTFPrimitive.GLTFAttributes attributes = new GLTFPrimitive.GLTFAttributes();
-                Vector3[] vertices = new Vector3[0];
-                if (mesh.vertices != null && mesh.vertices.Length > 0) {
-                    vertices = mesh.vertices.Select(v => { v.x = -v.x; return v; }).ToArray();
-                    attributes.POSITION = Exporter.WriteVec3(vertices, gltfObject, ref bufferData);
-                }
-                if (mesh.normals != null && mesh.normals.Length > 0) {
-                    Vector3[] normals = mesh.normals.Select(v => { v.x = -v.x; return v; }).ToArray();
-                    attributes.NORMAL = Exporter.WriteVec3(normals, gltfObject, ref bufferData);
-                }
-                /* if (mesh.tangents != null && mesh.tangents.Length > 0) {
-                    Vector4[] tangents = mesh.tangents.Select(v => { v.y = -v.y; v.z = -v.z; return v; }).ToArray();
-                    attributes.TANGENT = Exporter.WriteVec4(tangents, gltfObject, ref bufferData);
-                } */
-                // TODO: Support for multiple submeshes, alternate rendering modes
-                if (mesh.triangles != null && mesh.triangles.Length > 0) {
-                    int[] triangles = mesh.triangles.Reverse().ToArray();
-                    primitive.indices = Exporter.WriteInt(triangles, gltfObject, ref bufferData);
-                }
-                if (mesh.uv != null && mesh.uv.Length > 0) {
-                    Vector2[] uvs = mesh.uv.Select(v => { v.y = 1 - v.y; return v; }).ToArray();
+
+                SubMeshDescriptor submesh = mesh.GetSubMesh(i);
+
+                Vector3[] vertices = mesh.vertices.Skip(submesh.firstVertex).Take(submesh.vertexCount)
+                    .Select(v => { v.x = -v.x; return v; }).ToArray();
+                attributes.POSITION = Exporter.WriteVec3(vertices, gltfObject, ref bufferData);
+
+                Vector3[] normals = mesh.normals.Skip(submesh.firstVertex).Take(submesh.vertexCount)
+                    .Select(v => { v.x = -v.x; return v; }).ToArray();
+                attributes.NORMAL = Exporter.WriteVec3(normals, gltfObject, ref bufferData);
+
+                Vector4[] tangents = mesh.tangents.Skip(submesh.firstVertex).Take(submesh.vertexCount)
+                    .Select(v => { v.y = -v.y; v.z = -v.z; return v; }).ToArray();
+                attributes.TANGENT = Exporter.WriteVec4(tangents, gltfObject, ref bufferData);
+
+                int[] triangles = mesh.GetTriangles(i).Reverse().Select(x => x - submesh.firstVertex).ToArray();
+                primitive.indices = Exporter.WriteInt(triangles, gltfObject, ref bufferData);
+
+                if (mesh.uv.Length > 0) {
+                    Vector2[] uvs = mesh.uv.Skip(submesh.firstVertex).Take(submesh.vertexCount)
+                        .Select(v => { v.y = 1 - v.y; return v; }).ToArray();
                     attributes.TEXCOORD_0 = Exporter.WriteVec2(uvs, gltfObject, ref bufferData);
                 }
+
                 primitive.attributes = attributes;
                 result.primitives.Add(primitive);
             }
