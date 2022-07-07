@@ -92,7 +92,7 @@ class SimpleRlAgent(Capsule):
         actions = MappedDiscrete(
             n=3,
             physics=[Physics.ROTATION_Y, Physics.ROTATION_Y, Physics.POSITION_X],
-            amplitudes=[-90, 90, 1.0],
+            amplitudes=[-90, 90, 2.0],
         )
 
         self.rl_component = RlComponent(actions=actions, observations=camera, rewards=rewards)

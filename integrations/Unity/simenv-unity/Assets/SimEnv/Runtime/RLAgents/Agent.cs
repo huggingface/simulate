@@ -52,7 +52,7 @@ namespace SimEnv.RlAgents {
         public void SetProperties(HFRlAgents.HFRlAgentsComponent agentData) {
             // Debug.Log("Setting Agent properties");
 
-            originalPosition = node.transform.position;
+            originalPosition = node.transform.localPosition;
 
             // Store pointers to all our observation devices
             obsDeviceNames = agentData.observations;
@@ -211,7 +211,7 @@ namespace SimEnv.RlAgents {
         public void Reset() {
             accumReward = 0.0f;
             // Reset the agent
-            node.gameObject.transform.position = originalPosition;
+            node.gameObject.transform.localPosition = originalPosition;
 
 
             // Reset reward objects?

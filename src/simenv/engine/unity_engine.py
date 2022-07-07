@@ -6,6 +6,8 @@ import subprocess
 
 import numpy as np
 
+from simenv.rl.components import RlComponent
+
 from .engine import Engine
 
 
@@ -38,6 +40,9 @@ class UnityEngine(Engine):
         self.end_frame = end_frame
         self.frame_rate = frame_rate
 
+        self.action_space = None
+        self.observation_space = None
+
         self.host = "127.0.0.1"
         self.port = engine_port
 
@@ -47,6 +52,7 @@ class UnityEngine(Engine):
         self._initialize_server()
         atexit.register(self._close)
 
+        
     def _launch_executable(self, executable, port, headless, physics_update_rate, frame_skip):
         # TODO: improve headless training check on a headless machine
         if headless:
@@ -114,6 +120,11 @@ class UnityEngine(Engine):
         return self.run_command(command)
 
     def add_to_pool(self, map):
+        agent = map.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))[0]
+        self.action_space = agent.action_space
+        self.observation_space = agent.observation_space
+
+
         map_bytes = map.as_glb_bytes()
         b64_bytes = base64.b64encode(map_bytes).decode("ascii")
         command = {"type": "AddToPool", "contents": json.dumps({"b64bytes": b64_bytes})}

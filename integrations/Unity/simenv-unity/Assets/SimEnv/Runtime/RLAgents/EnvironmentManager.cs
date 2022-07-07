@@ -10,12 +10,13 @@ namespace SimEnv.RlAgents {
         public static EnvironmentManager instance;
 
         List<Environment> environmentPool = new List<Environment>();
+        List<Vector3> positionPool = new List<Vector3>();
         List<Environment> activeEnvironments = new List<Environment>();
 
         int nextEnvIndex = 0;
 
         float physicsUpdateRate = 1.0f / 30.0f;
-        int frameSkip = 15;
+        int frameSkip = 4;
 
         uint[] agentPixelValues;
         int obsSize;
@@ -28,6 +29,7 @@ namespace SimEnv.RlAgents {
         }
 
         public void ActivateEnvironments(int nEnvironments) {
+            CreatePositionPool(nEnvironments);
             if (nEnvironments == -1) {
                 nEnvironments = environmentPool.Count;
             }
@@ -35,6 +37,8 @@ namespace SimEnv.RlAgents {
             for (int i = 0; i < nEnvironments; i++) {
                 Environment environment = GetNextEnv();
                 environment.Enable();
+                environment.SetPosition(positionPool[i]);
+                environment.Reset();
                 activeEnvironments.Add(environment);
             }
 
@@ -42,6 +46,35 @@ namespace SimEnv.RlAgents {
             agentPixelValues = new uint[nEnvironments * obsSize];
             frameSkip = Client.instance.frameSkip;
             physicsUpdateRate = Client.instance.physicsUpdateRate;
+        }
+
+        private void CreatePositionPool(int nEnvironments) {
+            Bounds bounds = new Bounds(Vector3.zero, Vector3.zero);
+            foreach (var env in environmentPool) {
+                Bounds envBounds = env.bounds;
+                bounds.Encapsulate(envBounds);
+            }
+
+            Vector3 step = bounds.extents * 2f + new Vector3(1f, 0f, 1f);
+
+            int count = 0;
+            int root = Convert.ToInt32(Math.Ceiling(Math.Sqrt(Convert.ToDouble(nEnvironments))));
+            bool stop = false;
+            for (int i = 0; i < root; i++) {
+                if (stop) break;
+                for (int j = 0; j < root; j++) {
+                    if (stop) break;
+                    positionPool.Add(new Vector3(Convert.ToSingle(i) * step.x, 0f, Convert.ToSingle(j) * step.z));
+
+                    count++;
+                    if (count == nEnvironments) {
+                        stop = true;
+                    }
+                }
+            }
+            Debug.Log(count.ToString() + " " + nEnvironments.ToString());
+            Debug.Assert(count == nEnvironments);
+
         }
 
         public void Step(List<List<float>> actions) {
@@ -60,16 +93,14 @@ namespace SimEnv.RlAgents {
 
         public void ResetAgents() {
             for (int i = 0; i < activeEnvironments.Count; i++) {
-                activeEnvironments[i].Reset();
-                activeEnvironments[i].Disable();
-                activeEnvironments[i] = GetNextEnv();
-                activeEnvironments[i].Enable();
+                ResetAt(i);
             }
         }
         public void ResetAt(int i) {
             activeEnvironments[i].Reset();
             activeEnvironments[i].Disable();
             activeEnvironments[i] = GetNextEnv();
+            activeEnvironments[i].SetPosition(positionPool[i]);
             activeEnvironments[i].Enable();
         }
 

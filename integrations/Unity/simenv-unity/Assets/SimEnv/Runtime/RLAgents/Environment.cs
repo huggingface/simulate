@@ -13,6 +13,8 @@ namespace SimEnv.RlAgents {
         private List<Agent> agents;
         private GameObject root;
 
+        public Bounds bounds;
+
         public Environment(GameObject map) {
             root = map;
             agents = new List<Agent>();
@@ -26,9 +28,36 @@ namespace SimEnv.RlAgents {
                 agents.Add(agent);
                 agent.Initialize();
             }
-
+            bounds = GetLocalBoundsForObject(root);
+            Debug.Log("BOUNDS" + bounds.ToString());
             Disable();
 
+
+        }
+
+        static Bounds GetLocalBoundsForObject(GameObject go) {
+            var referenceTransform = go.transform;
+            var b = new Bounds(Vector3.zero, Vector3.zero);
+            RecurseEncapsulate(referenceTransform, ref b);
+            return b;
+
+            void RecurseEncapsulate(Transform child, ref Bounds bounds) {
+                var mesh = child.GetComponent<MeshFilter>();
+                if (mesh) {
+                    var lsBounds = mesh.sharedMesh.bounds;
+                    var wsMin = child.TransformPoint(lsBounds.center - lsBounds.extents);
+                    var wsMax = child.TransformPoint(lsBounds.center + lsBounds.extents);
+                    bounds.Encapsulate(referenceTransform.InverseTransformPoint(wsMin));
+                    bounds.Encapsulate(referenceTransform.InverseTransformPoint(wsMax));
+                }
+                foreach (Transform grandChild in child.transform) {
+                    RecurseEncapsulate(grandChild, ref bounds);
+                }
+            }
+        }
+        public void SetPosition(Vector3 position) {
+            root.transform.position = position;
+            Debug.Log("setting position " + position.ToString());
         }
 
         public void Step(List<float> actions, float physicsUpdateRate) {
