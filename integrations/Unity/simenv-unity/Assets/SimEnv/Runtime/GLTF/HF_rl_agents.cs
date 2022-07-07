@@ -1,6 +1,6 @@
-// adapted from https://github.com/Siccity/GLTFUtility/blob/master/Scripts/Spec/GLTFCamera.cs
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace SimEnv.GLTF {
     public class HFRlAgents {
@@ -39,6 +39,18 @@ namespace SimEnv.GLTF {
             public float threshold = 1f;
             public bool is_terminal = false;
             public bool is_collectable = false;
+        }
+
+        public class AgentDefinition {
+            public Node node;
+            public HFRlAgentsComponent data;
+
+            public AgentDefinition(Node node, HFRlAgentsComponent data) {
+                this.node = node;
+                this.data = data;
+                if(Application.isPlaying)
+                    Simulator.Register(this);
+            }
         }
     }
 }

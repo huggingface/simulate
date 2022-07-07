@@ -247,12 +247,12 @@ namespace SimEnv.RlAgents {
             return done;
         }
 
-        public int getObservationSizes() {
-            return obsDevices[0].getObservationSizes();
+        public int GetObservationSizes() {
+            return obsDevices[0].GetObservationSizes();
         }
 
-        public int[] getObservationShape() {
-            return obsDevices[0].getObservationShape();
+        public int[] GetObservationShape() {
+            return obsDevices[0].GetObservationShape();
         }
 
         public IEnumerator GetObservationCoroutine(uint[] pixelValues, int startingIndex) {

@@ -1,4 +1,5 @@
 using System.Collections;
+using System.IO;
 using UnityEngine;
 using UnityEngine.Events;
 using UnityEngine.Rendering.Universal;
@@ -22,8 +23,10 @@ namespace SimEnv {
             switch (data.type) {
                 case GLTF.CameraType.orthographic:
                     camera.orthographic = true;
-                    camera.nearClipPlane = data.orthographic.znear;
-                    camera.farClipPlane = data.orthographic.zfar;
+                    if (data.orthographic.znear.HasValue)
+                        camera.nearClipPlane = data.orthographic.znear.Value;
+                    if (data.orthographic.zfar.HasValue)
+                        camera.farClipPlane = data.orthographic.zfar.Value;
                     camera.orthographicSize = data.orthographic.ymag;
                     break;
                 case GLTF.CameraType.perspective:
@@ -38,23 +41,28 @@ namespace SimEnv {
             }
             UniversalAdditionalCameraData cameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
             cameraData.renderPostProcessing = true;
+            cameraData.antialiasing = AntialiasingMode.FastApproximateAntialiasing;
             camera.enabled = false;
             tex = new Texture2D(camera.targetTexture.width, camera.targetTexture.height);
             if (Application.isPlaying)
                 Simulator.Register(this);
         }
 
+        public int GetObservationSizes() {
+            return camera.targetTexture.width * camera.targetTexture.height * 3;
+        }
+
+        public int[] GetObservationShape() {
+            int[] shape = { camera.targetTexture.height, camera.targetTexture.width, 3 };
+            return shape;
+        }
+
         public void Render(UnityAction<Color32[]> callback) {
             RenderCoroutine(callback).RunCoroutine();
         }
 
-        public int getObservationSizes() {
-            return camera.targetTexture.width * camera.targetTexture.height * 3;
-        }
-
-        public int[] getObservationShape() {
-            int[] shape = { camera.targetTexture.height, camera.targetTexture.width, 3 };
-            return shape;
+        public void Render(string path, UnityAction callback) {
+            RenderCoroutine(path, callback).RunCoroutine();
         }
 
         public IEnumerator RenderCoroutine(UnityAction<Color32[]> callback) {
@@ -66,6 +74,15 @@ namespace SimEnv {
                 callback(buffer);
         }
 
+        public IEnumerator RenderCoroutine(string path, UnityAction callback) {
+            camera.enabled = true; // Enable camera so that it renders in Unity's internal render loop
+            yield return new WaitForEndOfFrame(); // Wait for Unity to render
+            SaveRenderResultToPath(path);
+            camera.enabled = false; // Disable camera for performance
+            if (callback != null)
+                callback();
+        }
+
         private void CopyRenderResultToColorBuffer(out Color32[] buffer) {
             buffer = new Color32[0];
             RenderTexture activeRenderTexture = RenderTexture.active;
@@ -73,6 +90,15 @@ namespace SimEnv {
             tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
             tex.Apply();
             buffer = tex.GetPixels32();
+        }
+
+        private void SaveRenderResultToPath(string path) {
+            RenderTexture activeRenderTexture = RenderTexture.active;
+            RenderTexture.active = camera.targetTexture;
+            tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+            tex.Apply();
+            byte[] buffer = tex.EncodeToPNG();
+            File.WriteAllBytes(path, buffer);
         }
     }
 }

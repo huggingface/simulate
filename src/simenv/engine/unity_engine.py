@@ -135,7 +135,7 @@ class UnityEngine(Engine):
         command = {"type": "AddToPool", "contents": json.dumps({"b64bytes": b64_bytes})}
         self.run_command(command, ack=True)
 
-    def step(self, action):
+    def step(self, action=None):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
         return self.run_command(command)
 
@@ -209,6 +209,10 @@ class UnityEngine(Engine):
         # TODO: have unity side send in B,C,H,W order
         shape = obs["shape"]
         return np.flip(np.array(obs["Items"]).astype(np.uint8).reshape(*shape), 1).transpose(0, 3, 1, 2)
+
+    def render(self, path: str):
+        command = {"type": "Render", "contents": json.dumps({"path": path})}
+        self.run_command(command)
 
     def run_command(self, command, ack=True):
         message = json.dumps(command)

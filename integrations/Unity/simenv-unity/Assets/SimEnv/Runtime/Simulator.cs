@@ -53,6 +53,16 @@ namespace SimEnv {
         /// </summary>
         public static Dictionary<Node, RenderCamera> Cameras { get; private set; }
 
+        /// <summary>
+        /// Framerate of the simulation.
+        /// </summary>
+        public static int FrameRate { get; private set; }
+
+        /// <summary>
+        /// How many frames to simulate before returning the result.
+        /// </summary>
+        public static int FrameSkip { get; private set; }
+
         private void Awake() {
             Physics.autoSimulation = false;
             ActiveEnvironments = new List<Environment>();
@@ -111,6 +121,14 @@ namespace SimEnv {
                 frameRate = FrameRate;
             for (int i = 0; i < frameSkip; i++)
                 Physics.Simulate(1f / frameRate);
+        }
+
+        public static void Register(HFRlAgents.AgentDefinition agentDataContainer) {
+            if(Agents.Contains(agentDataContainer)) {
+                Debug.LogWarning($"Found existing agent data with name: {agentDataContainer.node.name}.");
+                return;
+            }
+            Agents.Add(agentDataContainer);
         }
 
         /// <summary>

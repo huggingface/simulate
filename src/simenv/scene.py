@@ -167,8 +167,12 @@ class Scene(Asset, Env):
             return obs[0]
         return obs
 
-    def step(self, action):
+    def step(self, action=None):
         """Step the Scene"""
+
+        if action is None:
+            self.engine.step()
+            return
 
         if self.n_agents == 1:
             action = [int(action)]
