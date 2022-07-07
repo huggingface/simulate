@@ -4,10 +4,6 @@ import time
 
 from matplotlib import pyplot as plt
 from xland import make_env
-from xland.utils import create_2d_map
-
-
-ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 
 
 ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"

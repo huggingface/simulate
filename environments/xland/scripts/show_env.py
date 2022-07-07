@@ -17,7 +17,6 @@ from xland.utils import generate_tiles
 ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
@@ -54,6 +53,9 @@ if __name__ == "__main__":
         extra_args["symmetries"] = symmetries
         extra_args["weights"] = weights
         extra_args["neighbors"] = neighbors
+        print(tiles)
+        print(symmetries)
+        print(weights)
 
     else:
         name = args.map or args.sample_from

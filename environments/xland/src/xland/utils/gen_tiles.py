@@ -21,7 +21,7 @@ def get_tile(h, orientation=0):
     if orientation == 0:
         return np.full((2, 2), h * HEIGHT_CONSTANT)
     else:
-        return np.rot90(np.array([[0, 0], [1, 1]]), orientation - 1) * HEIGHT_CONSTANT
+        return np.rot90(np.array([[h, h], [h + 1, h + 1]]), orientation - 1) * HEIGHT_CONSTANT
 
 
 def generate_tiles(max_height=6, double_ramp=False):
