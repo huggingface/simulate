@@ -22,15 +22,15 @@ namespace SimEnv.RlAgents {
         int frameSkip;
 
         public void Initialize() {
-            for (int i = 0; i < agents.Count; i++) {
-                agents[i].Initialize();
-            }
-            Agent exampleAgent = agents[0] as Agent;
-            obsSize = exampleAgent.getObservationSizes();
-            agentPixelValues = new uint[agents.Count * obsSize];
+            // for (int i = 0; i < agents.Count; i++) {
+            //     agents[i].Initialize();
+            // }
+            // Agent exampleAgent = agents[0] as Agent;
+            // obsSize = exampleAgent.getObservationSizes();
+            // agentPixelValues = new uint[agents.Count * obsSize];
 
-            frameSkip = Client.instance.frameSkip;
-            physicsUpdateRate = Client.instance.physicsUpdateRate;
+            // frameSkip = Client.instance.frameSkip;
+            // physicsUpdateRate = Client.instance.physicsUpdateRate;
         }
 
         public void Register(Agent agent) {

@@ -24,13 +24,11 @@ namespace SimEnv.RlAgents {
                 var node = obj.GetComponent<Node>();
                 Agent agent = node.referenceObject as Agent;
                 agents.Add(agent);
+                agent.Initialize();
             }
-        }
 
-        public void Initialize() {
-            for (int i = 0; i < agents.Count; i++) {
-                agents[i].Initialize();
-            }
+            Disable();
+
         }
 
         public void Step(List<float> actions, float physicsUpdateRate) {

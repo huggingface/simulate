@@ -25,7 +25,7 @@ from .collider import Collider
 from .gltflib.enums.collider_type import ColliderType
 from .material import Material
 from .procgen.wfc import generate_2d_map, generate_map
-
+from .procgen.prims import generate_prims_maze
 
 class Object3D(Asset):
     """Create a 3D Object.
@@ -1195,3 +1195,30 @@ class ProcgenGrid(Object3D):
         # If it is a structured grid, extract the surface mesh (PolyData)
         mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
         super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
+
+
+class ProcGenPrimsMaze3D(Asset):
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+    def __init__(self, width: int, depth: int,name=None,  wall_keep_prob=0.5, wall_material=None, **kwargs):
+        self.width = width
+        self.depth = depth
+        self.wall_keep_prob = wall_keep_prob*10
+        if wall_material is None:
+            wall_material = Material(base_color=(0.8, 0.8, 0.8))
+        self.wall_material = wall_material
+        if name is not None:
+            self.name = name
+        super().__init__(**kwargs)
+        self._generate()
+
+    def _generate(self):
+        walls = generate_prims_maze((self.width, self.depth), keep_prob=self.wall_keep_prob)
+    
+        for i,wall in enumerate(walls):
+            px = (wall[0] + wall[2]) / 2
+            pz = (wall[1] + wall[3]) / 2
+            sx =  abs(wall[2] -  wall[0]) + 0.1
+            sz =  abs(wall[3] -  wall[1]) + 0.1
+
+            self += Box(name=f"{self.name}_wall_{i}", position=[px,0.5,pz], material=self.wall_material, 
+            scaling=[sx, 1.0, sz])

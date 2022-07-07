@@ -105,14 +105,16 @@ class UnityEngine(Engine):
     def update_all_assets(self):
         pass
 
-    def show(self, **engine_kwargs):
+    def show(self, n_maps=-1, **engine_kwargs):
         self._send_gltf(self._scene.as_glb_bytes())
+        self._activate_pool(n_maps=n_maps)
 
-    def activate(self, n_agents):
-        command = {"type": "ActivateEnvironments", "contents": json.dumps({"n_agents": n_agents})}
+    def _activate_pool(self, n_maps):
+        command = {"type": "ActivateEnvironments", "contents": json.dumps({"n_maps": n_maps})}
         return self.run_command(command)
 
-    def add_to_pool(self, map_bytes):
+    def add_to_pool(self, map):
+        map_bytes = map.as_glb_bytes()
         b64_bytes = base64.b64encode(map_bytes).decode("ascii")
         command = {"type": "AddToPool", "contents": json.dumps({"b64bytes": b64_bytes})}
         self.run_command(command, ack=True)        

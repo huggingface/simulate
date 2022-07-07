@@ -24,14 +24,13 @@ namespace SimEnv.RlAgents {
             GameObject map = GLTF.Importer.LoadFromBytes(bytes);
             Environment environment = new Environment(map);
             environmentPool.Add(environment);
+
         }
 
         public void ActivateEnvironments(int nEnvironments) {
-            foreach (var env in environmentPool) {
-                env.Initialize();
-                env.Disable();
+            if (nEnvironments == -1) {
+                nEnvironments = environmentPool.Count;
             }
-
             Debug.Assert(nEnvironments <= environmentPool.Count);
             for (int i = 0; i < nEnvironments; i++) {
                 Environment environment = GetNextEnv();
