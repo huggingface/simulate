@@ -107,7 +107,7 @@ def create_gif(folder_path, counter):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
-    # Check generate_env for more information about the arguments where
+    # Check create_scene for more information about the arguments where
     # `help`` is not provided
     parser.add_argument("--periodic_output", type=bool, default=True)
     parser.add_argument("--periodic_input", type=bool, default=True)

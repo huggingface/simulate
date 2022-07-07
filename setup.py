@@ -53,8 +53,6 @@ To create the package for pypi.
    Then push the change with a message 'set dev version'
 """
 
-import os
-import sys
 from distutils.extension import Extension
 
 import numpy as np

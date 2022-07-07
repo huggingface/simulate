@@ -68,33 +68,53 @@ std::vector<Color> read_overlapping_instance(unsigned seed, unsigned width,
 
   // Stop hardcoding samples
   Array2D<Color> m = array2d_from_vector(input_img, input_width, input_height);
+
   if (m.width == 0 && m.height == 0) {
     throw "Error while loading the map to sample from.";
   }
 
+  Array2D<Color> result = Array2D<Color>(0, 0);
+  vector<Color> results_vec = vector<Color>();
+
   OverlappingWFCOptions options = {
       periodic_input, periodic_output, height, width, symmetry, ground, N};
   for (unsigned i = 0; i < nb_samples; i++) {
-    for (unsigned test = 0; test < nb_tries; test++) {
+    bool finished = false;
+
+    for (unsigned test = 0; test < nb_tries && !finished; test++) {
       if (test > 0) {
         seed = increment_seed(seed);
       }
+
       OverlappingWFC<Color> wfc(m, options, seed);
-      Array2D<Color> result = wfc.run();
+      result = wfc.run();
+
       if (result.width > 0 || result.height > 0) {
         if (verbose) {
           cout << "Finished!" << endl;
         }
-        return result.data;
+
+        results_vec.insert(results_vec.end(), result.data.begin(), result.data.end());
+        finished = true;
+
       } else {
         if (verbose) {
           cout << "Failed to generate!" << endl;
         }
       }
     }
+
+    if (result.width > 0 || result.height > 0) {
+      if (verbose) {
+        cout << "Finished one sample!" << endl;
+      }
+
+    } else {
+      cout << "WARNING: Failed to generate one of the samples!" << endl;
+    }
   }
 
-  return vector<Color>();
+  return results_vec;
 }
 
 /**
@@ -133,8 +153,8 @@ Tile<Color> pytile_to_tile(PyTile pytile) {
 /**
  * Read an instance of a tiling WFC problem.
  */
-std::vector<Color> read_simpletiled_instance(unsigned seed, unsigned width, unsigned height, bool periodic_output,
-                                bool verbose, unsigned nb_tries, std::vector<PyTile> pytiles,
+std::vector<Color> read_simpletiled_instance(unsigned seed, unsigned width, unsigned height, unsigned nb_samples,
+                                bool periodic_output, bool verbose, unsigned nb_tries, std::vector<PyTile> pytiles,
                                 std::vector<Neighbor> neighbors) noexcept {
 
   if (verbose) {
@@ -143,6 +163,10 @@ std::vector<Color> read_simpletiled_instance(unsigned seed, unsigned width, unsi
 
   unordered_map<string, unsigned> tiles_id;
   vector<Tile<Color>> tiles;
+  // Result variable
+  Array2D<Color> result = Array2D<Color>(0, 0);
+  // All results
+  vector<Color> results_vec = vector<Color>();
   unsigned id = 0;
 
   for (unsigned i = 0; i < pytiles.size(); i++) {
@@ -167,28 +191,43 @@ std::vector<Color> read_simpletiled_instance(unsigned seed, unsigned width, unsi
                                        tiles_id[neighbor2], orientation2));
   }
 
-  for (unsigned test = 0; test < 10; test++) {
-    if (test > 0) {
-      seed = increment_seed(seed);
-    }
-    
-    TilingWFC<Color> wfc(tiles, neighbors_ids, height, width, {periodic_output},
-                         seed);
+  for (unsigned i = 0; i < nb_samples; i++) {
+    bool finished = false;
 
-    Array2D<Color> result = wfc.run();
+    for (unsigned test = 0; test < 10 && !finished; test++) {
+      if (test > 0) {
+        seed = increment_seed(seed);
+      }
+      
+      TilingWFC<Color> wfc(tiles, neighbors_ids, height, width, {periodic_output},
+                          seed);
+
+      result = wfc.run();
+      if (result.width > 0 || result.height > 0) {
+        if (verbose) {
+          cout << "Finished!" << endl;
+        }
+        results_vec.insert(results_vec.end(), result.data.begin(), result.data.end());
+        finished = true;
+        
+      } else {
+        if (verbose) {
+          cout << "Failed!" << endl;
+        }
+      }
+    }
+
     if (result.width > 0 || result.height > 0) {
       if (verbose) {
-        cout << "Finished!" << endl;
+        cout << "Finished one sample!" << endl;
       }
-      return result.data;
+
     } else {
-      if (verbose) {
-        cout << "Failed!" << endl;
-      }
+      cout << "WARNING: Failed to generate one of the samples!" << endl;
     }
   }
 
-  return vector<Color>();
+  return results_vec;
 }
 
 // TODO: try adding &
@@ -210,7 +249,7 @@ std::vector<Color> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, i
   std::vector<Color> result;
 
   if (sample_type == 0) {
-    result = read_simpletiled_instance(seed, width, height, periodic_output, verbose, nb_tries,
+    result = read_simpletiled_instance(seed, width, height, nb_samples, periodic_output, verbose, nb_tries,
                                         tiles, neighbors);
   }
 
@@ -234,9 +273,5 @@ std::vector<Color> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, i
             << "ms.\n";
   }
 
-  if (result.size() > 0) {
-    return result;
-  } else {
-    return std::vector<Color>();
-  }
+  return result;
 }

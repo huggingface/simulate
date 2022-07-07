@@ -18,7 +18,7 @@ def convert_to_actual_pos(obj_pos, generated_map):
     true_width, true_height = x.shape
     width, height = true_width / GRANULARITY, true_height / GRANULARITY
 
-    # Get conversiona array to multiply by positions and get indexes on x, y, z
+    # Get conversion array to multiply by positions and get indexes on x, y, z
     conversion = np.array([(true_width - 1) / (width), (true_height - 1) / (height)])
 
     # Set object in the middle of the tile (by adding 0.5)
@@ -45,8 +45,8 @@ def get_bounds(object_type, object_size):
         # xMin, xMax, yMin, yMax, zMin, zMax
         return {"bounds": (min_v, max_v, min_v, max_v, min_v, max_v)}
 
-    elif object_type == "Cone":
-        return {"radius": object_size / 2, "height": object_size}
+    elif object_type == "Capsule":
+        return {"radius": object_size / 4, "height": object_size}
 
     elif object_type == "Sphere":
         return {"radius": object_size / 2}

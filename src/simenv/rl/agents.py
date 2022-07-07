@@ -65,14 +65,19 @@ class SimpleRlAgent(Capsule):
             name=name,
             position=position,
             rotation=rotation,
-            scaling=scaling,
             parent=parent,
             children=children,
             collider=collider,
             transformation_matrix=transformation_matrix,
         )
 
-        self.translate_y(0.51)  # Move our agent a bit higher than the ground
+        # Rescale the agent
+        if scaling is not None:
+            self.scale(scaling)
+
+        # Move our agent a bit higher than the ground
+        self.translate_y(0.51)
+
         # Add a camera as children
         camera = Camera(width=camera_width, height=camera_height, position=[0, 0.75, 0])
 

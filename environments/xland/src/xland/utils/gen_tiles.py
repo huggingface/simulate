@@ -4,7 +4,7 @@ Generate tiles for debugging purposes, and for generating maps on the prototype.
 
 import numpy as np
 
-from wfc_binding import build_neighbor, build_tile
+from simenv.assets.procgen.wfc import build_wfc_neighbor, build_wfc_tile
 
 
 def img_from_tiles():
@@ -46,7 +46,7 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
     size = 1
     tiles = []
     neighbors = []
-    plain_tile_names = [bytes("{}0".format(h), "UTF-8") for h in range(max_height)]
+    plain_tile_names = [str(h) for h in range(max_height)]
 
     # Generate tiles
     for h in range(max_height):
@@ -56,12 +56,14 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
 
         # Symmetry of a certain letter means that it has the sames symmetric
         # as the letter
-        tiles.append(build_tile(size=size, tile=tile, name=plain_tile_names[h], symmetry=b"X", weight=weights[h]))
-        neighbors.append(build_neighbor(left=plain_tile_names[h], left_or=0, right=plain_tile_names[h], right_or=0))
+        tiles.append(build_wfc_tile(size=size, tile=tile, name=plain_tile_names[h], symmetry="X", weight=weights[h]))
+        neighbors.append(
+            build_wfc_neighbor(left=plain_tile_names[h], left_or=0, right=plain_tile_names[h], right_or=0)
+        )
 
         if h < max_height - 1:
             neighbors.append(
-                build_neighbor(left=plain_tile_names[h + 1], left_or=0, right=plain_tile_names[h], right_or=0)
+                build_wfc_neighbor(left=plain_tile_names[h + 1], left_or=0, right=plain_tile_names[h], right_or=0)
             )
 
         # If i == max_height - 1, then we don't add more ramps
@@ -80,11 +82,11 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
                     tile = get_tile(h, ramp_or + 1)
 
                     # Save tiles
-                    next_ramp_name = bytes("{}{}".format(h + 1, ramp_or + 1), "UTF-8")
-                    ramp_name = bytes("{}{}".format(h, ramp_or + 1), "UTF-8")
+                    next_ramp_name = "{}{}".format(h + 1, ramp_or + 1)
+                    ramp_name = "{}{}".format(h, ramp_or + 1)
 
                     tiles.append(
-                        build_tile(size=size, tile=tile, name=ramp_name, symmetry=b"L", weight=ramp_weights[h])
+                        build_wfc_tile(size=size, tile=tile, name=ramp_name, symmetry="L", weight=ramp_weights[h])
                     )
 
                     # We add neighbors
@@ -92,16 +94,16 @@ def generate_tiles(max_height=6, weights=None, double_ramp=False):
                     # The tiles are rotate clockwise as i * 2 + ax increases
                     # And we add a rotation to fix that and keep the ramps in the right place
                     neighbors.append(
-                        build_neighbor(left=ramp_name, left_or=ramp_or, right=plain_tile_names[h], right_or=0)
+                        build_wfc_neighbor(left=ramp_name, left_or=ramp_or, right=plain_tile_names[h], right_or=0)
                     )
                     neighbors.append(
-                        build_neighbor(left=plain_tile_names[h + 1], left_or=0, right=ramp_name, right_or=ramp_or)
+                        build_wfc_neighbor(left=plain_tile_names[h + 1], left_or=0, right=ramp_name, right_or=ramp_or)
                     )
 
                     # Adding ramp to going upwards
                     if h < max_height - 2 and double_ramp:
                         neighbors.append(
-                            build_neighbor(left=next_ramp_name, left_or=ramp_or, right=ramp_name, right_or=ramp_or)
+                            build_wfc_neighbor(left=next_ramp_name, left_or=ramp_or, right=ramp_name, right_or=ramp_or)
                         )
 
     return tiles, neighbors

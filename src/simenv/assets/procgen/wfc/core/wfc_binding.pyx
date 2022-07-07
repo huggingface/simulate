@@ -32,7 +32,7 @@ def build_tile(list tile, string name, string symmetry=b"L", double weight=1, un
 def run_wfc(unsigned width, unsigned height, int sample_type, list input_img=None, 
             unsigned input_width=0, unsigned input_height=0, bool periodic_output=True, unsigned N=3,
             bool periodic_input=False, bool ground=False, unsigned nb_samples=1, unsigned symmetry=8, unsigned seed=0, 
-             bool verbose=False, unsigned nb_tries=10, list tiles=None,
+             bool verbose=False, unsigned nb_tries=100, list tiles=None,
              list neighbors=None):
 
     if neighbors == None:
@@ -59,6 +59,7 @@ def run_wfc(unsigned width, unsigned height, int sample_type, list input_img=Non
         "image as input (overlapping case); or relax restrictions (simpletiled) by increasing the number " \
         "of possible neighbors.")
 
-    cdef np.ndarray np_results = np.array([list(r.values()) for r in result], dtype=DTYPE).reshape(width, height, -1)
+    cdef np.ndarray np_results = np.array(
+        [list(r.values()) for r in result], dtype=DTYPE).reshape(nb_samples, width, height, -1)
 
     return np_results

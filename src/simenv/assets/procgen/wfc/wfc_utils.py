@@ -4,12 +4,7 @@ Utils function for Wave function collapse.
 
 import numpy as np
 
-
-# Number of divisions for each tile on the mesh
-GRANULARITY = 10
-
-# Constant to multiply by the values in the height map to get the actual height
-HEIGHT_CONSTANT = 0.6375
+from ..constants import HEIGHT_CONSTANT
 
 
 def generate_seed():

@@ -24,7 +24,7 @@ from .asset import Asset
 from .collider import Collider
 from .gltflib.enums.collider_type import ColliderType
 from .material import Material
-from .procgen.wfc import *
+from .procgen.wfc import generate_2d_map, generate_map
 
 
 class Object3D(Asset):
@@ -1103,11 +1103,19 @@ class ProcgenGrid(Object3D):
         height: Optional[int] = 9,
         shallow: Optional[bool] = False,
         algorithm_args: Optional[dict] = None,
+        seed: int = None,
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
+
+        if seed is None:
+            seed = np.random.randint(0, 100000)
+            print("Seed:", seed)
+
+        # Seeding
+        np.random.seed(seed)
 
         if sample_map is not None and not isinstance(sample_map, np.ndarray):
             sample_map = np.array(sample_map)
@@ -1122,9 +1130,6 @@ class ProcgenGrid(Object3D):
         if (tiles is None or neighbors is None) and sample_map is None and specific_map is None:
             raise ValueError("Insert tiles / neighbors or a map to sample from.")
 
-        # Generate seed for C++
-        seed = generate_seed()
-
         # Get coordinates and image from procedural generation
         all_args = {
             "width": width,
@@ -1132,16 +1137,25 @@ class ProcgenGrid(Object3D):
             "sample_map": sample_map,
             "tiles": tiles,
             "neighbors": neighbors,
-            "seed": seed,
             **algorithm_args,
         }
 
         if shallow:
-            self.map_2d = generate_2d_map(**all_args)
+            if specific_map is None:
+                map_2ds = generate_2d_map(**all_args)
+                # We take the first map (if nb_samples > 1), since this object has
+                # support for a single map for now
+                self.map_2d = map_2ds[0]
+
+            else:
+                self.map_2d = specific_map
 
         else:
             # Saves these for other functions that might use them
-            self.coordinates, self.map_2d = generate_map(specific_map=specific_map, **all_args)
+            # We take index 0 since generate_map is now vectorized, but we don't have
+            # support for multiple maps on this object yet.
+            coordinates, map_2ds = generate_map(specific_map=specific_map, **all_args)
+            self.coordinates, self.map_2d = coordinates[0], map_2ds[0]
 
             # If it is a structured grid, extract the surface mesh (PolyData)
             mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
@@ -1157,7 +1171,8 @@ class ProcgenGrid(Object3D):
         """
         Function for creating the mesh in case the creation of map was shallow.
         """
-        self.coordinates, _ = generate_map(specific_map=self.map_2d)
+        coordinates, _ = generate_map(specific_map=self.map_2d)
+        self.coordinates = coordinates[0]
 
         # If it is a structured grid, extract the surface mesh (PolyData)
         mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
