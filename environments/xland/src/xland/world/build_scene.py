@@ -217,13 +217,6 @@ def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=No
     obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
     agent_pos = convert_to_actual_pos(agent_pos, sg.coordinates)
 
-    # Add colliders to StructuredGrid
-    material = sm.Material(base_color=[0.0, 0.67, 0.66])
-    sg.generate_3D(material=material)
-
-    obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
-    agent_pos = convert_to_actual_pos(agent_pos, sg.coordinates)
-
     # Add structured grid, sides and bottom of the map
     x, y, z = sg.coordinates
 
