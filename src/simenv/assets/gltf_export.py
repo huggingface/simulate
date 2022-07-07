@@ -549,6 +549,9 @@ def add_rigidbody_to_model(
         drag=node_rb.drag,
         angular_drag=node_rb.angular_drag,
         constraints=node_rb.constraints,
+        use_gravity=node_rb.use_gravity,
+        continuous=node_rb.continuous,
+        kinematic=node_rb.kinematic,
     )
 
     # If we have already created exactly the same rigidbody we avoid double storing
