@@ -59,6 +59,7 @@ import numpy as np
 from Cython.Build import cythonize
 
 from setuptools import find_packages, setup
+import sys
 
 
 REQUIRED_PKGS = [
@@ -85,6 +86,14 @@ EXTRAS_REQUIRE = {
     "quality": QUALITY_REQUIRE,
 }
 
+if sys.platform == 'darwin':
+    extra_compile_args=["-std=c++11"]
+    extra_link_args=["-std=c++11"]
+    
+else:
+    extra_compile_args=[]
+    extra_link_args=[]
+
 ext_modules = [
    Extension(
       name="wfc_binding",
@@ -93,6 +102,8 @@ ext_modules = [
                "src/simenv/assets/procgen/wfc/core/cpp/src/wave.cpp",
                "src/simenv/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
       language="c++",
+      extra_compile_args=extra_compile_args,
+      extra_link_args=extra_link_args,
       include_dirs=[
             "src/simenv/assets/procgen/wfc/core/cpp/include",
       ],
