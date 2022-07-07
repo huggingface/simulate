@@ -6,11 +6,7 @@ print("First scene")
 scene = sm.Scene()
 
 # Create mesh
-# First value is the height of the tile
-# Second gives information if it's a plain tile or a ramp
-# Third doesn't have information associated for now. 
-# Ideally the user could create
-# their own functions to handle decoding the information.
+# Height map and, in the future, a map of simenv objects
 specific_map = np.array(
     [[[[0,0], [0,0]], [[0,0], [0,0]]], 
     [[[1,1], [1,1]], [[1,1], [1,1]]], \
