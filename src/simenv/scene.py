@@ -179,5 +179,7 @@ class Scene(Asset, Env):
         if self.n_agents == 1:
             return obs[0], reward[0], done[0], info[0]
 
+        return obs, reward, done, info
+
     def render(self, path: str):
         return self.engine.render(path=path)
