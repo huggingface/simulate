@@ -22,7 +22,7 @@ def create_scene(
     periodic_input=False,
     ground=False,
     nb_samples=1,
-    symmetry=1,
+    symmetry=4,
     verbose=False,
     show=False,
     tiles=None,

@@ -39,7 +39,7 @@ if __name__ == "__main__":
     parser.add_argument("--periodic_input", type=bool, default=True)
     parser.add_argument("--ground", type=bool, default=False)
     parser.add_argument("--max_height", type=int, default=6)
-    parser.add_argument("--symmetry", type=int, default=1)
+    parser.add_argument("--symmetry", type=int, default=4)
     parser.add_argument("--N", type=int, default=2)
     parser.add_argument("--nb_samples", type=int, default=1)
     parser.add_argument("--benchmark", type=str, default="benchmark/examples", help="Benchmarks folder path.")
