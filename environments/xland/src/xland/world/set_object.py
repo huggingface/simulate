@@ -40,121 +40,40 @@ def get_connectivity_graph(y):
 
             neighborhood = y[min_x:max_x, min_z:max_z]
             sub_nodes = nodes[min_x:max_x, min_z:max_z]
-            non_diagonal_connections = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])[
-                min_x - x + 1 : max_x - x + 1, min_z - z + 1 : max_z - z + 1
-            ]
-
-            # TODO: add back going up a ramp
-            # Maybe we can just check if the neighbors are the same :)
-
-            # Going down and same level tiles
-            going_down = np.all(
-                y[x, z]
-                >= neighborhood[
-                    :,
-                    :,
-                ],
-                axis=(-1, -2),
-            )
-            going_down = np.logical_and(going_down, non_diagonal_connections)
 
             # Declaration of arrays:
             neigh_shp = neighborhood.shape
-
-            # Going up from a ramp
-            going_up = np.zeros(neigh_shp[:-2], dtype=bool)
 
             # Coordinates of the center
             center_x = int(x != 0)
             center_z = int(z != 0)
 
-            # Going from lower tile to ramp
-            going_ramp = np.zeros(neigh_shp[:-2], dtype=bool)
+            # If there is a connection between tiles
+            connections = np.zeros(neigh_shp[:-2], dtype=bool)
 
             # Now we fill the values considering that we might have corner cases:
             # 1. Taking a ramp down:
             if x < N - 1:
                 idx_x = neigh_shp[0] - 1
 
-                # Get going_up as well from a ramp going down
-                # Case when the following tile is plain
-                going_up[idx_x, center_z] = np.all(np.max(y[x, z]) >= neighborhood[idx_x, center_z]) and np.all(
-                    y[x, z, 1, :] > y[x, z, 0, :]
-                )
-
-                # Case when you have two ramps one after another going up
-                two_ramps = (
-                    np.all(y[x, z, 1, :] > y[x, z, 0, :])
-                    and np.max(y[x, z]) == np.min(neighborhood[idx_x, center_z])
-                    and np.all(neighborhood[idx_x, center_z, 1, :] > neighborhood[idx_x, center_z, 0, :]))
-
-                going_up[idx_x, center_z] = (
-                    going_up[idx_x, center_z] or two_ramps
-                )
-
-                # When, entering into a ramp:
                 # We check by seeing if the and the neighbors are the same w.r.t. the tiles
-                if np.all(y[x, z] == y[x, z, 0, 0]):
-                    going_ramp[idx_x, center_z] = np.all(neighborhood[idx_x, center_z,0,:] == y[x,z,0,0])
+                connections[idx_x, center_z] = np.all(neighborhood[idx_x, center_z,0,:] <= y[x,z,1,:])
 
             # 2. Going right from a ramp
             if z < M - 1:
                 idx_z = neigh_shp[1] - 1
-
-                going_up[center_x, idx_z] = np.all(np.max(y[x, z]) >= neighborhood[center_x, idx_z]) and np.all(
-                    y[x, z, :, 1] > y[x, z, :, 0]
-                )
-
-                two_ramps = (
-                    np.all(y[x, z, :, 1] > y[x, z, :, 0])
-                    and np.max(y[x, z]) == np.min(neighborhood[center_x, idx_z])
-                    and np.all(neighborhood[center_x, idx_z, :, 1] > neighborhood[center_x, idx_z, :, 0])
-                )
-
-                going_up[center_x, idx_z] = (going_up[center_x, idx_z] or two_ramps)
-
-                if np.all(y[x, z] == y[x, z, 0, 0]):
-                    going_ramp[center_x, idx_z] = np.all(neighborhood[center_x,idx_z,:,0] == y[x,z,0,0])
+                connections[center_x, idx_z] = np.all(neighborhood[center_x,idx_z,:,0] <= y[x,z,:,1])
 
             # 3. Going up from a ramp
             if x > 0:
-                going_up[0, center_z] = np.all(np.max(y[x, z]) >= neighborhood[0, center_z]) and np.all(
-                    y[x, z, 0, :] > y[x, z, 1, :]
-                )
-
-                # Case when you have two ramps one after another going up
-                two_ramps = (
-                    np.max(y[x, z]) == np.min(neighborhood[0, center_z])
-                    and np.all(y[x, z, 0, :] > y[x, z, 1, :])
-                    and np.all(neighborhood[0, center_z, 0, :] > neighborhood[0, center_z, 1, :])
-                )
-
-                going_up[0, center_z] = (going_up[0, center_z] or two_ramps)
-
-                if np.all(y[x, z] == y[x, z, 0, 0]):
-                    going_ramp[0, center_z] = np.all(neighborhood[0, center_z,1,:] == y[x,z,0,0])
+                connections[0, center_z] = np.all(neighborhood[0,center_z,1,:] <= y[x,z,0,:])
 
             # 4. Going left from a ramp
             if z > 0:
-                going_up[center_x, 0] = np.all(np.max(y[x, z]) >= neighborhood[center_x, 0]) and np.all(
-                    y[x, z, :, 0] > y[x, z, :, 1]
-                )
-
-                two_ramps = (
-                    np.max(y[x, z]) == np.min(neighborhood[center_x, 0])
-                    and np.all(y[x, z, :, 0] > y[x, z, :, 1])
-                    and np.all(neighborhood[center_x, 0, :, 0] > neighborhood[center_x, 0, :, 1])
-                )
-
-                going_up[center_x, 0] = (going_up[center_x, 0] or two_ramps)
-
-                if np.all(y[x, z] == y[x, z, 0, 0]):
-                    going_ramp[center_x, 0] = np.all(neighborhood[center_x, 0 , :, 1] == y[x,z,0,0])
+                connections[center_x, 0] = np.all(neighborhood[center_x,0,:,1] <= y[x,z,:,0])
 
             # Add edges
-            # Remove duplicates, if existent
-            edges[z + M * x] = np.unique(np.concatenate([sub_nodes[going_down], sub_nodes[going_up], 
-                                            sub_nodes[going_ramp]]))
+            edges[z + M * x] = sub_nodes[connections]
 
     # Transform into a numpy array
     # This array will be useful to identify where to set the objects
@@ -275,6 +194,8 @@ def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform")
     """
     Returns None if there isn't enough playable area.
     """
+
+    threshold = 0.1
 
     if n_agents == 0 and n_objects == 0:
         return [], [], True
