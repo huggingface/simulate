@@ -7,10 +7,10 @@
  * Represent a 24-bit rgb color.
  */
 struct IdPair {
-  unsigned uid, orientation;
+  unsigned uid, rotation, reflected;
 
   bool operator==(const IdPair &obj) const noexcept {
-    return uid == obj.uid && orientation == obj.orientation;
+    return uid == obj.uid && rotation == obj.rotation && reflected == obj.reflected;
   }
 
   bool operator!=(const IdPair &obj) const noexcept { return !(obj == *this); }
@@ -27,7 +27,7 @@ public:
     // 8 different types of orientations (1 - 8 with 1 and 8 included)
     // We limit the number of different tiles to 536870911
     // Otherwise, there is overflow on the hash function
-    return (size_t) (obj.orientation - 1) * (size_t) 536870911 + (size_t) obj.uid;
+    return (size_t) (obj.rotation + 4 * obj.reflected) * (size_t) 536870911 + (size_t) obj.uid;
   }
 };
 } // namespace std

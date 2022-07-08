@@ -24,7 +24,7 @@ def get_tile(h, orientation=0):
         return np.rot90(np.array([[h, h], [h + 1, h + 1]]), orientation - 1) * HEIGHT_CONSTANT
 
 
-def generate_tiles(max_height=6, double_ramp=False):
+def generate_tiles(max_height=6, double_ramp=True):
     """
     Generate tiles for the procedural generation.
     NOTE: So far, we are using these values to get used to how to use the algorithm.
@@ -39,9 +39,11 @@ def generate_tiles(max_height=6, double_ramp=False):
         tiles, neighbors
     """
 
+    print(double_ramp)
+
     # TODO: which should be default weights?
     plain_weights = np.exp(np.linspace(1.0, -3.0, max(6, max_height)))[:max_height]
-    ramp_weights = [0.2] * max_height
+    ramp_weights = [0.8] * max_height
 
     # Step for the height (which is represented by the intensity of the color)
     tiles = []
@@ -70,23 +72,22 @@ def generate_tiles(max_height=6, double_ramp=False):
             # Generation of ramp tiles:
             # Here we only generate from bottom to top, right to left, left to right
             # and top to bottom, in this order
-            for i in range(0, 2):
-                for ax in range(0, 2):
-                    # Ramp orientation (more details down here)
-                    ramp_or = i * 2 + ax
-                    tiles.append(get_tile(h, ramp_or + 1))
-                    symmetries.append("L")
-                    weights.append(ramp_weights[h])
+            tiles.append(get_tile(h, 1))
+            symmetries.append("L")
+            weights.append(ramp_weights[h])
 
-                    # We add neighbors
-                    # Notice that we have to add orientation
-                    # The tiles are rotate clockwise as i * 2 + ax increases
-                    # And we add a rotation to fix that and keep the ramps in the right place
-                    neighbors.append((get_tile(h, ramp_or + 1), get_tile(h), ramp_or, 0))
-                    neighbors.append((get_tile(h + 1), get_tile(h, ramp_or + 1), 0, ramp_or))
+            # We add neighbors
+            # Notice that we have to add orientation
+            # The tiles are rotate clockwise as i * 2 + ax increases
+            # And we add a rotation to fix that and keep the ramps in the right place
+            neighbors.append((get_tile(h, 1), get_tile(h), 0, 0))
+            neighbors.append((get_tile(h + 1), get_tile(h, 1), 0, 0))
+            
+            # TODO: Two ramps one on the side of the another
+            # neighbors.append((get_tile(h, 1), get_tile(h, 1), 3, 3))
 
-                    # Adding ramp to going upwards
-                    if h < max_height - 2 and double_ramp:
-                        neighbors.append((get_tile(h + 1, ramp_or + 1), get_tile(h, ramp_or + 1), ramp_or, ramp_or))
+            # Adding ramp to going upwards
+            if h < max_height - 2 and double_ramp:
+                neighbors.append((get_tile(h + 1, 1), get_tile(h, 1), 0, 0))
 
     return np.array(tiles), np.array(symmetries), np.array(weights), neighbors

@@ -195,8 +195,6 @@ def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform")
     Returns None if there isn't enough playable area.
     """
 
-    threshold = 0.1
-
     if n_agents == 0 and n_objects == 0:
         return [], [], True
 

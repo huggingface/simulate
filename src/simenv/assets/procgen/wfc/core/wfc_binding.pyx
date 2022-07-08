@@ -26,12 +26,12 @@ def build_tile(list tile, string name, string symmetry=b"L", double weight=1, un
         size = np.sqrt(len(tile))
     
     for i in range(len(tile)):
-        tile[i] = IdPair(uid=tile[i], orientation=0)
+        tile[i] = IdPair(uid=tile[i], rotation=0, reflected=0)
     
     return PyTile(size=size, tile=tile, name=name, symmetry=symmetry, weight=weight)
 
-def transform_to_id_pair(uid, orientation=0):
-    return IdPair(uid=uid, orientation=orientation)
+def transform_to_id_pair(uid, rotation=0, reflected=0):
+    return IdPair(uid=uid, rotation=rotation, reflected=0)
 
 def run_wfc(unsigned width, unsigned height, int sample_type, list input_img=None, 
             unsigned input_width=0, unsigned input_height=0, bool periodic_output=True, unsigned N=3,

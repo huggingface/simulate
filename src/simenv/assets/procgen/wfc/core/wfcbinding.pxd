@@ -6,7 +6,7 @@ from libcpp.vector cimport vector
 
 cdef extern from "cpp/include/id_pair.hpp":
     cdef struct IdPair:
-        unsigned uid, orientation
+        unsigned uid, rotation, reflected
 
 cdef extern from "cpp/src/run_wfc.cpp":
     pass

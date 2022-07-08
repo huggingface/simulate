@@ -8,9 +8,9 @@ scene = sm.Scene()
 # Create mesh
 # Height map and, in the future, a map of simenv objects
 specific_map = np.array(
-    [[[[0,0], [0,0]], [[0,0], [0,0]]], 
-    [[[1,1], [1,1]], [[1,1], [1,1]]], \
-    [[[1,1], [1,1]], [[0,0], [0,0]]]]) * 0.6
+    [[[[1,1], [1,1]], [[1,1], [1,1]]], 
+    [[[1,1], [0,0]], [[1,1], [1,1]]], \
+    [[[0,0], [0,0]], [[0,0], [0,0]]]]) * 0.6
 scene += sm.ProcgenGrid(specific_map=specific_map)
 scene += sm.Light()
 scene.show()

@@ -106,12 +106,15 @@ def get_tiles_back(gen_map, tile_conversion, nb_samples, width, height, tile_sha
     """
     Returns tiles back.
     """
-    gen_map = np.reshape(gen_map, (nb_samples * width * height, 2))
+    gen_map = np.reshape(gen_map, (nb_samples * width * height, 3))
     converted_map = []
 
     for i in range(nb_samples * width * height):
-        # TODO: add rotation
-        converted_map.append(tile_conversion[gen_map[i][0]])
+        # Rotate and reflect single tiles / patterns
+        converted_tile = np.rot90(tile_conversion[gen_map[i][0]], gen_map[i][1]) 
+        if gen_map[i][2] == 1:
+            converted_tile = np.fliplr(converted_tile)
+        converted_map.append(converted_tile)
 
     return np.reshape(np.array(converted_map), (nb_samples, width, height, *tile_shape))
 
