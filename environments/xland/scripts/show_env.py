@@ -53,9 +53,6 @@ if __name__ == "__main__":
         extra_args["symmetries"] = symmetries
         extra_args["weights"] = weights
         extra_args["neighbors"] = neighbors
-        print(tiles)
-        print(symmetries)
-        print(weights)
 
     else:
         name = args.map or args.sample_from
