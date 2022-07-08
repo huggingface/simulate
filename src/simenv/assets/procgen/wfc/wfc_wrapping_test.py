@@ -3,7 +3,13 @@
 import unittest
 
 import numpy as np
-from wfc_wrapping import *
+from wfc_wrapping import (
+    apply_wfc,
+    preprocess_input_img,
+    preprocess_neighbors,
+    preprocess_tiles,
+    preprocess_tiles_and_neighbors,
+)
 
 
 class TestTilesNeighbors(unittest.TestCase):

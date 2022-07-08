@@ -111,7 +111,7 @@ def get_tiles_back(gen_map, tile_conversion, nb_samples, width, height, tile_sha
 
     for i in range(nb_samples * width * height):
         # Rotate and reflect single tiles / patterns
-        converted_tile = np.rot90(tile_conversion[gen_map[i][0]], gen_map[i][1]) 
+        converted_tile = np.rot90(tile_conversion[gen_map[i][0]], gen_map[i][1])
         if gen_map[i][2] == 1:
             converted_tile = np.fliplr(converted_tile)
         converted_map.append(converted_tile)

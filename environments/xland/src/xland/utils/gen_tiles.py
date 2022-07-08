@@ -82,7 +82,7 @@ def generate_tiles(max_height=6, double_ramp=True):
             # And we add a rotation to fix that and keep the ramps in the right place
             neighbors.append((get_tile(h, 1), get_tile(h), 0, 0))
             neighbors.append((get_tile(h + 1), get_tile(h, 1), 0, 0))
-            
+
             # TODO: Two ramps one on the side of the another
             # neighbors.append((get_tile(h, 1), get_tile(h, 1), 3, 3))
 

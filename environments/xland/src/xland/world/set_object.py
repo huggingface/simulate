@@ -57,20 +57,20 @@ def get_connectivity_graph(y):
                 idx_x = neigh_shp[0] - 1
 
                 # We check by seeing if the and the neighbors are the same w.r.t. the tiles
-                connections[idx_x, center_z] = np.all(neighborhood[idx_x, center_z,0,:] <= y[x,z,1,:])
+                connections[idx_x, center_z] = np.all(neighborhood[idx_x, center_z, 0, :] <= y[x, z, 1, :])
 
             # 2. Going right from a ramp
             if z < M - 1:
                 idx_z = neigh_shp[1] - 1
-                connections[center_x, idx_z] = np.all(neighborhood[center_x,idx_z,:,0] <= y[x,z,:,1])
+                connections[center_x, idx_z] = np.all(neighborhood[center_x, idx_z, :, 0] <= y[x, z, :, 1])
 
             # 3. Going up from a ramp
             if x > 0:
-                connections[0, center_z] = np.all(neighborhood[0,center_z,1,:] <= y[x,z,0,:])
+                connections[0, center_z] = np.all(neighborhood[0, center_z, 1, :] <= y[x, z, 0, :])
 
             # 4. Going left from a ramp
             if z > 0:
-                connections[center_x, 0] = np.all(neighborhood[center_x,0,:,1] <= y[x,z,:,0])
+                connections[center_x, 0] = np.all(neighborhood[center_x, 0, :, 1] <= y[x, z, :, 0])
 
             # Add edges
             edges[z + M * x] = sub_nodes[connections]

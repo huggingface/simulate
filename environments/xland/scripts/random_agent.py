@@ -1,8 +1,8 @@
 """Agent acting randomly on the environment."""
 
-import numpy as np
 import time
 
+import numpy as np
 from matplotlib import pyplot as plt
 from xland import make_env
 
