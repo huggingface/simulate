@@ -16,18 +16,24 @@ def create_env(executable=None, port=None, headless=None):
     yellow_material = sm.Material(base_color=(0.95, 0.83, 0.28))
     red_material = sm.Material(base_color=(0.8, 0.2, 0.2))
 
-    maze_width = 6
-    maze_depth = 6
+    maze_width = 3
+    maze_depth = 3
     n_objects = 1
 
-    for i in range(8):
-        for j in range(8):
+    for i in range(2):
+        for j in range(2):
             maze = ProcGenPrimsMaze3D(maze_width, maze_depth, wall_material=yellow_material)
             maze += sm.Box(position=[0, 0, 0], bounds=[0.0,maze_width, 0, 0.1, 0.0, maze_depth], material=blue_material)
-            agent = sm.SimpleRlAgent(camera_width=36, camera_height=36, position=[maze_width/2.0 +0.5, 0.0, maze_depth/2.0 +0.5])
+            agent_position = [round(maze_width/2.0) +0.5, 0.0, round(maze_depth/2.0) +0.5]
+            agent = sm.SimpleRlAgent(camera_width=36, camera_height=36, position=agent_position)
             maze += agent
 
             for r in range(n_objects):
+                position = [random.randint(0,maze_width-1)+0.5, 0.5, random.randint(0,maze_depth-1)+0.5]
+                while ((position[0] - agent_position[0])**2 + (position[2] - agent_position[2])**2 < 1.0):
+                    # avoid overlapping collectables
+                    position = [random.randint(0,maze_width-1)+0.5, 0.5, random.randint(0,maze_depth-1)+0.5]
+
                 collectable = sm.Sphere(position=[random.randint(0,maze_width-1)+0.5, 0.5, random.randint(0,maze_depth-1)+0.5], radius=0.2, material=red_material)
                 maze += collectable
                 reward_function = sm.RewardFunction(
@@ -35,26 +41,26 @@ def create_env(executable=None, port=None, headless=None):
                     entity_a=agent,
                     entity_b=collectable,
                     distance_metric="euclidean",
-                    threshold=1.0,
+                    threshold=0.5,
                     is_terminal=True,
-                    is_collectable=True
+                    is_collectable=False
                 )
                 agent.add_reward_function(reward_function)
 
-            timeout_reward_function = sm.RewardFunction(
-                type="timeout",
-                entity_a=agent,
-                entity_b=agent,
-                distance_metric="euclidean",
-                threshold=2000,
-                is_terminal=True,
-                scalar=-1.0,
-            )
+            # timeout_reward_function = sm.RewardFunction(
+            #     type="timeout",
+            #     entity_a=agent,
+            #     entity_b=agent,
+            #     distance_metric="euclidean",
+            #     threshold=100,
+            #     is_terminal=True,
+            #     scalar=-1.0,
+            # )
             
-            agent.add_reward_function(timeout_reward_function)
+            # agent.add_reward_function(timeout_reward_function)
             scene.engine.add_to_pool(maze)
 
-    scene.show(n_maps=36)
+    scene.show(n_maps=3)
     return scene
 
 
@@ -72,8 +78,7 @@ if __name__ == "__main__":
     
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
     time.sleep(2.0)
-    obs = env.reset()
-    model = PPO("CnnPolicy", env, verbose=3)
+    model = PPO("CnnPolicy", env, verbose=3, n_epochs=2)
     model.learn(total_timesteps=100000)
     
     env.close()

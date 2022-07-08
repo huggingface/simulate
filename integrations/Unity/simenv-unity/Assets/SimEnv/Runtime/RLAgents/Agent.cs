@@ -27,7 +27,7 @@ namespace SimEnv.RlAgents {
             node.referenceObject = this;
             node.tag = "Agent";
             SetProperties(agentData);
-            AgentManager.instance.Register(this);
+            //AgentManager.instance.Register(this);
         }
 
         public void Initialize() {

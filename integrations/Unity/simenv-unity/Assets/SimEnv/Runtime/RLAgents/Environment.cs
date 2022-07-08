@@ -29,7 +29,6 @@ namespace SimEnv.RlAgents {
                 agent.Initialize();
             }
             bounds = GetLocalBoundsForObject(root);
-            Debug.Log("BOUNDS" + bounds.ToString());
             Disable();
 
 
@@ -57,7 +56,6 @@ namespace SimEnv.RlAgents {
         }
         public void SetPosition(Vector3 position) {
             root.transform.position = position;
-            Debug.Log("setting position " + position.ToString());
         }
 
         public void Step(List<float> actions, float physicsUpdateRate) {

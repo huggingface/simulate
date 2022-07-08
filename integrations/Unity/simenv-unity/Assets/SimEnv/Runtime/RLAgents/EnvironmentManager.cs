@@ -9,7 +9,7 @@ namespace SimEnv.RlAgents {
     public class EnvironmentManager {
         public static EnvironmentManager instance;
 
-        List<Environment> environmentPool = new List<Environment>();
+        Queue<Environment> environmentQueue = new Queue<Environment>();
         List<Vector3> positionPool = new List<Vector3>();
         List<Environment> activeEnvironments = new List<Environment>();
 
@@ -24,20 +24,20 @@ namespace SimEnv.RlAgents {
         public void AddToPool(byte[] bytes) {
             GameObject map = GLTF.Importer.LoadFromBytes(bytes);
             Environment environment = new Environment(map);
-            environmentPool.Add(environment);
+            environmentQueue.Enqueue(environment);
 
         }
 
         public void ActivateEnvironments(int nEnvironments) {
             CreatePositionPool(nEnvironments);
             if (nEnvironments == -1) {
-                nEnvironments = environmentPool.Count;
+                nEnvironments = environmentQueue.Count;
             }
-            Debug.Assert(nEnvironments <= environmentPool.Count);
+            Debug.Assert(nEnvironments <= environmentQueue.Count);
             for (int i = 0; i < nEnvironments; i++) {
-                Environment environment = GetNextEnv();
-                environment.Enable();
+                Environment environment = environmentQueue.Dequeue();
                 environment.SetPosition(positionPool[i]);
+                environment.Enable();
                 environment.Reset();
                 activeEnvironments.Add(environment);
             }
@@ -50,7 +50,7 @@ namespace SimEnv.RlAgents {
 
         private void CreatePositionPool(int nEnvironments) {
             Bounds bounds = new Bounds(Vector3.zero, Vector3.zero);
-            foreach (var env in environmentPool) {
+            foreach (var env in environmentQueue) {
                 Bounds envBounds = env.bounds;
                 bounds.Encapsulate(envBounds);
             }
@@ -72,7 +72,6 @@ namespace SimEnv.RlAgents {
                     }
                 }
             }
-            Debug.Log(count.ToString() + " " + nEnvironments.ToString());
             Debug.Assert(count == nEnvironments);
 
         }
@@ -92,23 +91,23 @@ namespace SimEnv.RlAgents {
         }
 
         public void ResetAgents() {
+            Debug.Log("resetting agents");
             for (int i = 0; i < activeEnvironments.Count; i++) {
                 ResetAt(i);
             }
         }
         public void ResetAt(int i) {
-            activeEnvironments[i].Reset();
+
+            activeEnvironments[i].SetPosition(new Vector3(-10f, 0f, -10f));
             activeEnvironments[i].Disable();
-            activeEnvironments[i] = GetNextEnv();
+            environmentQueue.Enqueue(activeEnvironments[i]);
+
+            activeEnvironments[i] = environmentQueue.Dequeue();
             activeEnvironments[i].SetPosition(positionPool[i]);
             activeEnvironments[i].Enable();
-        }
+            activeEnvironments[i].Reset();
 
-        private Environment GetNextEnv() {
-            Environment next = environmentPool[nextEnvIndex];
-            nextEnvIndex++;
-            nextEnvIndex %= environmentPool.Count;
-            return next;
+
         }
         public float[] GetReward() {
             List<float> rewards = new List<float>();
