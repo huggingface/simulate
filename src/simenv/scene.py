@@ -103,9 +103,6 @@ class Scene(Asset, Env):
             self._n_agents = n_maps
         self.engine.show(n_maps=n_maps,**engine_kwargs)
 
-    def activate(self, n_agents):
-        self._n_agents = n_agents
-        self.engine.activate(n_agents)
 
     def clear(self):
         """Remove all assets in the scene."""
