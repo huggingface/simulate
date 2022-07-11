@@ -32,17 +32,19 @@ public class DebugCam : MonoBehaviour {
     }
     void Update() {
         // Input
-        // if (Focused)
-        //     UpdateInput();
-        // else if (Input.GetMouseButtonDown(0))
-        //     Focused = true;
+        if (Focused)
+            UpdateInput();
+        else if (Input.GetMouseButtonDown(0))
+            Focused = true;
 
-        // // Physics
-        // velocity = Vector3.Lerp(velocity, Vector3.zero, dampingCoefficient * Time.deltaTime);
-        // transform.position += velocity * Time.deltaTime;
+        // Physics
+        velocity = Vector3.Lerp(velocity, Vector3.zero, dampingCoefficient * Time.deltaTime);
+        transform.position += velocity * Time.deltaTime;
 
-        transform.RotateAround(centre, Vector3.up, 10.0f * Time.deltaTime);
-
+        //transform.RotateAround(centre, Vector3.up, 10.0f * Time.deltaTime);
+        // Leave cursor lock
+        if (Input.GetKeyDown(KeyCode.Escape))
+            Focused = false;
 
     }
 
