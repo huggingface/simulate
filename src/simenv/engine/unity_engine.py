@@ -177,12 +177,10 @@ class UnityEngine(Engine):
         return [d for d in data["Items"]]
 
     def reset(self):
-        print("reset")
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command)
 
     def reset_send(self):
-        print("reset")
         command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
         self.run_command(command, ack=False)
 

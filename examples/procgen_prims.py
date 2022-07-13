@@ -1,9 +1,7 @@
 import math
 
 import simenv as sm
-import numpy as np
 from simenv.assets.object import ProcGenPrimsMaze3D
-from simenv.assets.procgen.prims import generate_prims_maze
 import random
 from simenv import ParallelSimEnv
 from stable_baselines3 import PPO

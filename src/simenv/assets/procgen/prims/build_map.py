@@ -1,10 +1,25 @@
 import random
+from typing import Optional, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 
-def generate_prims_maze(size, cell_width=1.0, xmin=0.0, ymin=0.0, keep_prob=5):
+def generate_prims_maze(
+    size: Tuple[int, int],
+    cell_width: Optional[float] = 1.0,
+    xmin: Optional[float] = 0.0,
+    ymin: Optional[float] = 0.0,
+    keep_prob: Optional[int] = 5,
+):
+    """
+    size: The size of map in the x and yz directions
+    cell_width: the cell spacing in metres
+    xmin: the minimum x coord of the map
+    ymin: the minimum y coord of the map
+    keep_prob: the probability - keep_prob/10 if randomly removing a wall for the complete prim's maze
+
+    """
     range_start_x = 0  # (-size //2)
     range_end_x = size[0]  # //2
     range_start_y = 0  # (-size //2)

@@ -134,23 +134,6 @@ namespace SimEnv {
             OnAfterLoad();
         }
 
-        // public static void AddToPool(byte[] bytes) {
-        //     Debug.Log("adding map to pool");
-
-        //     if (!poolInitialized) {
-        //         Unload();
-        //         OnBeforeLoad();
-        //     }
-
-        //     RlAgents.EnvironmentManager.instance.Register(map);
-
-        //     if (!poolInitialized) {
-        //         poolInitialized = true;
-        //         OnAfterLoad();
-        //     }
-        //     Debug.Log("Map added to pool");
-        // }
-
         /// <summary>
         /// Asynchronously loads an environment from bytes.
         /// </summary>

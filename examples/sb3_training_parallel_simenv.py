@@ -22,8 +22,8 @@ def create_env(executable=None, port=None, headless=None):
         engine_exe=executable,
         engine_port=port,
         engine_headless=headless,
-        frame_skip=15,
-        physics_update_rate=32.3,
+        frame_skip=4,
+        physics_update_rate=30,
     )
     scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
     blue_material = sm.Material(base_color=(0, 0, 0.8))
@@ -83,7 +83,7 @@ def create_env(executable=None, port=None, headless=None):
     return scene
 
 
-def make_env(executable, seed=0, headless=None):
+def make_env(executable, seed=0, headless=True):
     def _make_env(port):
         env = create_env(executable=executable, port=port, headless=headless)
         return env
@@ -93,11 +93,17 @@ def make_env(executable, seed=0, headless=None):
 
 if __name__ == "__main__":
     n_parallel = 1
-    env_fn = make_env(None)  # "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+    env_fn = make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")  #
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
-    obs = env.reset()
-    model = PPO("CnnPolicy", env, verbose=3)
+    # obs = env.reset()
+
+    # for i in range(100):
+    #     actions = np.array([env.action_space.sample() for _ in range(env.n_agents)])
+    #     print(i)
+    #     obs = env.step(actions)
+
+    model = PPO("CnnPolicy", env, verbose=3, n_epochs=1)
     model.learn(total_timesteps=100000)
 
     env.close()

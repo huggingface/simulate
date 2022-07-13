@@ -21,6 +21,11 @@ namespace SimEnv.RlAgents {
         uint[] agentPixelValues;
         int obsSize;
 
+        public void Initialize(){
+            frameSkip = Client.instance.frameSkip;
+            physicsUpdateRate = Client.instance.physicsUpdateRate;
+        }
+
         public void AddToPool(byte[] bytes) {
             GameObject map = GLTF.Importer.LoadFromBytes(bytes);
             Environment environment = new Environment(map);
