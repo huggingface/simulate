@@ -101,8 +101,7 @@ class Scene(Asset, Env):
         """Render the Scene using the engine."""
         if n_maps > 0:
             self._n_agents = n_maps
-        self.engine.show(n_maps=n_maps,**engine_kwargs)
-
+        self.engine.show(n_maps=n_maps, **engine_kwargs)
 
     def clear(self):
         """Remove all assets in the scene."""
