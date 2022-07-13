@@ -52,7 +52,8 @@ class UnityEngine(Engine):
         self._initialize_server()
         atexit.register(self._close)
 
-        
+        self._map_pool = False
+
     def _launch_executable(self, executable, port, headless, physics_update_rate, frame_skip):
         # TODO: improve headless training check on a headless machine
         if headless:
@@ -112,23 +113,27 @@ class UnityEngine(Engine):
         pass
 
     def show(self, n_maps=-1, **engine_kwargs):
-        self._send_gltf(self._scene.as_glb_bytes())
-        self._activate_pool(n_maps=n_maps)
+        if self._map_pool:
+            self._send_gltf(self._scene.as_glb_bytes())
+            self._activate_pool(n_maps=n_maps)
+        else:
+            self.add_to_pool(self._scene)
+            self._activate_pool(n_maps=1)
 
     def _activate_pool(self, n_maps):
         command = {"type": "ActivateEnvironments", "contents": json.dumps({"n_maps": n_maps})}
         return self.run_command(command)
 
     def add_to_pool(self, map):
+        self._map_pool = True
         agent = map.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))[0]
         self.action_space = agent.action_space
         self.observation_space = agent.observation_space
 
-
         map_bytes = map.as_glb_bytes()
         b64_bytes = base64.b64encode(map_bytes).decode("ascii")
         command = {"type": "AddToPool", "contents": json.dumps({"b64bytes": b64_bytes})}
-        self.run_command(command, ack=True)        
+        self.run_command(command, ack=True)
 
     def step(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}
@@ -205,6 +210,7 @@ class UnityEngine(Engine):
         # TODO: remove np.flip for training (the agent does not care the world is upside-down
         # TODO: have unity side send in B,C,H,W order
         shape = obs["shape"]
+        print("shape", shape)
         return np.flip(np.array(obs["Items"]).astype(np.uint8).reshape(*shape), 1).transpose(0, 3, 1, 2)
 
     def run_command(self, command, ack=True):
