@@ -49,7 +49,6 @@ for x in [0, 21, 42, 63]:
             continue
         scene.engine.add_to_pool(root.copy().translate_x(x).translate_z(z))
 
-print("camera shape", scene.observation_space.shape)
 camera_height = scene.observation_space.shape[1]
 camera_width = scene.observation_space.shape[2]
 
