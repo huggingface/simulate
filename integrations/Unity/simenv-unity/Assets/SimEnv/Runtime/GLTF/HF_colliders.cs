@@ -66,9 +66,8 @@ namespace SimEnv.GLTF {
             Collider[] cols = node.transform.GetComponents<Collider>();
             if (cols.Length == 0)
                 return null;
-            else if (cols.Length > 1) {
+            else if (cols.Length > 1)
                 Debug.LogWarning($"Node {node.name} has multiple colliders. Ignoring extras.");
-            }
             Collider col = cols[0];
             GLTFCollider collider = new GLTFCollider();
             if (col is BoxCollider) {

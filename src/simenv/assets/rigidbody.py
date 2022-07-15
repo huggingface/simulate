@@ -51,6 +51,19 @@ class RigidBody:
              FreezeRotationX, FreezeRotationY, FreezeRotationZ,
              FreezePosition, FreezeRotation, FreezeAll]
 
+    use_gravity : bool, optional
+        Whether the rigidbody should ignore gravity
+
+    continuous : bool, optional
+        Whether to use continuous collision detection, for slower
+            but more precise collision detection (recommended for
+            small but fast-moving objects)
+
+    kinematic : bool, optional
+        Whether to ignore force collisions and treat the rigidbody
+            as kinematic. Equivalent to isKinematic in Unity
+            and custom_integrator in Godot
+
     """
 
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -59,6 +72,9 @@ class RigidBody:
     drag: Optional[float] = None
     angular_drag: Optional[float] = None
     constraints: Optional[List[str]] = None
+    use_gravity: Optional[bool] = None
+    continuous: Optional[bool] = None
+    kinematic: Optional[bool] = None
 
     name: Optional[str] = None
 
@@ -79,6 +95,13 @@ class RigidBody:
         for contraint in self.constraints:
             if contraint not in ALLOWED_CONSTRAINTS:
                 raise ValueError(f"Contraint {contraint} not in allowed list: {ALLOWED_CONSTRAINTS}")
+
+        if self.use_gravity is None:
+            self.use_gravity = True
+        if self.continuous is None:
+            self.continuous = False
+        if self.kinematic is None:
+            self.kinematic = False
 
         if self.name is None:
             id = next(self.__class__.__NEW_ID)

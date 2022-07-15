@@ -249,6 +249,9 @@ namespace SimEnv.GLTF {
                                 rb.mass = rigidbody.mass;
                                 rb.drag = rigidbody.drag;
                                 rb.angularDrag = rigidbody.angular_drag;
+                                rb.useGravity = rigidbody.use_gravity;
+                                rb.collisionDetectionMode = rigidbody.continuous ? CollisionDetectionMode.Continuous : CollisionDetectionMode.Discrete;
+                                rb.isKinematic = rigidbody.kinematic;
 
                                 foreach (string constraint in rigidbody.constraints) {
                                     switch (constraint) {

@@ -1,10 +1,6 @@
-// based on https://github.com/Moguri/glTF/tree/panda3d_physics_collision_shapes/extensions/2.0/Vendor/PANDA3D_collision_shapes
 using Newtonsoft.Json;
 using UnityEngine;
-using System.Collections;
-using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
 using System.Linq;
 
 
@@ -12,44 +8,73 @@ namespace SimEnv.GLTF {
     public class HFRigidbodies {
         public List<GLTFRigidbody> rigidbodies;
 
+        public HFRigidbodies() {
+            rigidbodies = new List<GLTFRigidbody>();
+        }
+
         public class GLTFRigidbody {
             [JsonProperty(Required = Required.Always)] public float mass;
             public float drag = 0f;
             public float angular_drag = 0f;
             [JsonProperty(Required = Required.Always)] public List<string> constraints = new List<string>();
             public string name = "";
+            public bool use_gravity = true;
+            public bool continuous = false;
+            public bool kinematic = false;
 
-            // TODO(dylan?) fix this to export the rigidbodies at the scene level
+            public bool ShouldSerializedrag() => drag != 0f;
+            public bool ShouldSerializeangular_drag() => angular_drag != 0f;
+            public bool ShouldSerializeuse_gravity() => !use_gravity;
+            public bool ShouldSerializecontinuous() => continuous;
+            public bool ShouldSerializekinematic() => kinematic;
+        }
 
-            // public static void Export(GLTFNode.ExportResult node) {
-            //     Collider[] cols = node.transform.GetComponents<Collider>();
-            //     if(cols.Length == 0) {
-            //         return;
-            //     } else if(cols.Length > 1) {
-            //         Debug.LogWarning(string.Format("Node {0} has multiple colliders. Ignoring extras.", node.name));
-            //     }
-            //     Collider col = cols[0];
-            //     HFColliders collider = new HFColliders.GLTFCollider();
-            //     if(col is BoxCollider) {
-            //         collider.type = ColliderType.BOX;
-            //         collider.offset = ((BoxCollider)col).center;
-            //         collider.boundingBox = ((BoxCollider)col).size;
-            //     } else if(col is SphereCollider) {
-            //         collider.type = ColliderType.SPHERE;
-            //         collider.offset = ((SphereCollider)col).center;
-            //         collider.boundingBox = Vector3.one * ((SphereCollider)col).radius;
-            //     } else if(col is CapsuleCollider) {
-            //         collider.type = ColliderType.CAPSULE;
-            //         CapsuleCollider capsule = col as CapsuleCollider;
-            //         collider.offset = capsule.center;
-            //         collider.boundingBox = new Vector3(capsule.radius, capsule.height, capsule.radius);
-            //     } else {
-            //         Debug.LogWarning(string.Format("Collider type {0} not implemented", col.GetType()));
-            //     }            
-            //     if(node.extensions == null)
-            //         node.extensions = new GLTFNode.Extensions();
-            //     node.extensions.HF_colliders = collider;
-            // }
+        public static void Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {
+            List<GLTFRigidbody> rigidbodies = new List<GLTFRigidbody>();
+            foreach (GLTFNode.ExportResult node in nodes) {
+                GLTFRigidbody rigidbody = Export(node);
+                if (rigidbody == null) continue;
+                if (!rigidbodies.Contains(rigidbody))
+                    rigidbodies.Add(rigidbody);
+                node.extensions ??= new GLTFNode.Extensions();
+                node.extensions.HF_rigidbodies = new GLTFNode.HFRigidbody() { rigidbody = rigidbodies.IndexOf(rigidbody) };
+            }
+            if (rigidbodies.Count == 0) return;
+            gltfObject.extensions ??= new GLTFExtensions();
+            gltfObject.extensions.HF_rigidbodies ??= new HFRigidbodies();
+            gltfObject.extensions.HF_rigidbodies.rigidbodies.AddRange(rigidbodies);
+            gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
+        }
+
+        static GLTFRigidbody Export(GLTFNode.ExportResult node) {
+            Rigidbody[] rigidbodies = node.transform.GetComponents<Rigidbody>();
+            if (rigidbodies.Length == 0)
+                return null;
+            else if (rigidbodies.Length > 1)
+                Debug.LogWarning($"Node {node.name} has multiple rigidbodies. Ignoring extras.");
+            Rigidbody rigidbody = rigidbodies[0];
+            GLTFRigidbody gltfRigidbody = new GLTFRigidbody();
+            gltfRigidbody.mass = rigidbody.mass;
+            gltfRigidbody.drag = rigidbody.drag;
+            gltfRigidbody.angular_drag = rigidbody.angularDrag;
+            gltfRigidbody.constraints = new List<string>();
+            if ((rigidbody.constraints & RigidbodyConstraints.FreezePositionX) == RigidbodyConstraints.FreezePositionX)
+                gltfRigidbody.constraints.Add("freeze_position_x");
+            if ((rigidbody.constraints & RigidbodyConstraints.FreezePositionY) == RigidbodyConstraints.FreezePositionY)
+                gltfRigidbody.constraints.Add("freeze_position_y");
+            if ((rigidbody.constraints & RigidbodyConstraints.FreezePositionZ) == RigidbodyConstraints.FreezePositionZ)
+                gltfRigidbody.constraints.Add("freeze_position_z");
+            if ((rigidbody.constraints & RigidbodyConstraints.FreezeRotationX) == RigidbodyConstraints.FreezeRotationX)
+                gltfRigidbody.constraints.Add("freeze_rotation_x");
+            if ((rigidbody.constraints & RigidbodyConstraints.FreezeRotationY) == RigidbodyConstraints.FreezeRotationY)
+                gltfRigidbody.constraints.Add("freeze_rotation_y");
+            if ((rigidbody.constraints & RigidbodyConstraints.FreezeRotationZ) == RigidbodyConstraints.FreezeRotationZ)
+                gltfRigidbody.constraints.Add("freeze_rotation_z");
+            gltfRigidbody.name = rigidbody.name;
+            gltfRigidbody.use_gravity = rigidbody.useGravity;
+            gltfRigidbody.kinematic = rigidbody.isKinematic;
+            gltfRigidbody.continuous = rigidbody.collisionDetectionMode != CollisionDetectionMode.Discrete;
+            return gltfRigidbody;
         }
     }
 }

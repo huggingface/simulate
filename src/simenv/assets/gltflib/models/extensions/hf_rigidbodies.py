@@ -19,6 +19,9 @@ class HFRigidbodiesRigidbody:
     angular_drag: Optional[float] = None
     constraints: Optional[List[str]] = None
     name: Optional[str] = None
+    use_gravity: Optional[bool] = None
+    continuous: Optional[bool] = None
+    kinematic: Optional[bool] = None
 
 
 @dataclass_json
