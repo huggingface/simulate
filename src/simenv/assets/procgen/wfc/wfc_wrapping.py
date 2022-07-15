@@ -78,7 +78,7 @@ def preprocess_tiles_and_neighbors(tiles, neighbors, symmetries=None, weights=No
     return converted_tiles, converted_neighbors, idx_to_tile, tile_shape
 
 
-def preprocess_input_img(input_img, symmetries=None, weights=None):
+def preprocess_input_img(input_img):
     """
     Preprocesses input image by extracting the tiles.
     """

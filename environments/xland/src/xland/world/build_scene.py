@@ -158,20 +158,20 @@ def generate_colliders(sg):
                 if np.all(sg.map_2d[i, j, :, 0] == sg.map_2d[i, j, :, 1]):
                     bounding_box = (1, HEIGHT_CONSTANT, 1 / np.cos(angle))
 
-                    ramp_or = -2 * int(sg.map_2d[i, j, 0, 0] < sg.map_2d[i, j, 1, 0]) + 1
-                    position[2] += -ramp_or * (HEIGHT_CONSTANT / 2) * np.sin(angle)
+                    ramp_orientation = -2 * int(sg.map_2d[i, j, 0, 0] < sg.map_2d[i, j, 1, 0]) + 1
+                    position[2] += -ramp_orientation * (HEIGHT_CONSTANT / 2) * np.sin(angle)
 
                     # Change angle x since it is a ramp
-                    angles[0] = ramp_or * angle_deg
+                    angles[0] = ramp_orientation * angle_deg
 
                 else:
                     bounding_box = (1 / np.cos(angle), HEIGHT_CONSTANT, 1)
 
-                    ramp_or = -2 * int(sg.map_2d[i, j, 0, 0] > sg.map_2d[i, j, 0, 1]) + 1
-                    position[0] += ramp_or * (HEIGHT_CONSTANT / 2) * np.sin(angle)
+                    ramp_orientation = -2 * int(sg.map_2d[i, j, 0, 0] > sg.map_2d[i, j, 0, 1]) + 1
+                    position[0] += ramp_orientation * (HEIGHT_CONSTANT / 2) * np.sin(angle)
 
                     # Changle angle z since it is a ramp
-                    angles[2] = ramp_or * angle_deg
+                    angles[2] = ramp_orientation * angle_deg
 
             collider_assets.append(
                 sm.Asset(

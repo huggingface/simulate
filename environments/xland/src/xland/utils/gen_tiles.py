@@ -39,8 +39,6 @@ def generate_tiles(max_height=6, double_ramp=True):
         tiles, neighbors
     """
 
-    print(double_ramp)
-
     # TODO: which should be default weights?
     plain_weights = np.exp(np.linspace(1.0, -3.0, max(6, max_height)))[:max_height]
     ramp_weights = [0.8] * max_height
