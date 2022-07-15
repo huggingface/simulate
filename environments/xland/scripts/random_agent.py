@@ -2,9 +2,9 @@
 
 import time
 
+import numpy as np
 from matplotlib import pyplot as plt
 from xland import make_env
-from xland.utils import create_2d_map
 
 
 ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
@@ -15,7 +15,7 @@ if __name__ == "__main__":
 
     fig1, ax1 = plt.subplots()
 
-    example_map = create_2d_map("example_map_01")
+    example_map = np.load("benchmark/examples/example_map_01.npy")
 
     # Maybe the executable is not something to be exposed? Can't we generate it and use it by default
     env = make_env(

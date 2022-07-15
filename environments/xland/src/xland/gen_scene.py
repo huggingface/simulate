@@ -22,15 +22,15 @@ def create_scene(
     periodic_input=False,
     ground=False,
     nb_samples=1,
-    symmetry=1,
+    symmetry=4,
     verbose=False,
-    show=False,
     tiles=None,
+    symmetries=None,
+    weights=None,
     neighbors=None,
     executable=None,
     port=None,
     headless=None,
-    frame_rate=None,
     **kwargs,
 ):
     """
@@ -57,11 +57,13 @@ def create_scene(
             larger than one might imply in new tiles, which might be a unwanted behaviour
             (WFC param).
         verbose: whether to print logs or not
-        show: Whether to show the map.
         tiles: tiles for simpletiled generation
         neighbors: neighborhood constraints to the tiles
-        TODO: Add executable, port, and headless descriptions.
-        frame_rate: The frame rate of the simulation.
+        symmetries: level of symmetry for each of the tiles. See ProcgenGrid description for more details.
+        weights: sampling weights for each of the tiles
+        executable: engine executable path
+        port: port to be used to communicate with the engine
+        headless: whether to run the engine in headless mode
         **kwargs: Additional arguments. Handles unused args as well.
 
     Returns:
@@ -70,11 +72,10 @@ def create_scene(
     seed_env(seed)
 
     # TODO: choose width and height randomly from a set of predefined values
-    # Generate the map if no specific map is passed
+    # TODO: find out to run simulation faster than real time
     # TODO: create default kwargs to avoid having to do this below:
     nb_tries = kwargs["nb_tries"] if "nb_tries" in kwargs else 10
-    # TODO: find out how to improve frame rate
-    frame_rate = frame_rate if frame_rate is not None else 2000
+    threshold_kwargs = {"threshold": kwargs["threshold"]} if "threshold" in kwargs else {"threshold": 0.5}
 
     # Initialize success and curr_try variables
     success = False
@@ -86,15 +87,14 @@ def create_scene(
         if verbose:
             print("Try {}".format(curr_try + 1))
 
-        # TODO: think about how to optimize, since
-        # we only need the map 2d when checking if this map
-        # is acceptable or not
         sg = sm.ProcgenGrid(
             width=width,
             height=height,
             specific_map=specific_map,
             sample_map=sample_map,
             tiles=tiles,
+            symmetries=symmetries,
+            weights=weights,
             neighbors=neighbors,
             shallow=True,
             algorithm_args={
@@ -108,11 +108,7 @@ def create_scene(
             },
         )
 
-        # Get objects position
-        threshold_kwargs = {"threshold": kwargs["threshold"]} if "threshold" in kwargs else {"threshold": 0.5}
-
-        # TODO return playable area and use it for agent placement
-        # TODO: Add corner case where there are no objects
+        # Get objects and agents positions
         obj_pos, agent_pos, success = get_positions(
             sg.map_2d, n_objects=n_objects, n_agents=n_agents, **threshold_kwargs
         )

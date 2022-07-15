@@ -4,10 +4,9 @@ Builds map using Wave Function Collapse.
 
 import numpy as np
 
-from wfc_binding import run_wfc
-
 from ..constants import GRANULARITY
-from .wfc_utils import decode_rgb, generate_seed
+from .wfc_utils import generate_seed
+from .wfc_wrapping import apply_wfc
 
 
 def generate_2d_map(
@@ -23,9 +22,17 @@ def generate_2d_map(
     verbose=False,
     tiles=None,
     neighbors=None,
+    symmetries=None,
+    weights=None,
 ):
     """
     Generate 2d map.
+
+    Generation types with WFC:
+    - Overlapping routine:
+        - Creates a new map from a previous one by sampling patterns from it
+    - Simpletiled routine:
+        - Builds map from generated tiles and respective constraints
 
     Args:
         More information on the Args can be found on generate_map below.
@@ -37,41 +44,23 @@ def generate_2d_map(
     # Generate seed for C++
     seed = generate_seed()
 
-    # Otherwise, generate it
-    if sample_map is not None:
-        # Overlapping routine
-        # Creates a new map from a previous one by sampling patterns from it
-        # Need to transform string into bytes for the c++ function
-
-        input_width, input_height, _ = sample_map.shape
-        return run_wfc(
-            width=width,
-            height=height,
-            sample_type=1,
-            input_img=sample_map.reshape(input_width * input_height, -1).tolist(),
-            input_width=input_width,
-            input_height=input_height,
-            periodic_output=periodic_output,
-            N=N,
-            periodic_input=periodic_input,
-            ground=ground,
-            nb_samples=nb_samples,
-            symmetry=symmetry,
-            seed=seed,
-            verbose=verbose,
-        )
-
-    # Simpletiled routine
-    # Builds map from generated tiles and respective constraints
-    return run_wfc(
+    # Call WFC function:
+    return apply_wfc(
         width=width,
         height=height,
-        sample_type=0,
-        periodic_output=periodic_output,
-        seed=seed,
-        verbose=verbose,
+        input_img=sample_map,
         tiles=tiles,
         neighbors=neighbors,
+        symmetries=symmetries,
+        weights=weights,
+        periodic_output=periodic_output,
+        N=N,
+        periodic_input=periodic_input,
+        ground=ground,
+        nb_samples=nb_samples,
+        symmetry=symmetry,
+        seed=seed,
+        verbose=verbose,
     )
 
 
@@ -90,6 +79,8 @@ def generate_map(
     verbose=False,
     tiles=None,
     neighbors=None,
+    symmetries=None,
+    weights=None,
 ):
     """
     Generate the map.
@@ -111,10 +102,11 @@ def generate_map(
     """
 
     if specific_map is not None:
-        all_imgs = np.expand_dims(specific_map, axis=0)
+        # Adding samples dimension:
+        samples = np.expand_dims(specific_map, axis=0)
 
     else:
-        all_imgs = generate_2d_map(
+        samples = generate_2d_map(
             width,
             height,
             sample_map=sample_map,
@@ -127,16 +119,16 @@ def generate_map(
             verbose=verbose,
             tiles=tiles,
             neighbors=neighbors,
+            symmetries=symmetries,
+            weights=weights,
         )
 
     # Get the dimensions of map - since if plotting a specific_map, we might have different ones
-    true_nb_samples = all_imgs.shape[0]
-    width = all_imgs.shape[1]
-    height = all_imgs.shape[2]
+    true_nb_samples = samples.shape[0]
+    width = samples.shape[1]
+    height = samples.shape[2]
 
-    def build_single_map(img):
-        img_np = decode_rgb(img)
-
+    def build_single_map(sample):
         # We create the mesh centered in (0,0)
         x = np.linspace(-height / 2, height / 2, GRANULARITY * height)
         z = np.linspace(-width / 2, width / 2, GRANULARITY * width)
@@ -144,18 +136,13 @@ def generate_map(
         # Create mesh grid
         x, z = np.meshgrid(x, z)
 
-        # Nowm we create the z coordinates
-        # First we split the procedurally generated image into tiles a format (:,:,2,2) in order to
-        # do the interpolation and get the z values on our grid
-        img_np = np.array(np.hsplit(np.array(np.hsplit(img_np, height)), width))
-
         # Here, we create the mesh
         # As we are using tiles of two by two, first we have to find a interpolation on
         # the x axis for each tile
         # and then on the y axis for each tile
         # In order to do so, we can use np.linspace, and then transpose the tensor and
         # get the right order
-        y = np.linspace(img_np[:, :, :, 0], img_np[:, :, :, 1], GRANULARITY)
+        y = np.linspace(sample[:, :, :, 0], sample[:, :, :, 1], GRANULARITY)
         y = np.linspace(y[:, :, :, 0], y[:, :, :, 1], GRANULARITY)
         y = np.transpose(y, (2, 0, 3, 1)).reshape((width * GRANULARITY, height * GRANULARITY), order="A")
 
@@ -163,5 +150,5 @@ def generate_map(
 
         return coordinates
 
-    all_coordinates = [build_single_map(all_imgs[i]) for i in range(true_nb_samples)]
-    return all_coordinates, all_imgs
+    all_coordinates = [build_single_map(samples[i]) for i in range(true_nb_samples)]
+    return all_coordinates, samples

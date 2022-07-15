@@ -2,6 +2,7 @@
 #define FAST_WFC_UTILS_ARRAY2D_HPP_
 
 #include "assert.h"
+#include "id_pair.hpp"
 #include <vector>
 
 /**
@@ -111,6 +112,37 @@ public:
     return true;
   }
 };
+
+template<> inline Array2D<IdPair> Array2D<IdPair>::rotated() const noexcept {
+  Array2D<IdPair> result = Array2D<IdPair>(width, height);
+    for (std::size_t y = 0; y < width; y++) {
+      for (std::size_t x = 0; x < height; x++) {
+        
+        IdPair original = get(x, width - 1 - y);
+
+        if(original.reflected == 1) {
+          original.rotation = (original.rotation + 3) % 4;
+        } else {
+          original.rotation = (original.rotation + 1) % 4;
+        }
+
+        result.get(y, x) = original;
+      }
+    }
+    return result;
+}
+
+template<> inline Array2D<IdPair> Array2D<IdPair>::reflected() const noexcept {
+  Array2D<IdPair> result = Array2D<IdPair>(width, height);
+    for (std::size_t y = 0; y < height; y++) {
+      for (std::size_t x = 0; x < width; x++) {
+        IdPair original = get(y, width - 1 - x);
+        original.reflected = (original.reflected + 1) % 2;
+        result.get(y, x) = original;
+      }
+    }
+    return result;
+}
 
 /**
  * Hash function.

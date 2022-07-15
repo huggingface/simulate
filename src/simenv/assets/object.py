@@ -1062,11 +1062,24 @@ class ProcgenGrid(Object3D):
         Map to procedurally generate from.
 
     tiles : list of tiles
-        Tiles and neighbors constraints used for procedural generation
-        with Wave Function Collapse.
-        If no tiles are passed, uses default function on the library.
+        Tiles for procedural generation when using generation from tiles and neighbors definitions.
+        Tiles must be NxN np.ndarray that define height maps. In the future, we plan to support
+        more generic tiles.
 
     neighbors: list of available neighbors for each tile
+        Expects pair of tiles.
+
+    symmetries: list of char
+        Expects a list of symmetry definitions. If passed, you must define a symmetry for each tile.
+        Possible symmetries are "X", "I" / "/", "T" / "L", another character, and each character defines
+        the tile with the same level of symmetry as the character:
+        - X: has symmetry in all ways. So it has 1 different format.
+        - I / `/`: when rotated, it's different from the original tile. Has 2 different formats.
+        - T / L: Has 4 different formats.
+        - other characters: the algorithm supposes it has 8 different formats.
+
+    weights: list of floats
+        sampling weights for each of the tiles
 
     width: int
         width of the generated map
@@ -1077,6 +1090,9 @@ class ProcgenGrid(Object3D):
     shallow: bool
         Indicates whether procedural generation mesh should be generated or not.
         Created for the purpose of optimizing certain environments such as XLand.
+
+    seed: int
+        Random seed used for procedural generation.
 
     algorithm_args: dict
         Extra arguments to be passed to the procedural generation.
@@ -1091,14 +1107,14 @@ class ProcgenGrid(Object3D):
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
-    # TODO: add support to other algorithms
-    # TODO: add function regenerate to generate the map again?
     def __init__(
         self,
         sample_map: Union[np.ndarray, List[List[List[int]]]] = None,
         specific_map: Union[np.ndarray, List[List[List[int]]]] = None,
         tiles: Optional[List] = None,
         neighbors: Optional[List] = None,
+        symmetries: Optional[List] = None,
+        weights: Optional[List] = None,
         width: Optional[int] = 9,
         height: Optional[int] = 9,
         shallow: Optional[bool] = False,
@@ -1137,6 +1153,8 @@ class ProcgenGrid(Object3D):
             "sample_map": sample_map,
             "tiles": tiles,
             "neighbors": neighbors,
+            "weights": weights,
+            "symmetries": symmetries,
             **algorithm_args,
         }
 

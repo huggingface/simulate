@@ -11,7 +11,7 @@
 #include "tiling_wfc.hpp"
 #include "utils/array3D.hpp"
 #include "wfc.hpp"
-#include "color.hpp"
+#include "id_pair.hpp"
 #include <unordered_set>
 
 using namespace std;
@@ -46,8 +46,9 @@ unsigned increment_seed(unsigned seed) {
 /*
 * Function to create Array2D from vector of vectors.
 */
-Array2D<Color> array2d_from_vector(std::vector<Color> input, unsigned width, unsigned height) {
-  Array2D<Color> arr = Array2D<Color>(height, width);
+Array2D<IdPair> array2d_from_vector(std::vector<IdPair> input, 
+                                                      unsigned width, unsigned height) {
+  Array2D<IdPair> arr = Array2D<IdPair>(height, width);
   arr.data = input;
   return arr;
 }
@@ -55,10 +56,10 @@ Array2D<Color> array2d_from_vector(std::vector<Color> input, unsigned width, uns
 /**
  * Read the overlapping wfc problem.
  */
-std::vector<Color> read_overlapping_instance(unsigned seed, unsigned width, 
+std::vector<IdPair> read_overlapping_instance(unsigned seed, unsigned width, 
                               unsigned height, bool periodic_output, unsigned N,
                               bool periodic_input, bool ground, unsigned nb_samples, 
-                              unsigned symmetry, std::vector<Color> input_img,
+                              unsigned symmetry, std::vector<IdPair> input_img,
                               unsigned input_width, unsigned input_height,
                               bool verbose, unsigned nb_tries) {
                                 
@@ -67,14 +68,14 @@ std::vector<Color> read_overlapping_instance(unsigned seed, unsigned width,
   }
 
   // Stop hardcoding samples
-  Array2D<Color> m = array2d_from_vector(input_img, input_width, input_height);
+  Array2D<IdPair> m = array2d_from_vector(input_img, input_width, input_height);
 
   if (m.width == 0 && m.height == 0) {
     throw "Error while loading the map to sample from.";
   }
 
-  Array2D<Color> result = Array2D<Color>(0, 0);
-  vector<Color> results_vec = vector<Color>();
+  Array2D<IdPair> result = Array2D<IdPair>(0, 0);
+  vector<IdPair> results_vec = vector<IdPair>();
 
   OverlappingWFCOptions options = {
       periodic_input, periodic_output, height, width, symmetry, ground, N};
@@ -86,7 +87,7 @@ std::vector<Color> read_overlapping_instance(unsigned seed, unsigned width,
         seed = increment_seed(seed);
       }
 
-      OverlappingWFC<Color> wfc(m, options, seed);
+      OverlappingWFC<IdPair> wfc(m, options, seed);
       result = wfc.run();
 
       if (result.width > 0 || result.height > 0) {
@@ -143,17 +144,17 @@ Symmetry to_symmetry(const string &symmetry_name) {
 }
 
 // Convert PyTile to Tile
-Tile<Color> pytile_to_tile(PyTile pytile) {
+Tile<IdPair> pytile_to_tile(PyTile pytile) {
   // Only accepts square tiles for now
-  Array2D<Color> image = array2d_from_vector(pytile.tile, pytile.size, pytile.size);
-  Tile<Color> tile (image, to_symmetry(pytile.symmetry), pytile.weight);
+  Array2D<IdPair> image = array2d_from_vector(pytile.tile, pytile.size, pytile.size);
+  Tile<IdPair> tile (image, to_symmetry(pytile.symmetry), pytile.weight);
   return tile;
 }
 
 /**
  * Read an instance of a tiling WFC problem.
  */
-std::vector<Color> read_simpletiled_instance(unsigned seed, unsigned width, unsigned height, unsigned nb_samples,
+std::vector<IdPair> read_simpletiled_instance(unsigned seed, unsigned width, unsigned height, unsigned nb_samples,
                                 bool periodic_output, bool verbose, unsigned nb_tries, std::vector<PyTile> pytiles,
                                 std::vector<Neighbor> neighbors) noexcept {
 
@@ -162,11 +163,11 @@ std::vector<Color> read_simpletiled_instance(unsigned seed, unsigned width, unsi
   }
 
   unordered_map<string, unsigned> tiles_id;
-  vector<Tile<Color>> tiles;
+  vector<Tile<IdPair>> tiles;
   // Result variable
-  Array2D<Color> result = Array2D<Color>(0, 0);
+  Array2D<IdPair> result = Array2D<IdPair>(0, 0);
   // All results
-  vector<Color> results_vec = vector<Color>();
+  vector<IdPair> results_vec = vector<IdPair>();
   unsigned id = 0;
 
   for (unsigned i = 0; i < pytiles.size(); i++) {
@@ -199,7 +200,7 @@ std::vector<Color> read_simpletiled_instance(unsigned seed, unsigned width, unsi
         seed = increment_seed(seed);
       }
       
-      TilingWFC<Color> wfc(tiles, neighbors_ids, height, width, {periodic_output},
+      TilingWFC<IdPair> wfc(tiles, neighbors_ids, height, width, {periodic_output},
                           seed);
 
       result = wfc.run();
@@ -235,10 +236,10 @@ std::vector<Color> read_simpletiled_instance(unsigned seed, unsigned width, unsi
  * Valid tiles corresponds to array with the tiles, size of tiles, names, symmetries, and weights.
  * For neighbors: vector of tuples (left, orientation, right, orientation).
  */
-std::vector<Color> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, int sample_type, 
+std::vector<IdPair> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, int sample_type, 
         bool periodic_output, unsigned N, bool periodic_input, bool ground, 
         unsigned nb_samples, unsigned symmetry,
-        std::vector<Color> input_img, unsigned input_width, unsigned input_height, 
+        std::vector<IdPair> input_img, unsigned input_width, unsigned input_height, 
         bool verbose, unsigned nb_tries, 
         std::vector<PyTile> tiles,
         std::vector<Neighbor> neighbors) {
@@ -246,7 +247,7 @@ std::vector<Color> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, i
   std::chrono::time_point<std::chrono::system_clock> start, end;
   start = std::chrono::system_clock::now();
 
-  std::vector<Color> result;
+  std::vector<IdPair> result;
 
   if (sample_type == 0) {
     result = read_simpletiled_instance(seed, width, height, nb_samples, periodic_output, verbose, nb_tries,

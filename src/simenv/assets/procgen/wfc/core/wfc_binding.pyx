@@ -2,7 +2,7 @@
 
 from libcpp cimport bool
 from libcpp.string cimport string
-from wfcbinding cimport Color, Neighbor, PyTile, run_wfc_cpp
+from wfcbinding cimport IdPair, Neighbor, PyTile, run_wfc_cpp
 
 import numpy as np
 
@@ -26,8 +26,12 @@ def build_tile(list tile, string name, string symmetry=b"L", double weight=1, un
         size = np.sqrt(len(tile))
     
     for i in range(len(tile)):
-        tile[i] = Color(r=tile[i][0], g=tile[i][1], b=tile[i][2])
+        tile[i] = IdPair(uid=tile[i], rotation=0, reflected=0)
+    
     return PyTile(size=size, tile=tile, name=name, symmetry=symmetry, weight=weight)
+
+def transform_to_id_pair(uid, rotation=0, reflected=0):
+    return IdPair(uid=uid, rotation=rotation, reflected=0)
 
 def run_wfc(unsigned width, unsigned height, int sample_type, list input_img=None, 
             unsigned input_width=0, unsigned input_height=0, bool periodic_output=True, unsigned N=3,
@@ -43,10 +47,6 @@ def run_wfc(unsigned width, unsigned height, int sample_type, list input_img=Non
 
     if input_img == None:
         input_img = []
-
-    else:
-        for i in range(len(input_img)):
-            input_img[i] = Color(r=input_img[i][0], g=input_img[i][1], b=input_img[i][2])
 
     # As we are using a different convention from the library, we pass width as height and height as width.
     # The same applies to the input image.

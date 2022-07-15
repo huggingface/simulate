@@ -24,89 +24,56 @@ def get_connectivity_graph(y):
     TODO: update this when adding diagonal tiles
     """
     edges = defaultdict(list)
-    N, M, _ = y.shape
+    N, M, _, _ = y.shape
     nodes = np.arange(N * M).reshape((N, M))
 
-    # Identify non plain tiles to remove them as a possibility
-    # when placing objects
+    # Identify plain tiles to use them to place objects
     plain_tiles = []
 
     for x in range(N):
         for z in range(M):
 
-            if y[x, z, 1] == 0:
+            if np.all(y[x, z] == y[x, z, 0, 0]):
                 plain_tiles.append(z + M * x)
 
             min_x, max_x, min_z, max_z = max(0, x - 1), min(N, x + 2), max(0, z - 1), min(M, z + 2)
 
             neighborhood = y[min_x:max_x, min_z:max_z]
             sub_nodes = nodes[min_x:max_x, min_z:max_z]
-            non_diagonal_connections = np.array([[0, 1, 0], [1, 0, 1], [0, 1, 0]])[
-                min_x - x + 1 : max_x - x + 1, min_z - z + 1 : max_z - z + 1
-            ]
 
-            # Going down
-            going_down = y[x, z, 0] > neighborhood[:, :, 0]
-            going_down = np.logical_and(going_down, non_diagonal_connections)
-
-            # Same level tiles
-            same_level = np.logical_and(y[x, z, 0] == neighborhood[:, :, 0], neighborhood[:, :, 1] == 0)
-            same_level = np.logical_and(same_level, non_diagonal_connections)
-
-            # Connection with ramp
+            # Declaration of arrays:
             neigh_shp = neighborhood.shape
-            going_ramp = np.zeros(neigh_shp[:-1], dtype=bool)
-
-            # Going up from a ramp
-            going_up = np.zeros(neigh_shp[:-1], dtype=bool)
 
             # Coordinates of the center
             center_x = int(x != 0)
             center_z = int(z != 0)
+
+            # If there is a connection between tiles
+            connections = np.zeros(neigh_shp[:-2], dtype=bool)
 
             # Now we fill the values considering that we might have corner cases:
             # 1. Taking a ramp down:
             if x < N - 1:
                 idx_x = neigh_shp[0] - 1
 
-                # Get if we going to other level
-                going_ramp[idx_x, center_z] = np.logical_and(
-                    y[x, z, 0] == neighborhood[idx_x, center_z, 0], neighborhood[idx_x, center_z, 1] == 1
-                )
+                # We check by seeing if the and the neighbors are the same w.r.t. the tiles
+                connections[idx_x, center_z] = np.all(neighborhood[idx_x, center_z, 0, :] <= y[x, z, 1, :])
 
-                # Get going_up as well from a ramp going down
-                going_up[idx_x, center_z] = np.logical_and(
-                    y[x, z, 0] + 1 == neighborhood[idx_x, center_z, 0], y[x, z, 1] == 1
-                )
-
-            # 2. Going left from a ramp
+            # 2. Going right from a ramp
             if z < M - 1:
                 idx_z = neigh_shp[1] - 1
-                going_ramp[center_x, idx_z] = np.logical_and(
-                    y[x, z, 0] == neighborhood[center_x, idx_z, 0], neighborhood[center_x, idx_z, 1] == 2
-                )
-                going_up[center_x, idx_z] = np.logical_and(
-                    y[x, z, 0] + 1 == neighborhood[center_x, idx_z, 0], y[x, z, 1] == 2
-                )
+                connections[center_x, idx_z] = np.all(neighborhood[center_x, idx_z, :, 0] <= y[x, z, :, 1])
 
             # 3. Going up from a ramp
             if x > 0:
-                going_ramp[0, center_z] = np.logical_and(
-                    y[x, z, 0] == neighborhood[0, center_z, 0], neighborhood[0, center_z, 1] == 3
-                )
-                going_up[0, center_z] = np.logical_and(y[x, z, 0] + 1 == neighborhood[0, center_z, 0], y[x, z, 1] == 3)
+                connections[0, center_z] = np.all(neighborhood[0, center_z, 1, :] <= y[x, z, 0, :])
 
-            # 4. Going right from a ramp
+            # 4. Going left from a ramp
             if z > 0:
-                going_ramp[center_x, 0] = np.logical_and(
-                    y[x, z, 0] == neighborhood[center_x, 0, 0], neighborhood[center_x, 0, 1] == 4
-                )
-                going_up[center_x, 0] = np.logical_and(y[x, z, 0] + 1 == neighborhood[center_x, 0, 0], y[x, z, 1] == 4)
+                connections[center_x, 0] = np.all(neighborhood[center_x, 0, :, 1] <= y[x, z, :, 0])
 
             # Add edges
-            edges[z + M * x] = np.concatenate(
-                [sub_nodes[going_down], sub_nodes[going_up], sub_nodes[going_ramp], sub_nodes[same_level]]
-            )
+            edges[z + M * x] = sub_nodes[connections]
 
     # Transform into a numpy array
     # This array will be useful to identify where to set the objects
@@ -195,6 +162,9 @@ def create_objects(positions, object_type=None, object_size=0.5):
     Create objects in simenv.
     """
 
+    if len(positions) == 0:
+        return []
+
     extra_height = np.array([0, object_size / 2, 0])
     positions = positions + extra_height
 
@@ -225,6 +195,9 @@ def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform")
     Returns None if there isn't enough playable area.
     """
 
+    if n_agents == 0 and n_objects == 0:
+        return [], [], True
+
     playable_nodes, area = get_playable_area(y)
 
     if area < threshold:
@@ -234,7 +207,7 @@ def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform")
     # Get probabilities to where to place objects
     # TODO: add option to do the same as it's done in XLand from Deepmind
     probabilities = get_distribution(
-        get_mask_connected_components(playable_nodes, final_shp=y.shape[:-1]), distribution=distribution
+        get_mask_connected_components(playable_nodes, final_shp=y.shape[:-2]), distribution=distribution
     )
 
     non_null_nodes = np.sum(probabilities > 0)

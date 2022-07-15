@@ -5,9 +5,8 @@ Files used for scene generation.
 import numpy as np
 
 import simenv as sm
-from simenv.assets.procgen import HEIGHT_CONSTANT
 
-from ..utils import convert_to_actual_pos
+from ..utils import HEIGHT_CONSTANT, convert_to_actual_pos
 from .set_agent import create_agents
 from .set_object import create_objects
 
@@ -132,14 +131,17 @@ def generate_colliders(sg):
     """
     Generate colliders for mesh.
     """
-    width, height, _ = sg.map_2d.shape
+    width, height, _, _ = sg.map_2d.shape
     collider_assets = []
 
     for i in range(width):
         for j in range(height):
+
+            h = np.min(sg.map_2d[i][j])
+
             position = [
                 -height / 2 + (j + 0.5),
-                HEIGHT_CONSTANT * (sg.map_2d[i][j][0] + 0.5) - HEIGHT_CONSTANT,
+                h + 0.5 - HEIGHT_CONSTANT,
                 -width / 2 + (i + 0.5),
             ]
 
@@ -148,28 +150,28 @@ def generate_colliders(sg):
             angles = [0, 0, 0]
 
             # Calculate the bounding box:
-            if sg.map_2d[i][j][1] == 0:
+            if np.all(sg.map_2d[i][j] == h):
                 bounding_box = (1, HEIGHT_CONSTANT, 1)
             else:
                 position[1] += (HEIGHT_CONSTANT / 2) * np.cos(angle)
 
-                if sg.map_2d[i][j][1] % 2 == 1:
+                if np.all(sg.map_2d[i, j, :, 0] == sg.map_2d[i, j, :, 1]):
                     bounding_box = (1, HEIGHT_CONSTANT, 1 / np.cos(angle))
 
-                    ramp_or = -2 * int(sg.map_2d[i][j][1] == 1) + 1
-                    position[2] += -ramp_or * (HEIGHT_CONSTANT / 2) * np.sin(angle)
+                    ramp_orientation = -2 * int(sg.map_2d[i, j, 0, 0] < sg.map_2d[i, j, 1, 0]) + 1
+                    position[2] += -ramp_orientation * (HEIGHT_CONSTANT / 2) * np.sin(angle)
 
                     # Change angle x since it is a ramp
-                    angles[0] = ramp_or * angle_deg
+                    angles[0] = ramp_orientation * angle_deg
 
                 else:
                     bounding_box = (1 / np.cos(angle), HEIGHT_CONSTANT, 1)
 
-                    ramp_or = -2 * int(sg.map_2d[i][j][1] == 4) + 1
-                    position[0] += ramp_or * (HEIGHT_CONSTANT / 2) * np.sin(angle)
+                    ramp_orientation = -2 * int(sg.map_2d[i, j, 0, 0] > sg.map_2d[i, j, 0, 1]) + 1
+                    position[0] += ramp_orientation * (HEIGHT_CONSTANT / 2) * np.sin(angle)
 
                     # Changle angle z since it is a ramp
-                    angles[2] = ramp_or * angle_deg
+                    angles[2] = ramp_orientation * angle_deg
 
             collider_assets.append(
                 sm.Asset(
