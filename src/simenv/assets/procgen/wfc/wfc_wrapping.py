@@ -137,38 +137,41 @@ def apply_wfc(
     symmetries=None,
     weights=None,
 ):
+    if (tiles is not None and neighbors is not None) or input_img is not None:
+        if input_img is not None:
+            input_width, input_height = input_img.shape[:2]
+            input_img, tile_conversion, tile_shape = preprocess_input_img(input_img)
+            sample_type = 1
 
-    if tiles is not None and neighbors is not None:
-        input_width, input_height = 0, 0
-        tiles, neighbors, tile_conversion, tile_shape = preprocess_tiles_and_neighbors(
-            tiles, neighbors, symmetries, weights
+        else:
+            input_width, input_height = 0, 0
+            tiles, neighbors, tile_conversion, tile_shape = preprocess_tiles_and_neighbors(
+                tiles, neighbors, symmetries, weights
+            )
+            sample_type = 0
+
+        gen_map = run_wfc(
+            width=width,
+            height=height,
+            sample_type=sample_type,
+            input_img=input_img,
+            input_width=input_width,
+            input_height=input_height,
+            periodic_output=periodic_output,
+            N=N,
+            periodic_input=periodic_input,
+            ground=ground,
+            nb_samples=nb_samples,
+            symmetry=symmetry,
+            seed=seed,
+            verbose=verbose,
+            nb_tries=nb_tries,
+            tiles=tiles,
+            neighbors=neighbors,
         )
-        sample_type = 0
 
-    elif input_img is not None:
-        input_width, input_height = input_img.shape[:2]
-        input_img, tile_conversion, tile_shape = preprocess_input_img(input_img)
-        sample_type = 1
+        gen_map = get_tiles_back(gen_map, tile_conversion, nb_samples, width, height, tile_shape)
+        return gen_map
 
-    gen_map = run_wfc(
-        width=width,
-        height=height,
-        sample_type=sample_type,
-        input_img=input_img,
-        input_width=input_width,
-        input_height=input_height,
-        periodic_output=periodic_output,
-        N=N,
-        periodic_input=periodic_input,
-        ground=ground,
-        nb_samples=nb_samples,
-        symmetry=symmetry,
-        seed=seed,
-        verbose=verbose,
-        nb_tries=nb_tries,
-        tiles=tiles,
-        neighbors=neighbors,
-    )
-
-    gen_map = get_tiles_back(gen_map, tile_conversion, nb_samples, width, height, tile_shape)
-    return gen_map
+    else:
+        raise ValueError("Either input_img or tiles and neighbors must be provided.")
