@@ -1,11 +1,11 @@
 using UnityEngine.Events;
 
 namespace SimEnv.RlAgents {
-    public class Reset : ICommand {
-        public string message;
+    public class ActivateEnvironments : ICommand {
+        public string n_maps;
 
         public void Execute(UnityAction<string> callback) {
-            EnvironmentManager.instance.ResetAgents();
+            EnvironmentManager.instance.ActivateEnvironments(int.Parse(n_maps));
             callback("ack");
         }
     }

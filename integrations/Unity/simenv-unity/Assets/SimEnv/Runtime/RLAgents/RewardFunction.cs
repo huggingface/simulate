@@ -71,6 +71,9 @@ namespace SimEnv.RlAgents {
         }
         public override void Reset() {
             hasTriggered = false;
+            if (isCollectable) {
+                entity_b.SetActive(true);
+            }
         }
 
         public override float CalculateReward() {

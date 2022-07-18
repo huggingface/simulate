@@ -10,6 +10,8 @@ public class DebugCam : MonoBehaviour {
 
     Vector3 velocity; // current velocity
 
+    private Vector3 centre = new Vector3(0f, 0f, 0f);
+
     static bool Focused {
         get => Cursor.lockState == CursorLockMode.Locked;
         set {
@@ -24,6 +26,10 @@ public class DebugCam : MonoBehaviour {
 
     void OnDisable() => Focused = false;
 
+    void Start() {
+        transform.position = new Vector3(7.24f, 19f, -4f);
+        transform.LookAt(centre, Vector3.up);
+    }
     void Update() {
         // Input
         if (Focused)
@@ -34,6 +40,12 @@ public class DebugCam : MonoBehaviour {
         // Physics
         velocity = Vector3.Lerp(velocity, Vector3.zero, dampingCoefficient * Time.deltaTime);
         transform.position += velocity * Time.deltaTime;
+
+        //transform.RotateAround(centre, Vector3.up, 10.0f * Time.deltaTime);
+        // Leave cursor lock
+        if (Input.GetKeyDown(KeyCode.Escape))
+            Focused = false;
+
     }
 
     void UpdateInput() {

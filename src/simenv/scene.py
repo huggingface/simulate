@@ -97,9 +97,11 @@ class Scene(Asset, Env):
         spacer = "\n" if len(self) else ""
         return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
 
-    def show(self, **engine_kwargs):
+    def show(self, n_maps=-1, **engine_kwargs):
         """Render the Scene using the engine."""
-        self.engine.show(**engine_kwargs)
+        if n_maps > 0:
+            self._n_agents = n_maps
+        self.engine.show(n_maps=n_maps, **engine_kwargs)
 
     def clear(self):
         """Remove all assets in the scene."""
@@ -140,6 +142,8 @@ class Scene(Asset, Env):
 
     @property
     def observation_space(self):
+        if self.engine.action_space is not None:
+            return self.engine.observation_space
         agents = self.agents
         if agents:
             return agents[0].observation_space
@@ -147,6 +151,8 @@ class Scene(Asset, Env):
 
     @property
     def action_space(self):
+        if self.engine.action_space is not None:
+            return self.engine.action_space
         agents = self.agents
         if agents:
             return agents[0].action_space
@@ -174,6 +180,8 @@ class Scene(Asset, Env):
         info = [{}] * self.n_agents  # TODO: Add info to the backend, if we require it
         if self.n_agents == 1:
             return obs[0], reward[0], done[0], info[0]
+
+        return obs, reward, done, info
 
     def render(self, path: str):
         return self.engine.render(path=path)

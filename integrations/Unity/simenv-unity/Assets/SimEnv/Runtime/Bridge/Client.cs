@@ -36,7 +36,7 @@ namespace SimEnv {
         /// Connect to server and begin listening for commands.
         /// </summary>
         public void Initialize(string host = "localhost", int port = 55000, float physicsUpdateRate = 30,
-                                int frameSkip = 15) {
+                                int frameSkip = 4) {
 
             if (TryGetArg("port", out string portArg))
                 int.TryParse(portArg, out port);

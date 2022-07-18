@@ -41,7 +41,7 @@ class ParallelSimEnv(VecEnv):
         dones = self._get_done()
         rewards = self._get_rewards()
 
-        self.auto_reset(dones)
+        # self.auto_reset(dones) this is now handled on the unity size
         obs = self._get_observations()
         return obs, rewards, dones, [{}] * self.n_parallel * self.n_agents
 

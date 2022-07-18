@@ -13,15 +13,15 @@ namespace SimEnv.RlAgents {
 
         public void Execute(UnityAction<string> callback) {
             // TODO: improve serialization to include nested lists / arrays
-            List<List<float>> covertedActions = new List<List<float>>();
+            List<List<float>> convertedActions = new List<List<float>>();
 
             foreach (var item in action.ToList()) {
-                List<float> covertedAction = new List<float>();
-                covertedAction.Add(item);
-                covertedActions.Add(covertedAction);
+                List<float> convertedAction = new List<float>();
+                convertedAction.Add(item);
+                convertedActions.Add(covertedAction);
             }
 
-            AgentManager.instance.Step(covertedActions);
+            EnvironmentManager.instance.Step(convertedActions);
             callback("ack");
         }
     }

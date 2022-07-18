@@ -56,6 +56,10 @@ namespace SimEnv {
         /// </summary>
         public static GameObject Root;
 
+        public static List<GameObject> MapPool;
+        public static bool poolInitialized = false;
+        public static int envId = 0;
+
         /// <summary>
         /// Whether the current environment is undefined, active, loading, or unloading.
         /// </summary>
@@ -67,6 +71,7 @@ namespace SimEnv {
             CurrentState = State.Undefined;
             LoadCustomAssemblies();
             LoadPlugins();
+            Physics.autoSimulation = false;
             Client.instance.Initialize();
         }
 

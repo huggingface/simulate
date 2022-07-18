@@ -1,5 +1,3 @@
-
-
 import time
 import simenv as sm
 import matplotlib.pyplot as plt
@@ -40,35 +38,39 @@ reward_function = sm.RewardFunction(
 agent.rl_component.rewards.append(reward_function)
 
 root += agent
+
+scene.engine.add_to_pool(root)
+
 scene += root
 
 for x in [0, 21, 42, 63]:
     for z in [0, 21, 42, 63]:
-        if x ==0 and z == 0: continue
-        scene += root.copy().translate_x(x).translate_z(z)
-        #scene += sm.ProcgenGrid(specific_map=specific_map)
-
+        if x == 0 and z == 0:
+            continue
+        scene.engine.add_to_pool(root.copy().translate_x(x).translate_z(z))
 
 camera_height = scene.observation_space.shape[1]
 camera_width = scene.observation_space.shape[2]
 
-scene.show()
+scene.show(16)
 
 plt.ion()
 fig1, ax1 = plt.subplots()
-dummy_obs = np.zeros(shape=(camera_height*4, camera_width*4, 3), dtype=np.uint8)
+dummy_obs = np.zeros(shape=(camera_height * 4, camera_width * 4, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 for i in range(1000):
     actions = [scene.action_space.sample() for _ in range(scene.n_agents)]
     # if type(action) != int:  # discrete are ints, continuous are numpy arrays
-    #     action = action.tolist()        
+    #     action = action.tolist()
     print(actions)
     obs, reward, done, info = scene.step(actions)
-
+    print(obs.shape)
     for i in range(4):
         for j in range(4):
-            dummy_obs[i*camera_height:(i+1)*camera_height,j*camera_width:(j+1)*camera_width] = obs[i*4+j].transpose(1,2,0)
+            dummy_obs[i * camera_height : (i + 1) * camera_height, j * camera_width : (j + 1) * camera_width] = obs[
+                i * 4 + j
+            ].transpose(1, 2, 0)
     axim1.set_data(dummy_obs)
     fig1.canvas.flush_events()
     print(done, reward, info)

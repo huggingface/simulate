@@ -24,8 +24,10 @@ namespace SimEnv.RlAgents {
 
         public Agent(Node node, HFRlAgents.HFRlAgentsComponent agentData) {
             this.node = node;
+            node.referenceObject = this;
+            node.tag = "Agent";
             SetProperties(agentData);
-            AgentManager.instance.Register(this);
+            //AgentManager.instance.Register(this);
         }
 
         public void Initialize() {
@@ -34,10 +36,12 @@ namespace SimEnv.RlAgents {
 
             // We connect the observation devices to the agent now that the whole scene is imported
             foreach (string obsDeviceName in obsDeviceNames) {
-                RenderCamera obsDevice = GameObject.Find(obsDeviceName).GetComponent<Node>().renderCamera;
-                if (obsDevice != null) {
-                    // Debug.Log("Adding observation device " + obsDeviceName + obsDevice);
-                    obsDevices.Add(obsDevice);
+                Debug.Log("Finding obs device" + obsDeviceName);
+                Node cameraNode = GameObject.Find(obsDeviceName).GetComponent<Node>();
+
+                if (cameraNode != null) {
+                    Debug.Log("Adding observation device " + obsDeviceName + cameraNode.renderCamera);
+                    obsDevices.Add(cameraNode.renderCamera);
                 } else {
                     Debug.LogError("Could not find observation device " + obsDeviceName);
                 }
@@ -48,7 +52,7 @@ namespace SimEnv.RlAgents {
         public void SetProperties(HFRlAgents.HFRlAgentsComponent agentData) {
             // Debug.Log("Setting Agent properties");
 
-            originalPosition = node.transform.position;
+            originalPosition = node.transform.localPosition;
 
             // Store pointers to all our observation devices
             obsDeviceNames = agentData.observations;
@@ -207,7 +211,7 @@ namespace SimEnv.RlAgents {
         public void Reset() {
             accumReward = 0.0f;
             // Reset the agent
-            node.gameObject.transform.position = originalPosition;
+            node.gameObject.transform.localPosition = originalPosition;
 
 
             // Reset reward objects?
