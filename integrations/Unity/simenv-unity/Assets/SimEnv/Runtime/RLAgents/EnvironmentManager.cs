@@ -18,12 +18,18 @@ namespace SimEnv.RlAgents {
         float physicsUpdateRate = 1.0f / 30.0f;
         int frameSkip = 4;
 
+        int qualityLevel = 1;
+        int targetFrameRate = -1;
+        int captureFrameRate = 60;
+
         uint[] agentPixelValues;
         int obsSize;
 
         public void Initialize(){
             frameSkip = Client.instance.frameSkip;
             physicsUpdateRate = Client.instance.physicsUpdateRate;
+            Time.timeScale = 2;
+
         }
 
         public void AddToPool(byte[] bytes) {
