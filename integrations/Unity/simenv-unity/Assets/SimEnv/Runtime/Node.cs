@@ -10,6 +10,11 @@ namespace SimEnv {
         public HFRigidbodies.GLTFRigidbody rigidBodyData;
         public HFRlAgents.HFRlAgentsComponent agentData;
 
+        public RenderCamera Camera { get; private set; }
+        public Light Light { get; private set; }
+        public Collider Collider { get; private set; }
+        public Rigidbody RigidBody { get; private set; }
+
         public void Initialize() {
             if (cameraData != null)
                 InitializeCamera();
@@ -23,28 +28,28 @@ namespace SimEnv {
 
         void InitializeCamera() {
             transform.localRotation *= Quaternion.Euler(0, 180, 0);
-            new RenderCamera(this, cameraData);
+            Camera = new RenderCamera(this, cameraData);
         }
 
         void InitializeLight() {
-            Light light = gameObject.AddComponent<Light>();
-            light.gameObject.AddComponent<UniversalAdditionalLightData>();
+            Light = gameObject.AddComponent<Light>();
+            Light.gameObject.AddComponent<UniversalAdditionalLightData>();
             transform.localRotation *= Quaternion.Euler(0, 180, 0);
             if (!string.IsNullOrEmpty(lightData.name))
-                light.transform.gameObject.name = lightData.name;
-            light.color = lightData.color;
-            light.intensity = lightData.intensity;
-            light.range = lightData.range;
-            light.shadows = LightShadows.Soft;
+                Light.transform.gameObject.name = lightData.name;
+            Light.color = lightData.color;
+            Light.intensity = lightData.intensity;
+            Light.range = lightData.range;
+            Light.shadows = LightShadows.Soft;
             switch (lightData.type) {
                 case GLTF.LightType.directional:
-                    light.type = UnityEngine.LightType.Directional;
+                    Light.type = UnityEngine.LightType.Directional;
                     break;
                 case GLTF.LightType.point:
-                    light.type = UnityEngine.LightType.Point;
+                    Light.type = UnityEngine.LightType.Point;
                     break;
                 case GLTF.LightType.spot:
-                    light.type = UnityEngine.LightType.Spot;
+                    Light.type = UnityEngine.LightType.Spot;
                     break;
             }
         }
@@ -58,17 +63,20 @@ namespace SimEnv {
                 col.size = colliderData.boundingBox;
                 col.center = colliderData.offset;
                 col.isTrigger = colliderData.intangible;
+                Collider = col;
             } else if (colliderData.type == ColliderType.SPHERE) {
                 SphereCollider col = gameObject.AddComponent<SphereCollider>();
                 col.radius = Mathf.Min(colliderData.boundingBox[0], colliderData.boundingBox[1], colliderData.boundingBox[2]);
                 col.center = colliderData.offset;
                 col.isTrigger = colliderData.intangible;
+                Collider = col;
             } else if (colliderData.type == ColliderType.CAPSULE) {
                 CapsuleCollider col = gameObject.AddComponent<CapsuleCollider>();
                 col.radius = Mathf.Min(colliderData.boundingBox[0], colliderData.boundingBox[2]);
                 col.height = colliderData.boundingBox[1];
                 col.center = colliderData.offset;
                 col.isTrigger = colliderData.intangible;
+                Collider = col;
             } else {
                 Debug.LogWarning(string.Format("Collider type {0} not implemented", colliderData.GetType()));
             }
@@ -108,6 +116,8 @@ namespace SimEnv {
                         break;
                 }
             }
+
+            RigidBody = rb;
         }
     }
 }

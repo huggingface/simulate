@@ -33,9 +33,9 @@ namespace SimEnv.RlAgents {
                 Debug.Log("Finding obs device" + obsDeviceName);
                 Node cameraNode = GameObject.Find(obsDeviceName).GetComponent<Node>();
 
-                if (cameraNode != null && Simulator.Cameras.TryGetValue(cameraNode, out RenderCamera renderCamera)) {
-                    Debug.Log("Adding observation device " + obsDeviceName + renderCamera);
-                    obsDevices.Add(renderCamera);
+                if (cameraNode != null && cameraNode.Camera != null) {
+                    Debug.Log("Adding observation device " + obsDeviceName + cameraNode.Camera);
+                    obsDevices.Add(cameraNode.Camera);
                 } else {
                     Debug.LogError("Could not find observation device " + obsDeviceName);
                 }

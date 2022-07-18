@@ -10,11 +10,11 @@ namespace Cartpole {
             
         }
 
-        public void OnEnvironmentLoaded() {
+        public void OnEnvironmentLoaded(Environment environment) {
             
         }
 
-        public void OnBeforeEnvironmentUnloaded() {
+        public void OnBeforeEnvironmentUnloaded(Environment environment) {
             
         }
     }

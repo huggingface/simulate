@@ -40,18 +40,6 @@ namespace SimEnv.GLTF {
             public bool is_terminal = false;
             public bool is_collectable = false;
         }
-
-        public class AgentDefinition {
-            public Node node;
-            public HFRlAgentsComponent data;
-
-            public AgentDefinition(Node node, HFRlAgentsComponent data) {
-                this.node = node;
-                this.data = data;
-                if(Application.isPlaying)
-                    Simulator.Register(this);
-            }
-        }
     }
 }
 

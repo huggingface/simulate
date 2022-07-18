@@ -8,6 +8,7 @@ namespace SimEnv {
     public class RenderCamera {
         public Node node => m_node;
         public Camera camera => m_camera;
+        
         Texture2D tex;
         Camera m_camera;
         Node m_node;
@@ -44,8 +45,6 @@ namespace SimEnv {
             cameraData.antialiasing = AntialiasingMode.FastApproximateAntialiasing;
             camera.enabled = false;
             tex = new Texture2D(camera.targetTexture.width, camera.targetTexture.height);
-            if (Application.isPlaying)
-                Simulator.Register(this);
         }
 
         public int GetObservationSizes() {

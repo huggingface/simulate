@@ -5,7 +5,6 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
-using UnityEngine.Rendering.Universal;
 
 namespace SimEnv.GLTF {
     public class GLTFNode {
@@ -96,15 +95,13 @@ namespace SimEnv.GLTF {
                     yield break;
                 }
 
-                // Create gameObjects - give names and register Nodes with the Simulator
+                // Create gameObjects - give names and add node components
                 result = new ImportResult[nodes.Count];
                 for (int i = 0; i < result.Length; i++) {
                     result[i] = new GLTFNode.ImportResult();
                     result[i].transform = new GameObject().transform;
                     result[i].transform.gameObject.name = nodes[i].name;
                     result[i].node = result[i].transform.gameObject.AddComponent<Node>();
-                    if (Application.isPlaying)
-                        result[i].node.Initialize();
                 }
 
                 // Connect children and parents in our gameObjects transforms
@@ -224,9 +221,6 @@ namespace SimEnv.GLTF {
                 if (Application.isPlaying) {
                     for (int i = 0; i < result.Length; i++)
                         result[i].node.Initialize();
-                } else {
-                    for (int i = 0; i < result.Length; i++)
-                        GameObject.DestroyImmediate(result[i].node);
                 }
 
                 IsCompleted = true;

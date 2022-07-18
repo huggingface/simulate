@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using SimEnv.GLTF;
 using UnityEngine.Events;
-using System.Linq;
 using System.Collections;
 using System.Threading.Tasks;
 
@@ -10,30 +9,31 @@ namespace SimEnv {
     public class Environment {
         public GameObject root;
         public Dictionary<string, Node> nodes;
-        public Dictionary<Camera, RenderCamera> cameras;
-        public Dictionary<Node, HFRlAgents.HFRlAgentsComponent> agents;
+        public List<RenderCamera> cameras;
         public Bounds bounds;
 
-        public Environment(GameObject root) {
+        public Environment(GameObject root, List<Node> nodes) {
             this.root = root;
-            nodes = new Dictionary<string, Node>();
-            cameras = new Dictionary<Camera, RenderCamera>();
-            agents = new Dictionary<Node, HFRlAgents.HFRlAgentsComponent>();
+            this.nodes = new Dictionary<string, Node>();
+            cameras = new List<RenderCamera>();
+            foreach (Node node in nodes) {
+                this.nodes.Add(node.name, node);
+                if (node.Camera != null)
+                    cameras.Add(node.Camera);
+            }
             bounds = GetLocalBoundsForObject(root);
             Simulator.Register(this);
         }
 
         public static Environment LoadEnvironmentFromBytes(byte[] bytes) {
-            GameObject root = Importer.LoadFromBytes(bytes);
-            Environment environment = new Environment(root);
+            Environment environment = Importer.LoadFromBytes(bytes);
             foreach (IPlugin plugin in Simulator.Plugins)
                 plugin.OnEnvironmentLoaded(environment);
             return environment;
         }
 
         public static async Task<Environment> LoadEnvironmentFromBytesAsync(byte[] bytes) {
-            GameObject root = await Importer.LoadFromBytesAsync(bytes);
-            Environment environment = new Environment(root);
+            Environment environment = await Importer.LoadFromBytesAsync(bytes);
             foreach (IPlugin plugin in Simulator.Plugins)
                 plugin.OnEnvironmentLoaded(environment);
             return environment;
@@ -66,24 +66,10 @@ namespace SimEnv {
             GameObject.DestroyImmediate(root);
         }
 
-        public void Register(RenderCamera camera) {
-            if (cameras.TryGetValue(camera.camera, out RenderCamera existing))
-                Debug.LogWarning($"Found existing camera on node with name: {camera.node.name}.");
-            cameras[camera.camera] = camera;
-        }
-
         public void Register(Node node) {
             if (nodes.TryGetValue(node.name, out Node existing))
                 Debug.LogWarning($"Found existing node with name: {node.name}.");
             nodes[node.name] = node;
-        }
-
-        public void Register(Node node, HFRlAgents.HFRlAgentsComponent agentData) {
-            if (agents.ContainsKey(node)) {
-                Debug.LogWarning($"Found existing agent data with name: {node.name}.");
-                return;
-            }
-            agents.Add(node, agentData);
         }
 
         public void Render(string path, UnityAction callback) {
@@ -95,7 +81,7 @@ namespace SimEnv {
                 // TODO: Add support for rendering with multiple cameras
                 Debug.LogWarning("Rendering with multiple cameras not implemented. Rendering with first.");
             }
-            cameras.ElementAt(0).Value.Render(path, callback);
+            cameras[0].Render(path, callback);
         }
 
         public void Render(UnityAction<List<Color32[]>> callback) {
@@ -104,7 +90,7 @@ namespace SimEnv {
 
         private IEnumerator RenderCoroutine(UnityAction<List<Color32[]>> callback) {
             List<Color32[]> buffers = new List<Color32[]>();
-            foreach (RenderCamera camera in cameras.Values)
+            foreach (RenderCamera camera in cameras)
                 camera.Render(buffer => buffers.Add(buffer));
             yield return new WaitUntil(() => buffers.Count == cameras.Count);
             callback(buffers);

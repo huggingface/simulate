@@ -112,7 +112,10 @@ class UnityEngine(Engine):
     def update_all_assets(self):
         pass
 
-    def show(self, n_maps=-1, **engine_kwargs):
+    def show(self):
+        self._send_gltf(self._scene.as_glb_bytes())
+
+    """ def show(self, n_maps=-1, **engine_kwargs):
         if self._map_pool:
             self._send_gltf(self._scene.as_glb_bytes())
             self._activate_pool(n_maps=n_maps)
@@ -133,7 +136,7 @@ class UnityEngine(Engine):
         map_bytes = map.as_glb_bytes()
         b64_bytes = base64.b64encode(map_bytes).decode("ascii")
         command = {"type": "AddToPool", "contents": json.dumps({"b64bytes": b64_bytes})}
-        self.run_command(command, ack=True)
+        self.run_command(command, ack=True) """
 
     def step(self, action=None):
         command = {"type": "Step", "contents": json.dumps({"action": action})}

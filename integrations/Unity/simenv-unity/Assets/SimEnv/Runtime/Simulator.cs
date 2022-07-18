@@ -43,30 +43,19 @@ namespace SimEnv {
         /// </summary>
         public static int FrameSkip { get; private set; }
 
+        static List<Environment> _activeEnvironments;
         /// <summary>
         /// Stores reference to all currently active environments.
         /// </summary>
-        public static List<Environment> ActiveEnvironments { get; private set; }
-
-        /// <summary>
-        /// Stores reference to all cameras.
-        /// </summary>
-        public static Dictionary<Node, RenderCamera> Cameras { get; private set; }
-
-        /// <summary>
-        /// Framerate of the simulation.
-        /// </summary>
-        public static int FrameRate { get; private set; }
-
-        /// <summary>
-        /// How many frames to simulate before returning the result.
-        /// </summary>
-        public static int FrameSkip { get; private set; }
+        public static List<Environment> ActiveEnvironments {
+            get {
+                _activeEnvironments ??= new List<Environment>();
+                return _activeEnvironments;
+            }
+        }
 
         private void Awake() {
             Physics.autoSimulation = false;
-            ActiveEnvironments = new List<Environment>();
-            Cameras = new Dictionary<Node, RenderCamera>();
             LoadCustomAssemblies();
             LoadPlugins();
             // TODO: Option to parse simulation args directly from API
@@ -101,14 +90,6 @@ namespace SimEnv {
             ActiveEnvironments.Add(environment);
         }
 
-        public static void Register(RenderCamera camera) {
-            if(Cameras.ContainsKey(camera.node)) {
-                Debug.LogWarning("Camera is already registered.");
-                return;
-            }
-            Cameras.Add(camera.node, camera);
-        }
-
         /// <summary>
         /// 
         /// </summary>
@@ -121,14 +102,6 @@ namespace SimEnv {
                 frameRate = FrameRate;
             for (int i = 0; i < frameSkip; i++)
                 Physics.Simulate(1f / frameRate);
-        }
-
-        public static void Register(HFRlAgents.AgentDefinition agentDataContainer) {
-            if(Agents.Contains(agentDataContainer)) {
-                Debug.LogWarning($"Found existing agent data with name: {agentDataContainer.node.name}.");
-                return;
-            }
-            Agents.Add(agentDataContainer);
         }
 
         /// <summary>

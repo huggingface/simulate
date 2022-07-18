@@ -42,17 +42,17 @@ namespace SimEnv.GLTF {
             }
         }
 
-        public static GameObject LoadFromFile(string filepath, Format format = Format.AUTO) {
+        public static Environment LoadFromFile(string filepath, Format format = Format.AUTO) {
             AnimationClip[] animations;
             return LoadFromFile(filepath, new ImportSettings(), out animations, format);
         }
 
-        public static GameObject LoadFromFile(string filepath, ImportSettings importSettings, Format format = Format.AUTO) {
+        public static Environment LoadFromFile(string filepath, ImportSettings importSettings, Format format = Format.AUTO) {
             AnimationClip[] animations;
             return LoadFromFile(filepath, importSettings, out animations, format);
         }
 
-        public static GameObject LoadFromFile(string filepath, ImportSettings importSettings, out AnimationClip[] animations, Format format = Format.AUTO) {
+        public static Environment LoadFromFile(string filepath, ImportSettings importSettings, out AnimationClip[] animations, Format format = Format.AUTO) {
             switch (format) {
                 case Format.GLB:
                     return ImportGLB(filepath, importSettings, out animations);
@@ -72,46 +72,46 @@ namespace SimEnv.GLTF {
             }
         }
 
-        public static GameObject LoadFromBytes(byte[] bytes, ImportSettings importSettings = null) {
+        public static Environment LoadFromBytes(byte[] bytes, ImportSettings importSettings = null) {
             AnimationClip[] animations;
             if (importSettings == null)
                 importSettings = new ImportSettings();
             return ImportGLB(bytes, importSettings, out animations);
         }
 
-        public static GameObject LoadFromBytes(byte[] bytes, ImportSettings importSettings, out AnimationClip[] animations) {
+        public static Environment LoadFromBytes(byte[] bytes, ImportSettings importSettings, out AnimationClip[] animations) {
             return ImportGLB(bytes, importSettings, out animations);
         }
 
-        public static async Task<GameObject> LoadFromBytesAsync(byte[] bytes, ImportSettings importSettings = null) {
-            GameObject gameObject = null;
+        public static async Task<Environment> LoadFromBytesAsync(byte[] bytes, ImportSettings importSettings = null) {
+            Environment environment = null;
             ImportGLBAsync(bytes, importSettings, (result, clips) => {
-                gameObject = result;
+                environment = result;
             });
-            while (gameObject == null)
+            while (environment == null)
                 await Task.Yield();
-            return gameObject;
+            return environment;
         }
 
-        public static void LoadFromFileAsync(string filepath, ImportSettings importSettings, Action<GameObject, AnimationClip[]> onFinished, Action<float> onProgress = null) {
+        public static void LoadFromFileAsync(string filepath, ImportSettings importSettings, Action<Environment, AnimationClip[]> onFinished, Action<float> onProgress = null) {
             ImportGLTFAsync(filepath, importSettings, onFinished, onProgress);
         }
 
-        public static GameObject LoadFromJson(string json) {
+        public static Environment LoadFromJson(string json) {
             AnimationClip[] animations;
             return ImportGLTF(null, json, new ImportSettings(), out animations);
         }
 
-        public static GameObject LoadFromJson(string json, ImportSettings importSettings) {
+        public static Environment LoadFromJson(string json, ImportSettings importSettings) {
             AnimationClip[] animations;
             return ImportGLTF(null, json, importSettings, out animations);
         }
 
-        public static GameObject LoadFromJson(string json, ImportSettings importSettings, out AnimationClip[] animations) {
+        public static Environment LoadFromJson(string json, ImportSettings importSettings, out AnimationClip[] animations) {
             return ImportGLTF(null, json, importSettings, out animations);
         }
 
-        static GameObject ImportGLB(string filepath, ImportSettings importSettings, out AnimationClip[] animations) {
+        static Environment ImportGLB(string filepath, ImportSettings importSettings, out AnimationClip[] animations) {
             FileStream stream = File.OpenRead(filepath);
             long binChunkStart;
             string json = GetGLBJson(stream, out binChunkStart);
@@ -119,7 +119,7 @@ namespace SimEnv.GLTF {
             return gltfObject.LoadInternal(filepath, null, binChunkStart, importSettings, out animations);
         }
 
-        static GameObject ImportGLB(byte[] bytes, ImportSettings importSettings, out AnimationClip[] animations) {
+        static Environment ImportGLB(byte[] bytes, ImportSettings importSettings, out AnimationClip[] animations) {
             Stream stream = new MemoryStream(bytes);
             long binChunkStart;
             string json = GetGLBJson(stream, out binChunkStart);
@@ -127,14 +127,14 @@ namespace SimEnv.GLTF {
             return gltfObject.LoadInternal(null, bytes, binChunkStart, importSettings, out animations);
         }
 
-        public static void ImportGLBAsync(string filepath, ImportSettings importSettings, Action<GameObject, AnimationClip[]> onFinished, Action<float> onProgress = null) {
+        public static void ImportGLBAsync(string filepath, ImportSettings importSettings, Action<Environment, AnimationClip[]> onFinished, Action<float> onProgress = null) {
             FileStream stream = File.OpenRead(filepath);
             long binChunkStart;
             string json = GetGLBJson(stream, out binChunkStart);
             LoadAsync(json, filepath, null, binChunkStart, importSettings, onFinished, onProgress).RunCoroutine();
         }
 
-        public static void ImportGLBAsync(byte[] bytes, ImportSettings importSettings, Action<GameObject, AnimationClip[]> onFinished, Action<float> onProgress = null) {
+        public static void ImportGLBAsync(byte[] bytes, ImportSettings importSettings, Action<Environment, AnimationClip[]> onFinished, Action<float> onProgress = null) {
             Stream stream = new MemoryStream(bytes);
             long binChunkStart;
             string json = GetGLBJson(stream, out binChunkStart);
@@ -171,19 +171,19 @@ namespace SimEnv.GLTF {
             return json;
         }
 
-        static GameObject ImportGLTF(string filepath, string json, ImportSettings importSettings, out AnimationClip[] animations) {
+        static Environment ImportGLTF(string filepath, string json, ImportSettings importSettings, out AnimationClip[] animations) {
             if (string.IsNullOrEmpty(json))
                 json = File.ReadAllText(filepath);
             GLTFObject gltfObject = JsonConvert.DeserializeObject<GLTFObject>(json);
             return gltfObject.LoadInternal(filepath, null, 0, importSettings, out animations);
         }
 
-        public static void ImportGLTFAsync(string filepath, ImportSettings importSettings, Action<GameObject, AnimationClip[]> onFinished, Action<float> onProgress = null) {
+        public static void ImportGLTFAsync(string filepath, ImportSettings importSettings, Action<Environment, AnimationClip[]> onFinished, Action<float> onProgress = null) {
             string json = File.ReadAllText(filepath);
             LoadAsync(json, filepath, null, 0, importSettings, onFinished, onProgress).RunCoroutine();
         }
 
-        static GameObject LoadInternal(this GLTFObject gltfObject, string filepath, byte[] bytefile, long binChunkStart, ImportSettings importSettings, out AnimationClip[] animations) {
+        static Environment LoadInternal(this GLTFObject gltfObject, string filepath, byte[] bytefile, long binChunkStart, ImportSettings importSettings, out AnimationClip[] animations) {
             string directoryRoot = filepath != null ? Directory.GetParent(filepath).ToString() + "/" : null;
 
             GLTFBuffer.ImportTask bufferTask = new GLTFBuffer.ImportTask(gltfObject.buffers, filepath, bytefile, binChunkStart);
@@ -213,11 +213,13 @@ namespace SimEnv.GLTF {
             foreach (var item in bufferTask.result)
                 item.Dispose();
 
-            GameObject gameObject = nodeTask.result.GetRoot();
-            return gameObject;
+            GameObject root = nodeTask.result.GetRoot();
+            List<Node> nodes = nodeTask.result.Select(x => x.node).ToList();
+            Environment environment = new Environment(root, nodes);
+            return environment;
         }
 
-        static IEnumerator LoadAsync(string json, string filepath, byte[] bytefile, long binChunkStart, ImportSettings importSettings, Action<GameObject, AnimationClip[]> onFinished, Action<float> onProgress = null) {
+        static IEnumerator LoadAsync(string json, string filepath, byte[] bytefile, long binChunkStart, ImportSettings importSettings, Action<Environment, AnimationClip[]> onFinished, Action<float> onProgress = null) {
             Task<GLTFObject> deserializeTask = new Task<GLTFObject>(() => JsonConvert.DeserializeObject<GLTFObject>(json));
             deserializeTask.Start();
             while (!deserializeTask.IsCompleted) yield return null;
@@ -252,10 +254,13 @@ namespace SimEnv.GLTF {
             while (!importTasks.All(x => x.IsCompleted)) yield return null;
 
             GameObject root = nodeTask.result.GetRoot();
+            List<Node> nodes = nodeTask.result.Select(x => x.node).ToList();
+            Environment environment = new Environment(root, nodes);
+
             GLTFAnimation.ImportResult[] animationResult = gltfObject.animations.Import(accessorTask.result, nodeTask.result, importSettings);
             AnimationClip[] animations = new AnimationClip[0];
             if (animationResult != null) animations = animationResult.Select(x => x.clip).ToArray();
-            if (onFinished != null) onFinished(nodeTask.result.GetRoot(), animations);
+            if (onFinished != null) onFinished(environment, animations);
 
             foreach (var item in bufferTask.result)
                 item.Dispose();
