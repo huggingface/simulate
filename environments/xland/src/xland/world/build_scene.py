@@ -211,7 +211,7 @@ def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=No
     root = sm.Asset(name="root")
 
     # Add colliders to StructuredGrid
-    material = sm.Material(base_color=[0.0, 0.67, 0.66])
+    material = sm.Material.WHITE
     sg.generate_3D(material=material)
 
     obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
