@@ -182,7 +182,7 @@ def create_objects(positions, object_type=None, object_size=0.5):
     return [
         get_object_fn(obj)(
             position=pos,
-            material=sm.Material(base_color=color),
+            material=color,
             **get_bounds(object_type=obj, object_size=object_size),
         )
         for pos, color, obj in zip(positions, colors, objects)
