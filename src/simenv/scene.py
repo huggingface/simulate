@@ -97,11 +97,12 @@ class Scene(Asset, Env):
         spacer = "\n" if len(self) else ""
         return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
 
-    def show(self, n_maps=-1, **engine_kwargs):
+    def show(self, **engine_kwargs):
         """Render the Scene using the engine."""
-        if n_maps > 0:
+        n_maps = engine_kwargs.get("n_maps", None)
+        if n_maps is not None:
             self._n_agents = n_maps
-        self.engine.show(n_maps=n_maps, **engine_kwargs)
+        self.engine.show(**engine_kwargs)
 
     def clear(self):
         """Remove all assets in the scene."""
