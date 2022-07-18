@@ -156,53 +156,18 @@ namespace SimEnv.GLTF {
                     }
 
                     // Camera
-                    if (nodes[i].camera.HasValue) {
-                        result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
-                        GLTFCamera cameraData = cameras[nodes[i].camera.Value];
-                        RenderCamera camera = new RenderCamera(result[i].node, cameraData);
-                    }
+                    if (nodes[i].camera.HasValue)
+                        result[i].node.cameraData = cameras[nodes[i].camera.Value];
 
                     // Extensions (lights, colliders, RL agents, etc)
                     if (nodes[i].extensions != null) {
-
-                        // RL Agents
-                        if (nodes[i].extensions.HF_rl_agents != null) {
-                            int agentValue = nodes[i].extensions.HF_rl_agents.agent;
-                            if (extensions == null || extensions.HF_rl_agents == null || extensions.HF_rl_agents.agents == null || extensions.HF_rl_agents.agents.Count < agentValue) {
-                                Debug.LogWarning("Error importing agent");
-                            } else {
-                                HFRlAgents.HFRlAgentsComponent agentData = extensions.HF_rl_agents.agents[agentValue];
-                                Agent agent = new Agent(result[i].node, agentData);
-                            }
-                        }
-
                         // Lights
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
                             int lightValue = nodes[i].extensions.KHR_lights_punctual.light;
                             if (extensions == null || extensions.KHR_lights_punctual == null || extensions.KHR_lights_punctual.lights == null || extensions.KHR_lights_punctual.lights.Count < lightValue) {
                                 Debug.LogWarning("Error importing light");
                             } else {
-                                KHRLightsPunctual.GLTFLight lightData = extensions.KHR_lights_punctual.lights[lightValue];
-                                Light light = result[i].transform.gameObject.AddComponent<Light>();
-                                light.gameObject.AddComponent<UniversalAdditionalLightData>();
-                                result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
-                                if (!string.IsNullOrEmpty(lightData.name))
-                                    light.transform.gameObject.name = lightData.name;
-                                light.color = lightData.color;
-                                light.intensity = lightData.intensity;
-                                light.range = lightData.range;
-                                light.shadows = LightShadows.Soft;
-                                switch (lightData.type) {
-                                    case LightType.directional:
-                                        light.type = UnityEngine.LightType.Directional;
-                                        break;
-                                    case LightType.point:
-                                        light.type = UnityEngine.LightType.Point;
-                                        break;
-                                    case LightType.spot:
-                                        light.type = UnityEngine.LightType.Spot;
-                                        break;
-                                }
+                                result[i].node.lightData = extensions.KHR_lights_punctual.lights[lightValue];
                             }
                         }
 
@@ -212,29 +177,7 @@ namespace SimEnv.GLTF {
                             if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.colliders == null || extensions.HF_colliders.colliders.Count < colliderValue) {
                                 Debug.LogWarning("Error importing collider");
                             } else {
-                                HFColliders.GLTFCollider collider = extensions.HF_colliders.colliders[colliderValue];
-                                if (collider.mesh.HasValue) {
-                                    Debug.LogWarning("Ignoring collider mesh value");
-                                }
-                                if (collider.type == ColliderType.BOX) {
-                                    BoxCollider col = result[i].transform.gameObject.AddComponent<BoxCollider>();
-                                    col.size = collider.boundingBox;
-                                    col.center = collider.offset;
-                                    col.isTrigger = collider.intangible;
-                                } else if (collider.type == ColliderType.SPHERE) {
-                                    SphereCollider col = result[i].transform.gameObject.AddComponent<SphereCollider>();
-                                    col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[1], collider.boundingBox[2]);
-                                    col.center = collider.offset;
-                                    col.isTrigger = collider.intangible;
-                                } else if (collider.type == ColliderType.CAPSULE) {
-                                    CapsuleCollider col = result[i].transform.gameObject.AddComponent<CapsuleCollider>();
-                                    col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[2]);
-                                    col.height = collider.boundingBox[1];
-                                    col.center = collider.offset;
-                                    col.isTrigger = collider.intangible;
-                                } else {
-                                    Debug.LogWarning(string.Format("Collider type {0} not implemented", collider.GetType()));
-                                }
+                                result[i].node.colliderData = extensions.HF_colliders.colliders[colliderValue];
                             }
                         }
 
@@ -244,40 +187,18 @@ namespace SimEnv.GLTF {
                             if (extensions == null || extensions.HF_rigidbodies == null || extensions.HF_rigidbodies.rigidbodies == null || extensions.HF_rigidbodies.rigidbodies.Count < rigidbodyValue) {
                                 Debug.LogWarning("Error importing rigidbody");
                             } else {
-                                HFRigidbodies.GLTFRigidbody rigidbody = extensions.HF_rigidbodies.rigidbodies[rigidbodyValue];
-                                Rigidbody rb = result[i].transform.gameObject.AddComponent<Rigidbody>();
-                                rb.mass = rigidbody.mass;
-                                rb.drag = rigidbody.drag;
-                                rb.angularDrag = rigidbody.angular_drag;
-                                rb.useGravity = rigidbody.use_gravity;
-                                rb.collisionDetectionMode = rigidbody.continuous ? CollisionDetectionMode.Continuous : CollisionDetectionMode.Discrete;
-                                rb.isKinematic = rigidbody.kinematic;
+                                result[i].node.rigidBodyData = extensions.HF_rigidbodies.rigidbodies[rigidbodyValue];
+                            }
+                        }
 
-                                foreach (string constraint in rigidbody.constraints) {
-                                    switch (constraint) {
-                                        case "freeze_position_x":
-                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezePositionX;
-                                            break;
-                                        case "freeze_position_y":
-                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezePositionY;
-                                            break;
-                                        case "freeze_position_z":
-                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezePositionZ;
-                                            break;
-                                        case "freeze_rotation_x":
-                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezeRotationX;
-                                            break;
-                                        case "freeze_rotation_y":
-                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezeRotationY;
-                                            break;
-                                        case "freeze_rotation_z":
-                                            rb.constraints = rb.constraints | RigidbodyConstraints.FreezeRotationZ;
-                                            break;
-                                        default:
-                                            Debug.LogWarning(string.Format("Constraint {0} not implemented", constraint));
-                                            break;
-                                    }
-                                }
+                        // RL Agents
+                        if (nodes[i].extensions.HF_rl_agents != null) {
+                            int agentValue = nodes[i].extensions.HF_rl_agents.agent;
+                            if (extensions == null || extensions.HF_rl_agents == null || extensions.HF_rl_agents.agents == null || extensions.HF_rl_agents.agents.Count < agentValue) {
+                                Debug.LogWarning("Error importing agent");
+                            } else {
+                                result[i].node.gameObject.tag = "Agent";
+                                result[i].node.agentData = extensions.HF_rl_agents.agents[agentValue];
                             }
                         }
 
@@ -300,11 +221,15 @@ namespace SimEnv.GLTF {
                         }
                     }
                 }
-                if (!Application.isPlaying) {
-                    for (int i = 0; i < result.Length; i++) {
+
+                if (Application.isPlaying) {
+                    for (int i = 0; i < result.Length; i++)
+                        result[i].node.Initialize();
+                } else {
+                    for (int i = 0; i < result.Length; i++)
                         GameObject.DestroyImmediate(result[i].node);
-                    }
                 }
+
                 IsCompleted = true;
             }
         }

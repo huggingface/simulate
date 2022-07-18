@@ -11,7 +11,7 @@ namespace SimEnv {
 
         async void ExecuteAsync(UnityAction<string> callback) {
             byte[] bytes = Convert.FromBase64String(b64bytes);
-            await Simulator.LoadEnvironmentFromBytesAsync(bytes);
+            await Environment.LoadEnvironmentFromBytesAsync(bytes);
             callback("ack");
         }
     }

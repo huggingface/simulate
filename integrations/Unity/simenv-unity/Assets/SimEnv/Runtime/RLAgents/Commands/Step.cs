@@ -18,10 +18,10 @@ namespace SimEnv.RlAgents {
             foreach (var item in action.ToList()) {
                 List<float> convertedAction = new List<float>();
                 convertedAction.Add(item);
-                convertedActions.Add(covertedAction);
+                convertedActions.Add(convertedAction);
             }
 
-            EnvironmentManager.instance.Step(convertedActions);
+            RLEnvironmentManager.instance.Step(convertedActions);
             callback("ack");
         }
     }

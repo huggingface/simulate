@@ -36,12 +36,12 @@ namespace SimEnv {
         /// Called when an environment is finished loading.
         /// <para>Use this to initialize custom behaviour.</para>
         /// </summary>
-        void OnEnvironmentLoaded();
+        void OnEnvironmentLoaded(Environment environment);
 
         /// <summary>
         /// Called before an environment begins unloading.
         /// <para>Use this to clean up custom behaviour.</para>
         /// </summary>
-        void OnBeforeEnvironmentUnloaded();
+        void OnBeforeEnvironmentUnloaded(Environment environment);
     }
 }

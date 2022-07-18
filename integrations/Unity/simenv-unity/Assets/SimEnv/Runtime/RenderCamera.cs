@@ -40,7 +40,6 @@ namespace SimEnv {
             cameraData.renderPostProcessing = true;
             camera.enabled = false;
             tex = new Texture2D(camera.targetTexture.width, camera.targetTexture.height);
-            node.renderCamera = this;
             if (Application.isPlaying)
                 Simulator.Register(this);
         }

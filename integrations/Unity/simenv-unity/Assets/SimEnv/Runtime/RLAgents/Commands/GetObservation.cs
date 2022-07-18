@@ -5,7 +5,7 @@ namespace SimEnv.RlAgents {
         public string message;
 
         public void Execute(UnityAction<string> callback) {
-            EnvironmentManager.instance.GetObservation(callback);
+            RLEnvironmentManager.instance.GetObservation(callback);
         }
     }
 }

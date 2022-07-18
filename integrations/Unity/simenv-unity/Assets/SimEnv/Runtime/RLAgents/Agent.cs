@@ -18,16 +18,10 @@ namespace SimEnv.RlAgents {
         private float accumReward = 0.0f;
         private Vector3 originalPosition;
 
-        // TODO remove
-        // private const float radius = .25f;
-        // public RenderCamera cam;
-
         public Agent(Node node, HFRlAgents.HFRlAgentsComponent agentData) {
             this.node = node;
-            node.referenceObject = this;
             node.tag = "Agent";
             SetProperties(agentData);
-            //AgentManager.instance.Register(this);
         }
 
         public void Initialize() {
@@ -39,9 +33,9 @@ namespace SimEnv.RlAgents {
                 Debug.Log("Finding obs device" + obsDeviceName);
                 Node cameraNode = GameObject.Find(obsDeviceName).GetComponent<Node>();
 
-                if (cameraNode != null) {
-                    Debug.Log("Adding observation device " + obsDeviceName + cameraNode.renderCamera);
-                    obsDevices.Add(cameraNode.renderCamera);
+                if (cameraNode != null && Simulator.Cameras.TryGetValue(cameraNode, out RenderCamera renderCamera)) {
+                    Debug.Log("Adding observation device " + obsDeviceName + renderCamera);
+                    obsDevices.Add(renderCamera);
                 } else {
                     Debug.LogError("Could not find observation device " + obsDeviceName);
                 }
@@ -234,6 +228,7 @@ namespace SimEnv.RlAgents {
         public float GetReward() {
             return accumReward;
         }
+
         public void ZeroReward() {
             accumReward = 0.0f;
         }

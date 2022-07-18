@@ -6,31 +6,29 @@ using UnityEngine;
 using UnityEngine.Events;
 
 namespace SimEnv.RlAgents {
-    public class EnvironmentManager {
-        public static EnvironmentManager instance;
+    public class RLEnvironmentManager {
+        public static RLEnvironmentManager instance;
 
-        Queue<Environment> environmentQueue = new Queue<Environment>();
+        Queue<RLEnvironment> environmentQueue = new Queue<RLEnvironment>();
         List<Vector3> positionPool = new List<Vector3>();
-        List<Environment> activeEnvironments = new List<Environment>();
+        List<RLEnvironment> activeEnvironments = new List<RLEnvironment>();
 
         int nextEnvIndex = 0;
 
-        float physicsUpdateRate = 1.0f / 30.0f;
+        int physicsUpdateRate = 30;
         int frameSkip = 4;
 
         uint[] agentPixelValues;
         int obsSize;
 
-        public void Initialize(){
-            frameSkip = Client.instance.frameSkip;
-            physicsUpdateRate = Client.instance.physicsUpdateRate;
+        public void Initialize() {
+            frameSkip = Simulator.FrameSkip;
+            physicsUpdateRate = Simulator.FrameRate;
         }
 
-        public void AddToPool(byte[] bytes) {
-            GameObject map = GLTF.Importer.LoadFromBytes(bytes);
-            Environment environment = new Environment(map);
-            environmentQueue.Enqueue(environment);
-
+        public void AddToPool(Environment environment) {
+            RLEnvironment rlEnvironment = new RLEnvironment(environment);
+            environmentQueue.Enqueue(rlEnvironment);
         }
 
         public void ActivateEnvironments(int nEnvironments) {
@@ -40,23 +38,23 @@ namespace SimEnv.RlAgents {
             }
             Debug.Assert(nEnvironments <= environmentQueue.Count);
             for (int i = 0; i < nEnvironments; i++) {
-                Environment environment = environmentQueue.Dequeue();
-                environment.SetPosition(positionPool[i]);
-                environment.Enable();
+                RLEnvironment environment = environmentQueue.Dequeue();
+                environment.environment.root.transform.position = positionPool[i];
+                environment.Disable();
                 environment.Reset();
                 activeEnvironments.Add(environment);
             }
 
             obsSize = activeEnvironments[0].GetObservationSize();
             agentPixelValues = new uint[nEnvironments * obsSize];
-            frameSkip = Client.instance.frameSkip;
-            physicsUpdateRate = Client.instance.physicsUpdateRate;
+            frameSkip = Simulator.FrameSkip;
+            physicsUpdateRate = Simulator.FrameRate;
         }
 
         private void CreatePositionPool(int nEnvironments) {
             Bounds bounds = new Bounds(Vector3.zero, Vector3.zero);
             foreach (var env in environmentQueue) {
-                Bounds envBounds = env.bounds;
+                Bounds envBounds = env.environment.bounds;
                 bounds.Encapsulate(envBounds);
             }
 
@@ -102,7 +100,6 @@ namespace SimEnv.RlAgents {
             }
         }
         public void ResetAt(int i) {
-
             activeEnvironments[i].SetPosition(new Vector3(-10f, 0f, -10f));
             activeEnvironments[i].Disable();
             environmentQueue.Enqueue(activeEnvironments[i]);

@@ -7,7 +7,8 @@ namespace SimEnv.RlAgents {
 
         public void Execute(UnityAction<string> callback) {
             byte[] bytes = Convert.FromBase64String(b64bytes);
-            EnvironmentManager.instance.AddToPool(bytes);
+            Environment environment = Environment.LoadEnvironmentFromBytes(bytes);
+            RLEnvironmentManager.instance.AddToPool(environment);
             callback("ack");
         }
     }

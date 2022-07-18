@@ -12,6 +12,7 @@ from stable_baselines3 import PPO
 
 ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
+DYLAN_UNITY_BUILD_URL = "integrations/Unity/Build/SimEnv.exe"
 
 def create_env(executable=None, port=None, headless=None):
     scene = sm.Scene(engine="Unity", engine_exe=executable, engine_port=port, engine_headless=headless)
@@ -80,8 +81,7 @@ def make_env(executable, rank, seed=0, headless=None):
 
 if __name__ == "__main__":
     n_envs = 1
-    # envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i) for i in range(n_envs)])
-    envs = SubprocVecEnv([make_env(None, i) for i in range(n_envs)])
+    envs = SubprocVecEnv([make_env(DYLAN_UNITY_BUILD_URL, i) for i in range(n_envs)])
     print(envs.observation_space)
 
     obs = envs.reset()

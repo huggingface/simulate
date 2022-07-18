@@ -1,20 +1,19 @@
 namespace SimEnv.RlAgents {
     public class AgentsPlugin : IPlugin {
         public void OnCreated() {
-            //AgentManager.instance ??= new AgentManager(); // superceded by the EnvironmentManager
-            EnvironmentManager.instance ??= new EnvironmentManager();
+            RLEnvironmentManager.instance ??= new RLEnvironmentManager();
         }
 
         public void OnReleased() {
 
         }
 
-        public void OnEnvironmentLoaded() {
-            //AgentManager.instance.Initialize();
+        public void OnEnvironmentLoaded(Environment environment) {
+            
         }
 
-        public void OnBeforeEnvironmentUnloaded() {
-            //AgentManager.instance.agents.Clear();
+        public void OnBeforeEnvironmentUnloaded(Environment environment) {
+            
         }
     }
 }
