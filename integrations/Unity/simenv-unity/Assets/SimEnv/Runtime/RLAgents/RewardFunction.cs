@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 
 namespace SimEnv.RlAgents {
     public interface IDistanceMetric {
@@ -87,6 +88,53 @@ namespace SimEnv.RlAgents {
                 }
             }
             return reward * rewardScalar;
+        }
+    }
+
+    public class RewardFunctionAnd : RewardFunction {
+        // TODO: works in the assumption that A and B has the same reward
+        public RewardFunction rewardFunctionA;
+        public RewardFunction rewardFunctionB;
+
+        public RewardFunctionAnd(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) {
+            this.rewardFunctionA = rewardFunctionA;
+            this.rewardFunctionB = rewardFunctionB;
+            this.entity_a = entity_a;
+            this.entity_b = entity_b;
+            this.distanceMetric = distanceMetric;
+        }
+
+        public override void Reset() {
+            rewardFunctionA.Reset();
+            rewardFunctionB.Reset();
+        }
+        public override float CalculateReward() {
+            return Math.Min(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());
+        }
+    }
+
+    public class RewardFunctionOr : RewardFunction{
+        // TODO: works in the assumption that A and B has the same reward
+        public RewardFunction rewardFunctionA;
+        public RewardFunction rewardFunctionB;
+
+        public RewardFunctionOr(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) {
+            this.rewardFunctionA = rewardFunctionA;
+            this.rewardFunctionB = rewardFunctionB;
+            this.entity_a = entity_a;
+            this.entity_b = entity_b;
+            this.distanceMetric = distanceMetric;
+        }
+
+        public override void Reset() {
+            rewardFunctionA.Reset();
+            rewardFunctionB.Reset();
+        }
+
+        public override float CalculateReward() {
+            return Math.Max(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());
         }
     }
 
