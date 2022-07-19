@@ -557,6 +557,8 @@ def add_rl_component_to_model(
             threshold=reward.threshold,
             is_terminal=reward.is_terminal,
             is_collectable=reward.is_collectable,
+            reward_function_a=reward.reward_function_a,
+            reward_function_b=reward.reward_function_b,
         )
         for reward in rewards
     ]
