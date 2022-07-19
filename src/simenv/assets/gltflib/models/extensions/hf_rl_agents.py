@@ -55,6 +55,8 @@ class HFRlAgentsReward:
         scaling: A scaling factor for the reward
         threshold: A threshold for the reward
         is_terminal: A boolean indicating whether the reward is associated to the end of an episode
+        reward_function_a: Reward function A when dealing with predicates such as and / or
+        reward_function_b: Reward function B when dealing with predicates such as and / or
     """
 
     entity_a: str
@@ -65,6 +67,8 @@ class HFRlAgentsReward:
     threshold: Optional[float] = 1.0
     is_terminal: Optional[bool] = False
     is_collectable: Optional[bool] = False
+    reward_function_a: Optional[HFRlAgentsReward] = None
+    reward_function_b: Optional[HFRlAgentsReward] = None
 
 
 @dataclass_json
