@@ -139,6 +139,32 @@ namespace SimEnv.RlAgents {
     }
 
 
+    public class RewardFunctionNot : RewardFunction{
+        // TODO: works in the assumption that A is sparse
+        public RewardFunction rewardFunctionA;
+
+        public RewardFunctionNot(RewardFunction rewardFunctionA,
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) {
+            this.rewardFunctionA = rewardFunctionA;
+            this.entity_a = entity_a;
+            this.entity_b = entity_b;
+            this.distanceMetric = distanceMetric;
+        }
+
+        public override void Reset() {
+            rewardFunctionA.Reset();
+        }
+
+        public override float CalculateReward() {
+            if (rewardFunctionA.CalculateReward() > 0.0f) {
+                return 0.0f;
+            } else {
+                return rewardFunctionA.rewardScalar;
+            }
+        }
+    }
+
+
     public class TimeoutRewardFunction : SparseRewardFunction {
         int steps = 0;
 

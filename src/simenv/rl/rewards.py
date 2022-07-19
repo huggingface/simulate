@@ -44,8 +44,8 @@ class RewardFunction:
     threshold: Optional[float] = 1.0
     is_terminal: Optional[bool] = False
     is_collectable: Optional[bool] = False
-    reward_function_a: Optional[RewardFunction] = None
-    reward_function_b: Optional[RewardFunction] = None
+    reward_function_a: Optional = None
+    reward_function_b: Optional = None
 
     def __post_init__(self):
         if self.type is None:

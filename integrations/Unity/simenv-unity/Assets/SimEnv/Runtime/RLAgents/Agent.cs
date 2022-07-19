@@ -103,6 +103,11 @@ namespace SimEnv.RlAgents {
                         GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
                             entity_a, entity_b, distanceMetric);
                     break;
+                
+                case "not":
+                    rewardFunction = new RewardFunctionNot(
+                        GetRewardFunction(reward.reward_function_a), entity_a, entity_b, distanceMetric);
+                    break;
 
                 default:
                     Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
