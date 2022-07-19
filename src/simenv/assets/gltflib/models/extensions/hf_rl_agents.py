@@ -67,8 +67,8 @@ class HFRlAgentsReward:
     threshold: Optional[float] = 1.0
     is_terminal: Optional[bool] = False
     is_collectable: Optional[bool] = False
-    reward_function_a: Optional[HFRlAgentsReward] = None
-    reward_function_b: Optional[HFRlAgentsReward] = None
+    reward_function_a: Optional = None
+    reward_function_b: Optional = None
 
 
 @dataclass_json
