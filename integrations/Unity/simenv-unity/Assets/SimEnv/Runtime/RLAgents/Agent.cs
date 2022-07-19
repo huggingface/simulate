@@ -36,11 +36,11 @@ namespace SimEnv.RlAgents {
 
             // We connect the observation devices to the agent now that the whole scene is imported
             foreach (string obsDeviceName in obsDeviceNames) {
-                Debug.Log("Finding obs device" + obsDeviceName);
+                //Debug.Log("Finding obs device" + obsDeviceName);
                 Node cameraNode = GameObject.Find(obsDeviceName).GetComponent<Node>();
 
                 if (cameraNode != null) {
-                    Debug.Log("Adding observation device " + obsDeviceName + cameraNode.renderCamera);
+                    //Debug.Log("Adding observation device " + obsDeviceName + cameraNode.renderCamera);
                     obsDevices.Add(cameraNode.renderCamera);
                 } else {
                     Debug.LogError("Could not find observation device " + obsDeviceName);

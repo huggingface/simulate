@@ -21,7 +21,7 @@ namespace SimEnv.RlAgents {
         uint[] agentPixelValues;
         int obsSize;
 
-        public void Initialize(){
+        public void Initialize() {
             frameSkip = Client.instance.frameSkip;
             physicsUpdateRate = Client.instance.physicsUpdateRate;
         }
@@ -96,7 +96,6 @@ namespace SimEnv.RlAgents {
         }
 
         public void ResetAgents() {
-            Debug.Log("resetting agents");
             for (int i = 0; i < activeEnvironments.Count; i++) {
                 ResetAt(i);
             }
