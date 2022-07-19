@@ -26,14 +26,13 @@ def create_env(executable=None, port=None, headless=None):
     maze_depth = 3
     n_objects = 1
 
-    for i in range(2):
-        for j in range(2):
+    for i in range(8):
+        for j in range(8):
             maze = ProcGenPrimsMaze3D(maze_width, maze_depth, wall_material=yellow_material)
             maze += sm.Box(
                 position=[0, 0, 0], bounds=[0.0, maze_width, 0, 0.1, 0.0, maze_depth], material=blue_material
             )
             agent_position = [math.floor(maze_width / 2.0) + 0.5, 0.0, math.floor(maze_depth / 2.0) + 0.5]
-            print(agent_position)
             agent = sm.SimpleRlAgent(camera_width=36, camera_height=36, position=agent_position)
             maze += agent
 
@@ -73,7 +72,7 @@ def create_env(executable=None, port=None, headless=None):
             agent.add_reward_function(timeout_reward_function)
             scene.engine.add_to_pool(maze)
 
-    scene.show(n_maps=3)
+    scene.show(n_maps=32)
     return scene
 
 

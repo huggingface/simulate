@@ -135,6 +135,15 @@ class Scene(Asset, Env):
     def agents(self) -> Tuple[Asset]:
         return self.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))
 
+
+    @property
+    def num_agents(self) -> int:
+        return self.n_agents
+
+    @property
+    def is_multiagent(self) -> bool:
+        return self.n_agents > 1
+
     @property
     def n_agents(self) -> int:
         if self._n_agents is None:
