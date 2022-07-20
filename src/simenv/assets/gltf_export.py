@@ -533,6 +533,7 @@ def get_gl_reward(reward) -> gl.HFRlAgentsReward:
         threshold=reward.threshold,
         is_terminal=reward.is_terminal,
         is_collectable=reward.is_collectable,
+        trigger_once=reward.trigger_once,
         reward_function_a=get_gl_reward(reward.reward_function_a),
         reward_function_b=get_gl_reward(reward.reward_function_b),
     )

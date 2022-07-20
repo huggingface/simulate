@@ -18,6 +18,7 @@ def near(entity_a, entity_b):
         is_terminal=False,
         is_collectable=False,
         scalar=1.0,
+        trigger_once=False,
     )
 
 
