@@ -86,11 +86,11 @@ namespace SimEnv.RlAgents {
                     break;
                 case "sparse":
                     rewardFunction = new SparseRewardFunction(
-                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable);
+                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable, reward.trigger_once);
                     break;
                 case "timeout":
                     rewardFunction = new TimeoutRewardFunction(
-                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable);
+                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable, reward.trigger_once);
                     break;
                 case "and":
                     rewardFunction = new RewardFunctionAnd(

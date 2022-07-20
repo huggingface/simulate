@@ -61,7 +61,8 @@ namespace SimEnv.RlAgents {
         public bool isTerminal = false;
         public float threshold = 1.0f;
         public bool isCollectable = false;
-        public SparseRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal, bool isCollectable) {
+        public bool triggerOnce = true;
+        public SparseRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal, bool isCollectable, bool triggerOnce) {
             this.entity_a = entity_a;
             this.entity_b = entity_b;
             this.distanceMetric = distanceMetric;
@@ -69,6 +70,7 @@ namespace SimEnv.RlAgents {
             this.isTerminal = isTerminal;
             this.rewardScalar = rewardScalar;
             this.isCollectable = isCollectable;
+            this.triggerOnce = triggerOnce;
         }
         public override void Reset() {
             hasTriggered = false;
@@ -80,7 +82,7 @@ namespace SimEnv.RlAgents {
         public override float CalculateReward() {
             float reward = 0.0f;
             float distance = distanceMetric.Calculate(entity_a, entity_b);
-            if (!hasTriggered && (distance < threshold)) {
+            if ((!hasTriggered || !triggerOnce) && (distance < threshold)) {
                 hasTriggered = true;
                 reward += rewardScalar;
                 if (isCollectable) {
@@ -168,8 +170,9 @@ namespace SimEnv.RlAgents {
     public class TimeoutRewardFunction : SparseRewardFunction {
         int steps = 0;
 
-        public TimeoutRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal, bool isCollectable) :
-                base(entity_a, entity_b, distanceMetric, rewardScalar, threshold, isTerminal, isCollectable) { }
+        public TimeoutRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal, bool isCollectable, 
+                                    bool triggerOnce) :
+                base(entity_a, entity_b, distanceMetric, rewardScalar, threshold, isTerminal, isCollectable, triggerOnce) { }
         public override void Reset() {
             hasTriggered = false;
             steps = 0;
