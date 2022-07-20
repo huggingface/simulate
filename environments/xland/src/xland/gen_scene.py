@@ -35,10 +35,8 @@ def create_scene(
 ):
     """
     Generate the environment: map, game and agents.
-
     Notice that all parameters with the tag WFC param means that they passed
     to the C++ implementation of Wave Function Collapse.
-
     Args:
         width: The width of the map.
         height: The height of the map.
@@ -65,28 +63,24 @@ def create_scene(
         port: port to be used to communicate with the engine
         headless: whether to run the engine in headless mode
         **kwargs: Additional arguments. Handles unused args as well.
-
     Returns:
         scene: the generated scene in simenv format.
     """
+
     seed_env(seed)
 
     # TODO: choose width and height randomly from a set of predefined values
-    # TODO: find out to run simulation faster than real time
-    # TODO: create default kwargs to avoid having to do this below:
-    nb_tries = kwargs["nb_tries"] if "nb_tries" in kwargs else 10
-    threshold_kwargs = {"threshold": kwargs["threshold"]} if "threshold" in kwargs else {"threshold": 0.5}
-
     # Initialize success and curr_try variables
     success = False
     curr_try = 0
     scene = None
+    nb_tries = kwargs.get("nb_tries", 10)
 
     while not success and curr_try < nb_tries:
-
+        
         if verbose:
             print("Try {}".format(curr_try + 1))
-
+        
         sg = sm.ProcgenGrid(
             width=width,
             height=height,
@@ -110,7 +104,7 @@ def create_scene(
 
         # Get objects and agents positions
         obj_pos, agent_pos, success = get_positions(
-            sg.map_2d, n_objects=n_objects, n_agents=n_agents, **threshold_kwargs
+            sg.map_2d, n_objects=n_objects, n_agents=n_agents, threshold=kwargs.get("threshold", 0.5)
         )
 
         # If there is no enough area, we should try again and continue the loop
@@ -125,6 +119,8 @@ def create_scene(
                 port=port,
                 headless=headless,
                 verbose=verbose,
+                physics_update_rate = kwargs.get("physics_update_rate", 30),
+                frame_skip = kwargs.get("frame_skip", 4),
             )
 
             # Generate the game
@@ -136,5 +132,5 @@ def create_scene(
             if seed is not None:
                 # Change to seed to test other maps
                 seed += 1
-
+            
     return success, scene
