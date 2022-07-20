@@ -28,7 +28,6 @@ namespace SimEnv.RlAgents {
         public void Initialize(){
             frameSkip = Client.instance.frameSkip;
             physicsUpdateRate = Client.instance.physicsUpdateRate;
-            Time.timeScale = 2;
 
         }
 

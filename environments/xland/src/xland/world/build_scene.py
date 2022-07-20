@@ -11,7 +11,7 @@ from .set_agent import create_agents
 from .set_object import create_objects
 
 
-def add_walls(x, z, height=None, thickness=0.1):
+def add_walls(x, z, height=None, thickness=2):
     """
     Adding walls to prevent agent from falling.
 
@@ -184,7 +184,8 @@ def generate_colliders(sg):
     return collider_assets
 
 
-def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=None, headless=None, verbose=False):
+def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=None, headless=None, verbose=False,
+                    physics_update_rate=30, frame_skip=4):
     """
     Generate scene using simenv library.
     """
@@ -196,6 +197,8 @@ def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=No
                 engine_exe=executable,
                 engine_port=port,
                 engine_headless=headless,
+                physics_update_rate=physics_update_rate,
+                frame_skip=frame_skip,
             )
 
         else:

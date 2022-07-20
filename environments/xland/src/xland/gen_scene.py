@@ -72,15 +72,11 @@ def create_scene(
     seed_env(seed)
 
     # TODO: choose width and height randomly from a set of predefined values
-    # TODO: find out to run simulation faster than real time
-    # TODO: create default kwargs to avoid having to do this below:
-    nb_tries = kwargs["nb_tries"] if "nb_tries" in kwargs else 10
-    threshold_kwargs = {"threshold": kwargs["threshold"]} if "threshold" in kwargs else {"threshold": 0.5}
-
     # Initialize success and curr_try variables
     success = False
     curr_try = 0
     scene = None
+    nb_tries = kwargs.get("nb_tries", 10)
 
     while not success and curr_try < nb_tries:
 
@@ -110,7 +106,7 @@ def create_scene(
 
         # Get objects and agents positions
         obj_pos, agent_pos, success = get_positions(
-            sg.map_2d, n_objects=n_objects, n_agents=n_agents, **threshold_kwargs
+            sg.map_2d, n_objects=n_objects, n_agents=n_agents, threshold=kwargs.get("threshold", 0.5)
         )
 
         # If there is no enough area, we should try again and continue the loop
@@ -125,6 +121,8 @@ def create_scene(
                 port=port,
                 headless=headless,
                 verbose=verbose,
+                physics_update_rate = kwargs.get("physics_update_rate", 30),
+                frame_skip = kwargs.get("frame_skip", 4),
             )
 
             # Generate the game
