@@ -26,7 +26,7 @@ from huggingface_hub import create_repo, hf_hub_download, upload_file
 from .anytree import NodeMixin
 from .collider import Collider
 from .rigidbody import RigidBody
-from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler
+from .utils import camelcase_to_snakecase, get_product_of_quaternions, get_transform_from_trs, quat_from_euler
 
 
 if TYPE_CHECKING:
@@ -146,7 +146,7 @@ class Asset(NodeMixin, object):
         return instance_copy
 
     def _post_copy(self):
-        return
+        pass
 
     def _get_last_copy_name(self):
         assert self._n_copies > 0, "this object is yet to be copied"
@@ -428,7 +428,7 @@ class Asset(NodeMixin, object):
         self.position += np.array((0.0, 0.0, float(amount)))
         return self
 
-    def rotate(self, rotation: Optional[List[float]] = None):
+    def rotate_by_quaternion(self, quaternion: Optional[List[float]] = None):
         """Rotate the asset with a given rotation quaternion.
         Use ``rotate_x``, ``rotate_y`` or ``rotate_z`` for simple rotations around a specific axis.
 
@@ -446,16 +446,43 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        if rotation is None:
+        if quaternion is None:
             return self
-        self.rotation = np.array(rotation) * self.rotation
+        if len(quaternion) != 4:
+            raise ValueError("Rotation quaternion must be of length 4")
+        normalized_quaternion = np.array(quaternion) / np.linalg.norm(quaternion)
+        self.rotation = get_product_of_quaternions(normalized_quaternion, self.rotation)
         return self
 
-    def _rotate_axis(self, vector: Optional[List[float]] = None, value: Optional[float] = None):
-        """Helper to rotate around a single axis."""
+    def rotate_around_vector(self, vector: Optional[List[float]] = None, value: Optional[float] = None):
+        """Rotate around a vector from a specific amount.
+        Use ``rotate_x``, ``rotate_y`` or ``rotate_z`` for simple rotations around a specific axis.
+
+        Parameters
+        ----------
+        vector : np.ndarray or list, optional
+            Vector to rotate around.
+
+        value : float, optional
+            Rotation value in degree to apply to the object around the vector.
+            Default to applying no rotation.
+
+        Returns
+        -------
+        self : Asset modified in-place with the rotation.
+
+        Examples
+        --------
+
+        """
         if value is None or vector is None:
             return self
-        self.rotation = np.array(vector + [np.radians(value)]) * self.rotation
+        if len(vector) != 3:
+            raise ValueError("Vector must be a 3D vector")
+        radian_value = np.radians(value) / 2  # We use value/2 in radian in the quaternion values
+        normalized_vector = np.array(vector) / np.linalg.norm(vector)
+        new_rotation = np.append(normalized_vector * np.sin(radian_value), np.cos(radian_value))
+        self.rotation = get_product_of_quaternions(new_rotation, self.rotation)
         return self
 
     def rotate_x(self, value: Optional[float] = None):
@@ -475,7 +502,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        return self._rotate_axis(vector=[1.0, 0.0, 0.0], value=value)
+        return self.rotate_around_vector(vector=[1.0, 0.0, 0.0], value=value)
 
     def rotate_y(self, value: Optional[float] = None):
         """Rotate the asset around the ``y`` axis with a given rotation value in degree.
@@ -494,7 +521,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        return self._rotate_axis(vector=[0.0, 1.0, 0.0], value=value)
+        return self.rotate_around_vector(vector=[0.0, 1.0, 0.0], value=value)
 
     def rotate_z(self, value: Optional[float] = None):
         """Rotate the asset around the ``z`` axis with a given rotation value in degree.
@@ -513,7 +540,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        return self._rotate_axis(vector=[0.0, 0.0, 1.0], value=value)
+        return self.rotate_around_vector(vector=[0.0, 0.0, 1.0], value=value)
 
     def scale(self, scaling: Optional[Union[float, List[float]]] = None):
         """Scale the asset with a given scaling, either a global scaling value or a vector of ``[x, y, z]`` scaling values.
@@ -656,7 +683,7 @@ class Asset(NodeMixin, object):
                 value = [float(v) for v in value]
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._rotation = np.array(value)
+        self._rotation = np.array(value) / np.linalg.norm(value)
         self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
         if getattr(self.tree_root, "engine", None) is not None:

@@ -110,42 +110,17 @@ def get_transform_from_trs(
     return transformation_matrix
 
 
-# def quaternion_from_transformation_matrix(matrix, isprecise=False):
-#     m00, m01, m02 = M[0, :3]
-#     m10, m11, m12 = M[1, :3]
-#     m20, m21, m22 = M[2, :3]
-#     # Sym matrix
-#     sym_matrix = np.array([[m00-m11-m22, 0.0, 0.0, 0.0],
-#                     [m01+m10,     m11-m00-m22, 0.0,         0.0],
-#                         [m02+m20,     m12+m21,     m22-m00-m11, 0.0],
-#                         [m21-m12,     m02-m20,     m10-m01,     m00+m11+m22]])
-#     sym_matrix /= 3.0
-#     # We take the largest eigenvector of sym_matrix
-#     eigen_w, eigen_vector = np.linalg.eigh(sym_matrix)
-#     quaternion = eigen_vector[[3, 0, 1, 2], np.argmax(eigen_w)]
-#     if quaternion[0] < 0.0:
-#         quaternion = -quaternion
-#     return quaternion
-
-
-# def get_scale_from_transformation_matrix(transformation_matrix):
-#     mat = np.asarray(transformation_matrix, dtype=np.float64)
-#     factor = np.trace(mat) - 2.0
-#     # direction: unit eigenvector corresponding to eigenvalue factor
-#     l, V = np.linalg.eig(mat)
-#     near_factors, = np.nonzero(abs(np.real(l.squeeze()) - factor) < 1e-8)
-#     if near_factors.size == 0:
-#         # uniform scaling
-#         factor = (factor + 2.0) / 3.0
-#         return factor, None
-#     direction = np.real(V[:, near_factors[0]])
-
-
-# def get_trs_from_transformation_matrix(transformation_matrix: np.ndarray):
-#     translation_matrix = np.array(transformation_matrix, copy=False)[:3, 3].copy()
-#     transformation_matrix[:, 3] = 0
-#     rotation_matrix = quaternion_from_transformation_matrix(transformation_matrix)
-#     scale_matrix
+def get_product_of_quaternions(q: Union[np.ndarray, List[float]], r: Union[np.ndarray, List[float]]) -> np.ndarray:
+    qx, qy, qz, qw = q[0], q[1], q[2], q[3]
+    rx, ry, rz, rw = r[0], r[1], r[2], r[3]
+    return np.array(
+        [
+            rw * qx + rx * qw - ry * qz + rz * qy,
+            rw * qy + rx * qz + ry * qw - rz * qx,
+            rw * qz - rx * qy + ry * qx + rz * qw,
+            rw * qw - rx * qx - ry * qy - rz * qz,
+        ]
+    )
 
 
 def quat_from_euler(x: float, y: float, z: float) -> List[float]:
