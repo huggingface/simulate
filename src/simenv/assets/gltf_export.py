@@ -592,12 +592,25 @@ def add_node_to_scene(
     buffer_id: Optional[int] = 0,
     cache: Optional[Dict] = None,
 ) -> Set[str]:
+
+    translation = node.position.tolist() if node.position is not None else None
+    rotation = node.rotation.tolist() if node.rotation is not None else None
+    scale = node.scaling.tolist() if node.scaling is not None else None
+
+    if translation is None and rotation is None and scale is None and node.transformation_matrix is not None:
+        # We transpose to get Column major format for gltf
+        matrix = node.transformation_matrix.transpose().tolist() if node.transformation_matrix is not None else None
+    else:
+        matrix = None
+
     gl_node = gl.Node(
         name=node.name,
-        translation=node.position.tolist(),
-        rotation=node.rotation.tolist(),
-        scale=node.scaling.tolist(),
+        translation=translation,
+        rotation=rotation,
+        scale=scale,
+        matrix=matrix,
     )
+
     extensions = gl.Extensions()
     extension_used = set()
     if isinstance(node, Camera):

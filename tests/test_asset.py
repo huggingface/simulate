@@ -20,11 +20,25 @@ import numpy as np
 import simenv as sm
 
 
+# From example test at https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_004_ScenesNodes.md
+TRANSLATION = [10.0, 20.0, 30.0]
+ROTATION = [0.259, 0.0, 0.0, 0.966]
+SCALE = [2.0, 1.0, 0.5]
+TRANSFORMATION_MAT = np.array(
+    [
+        [2.0, 0.0, 0.0, 10.0],
+        [0.0, 0.86586979, -0.25013472, 20.0],
+        [0.0, 0.50026944, 0.43293489, 30.0],
+        [0.0, 0.0, 0.0, 1.0],
+    ]
+)
+
+
 class AssetTest(unittest.TestCase):
     def test_create_asset(self):
-        asset = sm.Asset()
+        asset = sm.Asset(name="asset_name")
         self.assertIsInstance(asset, sm.assets.anytree.NodeMixin)
-        self.assertEqual(asset.name, "asset_00")
+        self.assertEqual(asset.name, "asset_name")
 
         self.assertIsNone(asset.tree_parent)
         self.assertTupleEqual(asset.tree_children, ())
@@ -158,30 +172,32 @@ class AssetTest(unittest.TestCase):
         asset = sm.Asset().scale((2.0, 3.0, 4.0))
         np.testing.assert_array_equal(asset.scaling, np.array([2.0, 3.0, 4.0]))
 
+    def test_transformation_matrix_and_trs_conversion_functions(self):
+
+        matrix = sm.assets.utils.get_transform_from_trs(TRANSLATION, ROTATION, SCALE)
+        trs = sm.assets.utils.get_trs_from_transform_matrix(TRANSFORMATION_MAT)
+
+        np.testing.assert_allclose(matrix, TRANSFORMATION_MAT, rtol=1e-03)
+        np.testing.assert_allclose(trs[0], TRANSLATION, rtol=1e-03)
+        np.testing.assert_allclose(trs[1], ROTATION, rtol=1e-03)
+        np.testing.assert_allclose(trs[2], SCALE, rtol=1e-03)
+
     def test_transformation_matrix_asset(self):
         matrix = sm.Asset().transformation_matrix
         np.testing.assert_array_equal(matrix, np.eye(4))
 
-        # Example test from https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_004_ScenesNodes.md
         asset = sm.Asset()
-        asset.translate([10.0, 20.0, 30.0])
-        asset.rotate_by_quaternion([0.259, 0.0, 0.0, 0.966])
-        asset.scale([2.0, 1.0, 0.5])
-        transformation_mat = np.array(
-            [
-                [2.0, 0.0, 0.0, 10.0],
-                [0.0, 0.86586979, -0.25013472, 20.0],
-                [0.0, 0.50026944, 0.43293489, 30.0],
-                [0.0, 0.0, 0.0, 1.0],
-            ]
-        )
-        np.testing.assert_allclose(asset.transformation_matrix, transformation_mat)
+        asset.translate(TRANSLATION)
+        asset.rotate_by_quaternion(ROTATION)
+        asset.scale(SCALE)
+        np.testing.assert_allclose(asset.transformation_matrix, TRANSFORMATION_MAT, rtol=1e-03)
 
-        # When we directly set the transformation matrix, position, rotation and scale are deactivated
-        asset.transformation_matrix = transformation_mat
-        self.assertIsNone(asset.position)
-        self.assertIsNone(asset.rotation)
-        self.assertIsNone(asset.scaling)
+        # When we directly set the transformation matrix
+        asset = sm.Asset()  # New asset
+        asset.transformation_matrix = TRANSFORMATION_MAT
+        np.testing.assert_allclose(asset.position, TRANSLATION, rtol=1e-03)
+        np.testing.assert_allclose(asset.rotation, ROTATION, rtol=1e-03)
+        np.testing.assert_allclose(asset.scaling, SCALE, rtol=1e-03)
 
     def test_set_position_asset(self):
         asset = sm.Asset()
@@ -218,24 +234,37 @@ class AssetTest(unittest.TestCase):
     def test_get_asset(self):
         asset = sm.Asset()
         bobby_asset = sm.Asset(name="bobby")
-        asset += [bobby_asset, sm.Asset()]
+        asset += [bobby_asset, sm.Asset(name="alice")]
 
         self.assertTrue(hasattr(asset, "bobby"))
-        self.assertTrue(hasattr(asset, "asset_02"))
+        self.assertTrue(hasattr(asset, "alice"))
 
         get_bobby_asset = asset.get("bobby")
         self.assertTrue(bobby_asset is get_bobby_asset)
 
     def test_copy_asset(self):
-        asset = sm.Asset() + [sm.Asset(name="bobby"), sm.Asset()]
+        asset = sm.Asset() + [sm.Asset(name="bobby"), sm.Asset(name="alice")]
 
         self.assertTrue(hasattr(asset, "bobby"))
-        self.assertTrue(hasattr(asset, "asset_02"))
+        self.assertTrue(hasattr(asset, "alice"))
 
         asset_copy = asset.copy()
         self.assertEqual(len(asset_copy.tree_descendants), 2)
         self.assertTrue(hasattr(asset_copy, "bobby_copy0"))
-        self.assertTrue(hasattr(asset_copy, "asset_02_copy0"))
+        self.assertTrue(hasattr(asset_copy, "alice_copy0"))
 
         self.assertEqual(asset._n_copies, 1)
         self.assertEqual(asset_copy._n_copies, 0)
+
+    def test_enforce_unique_names(self):
+        asset = sm.Asset() + [sm.Asset(name="bobby"), sm.Asset(name="alice")]
+        bobby2 = sm.Asset(name="bobby")
+
+        with self.assertRaises(ValueError):
+            asset += bobby2
+
+        bobby2.name = "bobby2"
+        asset += bobby2
+
+        with self.assertRaises(ValueError):
+            asset.bobby2.name = "bobby"

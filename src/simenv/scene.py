@@ -68,6 +68,7 @@ class Scene(Asset, Env):
             scaling=scaling,
             transformation_matrix=transformation_matrix,
             children=children,
+            created_from_file=created_from_file,
         )
         self.engine = None
         if engine is not None:
@@ -87,15 +88,11 @@ class Scene(Asset, Env):
         self.state = None
 
         self._built = False
-        self._created_from_file = created_from_file
         self._n_agents = None
-
-    def __len__(self):
-        return len(self.tree_descendants)
 
     def __repr__(self):
         spacer = "\n" if len(self) else ""
-        return f"Scene(dimensionality={self.dimensionality}, engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
+        return f"Scene(engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
 
     def show(self, **engine_kwargs):
         """Render the Scene using the engine."""
@@ -103,11 +100,6 @@ class Scene(Asset, Env):
         if n_maps is not None:
             self._n_agents = n_maps
         self.engine.show(**engine_kwargs)
-
-    def clear(self):
-        """Remove all assets in the scene."""
-        self.tree_children = []
-        return self
 
     def close(self):
         self.engine.close()

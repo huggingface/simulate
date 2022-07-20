@@ -26,7 +26,13 @@ from huggingface_hub import create_repo, hf_hub_download, upload_file
 from .anytree import NodeMixin
 from .collider import Collider
 from .rigidbody import RigidBody
-from .utils import camelcase_to_snakecase, get_product_of_quaternions, get_transform_from_trs, quat_from_euler
+from .utils import (
+    camelcase_to_snakecase,
+    get_product_of_quaternions,
+    get_transform_from_trs,
+    get_trs_from_transform_matrix,
+    quat_from_euler,
+)
 
 
 if TYPE_CHECKING:
@@ -62,6 +68,7 @@ class Asset(NodeMixin, object):
         physics_component: Optional[RigidBody] = None,
         parent=None,
         children=None,
+        created_from_file=None,
     ):
         self._uuid = uuid.uuid4()
         id = next(getattr(self.__class__, f"_{self.__class__.__name__}__NEW_ID"))
@@ -87,6 +94,7 @@ class Asset(NodeMixin, object):
         self._rl_component = rl_component
         self._physics_component = physics_component
         self._n_copies = 0
+        self._created_from_file = created_from_file
 
     @property
     def uuid(self):
@@ -114,6 +122,9 @@ class Asset(NodeMixin, object):
     @physics_component.setter
     def physics_component(self, physics_component: RigidBody):
         self._physics_component = physics_component
+
+    def __len__(self):
+        return len(self.tree_descendants)
 
     def get(self, name: str):
         """Return the first children tree node with the given name."""
@@ -144,6 +155,11 @@ class Asset(NodeMixin, object):
                 child._post_copy()
 
         return instance_copy
+
+    def clear(self):
+        """Remove all assets in the scene or children to the asset."""
+        self.tree_children = []
+        return self
 
     def _post_copy(self):
         pass
@@ -717,11 +733,10 @@ class Asset(NodeMixin, object):
             raise NotImplementedError()
         self._transformation_matrix = np.array(value)
 
-        # Not sure we can extract position/rotation/scale from transform matrix in a unique way
-        # Reset position/rotation/scale
-        self._position = None
-        self._rotation = None
-        self._scaling = None
+        translation, rotation, scale = get_trs_from_transform_matrix(value)
+        self._position = translation
+        self._rotation = rotation
+        self._scaling = scale
 
         self._post_asset_modification()
 
@@ -731,8 +746,8 @@ class Asset(NodeMixin, object):
 
     def _post_attach_parent(self, parent):
         """NodeMixing nethod call after attaching to a `parent`."""
+        parent.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
         if getattr(parent.tree_root, "engine", None) is not None:
-            parent.tree_root._check_all_names_unique()  # Check that all names are unique if we are in a Scene
             if parent.tree_root.engine.auto_update:
                 parent.tree_root.engine.update_asset(self)
 
@@ -743,11 +758,10 @@ class Asset(NodeMixin, object):
 
     def _post_name_change(self, value):
         """NodeMixing nethod call after changing the name of a node."""
-        if getattr(self.tree_root, "engine", None) is not None:
-            self.tree_root._check_all_names_unique()  # Check that all names are unique if we are in a Scene
+        self.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
 
     def _check_all_names_unique(self):
-        """Check that all names are unique in the whole tree."""
+        """Check that all names are unique in the tree."""
         seen = set()  # O(1) lookups
         for node in self.tree_descendants:
             if node.name not in seen:

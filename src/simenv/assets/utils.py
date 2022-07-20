@@ -17,7 +17,7 @@
 import itertools
 import math
 import re
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -108,6 +108,65 @@ def get_transform_from_trs(
 
     transformation_matrix = translation_matrix @ rotation_matrix @ scale_matrix
     return transformation_matrix
+
+
+def get_trs_from_transform_matrix(transform_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Get the translation, rotation and scale from a homogeneous transform matrix."""
+    if not transform_matrix.shape == (4, 4):
+        raise ValueError("The transform matrix should be of size 4x4")
+
+    # See https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati
+
+    translation = transform_matrix[:3, 3]
+    scale = np.array(
+        [
+            np.linalg.norm(transform_matrix[:3, 0]),
+            np.linalg.norm(transform_matrix[:3, 1]),
+            np.linalg.norm(transform_matrix[:3, 2]),
+        ]
+    )
+
+    rotation = np.zeros((3, 3))
+    rotation[:, 0] = transform_matrix[:3, 0] / scale[0]
+    rotation[:, 1] = transform_matrix[:3, 1] / scale[1]
+    rotation[:, 2] = transform_matrix[:3, 2] / scale[2]
+
+    m00, m01, m02 = rotation[0].tolist()
+    m10, m11, m12 = rotation[1].tolist()
+    m20, m21, m22 = rotation[2].tolist()
+
+    # See https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+
+    tr = m00 + m11 + m22
+
+    if tr > 0:
+        S = np.sqrt(tr + 1.0) * 2  # S=4*qw
+        qw = 0.25 * S
+        qx = (m21 - m12) / S
+        qy = (m02 - m20) / S
+        qz = (m10 - m01) / S
+    elif (m00 > m11) and (m00 > m22):
+        S = np.sqrt(1.0 + m00 - m11 - m22) * 2  # S=4*qx
+        qw = (m21 - m12) / S
+        qx = 0.25 * S
+        qy = (m01 + m10) / S
+        qz = (m02 + m20) / S
+    elif m11 > m22:
+        S = np.sqrt(1.0 + m11 - m00 - m22) * 2  # S=4*qy
+        qw = (m02 - m20) / S
+        qx = (m01 + m10) / S
+        qy = 0.25 * S
+        qz = (m12 + m21) / S
+    else:
+        S = np.sqrt(1.0 + m22 - m00 - m11) * 2  # S=4*qz
+        qw = (m10 - m01) / S
+        qx = (m02 + m20) / S
+        qy = (m12 + m21) / S
+        qz = 0.25 * S
+
+    rotation = np.array([qx, qy, qz, qw])
+
+    return translation, rotation, scale
 
 
 def get_product_of_quaternions(q: Union[np.ndarray, List[float]], r: Union[np.ndarray, List[float]]) -> np.ndarray:

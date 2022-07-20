@@ -188,6 +188,9 @@ def build_node_tree(
         "scaling": gltf_node.scale,
         "parent": parent,
     }
+    if gltf_node.matrix is not None:
+        mat = np.array(gltf_node.matrix).reshape(4, 4, order="F")
+        common_kwargs["transformation_matrix"] = mat
 
     if gltf_node.extensions is not None and gltf_node.extensions.HF_colliders is not None:
         hf_collider = gltf_node.extensions.HF_colliders
@@ -263,6 +266,7 @@ def build_node_tree(
                 pbr = mat.pbrMetallicRoughness
 
                 scene_material = Material(
+                    name=mat.name,
                     base_color=pbr.baseColorFactor,
                     base_color_texture=get_texture_as_pyvista(gltf_scene, pbr.baseColorTexture),
                     metallic_factor=pbr.metallicFactor,
