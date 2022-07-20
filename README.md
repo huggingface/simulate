@@ -25,10 +25,12 @@ Loading a scene from a local file or the hu is done with `Scene.load()`, saving 
 ```
 from simenv import Scene
 
-scene = Scene.load('simenv-tests/Box/glTF/Box.gltf')  # either local (priority) or on the hub with full path to file
-scene = Scene.load('simenv-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the hub file
+scene = Scene()
+scene = scene.load('simenv-tests/Box/glTF/Box.gltf')  # either local (priority) or on the hub with full path to file
+scene = Scene()
+scene = scene.load('simenv-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the hub file
 
-scene.save('local_dir')  # Save to a local file
+scene.save('local_dir/file.gltf')  # Save to a local file
 scene.push_to_hub('simenv-tests/Debug/glTF/Box.gltf')  # Save to the hub
 ```
 
@@ -41,7 +43,7 @@ import simenv as sm
 scene = sm.Scene()
 scene += sm.Plane() + sm.Sphere(position=[0, 1, 0], radius=0.2)
 
-print(scene)
+>>> scene
 >>> Scene(dimensionality=3, engine='PyVistaEngine')
 >>> └── plane_01 (Plane - Mesh: 121 points, 100 cells)
 >>>     └── sphere_02 (Sphere - Mesh: 842 points, 870 cells)
@@ -88,7 +90,7 @@ Here are a couple of examples of manipulations:
 # Using `.copy()` will create a copy of an object (the copy doesn't have any parent or children)
 scene += [scene.plane_01.sphere_02.copy(), scene.plane_01.sphere_02.copy()]
 
-print(scene)
+>>> scene
 >>> Scene(dimensionality=3, engine='PyVistaEngine')
 >>> ├── plane_01 (Plane - Mesh: 121 points, 100 cells)
 >>> │   └── sphere_02 (Sphere - Mesh: 842 points, 870 cells)
@@ -96,7 +98,7 @@ print(scene)
 >>> └── sphere_04 (Sphere - Mesh: 842 points, 870 cells)
 
 # Remove the last added sphere
-scene.remove(scene.sphere_04)
+>>> scene.remove(scene.sphere_04)
 >>> Scene(dimensionality=3, engine='PyVistaEngine')
 >>> ├── plane_01 (Plane - Mesh: 121 points, 100 cells)
 >>> │   └── sphere_02 (Sphere - Mesh: 842 points, 870 cells)

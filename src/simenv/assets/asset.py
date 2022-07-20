@@ -23,7 +23,7 @@ from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
-from .anytree import NodeMixin, RenderTree
+from .anytree import NodeMixin
 from .collider import Collider
 from .rigidbody import RigidBody
 from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler

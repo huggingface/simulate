@@ -14,7 +14,6 @@
 
 # Lint as: python3
 """ Some mapping from Discrete and Box Spaces to physics actions."""
-from dataclasses import dataclass
 from enum import Enum
 from typing import List, Optional, Union
 
@@ -22,9 +21,15 @@ import numpy as np
 
 
 try:
-    from gym import spaces
+    from gym.spaces import Box as GymBox
+    from gym.spaces import Discrete as GymDiscrete
 except ImportError:
-    pass
+
+    class GymBox:
+        pass  # Dummy class if gym is not installed
+
+    class GymDiscrete:
+        pass  # Dummy class if gym is not installed
 
 
 class Physics(str, Enum):
@@ -50,7 +55,7 @@ class MappedActions:
     pass
 
 
-class MappedBox(spaces.Box, MappedActions):
+class MappedBox(GymBox, MappedActions):
     """A gym Box Space with a physics magnitude linearly mapped to a physics engine magnitude.
 
     We currently force identical bound for each dimension
@@ -86,7 +91,7 @@ class MappedBox(spaces.Box, MappedActions):
         self.clip_high = clip_high
 
 
-class MappedDiscrete(spaces.Discrete, MappedActions):
+class MappedDiscrete(GymDiscrete, MappedActions):
     r"""A gym Discrete Space where each action is mapped to a physics engine action.
 
     A discrete space in :math:`\{ 0, 1, \\dots, n-1 \}`.
