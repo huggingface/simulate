@@ -1,7 +1,7 @@
-[gd_scene load_steps=7 format=3 uid="uid://bpe4rf720wc7w"]
+[gd_scene load_steps=7 format=3 uid="uid://bmr58mk5sqro3"]
 
-[ext_resource type="Script" path="res://SimEnv/Simulator.gd" id="1_oo243"]
-[ext_resource type="Script" path="res://SimEnv/Camera.gd" id="2_wa3b4"]
+[ext_resource type="Script" path="res://SimEnv/simulator.gd" id="1_u0wd1"]
+[ext_resource type="Script" path="res://SimEnv/camera.gd" id="2_3niri"]
 
 [sub_resource type="PhysicalSkyMaterial" id="PhysicalSkyMaterial_tieyq"]
 ground_color = Color(0.247059, 0.172549, 0.0823529, 1)
@@ -21,7 +21,7 @@ glow_enabled = true
 [sub_resource type="CameraEffects" id="CameraEffects_noyl2"]
 
 [node name="Root" type="Node"]
-script = ExtResource("1_oo243")
+script = ExtResource("1_u0wd1")
 
 [node name="BaseWorld" type="Node3D" parent="."]
 
@@ -30,7 +30,7 @@ transform = Transform3D(-0.597625, 0.452977, -0.661556, -1.49012e-08, 0.825113, 
 environment = SubResource("Environment_ss83i")
 effects = SubResource("CameraEffects_noyl2")
 current = true
-script = ExtResource("2_wa3b4")
+script = ExtResource("2_3niri")
 
 [node name="DirectionalLight3D" type="DirectionalLight3D" parent="BaseWorld"]
 transform = Transform3D(-0.812844, -0.527265, 0.247543, -0.0232084, 0.453958, 0.890721, -0.58202, 0.718271, -0.381234, 0, 0, 0)

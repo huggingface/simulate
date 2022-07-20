@@ -12,22 +12,34 @@ _global_script_classes=[{
 "base": "Node",
 "class": &"Agent",
 "language": &"GDScript",
-"path": "res://SimEnv/Simulation/Agent.gd"
+"path": "res://SimEnv/RLAgents/agent.gd"
+}, {
+"base": "Node",
+"class": &"AgentManager",
+"language": &"GDScript",
+"path": "res://SimEnv/RLAgents/agent_manager.gd"
 }, {
 "base": "Node",
 "class": &"Client",
 "language": &"GDScript",
-"path": "res://SimEnv/Bridge/Client.gd"
+"path": "res://SimEnv/Bridge/client.gd"
 }, {
 "base": "Node",
 "class": &"Command",
 "language": &"GDScript",
-"path": "res://SimEnv/Bridge/Command.gd"
+"path": "res://SimEnv/Bridge/command.gd"
+}, {
+"base": "Node",
+"class": &"Simulator",
+"language": &"GDScript",
+"path": "res://SimEnv/simulator.gd"
 }]
 _global_script_class_icons={
 "Agent": "",
+"AgentManager": "",
 "Client": "",
-"Command": ""
+"Command": "",
+"Simulator": ""
 }
 
 [application]

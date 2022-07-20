@@ -1,8 +1,6 @@
-from email import message
 import json
 import os
 import base64
-from pickle import BINPUT
 import bpy
 from .client import Client
 from pathlib import Path

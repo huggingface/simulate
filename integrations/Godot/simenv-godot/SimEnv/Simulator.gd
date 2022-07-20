@@ -1,13 +1,20 @@
+class_name Simulator
 extends Node
+# Manage the global simulation process
+# Get data from TCP client and call the command dispatch
+#
+# The core function of this class is to decode the data into json
+# and send this json data to the commands
 
 const HOST : String = "127.0.0.1"
 const PORT : int = 55000
 const RECONNECT_TIMEOUT: float = 3.0
 
+var agent
+
 var _client : Client = Client.new()
 var _command : Command = Command.new()
 
-var agent
 
 func _ready() -> void:
 	_client.connect("connected", _handle_client_connected)
@@ -22,12 +29,15 @@ func _ready() -> void:
 	_command.load_commands()
 	_client.connect_to_host(HOST, PORT)
 
+
 func _connect_after_timeout(timeout: float) -> void:
 	await get_tree().create_timer(timeout).timeout
 	_client.connect_to_host(HOST, PORT)
 
+
 func _handle_client_connected() -> void:
 	print("Client connected to server.")
+
 
 func _handle_client_data(data: PackedByteArray) -> void:
 	var str_data : String = data.get_string_from_utf8()
@@ -44,13 +54,16 @@ func _handle_client_data(data: PackedByteArray) -> void:
 	else:
 		print("Error parsing data.")
 
+
 func _handle_client_disconnected() -> void:
 	print("Client disconnected from server.")
 	_connect_after_timeout(RECONNECT_TIMEOUT)
 
+
 func _handle_client_error() -> void:
 	print("Client error.")
 	_connect_after_timeout(RECONNECT_TIMEOUT)
+
 
 func _handle_callback(callback_data: PackedByteArray) -> void:
 	print("Sending callback.")

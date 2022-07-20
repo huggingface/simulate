@@ -1,6 +1,8 @@
 extends Node
+# Close the application
 
 signal callback
+
 
 func execute(_content):
 	get_tree().quit()
