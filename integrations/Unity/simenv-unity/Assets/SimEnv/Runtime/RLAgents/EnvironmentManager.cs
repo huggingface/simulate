@@ -18,10 +18,10 @@ namespace SimEnv.RlAgents {
         float physicsUpdateRate = 1.0f / 30.0f;
         int frameSkip = 4;
 
-        uint[] agentPixelValues;
-        int obsSize;
+        List<uint[]> agentPixelValues;
+        List<int> obsSizes;
 
-        public void Initialize(){
+        public void Initialize() {
             frameSkip = Client.instance.frameSkip;
             physicsUpdateRate = Client.instance.physicsUpdateRate;
         }
@@ -47,8 +47,11 @@ namespace SimEnv.RlAgents {
                 activeEnvironments.Add(environment);
             }
 
-            obsSize = activeEnvironments[0].GetObservationSize();
-            agentPixelValues = new uint[nEnvironments * obsSize];
+            obsSizes = activeEnvironments[0].GetObservationSizes();
+            foreach (var size in obsSizes) {
+                agentPixelValues.Add(new uint[nEnvironments * size]);
+            }
+
             frameSkip = Client.instance.frameSkip;
             physicsUpdateRate = Client.instance.physicsUpdateRate;
         }
@@ -95,14 +98,13 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public void ResetAgents() {
+        public void ResetEnvironments() {
             Debug.Log("resetting agents");
             for (int i = 0; i < activeEnvironments.Count; i++) {
                 ResetAt(i);
             }
         }
         public void ResetAt(int i) {
-
             activeEnvironments[i].SetPosition(new Vector3(-10f, 0f, -10f));
             activeEnvironments[i].Disable();
             environmentQueue.Enqueue(activeEnvironments[i]);
@@ -111,8 +113,6 @@ namespace SimEnv.RlAgents {
             activeEnvironments[i].SetPosition(positionPool[i]);
             activeEnvironments[i].Enable();
             activeEnvironments[i].Reset();
-
-
         }
         public float[] GetReward() {
             List<float> rewards = new List<float>();
@@ -142,8 +142,7 @@ namespace SimEnv.RlAgents {
             GetObservationCoroutine(callback).RunCoroutine();
         }
         private IEnumerator GetObservationCoroutine(UnityAction<string> callback) {
-            // TODO: implement obs coroutine
-            int[] obsShape = activeEnvironments[0].GetObservationShape();
+            List<int[]> obsShapes = activeEnvironments[0].GetObservationShapes();
             int[] shapeWithAgents = new int[obsShape.Length + 1];
             shapeWithAgents[0] = activeEnvironments.Count;                                // set the prepended value
             Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values

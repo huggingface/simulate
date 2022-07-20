@@ -44,7 +44,7 @@ namespace SimEnv {
         /// <summary>
         /// Stores reference to all tracked cameras in the current environment.
         /// </summary>
-        public static Dictionary<Camera, RenderCamera> Cameras;
+        public static Dictionary<Camera, CameraSensor> Cameras;
 
         /// <summary>
         /// Stores reference to all tracked nodes in the current environment.
@@ -66,7 +66,7 @@ namespace SimEnv {
         public static State CurrentState;
 
         private void Awake() {
-            Cameras = new Dictionary<Camera, RenderCamera>();
+            Cameras = new Dictionary<Camera, CameraSensor>();
             Nodes = new Dictionary<string, Node>();
             CurrentState = State.Undefined;
             LoadCustomAssemblies();
@@ -91,8 +91,8 @@ namespace SimEnv {
             }
         }
 
-        public static void Register(RenderCamera camera) {
-            if (Cameras.TryGetValue(camera.camera, out RenderCamera existing))
+        public static void Register(CameraSensor camera) {
+            if (Cameras.TryGetValue(camera.camera, out CameraSensor existing))
                 Debug.LogWarning($"Found existing camera on node with name: {camera.node.name}.");
             Cameras[camera.camera] = camera;
         }
@@ -113,8 +113,8 @@ namespace SimEnv {
 
         private static IEnumerator RenderCoroutine(UnityAction<List<Color32[]>> callback) {
             List<Color32[]> buffers = new List<Color32[]>();
-            foreach (RenderCamera camera in Cameras.Values)
-                camera.Render(buffer => buffers.Add(buffer));
+            foreach (CameraSensor camera in Cameras.Values)
+                camera.getObs(buffer => buffers.Add(buffer));
             yield return new WaitUntil(() => buffers.Count == Cameras.Count);
             callback(buffers);
         }

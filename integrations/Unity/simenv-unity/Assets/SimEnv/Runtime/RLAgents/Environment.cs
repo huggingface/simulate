@@ -80,10 +80,10 @@ namespace SimEnv.RlAgents {
         public bool GetDone() {
             return agents[0].IsDone();
         }
-        public int[] GetObservationShape() {
-            return agents[0].getObservationShape();
+        public List<int[]> GetObservationShapes() {
+            return agents[0].getObservationShapes();
         }
-        public int GetObservationSize() {
+        public List<int> GetObservationSizes() {
             return agents[0].getObservationSizes();
         }
 

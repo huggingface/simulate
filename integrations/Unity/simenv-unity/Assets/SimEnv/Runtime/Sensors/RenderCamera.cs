@@ -4,14 +4,14 @@ using UnityEngine.Events;
 using UnityEngine.Rendering.Universal;
 
 namespace SimEnv {
-    public class RenderCamera {
+    public class CameraSensor : ISensor {
         public Node node => m_node;
         public Camera camera => m_camera;
         Texture2D tex;
         Camera m_camera;
         Node m_node;
 
-        public RenderCamera(Node node, GLTF.GLTFCamera data) {
+        public CameraSensor(Node node, GLTF.GLTFCamera data) {
             m_node = node;
 
             m_camera = node.gameObject.AddComponent<Camera>();
@@ -40,25 +40,23 @@ namespace SimEnv {
             cameraData.renderPostProcessing = true;
             camera.enabled = false;
             tex = new Texture2D(camera.targetTexture.width, camera.targetTexture.height);
-            node.renderCamera = this;
+            node.sensor = this;
             if (Application.isPlaying)
                 Simulator.Register(this);
         }
-
-        public void Render(UnityAction<Color32[]> callback) {
-            RenderCoroutine(callback).RunCoroutine();
-        }
-
-        public int getObservationSizes() {
+        public int getSize() {
             return camera.targetTexture.width * camera.targetTexture.height * 3;
         }
 
-        public int[] getObservationShape() {
+        public int[] getShape() {
             int[] shape = { camera.targetTexture.height, camera.targetTexture.width, 3 };
             return shape;
         }
+        // public IEnumerator getObs(UnityAction<Color32[]> callback) {
+        //     RenderCoroutine(callback).RunCoroutine();
+        // }
 
-        public IEnumerator RenderCoroutine(UnityAction<Color32[]> callback) {
+        public IEnumerator getObs(UnityAction<Color32[]> callback) {
             camera.enabled = true; // Enable camera so that it renders in Unity's internal render loop
             yield return new WaitForEndOfFrame(); // Wait for Unity to render
             CopyRenderResultToColorBuffer(out Color32[] buffer);
@@ -75,5 +73,11 @@ namespace SimEnv {
             tex.Apply();
             buffer = tex.GetPixels32();
         }
+
+        public int getObs() {
+            throw new System.NotImplementedException();
+        }
+
+
     }
 }
