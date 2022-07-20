@@ -1,10 +1,15 @@
 """Possible predicates for XLand."""
 
+import numpy as np
+
+from simenv import RewardFunction
+
+
 """ When selecting randomly predicates """
 
 
 def near(entity_a, entity_b):
-    return sm.RewardFunction(
+    return RewardFunction(
         type="sparse",
         entity_a=entity_a,
         entity_b=entity_b,
@@ -12,11 +17,12 @@ def near(entity_a, entity_b):
         threshold=1.0,
         is_terminal=False,
         is_collectable=False,
+        scalar=1.0,
     )
 
 
 def collect(entity_a, entity_b):
-    return sm.RewardFunction(
+    return RewardFunction(
         type="sparse",
         entity_a=entity_a,
         entity_b=entity_b,
@@ -24,11 +30,12 @@ def collect(entity_a, entity_b):
         threshold=1.0,
         is_terminal=False,
         is_collectable=True,
+        scalar=1.0,
     )
 
 
 def and_reward(reward_function_a, reward_function_b, agent):
-    return sm.RewardFunction(
+    return RewardFunction(
         type="and",
         entity_a=agent,
         entity_b=agent,
@@ -39,7 +46,7 @@ def and_reward(reward_function_a, reward_function_b, agent):
 
 
 def or_reward(reward_function_a, reward_function_b, agent):
-    return sm.RewardFunction(
+    return RewardFunction(
         type="or",
         entity_a=agent,
         entity_b=agent,
@@ -50,7 +57,7 @@ def or_reward(reward_function_a, reward_function_b, agent):
 
 
 def not_reward(reward_function_a, agent):
-    return sm.RewardFunction(
+    return RewardFunction(
         type="not",
         entity_a=agent,
         entity_b=agent,
@@ -88,7 +95,7 @@ def add_random_collectables_rewards(agents, objects, verbose=False):
 
     # Create Reward function
     for obj_idx, agent in zip(object_idxs, agents):
-        reward_function = sm.RewardFunction(
+        reward_function = RewardFunction(
             type="sparse",
             entity_a=agent,
             entity_b=objects[obj_idx],
@@ -112,7 +119,7 @@ def add_collect_all_rewards(agents, objects, verbose=False):
     """
     for agent in agents:
         for obj in objects:
-            reward_function = sm.RewardFunction(
+            reward_function = RewardFunction(
                 type="sparse",
                 entity_a=agent,
                 entity_b=obj,
@@ -127,14 +134,14 @@ def add_collect_all_rewards(agents, objects, verbose=False):
 
 def add_timeout_rewards(agents):
     for agent in agents:
-        timeout_reward_function = sm.RewardFunction(
+        timeout_reward_function = RewardFunction(
             type="timeout",
             entity_a=agent,
             entity_b=agent,
             distance_metric="euclidean",
-            threshold=1500,
+            threshold=1000,
             is_terminal=True,
-            scalar=-1.0,
+            scalar=0.0,
         )
 
         agent.add_reward_function(timeout_reward_function)

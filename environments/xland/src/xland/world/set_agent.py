@@ -1,10 +1,9 @@
 """Functions for setting the agent in the world."""
 
-import numpy as np
-
 from simenv import SimpleRlAgent
 
-from ..game.predicates import add_collect_all_rewards, add_random_collectables_rewards, add_timeout_rewards
+from ..game.generation import add_dummy_generated_reward_fn
+from ..game.predicates import add_collect_all_rewards, add_timeout_rewards
 
 
 def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_height=72, verbose=True):
@@ -33,9 +32,13 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_he
         )
         agents.append(agent)
 
-    if predicate is None:
+    if predicate == "random":
+        add_dummy_generated_reward_fn(objects, agents)
+
+    else:
         # Defaults to task on collection of all objects.
         add_collect_all_rewards(agents, objects, verbose)
-        add_timeout_rewards(agents)
+
+    add_timeout_rewards(agents)
 
     return agents
