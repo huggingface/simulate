@@ -14,24 +14,12 @@
 
 # Lint as: python3
 """ Export a Scene as a GLTF file."""
-from dataclasses import asdict, fields
-from io import BytesIO
+import hashlib
 from typing import TYPE_CHECKING, Any, ByteString, Dict, List, Optional, Set
 
 import numpy as np
 import pyvista as pv
-import xxhash
 
-
-try:
-    import PIL.Image
-except ImportError:
-    pass
-
-try:
-    from gym import spaces
-except ImportError:
-    space = None
 
 if TYPE_CHECKING:
     from ..rl import RlComponent, RewardFunction
@@ -65,24 +53,32 @@ numpy_to_gltf_shapes_mapping = {
 }
 
 
+def _get_digest(data: Any) -> bytes:
+    """Get a hash digest of the data"""
+    if isinstance(data, Material):
+        digest = str(hash(data)).encode("utf-8")
+    else:
+        h = hashlib.md5()
+        if isinstance(data, pv.Texture):
+            data_pointer = np.ascontiguousarray(data.to_array())
+        elif isinstance(data, str):
+            data_pointer = data.encode("utf-8")
+        else:
+            data_pointer = data
+        h.update(data_pointer)
+        digest = h.digest()
+    return digest
+
+
 def is_data_cached(data: Any, cache: Dict) -> Optional[int]:
     """Helper function to check if data (numpy arrray, material, texture, anything hashable) is already in the cache dict"""
     if not isinstance(cache, dict):
         raise ValueError("Cache should be a dict")
 
-    if isinstance(data, Material):
-        intdigest = hash(data)
-    else:
-        h = xxhash.xxh64()
-        if isinstance(data, pv.Texture):
-            data_pointer = np.ascontiguousarray(data.to_array())
-        else:
-            data_pointer = data
-        h.update(data_pointer)
-        intdigest = h.intdigest()
+    digest = _get_digest(data)
 
-    if intdigest in cache:
-        return cache[intdigest]
+    if digest in cache:
+        return cache[digest]
     return None
 
 
@@ -91,14 +87,9 @@ def cache_data(data: Any, data_id: int, cache: Dict) -> dict:
     if not isinstance(cache, dict):
         raise ValueError("Cache should be a dict")
 
-    if isinstance(data, Material):
-        intdigest = hash(data)
-    else:
-        h = xxhash.xxh64()
-        h.update(data)
-        intdigest = h.intdigest()
+    digest = _get_digest(data)
 
-    cache[intdigest] = data_id
+    cache[digest] = data_id
 
     return cache
 
@@ -196,49 +187,6 @@ def add_numpy_to_gltf(
     cache_data(data=np_array, data_id=accessor_id, cache=cache)
 
     return accessor_id
-
-
-def add_image_to_gltf(
-    image: "PIL.Image",
-    gltf_model: gl.GLTFModel,
-    buffer_data: bytearray,
-    buffer_id: int = 0,
-    cache: Optional[Dict] = None,
-) -> int:
-    """Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and add the numpy array in the buffer_data."""
-
-    cached_id = is_data_cached(data=image, cache=cache)
-    if cached_id is not None:
-        return cached_id
-
-    # don't re-encode JPEGs
-    if image.format == "JPEG":
-        # no need to mangle JPEGs
-        save_as = "JPEG"
-    else:
-        # for everything else just use PNG
-        save_as = "png"
-
-    # get the image data into a bytes object
-    with BytesIO() as f:
-        image.save(f, format=save_as)
-        f.seek(0)
-        data = f.read()
-
-    buffer_view_id = add_data_to_gltf(
-        new_data=data, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id
-    )
-
-    gltf_image = gl.Image(bufferView=buffer_view_id, mimeType="image/{}".format(save_as.lower()))
-    gltf_model.images.append(gltf_image)
-    image_id = len(gltf_model.images) - 1
-
-    gltf_model.textures.append(gl.Texture(source=image_id))
-    texture_id = len(gltf_model.textures) - 1
-
-    cache_data(data=image, data_id=texture_id, cache=cache)
-
-    return texture_id
 
 
 def add_texture_to_gltf(

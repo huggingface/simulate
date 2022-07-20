@@ -14,9 +14,6 @@
 
 # Lint as: python3
 """ Some mapping from Discrete and Box Spaces to physics actions."""
-from dataclasses import dataclass
-from typing import List, Optional
-
 import numpy as np
 
 from ..assets.asset import Asset
@@ -26,11 +23,13 @@ from ..assets.camera import Camera
 try:
     from gym import spaces
 except ImportError:
-    pass
+    spaces = None
 
 
 def map_observation_devices_to_spaces(asset: Asset):
     if isinstance(asset, Camera):
+        if spaces is None:
+            raise ImportError("gym is not installed. Please install gym to use the RL agent.")
         return spaces.Box(low=0, high=255, shape=[3, asset.height, asset.width], dtype=np.uint8)
     raise NotImplementedError(
         f"This Asset ({type(Asset)})is not yet implemented " f"as an RlAgent type of observation."

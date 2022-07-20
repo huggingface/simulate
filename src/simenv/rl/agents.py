@@ -17,9 +17,7 @@
 import itertools
 from typing import List, Optional, Union
 
-import numpy as np
-
-from simenv.rl.actions import MappedBox, MappedDiscrete
+from simenv.rl.actions import MappedDiscrete
 
 from ..assets import Asset, Camera, Capsule, Collider, RigidBody
 from .actions import Physics

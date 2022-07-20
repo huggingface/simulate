@@ -66,12 +66,14 @@ REQUIRED_PKGS = [
    "dataclasses_json",  # For GLTF export/imports
    "numpy>=1.17", # We use numpy>=1.17 to have np.random.Generator
    "pyvista",  # For mesh creation and edition and simple vizualization
+   "huggingface_hub",
+]
+
+DEV_REQUIRE = [
    "gym",  # For RL action spaces and API
+   "stable-baselines3",  # For training with SB3
    "pyvistaqt",  # For having a background vizualization capabilities (could be optional - note than some Qt backend can have GPL license)
    "PySide6",
-   "xxhash",
-   "huggingface_hub",
-   "stable_baselines3",
 ]
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
@@ -82,7 +84,7 @@ TESTS_REQUIRE = [
 ]
 
 EXTRAS_REQUIRE = {
-    "dev": TESTS_REQUIRE + QUALITY_REQUIRE,
+    "dev": DEV_REQUIRE + TESTS_REQUIRE + QUALITY_REQUIRE,
     "tests": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
 }

@@ -24,11 +24,6 @@ from .rewards import RewardFunction
 if TYPE_CHECKING:
     from ..assets import Asset
 
-try:
-    from gym import spaces
-except ImportError:
-    raise
-
 
 class RlComponent:
     """A reinforcement learning component to make an RL Agent from an Asset.
