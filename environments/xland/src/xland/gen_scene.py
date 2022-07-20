@@ -70,17 +70,17 @@ def create_scene(
     seed_env(seed)
 
     # TODO: choose width and height randomly from a set of predefined values
-    # Initialize success and curr_try variables
+    # Initialize success and attempt variables
     success = False
-    curr_try = 0
+    attempt = 0
     scene = None
     nb_tries = kwargs.get("nb_tries", 10)
 
-    while not success and curr_try < nb_tries:
-        
+    while not success and attempt < nb_tries:
+
         if verbose:
-            print("Try {}".format(curr_try + 1))
-        
+            print("Try {}".format(attempt + 1))
+
         sg = sm.ProcgenGrid(
             width=width,
             height=height,
@@ -119,18 +119,15 @@ def create_scene(
                 port=port,
                 headless=headless,
                 verbose=verbose,
-                physics_update_rate = kwargs.get("physics_update_rate", 30),
-                frame_skip = kwargs.get("frame_skip", 4),
+                physics_update_rate=kwargs.get("physics_update_rate", 30),
+                frame_skip=kwargs.get("frame_skip", 4),
             )
 
-            # Generate the game
-            # generate_game(generated_map, scene)
-
         else:
-            curr_try += 1
+            attempt += 1
 
             if seed is not None:
                 # Change to seed to test other maps
                 seed += 1
-            
+
     return success, scene

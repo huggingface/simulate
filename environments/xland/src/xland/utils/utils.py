@@ -41,7 +41,7 @@ def get_bounds(object_type, object_size):
     """
     if object_type == "Box":
         # Assign x, y, z coordinates
-        min_v, max_v = -object_size / 2, object_size / 2
+        min_v, max_v = -object_size / 4, object_size / 4
 
         # xMin, xMax, yMin, yMax, zMin, zMax
         return {"bounds": (min_v, max_v, min_v, max_v, min_v, max_v)}

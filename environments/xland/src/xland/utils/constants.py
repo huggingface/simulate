@@ -2,7 +2,7 @@ from simenv import Material
 
 
 # Colors that the objects can have
-COLORS = [Material.BLUE, Material.RED, Material.GREEN]
+COLORS = [Material.BLUE, Material.RED, Material.GREEN, Material.PURPLE, Material.YELLOW, Material.BLACK]
 
 # Set of objects that can be placed
 OBJECTS = ["Box", "Sphere", "Capsule"]

@@ -519,6 +519,25 @@ def add_rigidbody_to_model(
     return rigidbody_id
 
 
+def get_gl_reward(reward) -> gl.HFRlAgentsReward:
+    # If reward is none, which means that its parent is not a and / or / not reward function
+    if reward is None:
+        return None
+
+    return gl.HFRlAgentsReward(
+        type=reward.type,
+        entity_a=reward.entity_a.name,
+        entity_b=reward.entity_b.name,
+        distance_metric=reward.distance_metric,
+        scalar=reward.scalar,
+        threshold=reward.threshold,
+        is_terminal=reward.is_terminal,
+        is_collectable=reward.is_collectable,
+        reward_function_a=get_gl_reward(reward.reward_function_a),
+        reward_function_b=get_gl_reward(reward.reward_function_b),
+    )
+
+
 def add_rl_component_to_model(
     node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
@@ -547,21 +566,7 @@ def add_rl_component_to_model(
         gl_actions.offset = actions.offset if actions_type == "MappedBox" else None
 
     rewards: "List[RewardFunction]" = rl_component.rewards
-    gl_rewards = [
-        gl.HFRlAgentsReward(
-            type=reward.type,
-            entity_a=reward.entity_a.name,
-            entity_b=reward.entity_b.name,
-            distance_metric=reward.distance_metric,
-            scalar=reward.scalar,
-            threshold=reward.threshold,
-            is_terminal=reward.is_terminal,
-            is_collectable=reward.is_collectable,
-            reward_function_a=reward.reward_function_a,
-            reward_function_b=reward.reward_function_b,
-        )
-        for reward in rewards
-    ]
+    gl_rewards = [get_gl_reward(reward) for reward in rewards]
 
     agent = gl.HFRlAgentsComponent(
         actions=gl_actions,
