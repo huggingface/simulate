@@ -18,8 +18,8 @@ namespace SimEnv.RlAgents {
         float physicsUpdateRate = 1.0f / 30.0f;
         int frameSkip = 4;
 
-        List<uint[]> agentPixelValues;
-        List<int> obsSizes;
+        List<uint[]> agentPixelValues = new List<uint[]>();
+        List<int> obsSizes = new List<int>();
 
         public void Initialize() {
             frameSkip = Client.instance.frameSkip;
@@ -143,21 +143,30 @@ namespace SimEnv.RlAgents {
         }
         private IEnumerator GetObservationCoroutine(UnityAction<string> callback) {
             List<int[]> obsShapes = activeEnvironments[0].GetObservationShapes();
-            int[] shapeWithAgents = new int[obsShape.Length + 1];
-            shapeWithAgents[0] = activeEnvironments.Count;                                // set the prepended value
-            Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values
+            List<int[]> shapesWithAgents = new List<int[]>();
+
+        
+            for (int j = 0; j < obsShapes.Count; j++)
+            {
+                int[] obsShape = obsShapes[j];
+                int[] shapeWithAgents = new int[obsShape.Length + 1];
+                shapeWithAgents[0] = activeEnvironments.Count;       
+                Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values
+                shapesWithAgents.Add(shapeWithAgents);
+            }
 
             List<Coroutine> coroutines = new List<Coroutine>();
+            
             for (int i = 0; i < activeEnvironments.Count; i++) {
-                Coroutine coroutine = activeEnvironments[i].GetObservationCoroutine(agentPixelValues, i * obsSize).RunCoroutine();
+                Coroutine coroutine = activeEnvironments[i].GetObservationCoroutine(agentPixelValues, obsSizes, i).RunCoroutine();
                 coroutines.Add(coroutine);
             }
 
             foreach (var coroutine in coroutines) {
                 yield return coroutine;
             }
-
-            string string_array = JsonHelper.ToJson(agentPixelValues, shapeWithAgents);
+            // flatten the two arrays
+            string string_array = JsonHelper.ToJson(agentPixelValues[0], shapesWithAgents[0]);
             callback(string_array);
         }
 

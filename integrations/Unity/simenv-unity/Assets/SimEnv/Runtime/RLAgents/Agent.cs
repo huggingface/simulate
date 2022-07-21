@@ -293,15 +293,25 @@ namespace SimEnv.RlAgents {
             return shapes;
         }
 
-        public IEnumerator GetObservationCoroutine(uint[] pixelValues, int startingIndex) {
-            yield return sensors[0].getObs(colors => {
-                for (int i = 0; i < colors.Length; i++) {
-                    pixelValues[startingIndex + i * 3] = colors[i].r;
-                    pixelValues[startingIndex + i * 3 + 1] = colors[i].g;
-                    pixelValues[startingIndex + i * 3 + 2] = colors[i].b;
-                }
+        public IEnumerator GetObservationCoroutine(List<uint[]> buffers, List<int> sizes, int index) {
+            List<Coroutine> coroutines = new List<Coroutine>();
+            for (int i = 0; i < sensors.Count; i++)
+            {
+                Coroutine coroutine = sensors[i].getObs(buffers[i], sizes[i]*index).RunCoroutine();;
+                coroutines.Add(coroutine);
             }
-            );
+            foreach (var coroutine in coroutines) {
+                yield return coroutine;
+            }
+
+            // yield return sensors[0].getObs(colors => {
+            //     for (int i = 0; i < colors.Length; i++) {
+            //         pixelValues[startingIndex + i * 3] = colors[i].r;
+            //         pixelValues[startingIndex + i * 3 + 1] = colors[i].g;
+            //         pixelValues[startingIndex + i * 3 + 2] = colors[i].b;
+            //     }
+            // }
+            // );
         }
 
         public void SetAction(List<float> step_action) {

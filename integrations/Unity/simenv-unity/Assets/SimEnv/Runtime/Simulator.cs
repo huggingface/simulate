@@ -103,21 +103,26 @@ namespace SimEnv {
             Nodes[node.name] = node;
         }
 
+
+        //TODO: fix these method
+
         /// <summary>
         /// Render all cameras and returns their color buffers.
         /// </summary>
         /// <param name="callback">List of camera color buffers.</param>
-        public static void Render(UnityAction<List<Color32[]>> callback) {
-            RenderCoroutine(callback).RunCoroutine();
-        }
+        // public static void Render(UnityAction<List<Color32[]>> callback) {
+        //     RenderCoroutine(callback).RunCoroutine();
+        // }
 
-        private static IEnumerator RenderCoroutine(UnityAction<List<Color32[]>> callback) {
-            List<Color32[]> buffers = new List<Color32[]>();
-            foreach (CameraSensor camera in Cameras.Values)
-                camera.getObs(buffer => buffers.Add(buffer));
-            yield return new WaitUntil(() => buffers.Count == Cameras.Count);
-            callback(buffers);
-        }
+        
+
+        // private static IEnumerator RenderCoroutine(UnityAction<List<Color32[]>> callback) {
+        //     List<Color32[]> buffers = new List<Color32[]>();
+        //     foreach (CameraSensor camera in Cameras.Values)
+        //         camera.getObs(buffer => buffers.Add(buffer));
+        //     yield return new WaitUntil(() => buffers.Count == Cameras.Count);
+        //     callback(buffers);
+        // }
 
         /// <summary>
         /// Synchronously loads a scene from bytes.

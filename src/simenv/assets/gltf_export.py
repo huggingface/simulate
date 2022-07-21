@@ -571,7 +571,7 @@ def add_rl_component_to_model(
 
     agent = gl.HFRlAgentsComponent(
         actions=gl_actions,
-        observations=[asset.name for asset in rl_component.observations],
+        sensorNames=[asset.name for asset in rl_component.observations],
         rewards=gl_rewards,
     )
 

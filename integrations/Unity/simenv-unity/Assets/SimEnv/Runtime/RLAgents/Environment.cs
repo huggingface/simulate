@@ -98,8 +98,8 @@ namespace SimEnv.RlAgents {
             root.SetActive(true);
         }
 
-        public IEnumerator GetObservationCoroutine(uint[] pixelValues, int startingIndex) {
-            yield return agents[0].GetObservationCoroutine(pixelValues, startingIndex);
+        public IEnumerator GetObservationCoroutine(List<uint[]> buffers, List<int> sizes, int index) {
+            yield return agents[0].GetObservationCoroutine(buffers, sizes,  index);
         }
 
 

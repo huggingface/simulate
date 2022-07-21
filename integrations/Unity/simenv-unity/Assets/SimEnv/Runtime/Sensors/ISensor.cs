@@ -7,6 +7,6 @@ namespace SimEnv {
     public interface ISensor {
         public int getSize();
         public int[] getShape();
-        public IEnumerator getObs(UnityAction<Color32[]> callback);
+        public IEnumerator getObs(uint[] buffer, int index);
     }
 }

@@ -56,28 +56,25 @@ namespace SimEnv {
         //     RenderCoroutine(callback).RunCoroutine();
         // }
 
-        public IEnumerator getObs(UnityAction<Color32[]> callback) {
+        public IEnumerator getObs(uint[] buffer, int index) {
             camera.enabled = true; // Enable camera so that it renders in Unity's internal render loop
             yield return new WaitForEndOfFrame(); // Wait for Unity to render
-            CopyRenderResultToColorBuffer(out Color32[] buffer);
+            CopyRenderResultToColorBuffer(buffer, index);
             camera.enabled = false; // Disable camera for performance
-            if (callback != null)
-                callback(buffer);
         }
 
-        private void CopyRenderResultToColorBuffer(out Color32[] buffer) {
-            buffer = new Color32[0];
+        private void CopyRenderResultToColorBuffer(uint[] buffer, int index) {
             RenderTexture activeRenderTexture = RenderTexture.active;
             RenderTexture.active = camera.targetTexture;
             tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
             tex.Apply();
-            buffer = tex.GetPixels32();
+            Color32[] pixels = tex.GetPixels32();
+
+            for (int i = 0; i < pixels.Length; i++){
+                buffer[index + i*3] = pixels[i].r;
+                buffer[index + i*3+1] = pixels[i].g;
+                buffer[index + i*3+2] = pixels[i].b;
+            }
         }
-
-        public int getObs() {
-            throw new System.NotImplementedException();
-        }
-
-
     }
 }

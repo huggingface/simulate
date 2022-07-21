@@ -159,7 +159,7 @@ namespace SimEnv.GLTF {
                     if (nodes[i].camera.HasValue) {
                         result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                         GLTFCamera cameraData = cameras[nodes[i].camera.Value];
-                        RenderCamera camera = new RenderCamera(result[i].node, cameraData);
+                        CameraSensor camera = new CameraSensor(result[i].node, cameraData);
                     }
 
                     // Extensions (lights, colliders, RL agents, etc)
