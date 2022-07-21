@@ -68,6 +68,7 @@ not_reward = sm.RewardFunction(
     entity_b=scene.agent,
     distance_metric="euclidean",
     reward_function_a=target_reward,
+    is_terminal=True,
 )
 scene.agent.add_reward_function(not_reward)
 run_scene(scene)
