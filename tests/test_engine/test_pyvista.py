@@ -11,18 +11,8 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
-import inspect
-import os
-import platform
-
 # Lint as: python3
-import tempfile
 import unittest
-import warnings
-
-import pyvista
-from pyvista._vtk import VTK9
 
 import simenv as sm
 

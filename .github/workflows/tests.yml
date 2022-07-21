@@ -9,6 +9,18 @@ jobs:
   run-tests:
     runs-on: ubuntu-latest
 
+      # see discussion at https://github.com/pyvista/pyvista/issues/2867
+      matrix:
+        include:
+          - python-version: '3.7'
+            vtk-version: '8.1.2'
+          - python-version: '3.8'
+            vtk-version: '9.0.3'
+          - python-version: '3.9'
+            vtk-version: '9.1'
+          - python-version: '3.10'
+            vtk-version: 'latest'
+
     steps:
       - uses: actions/checkout@v3
 
@@ -17,12 +29,34 @@ jobs:
         with:
           python-version: 3.7
 
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: Python-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.vtk-version }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements_test.txt') }}
+          restore-keys: |
+            Python-${{ runner.os }}-${{ matrix.python-version }}
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.local/share/pyvista/examples
+          key: Examples-1-${{ hashFiles('*') }}
+          restore-keys: |
+            Examples-1-
+
       - name: Install the library
         run: |
           pip install --upgrade pip
           pip install -e .[tests]
 
+      - name: Set up vtk
+        if: ${{ matrix.vtk-version != 'latest' }}
+        run: pip install vtk==${{ matrix.vtk-version }}
+
+      - name: Install Testing Requirements pyvista
+        run: |
+          sudo apt-get update
+          sudo apt-get install libgl1-mesa-glx xvfb python-tk -y
+
       - name: Run Tests
         run: |
           make test
-
