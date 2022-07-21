@@ -8,9 +8,9 @@ from simenv import RewardFunction
 """ When selecting randomly predicates """
 
 
-def near(entity_a, entity_b):
+def near(entity_a, entity_b, reward_type="sparse"):
     return RewardFunction(
-        type="sparse",
+        type=reward_type,
         entity_a=entity_a,
         entity_b=entity_b,
         distance_metric="euclidean",

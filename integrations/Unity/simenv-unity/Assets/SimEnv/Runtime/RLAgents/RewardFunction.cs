@@ -93,12 +93,11 @@ namespace SimEnv.RlAgents {
         }
     }
 
-    public class RewardFunctionAnd : RewardFunction {
+    public class RewardFunctionPredicate : RewardFunction {
         // TODO: works in the assumption that A and B has the same reward
         public RewardFunction rewardFunctionA;
         public RewardFunction rewardFunctionB;
-
-        public RewardFunctionAnd(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
+        public RewardFunctionPredicate(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
                 GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) {
             this.rewardFunctionA = rewardFunctionA;
             this.rewardFunctionB = rewardFunctionB;
@@ -111,35 +110,39 @@ namespace SimEnv.RlAgents {
             rewardFunctionA.Reset();
             rewardFunctionB.Reset();
         }
+
+        public override float CalculateReward() {
+            // Placeholder since this class is not supposed to be used by itself.
+            return 0;
+        }
+    }
+
+    public class RewardFunctionAnd : RewardFunctionPredicate {
+        public RewardFunctionAnd(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) :
+            base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric) {}
         public override float CalculateReward() {
             return Math.Min(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());
         }
     }
 
-    public class RewardFunctionOr : RewardFunction{
-        // TODO: works in the assumption that A and B has the same reward
-        public RewardFunction rewardFunctionA;
-        public RewardFunction rewardFunctionB;
-
+    public class RewardFunctionOr : RewardFunctionPredicate{
         public RewardFunctionOr(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
-                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) {
-            this.rewardFunctionA = rewardFunctionA;
-            this.rewardFunctionB = rewardFunctionB;
-            this.entity_a = entity_a;
-            this.entity_b = entity_b;
-            this.distanceMetric = distanceMetric;
-        }
-
-        public override void Reset() {
-            rewardFunctionA.Reset();
-            rewardFunctionB.Reset();
-        }
-
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) :
+            base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric) {}
         public override float CalculateReward() {
             return Math.Max(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());
         }
     }
 
+    public class RewardFunctionXor : RewardFunctionPredicate {
+        public RewardFunctionXor(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) :
+            base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric) {}
+        public override float CalculateReward() {
+            return Math.Abs(rewardFunctionA.CalculateReward() - rewardFunctionB.CalculateReward());
+        }
+    }
 
     public class RewardFunctionNot : RewardFunction{
         // TODO: works in the assumption that A is sparse

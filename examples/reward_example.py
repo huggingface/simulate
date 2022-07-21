@@ -98,7 +98,7 @@ target_2_reward = sm.RewardFunction(
     trigger_once=False,
 )
 
-not_reward = sm.RewardFunction(
+and_reward = sm.RewardFunction(
     type="and",
     entity_a=scene.agent,
     entity_b=scene.agent,
@@ -107,7 +107,7 @@ not_reward = sm.RewardFunction(
     reward_function_b=target_2_reward,
 )
 
-scene.agent.add_reward_function(not_reward)
+scene.agent.add_reward_function(and_reward)
 run_scene(scene)
 
 # Third iteration:
@@ -136,7 +136,7 @@ target_2_reward = sm.RewardFunction(
     trigger_once=False,
 )
 
-not_reward = sm.RewardFunction(
+or_reward = sm.RewardFunction(
     type="or",
     entity_a=scene.agent,
     entity_b=scene.agent,
@@ -145,5 +145,43 @@ not_reward = sm.RewardFunction(
     reward_function_b=target_2_reward,
 )
 
-scene.agent.add_reward_function(not_reward)
+scene.agent.add_reward_function(or_reward)
+run_scene(scene)
+
+# Fourth iteration:
+scene = create_scene(port=55003)
+target_reward = sm.RewardFunction(
+    type="sparse",
+    entity_a=scene.agent,
+    entity_b=scene.target,
+    distance_metric="euclidean",
+    threshold=2.0,
+    is_terminal=False,
+    is_collectable=False,
+    scalar=1.0,
+    trigger_once=False,
+)
+
+target_2_reward = sm.RewardFunction(
+    type="sparse",
+    entity_a=scene.agent,
+    entity_b=scene.target_2,
+    distance_metric="euclidean",
+    threshold=2.0,
+    is_terminal=False,
+    is_collectable=False,
+    scalar=1.0,
+    trigger_once=False,
+)
+
+xor_reward = sm.RewardFunction(
+    type="xor",
+    entity_a=scene.agent,
+    entity_b=scene.agent,
+    distance_metric="euclidean",
+    reward_function_a=target_reward,
+    reward_function_b=target_2_reward,
+)
+
+scene.agent.add_reward_function(xor_reward)
 run_scene(scene)
