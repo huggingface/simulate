@@ -406,7 +406,7 @@ def add_camera_to_model(
 
     if camera.camera_type == "perspective":
         gl_camera.perspective = gl.PerspectiveCameraInfo(
-            aspectRatio=camera.aspect_ratio, yfov=camera.yfov, zfar=camera.zfar, znear=camera.znear
+            aspectRatio=camera.aspect_ratio, yfov=np.radians(camera.yfov), zfar=camera.zfar, znear=camera.znear
         )
     else:
         gl_camera.orthographic = gl.OrthographicCameraInfo(

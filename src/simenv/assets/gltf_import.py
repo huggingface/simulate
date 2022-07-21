@@ -209,7 +209,7 @@ def build_node_tree(
         camera_type = gltf_camera.type
         scene_node = Camera(
             aspect_ratio=gltf_camera.perspective.aspectRatio,
-            yfov=gltf_camera.perspective.yfov,
+            yfov=np.degrees(gltf_camera.perspective.yfov),
             zfar=gltf_camera.perspective.zfar if camera_type == "perspective" else gltf_camera.orthographic.zfar,
             znear=gltf_camera.perspective.znear if camera_type == "perspective" else gltf_camera.orthographic.znear,
             camera_type=camera_type,

@@ -15,7 +15,6 @@
 # Lint as: python3
 """ A simenv Camera."""
 import itertools
-from math import radians
 from typing import List, Optional, Union
 
 from .asset import Asset
@@ -23,7 +22,20 @@ from .collider import Collider
 
 
 class Camera(Asset):
-    dimensionality = 3
+    """ A Camera asset.
+        This Camera is located at the origin by default and has no rotation.
+
+        Args:
+            width: The width of the Camera. Default: 256
+            height: The height of the Camera. Default: 256
+            aspect_ratio: The aspect ratio of the Camera if needed
+            yfov: The vertical field of view of the Camera in degrees. Default: 60 degrees
+            znear: The near clipping plane of the Camera.
+            zfar: The far clipping plane of the Camera.
+            camera_type: The type of camera.
+            xmag: The x magnification of the Camera.
+            ymag: The y magnification of the Camera.
+    """
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
@@ -31,7 +43,7 @@ class Camera(Asset):
         width=256,
         height=256,
         aspect_ratio: Optional[float] = None,
-        yfov: Optional[float] = radians(60),
+        yfov: Optional[float] = 60,
         znear: Optional[float] = 0.3,
         zfar: Optional[float] = None,
         camera_type: Optional[str] = "perspective",
@@ -98,16 +110,55 @@ class Camera(Asset):
 
         return instance_copy
 
-    @Asset.position.setter
-    def position(self, value):  # override default position a distance from the origin
-        if self.dimensionality == 3:
-            if value is None:
-                value = [0.0, 0.0, -10.0]
-        Asset.position.fset(self, value)
 
-    @Asset.rotation.setter
-    def rotation(self, value):  # override default rotation facing origin
-        if self.dimensionality == 3:
-            if value is None:
-                value = [0.0, 1.0, 0.0, 0.0]
-        Asset.rotation.fset(self, value)
+class CameraDistant(Camera):
+    """ A Distant Camera looking at the origin.
+
+        The Dstant Camera is identical to the Camera but override the default position and rotation to be located
+        slightly away from the origin along the z axis and look toward the origin.
+    """
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
+    def __init__(
+        self,
+        width=256,
+        height=256,
+        aspect_ratio: Optional[float] = None,
+        yfov: Optional[float] = 60,
+        znear: Optional[float] = 0.3,
+        zfar: Optional[float] = None,
+        camera_type: Optional[str] = "perspective",
+        xmag: Optional[float] = None,
+        ymag: Optional[float] = None,
+        name: Optional[str] = None,
+        position: Optional[List[float]] = None,
+        rotation: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
+        scaling: Optional[Union[float, List[float]]] = None,
+        parent: Optional[Asset] = None,
+        children: Optional[List[Asset]] = None,
+    ):
+
+        if position is None:
+            position = [0.0, 0.0, -10.0]
+        if rotation is None:
+            rotation = [0.0, 1.0, 0.0, 0.0]
+
+        super().__init__(
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            parent=parent,
+            children=children,
+            collider=collider,
+            width=width,
+            height=height,
+            aspect_ratio=aspect_ratio,
+            yfov=yfov,
+            zfar=zfar,
+            znear=znear,
+            camera_type=camera_type,
+            xmag=xmag,
+            ymag=ymag,
+        )
