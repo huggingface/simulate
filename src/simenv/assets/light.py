@@ -3,7 +3,6 @@ from typing import List, Optional, Union
 
 from .asset import Asset
 from .collider import Collider
-from .utils import rotation_from_euler_degrees
 
 
 class Light(Asset):

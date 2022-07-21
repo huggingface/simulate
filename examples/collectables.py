@@ -1,16 +1,19 @@
-from requests import head
-import simenv as sm
-from simenv.assets import material
-from simenv.assets.agent import rl_agent_actions
-import simenv.assets.utils as utils
-import os, time
-from simenv.rl_env import RLEnv
+import os
+import random
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
-import random
-from stable_baselines3.common.vec_env import SubprocVecEnv
+from requests import head
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.vec_env import SubprocVecEnv
+
+import simenv as sm
+import simenv.assets.utils as utils
+from simenv.assets import material
+from simenv.assets.agent import rl_agent_actions
+from simenv.rl_env import RLEnv
 from simenv.wrappers import ParallelSimEnv
 
 

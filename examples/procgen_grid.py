@@ -1,6 +1,8 @@
+import numpy as np
+
 import simenv as sm
 from simenv.assets.procgen.wfc import build_wfc_neighbor, build_wfc_tile
-import numpy as np
+
 
 print("First scene")
 scene = sm.Scene()

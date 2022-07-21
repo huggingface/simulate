@@ -1,5 +1,6 @@
 import numpy as np
 
+
 WALL = 10
 EMPTY = 11
 GOAL = 12

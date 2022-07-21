@@ -1,15 +1,19 @@
-from requests import head
-import simenv as sm
-from simenv.assets import material
-import simenv.assets.utils as utils
-import os, time
+import os
+import random
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
-import random
-from stable_baselines3.common.vec_env import SubprocVecEnv
+from requests import head
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.vec_env import SubprocVecEnv
+
+import simenv as sm
+import simenv.assets.utils as utils
 from simenv import ParallelSimEnv
+from simenv.assets import material
+
 
 ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"

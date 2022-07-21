@@ -13,6 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
+# flake8: noqa
 import unittest
 
 import numpy as np

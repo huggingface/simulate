@@ -1,5 +1,7 @@
-from simenv import Scene
 import os
+
+from simenv import Scene
+
 
 scene = Scene.create_from("simenv-tests/Box/glTF/Box.gltf", auto_update=False)
 
@@ -10,6 +12,7 @@ scene.show()
 
 # Save in the gitgnored output
 from pathlib import Path
+
 
 save_path = Path(__file__).parent.parent.absolute() / "output" / "scene" / "scene.gltf"
 

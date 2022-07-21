@@ -1,5 +1,7 @@
-import simenv as sm
 import numpy as np
+
+import simenv as sm
+
 
 FPS = 50
 SCALE = 30.0  # affects how fast-paced the game is, forces should be adjusted as well

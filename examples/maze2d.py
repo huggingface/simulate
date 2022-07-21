@@ -2,6 +2,7 @@
 
 import simenv as sm
 
+
 scene = sm.Scene()
 
 scene += sm.Plane(i_size=40, j_size=40, position=[0, 0, -0.1], material=sm.Material())

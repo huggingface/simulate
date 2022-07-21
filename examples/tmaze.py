@@ -1,8 +1,10 @@
-import simenv as sm
-import simenv.assets.utils as utils
 import time
+
 import matplotlib.pyplot as plt
 import numpy as np
+
+import simenv as sm
+import simenv.assets.utils as utils
 
 
 scene = sm.Scene(engine="Unity")
