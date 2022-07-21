@@ -12,17 +12,16 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+import random
+
 # Lint as: python3
 import unittest
 
-import numpy as np
-
 import simenv as sm
 
-import random
 
 def create_env(dummy_port: int):
-    """" Create a simple environment with a single agent and a single target."""
+    """ " Create a simple environment with a single agent and a single target."""
     scene = sm.Scene() + sm.LightSun()
     scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-11, 11, 0, 0.1, -11, 51], material=sm.Material.BLUE)
     scene += sm.Box(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.GRAY)
@@ -33,6 +32,7 @@ def create_env(dummy_port: int):
     agent = sm.SimpleRlAgent(reward_target=collectable)
     scene += [collectable, agent]
     return scene
+
 
 # TODO add a real RL test
 class ParallelSimenvTest(unittest.TestCase):

@@ -13,7 +13,7 @@ ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO(Ed) other metrics?
 @dataclass
 class RewardFunction:
     """An RL reward function
-    
+
     Attributes:
         type: str, optional (default="dense")
             The type of reward function. Must be one of the following:

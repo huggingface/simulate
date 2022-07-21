@@ -1,13 +1,14 @@
 import os
-import shutil
 from os import path
 
 from huggingface_hub import hf_hub_download
+
 from simenv.assets.gltflib import GLTF, FileResource
+
 
 # Directory containing the official glTF sample files. These samples are the same ones that are available here:
 # https://github.com/KhronosGroup/glTF-Sample-Models
-SIMENV_TEST_URL = 'simenv-tests/'
+SIMENV_TEST_URL = "simenv-tests/"
 
 SIMENV_TEST_REPOS = [
     "AnimatedCube",
@@ -18,7 +19,8 @@ SIMENV_TEST_REPOS = [
 ]
 
 # Custom sample models used for tests
-CUSTOM_SAMPLES_DIR = os.path.join(os.path.dirname(__file__),'samples','custom')
+CUSTOM_SAMPLES_DIR = os.path.join(os.path.dirname(__file__), "samples", "custom")
+
 
 def get_file_from_hub(model, filename, subfolder=None):
     """
@@ -35,7 +37,8 @@ def get_file_from_hub(model, filename, subfolder=None):
         repo_type="space",
     )
 
-def sample(model, fmt='glTF'):
+
+def sample(model, fmt="glTF"):
     """
     Helper function for returning the path to an official sample model from the glTF-Sample-Models directory in the
     specified format (defaults to glTF).
@@ -43,7 +46,7 @@ def sample(model, fmt='glTF'):
     :param fmt: Format (either 'glTF', 'glTF-Binary', 'glTF-Embedded', or 'glTF-Draco'. Defaults to 'glTF')
     :return: Model filename
     """
-    ext = '.glb' if fmt == 'glTF-Binary' else '.gltf'
+    ext = ".glb" if fmt == "glTF-Binary" else ".gltf"
 
     repo_id = model
     filename = model + ext
@@ -55,10 +58,9 @@ def sample(model, fmt='glTF'):
     # Let's download/cache all the other needed ressources
     gltf_scene = GLTF.load(file_path)
     if repo_id is not None:
-        updated_ressources = []
         for ressource in gltf_scene.resources:
             if isinstance(ressource, FileResource):
-                local_file = get_file_from_hub(repo_id, ressource.filename, subfolder)
+                _ = get_file_from_hub(repo_id, ressource.filename, subfolder)
     return file_path
 
 

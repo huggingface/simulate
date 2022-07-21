@@ -15,10 +15,7 @@
 # Lint as: python3
 import unittest
 
-import numpy as np
-
 import simenv as sm
-from simenv.rl import rewards
 
 
 # TODO add more tests on saving/exporting/loading in gltf files

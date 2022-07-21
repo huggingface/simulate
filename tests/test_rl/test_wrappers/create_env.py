@@ -15,10 +15,12 @@
 # Lint as: python3
 """ A very simple environment creation ethod."""
 import random
+
 import simenv as sm
 
+
 def create_env():
-    """" Create a simple environment with a single agent and a single target."""
+    """ " Create a simple environment with a single agent and a single target."""
     scene = sm.Scene() + sm.LightSun()
     scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-11, 11, 0, 0.1, -11, 51], material=sm.Material.BLUE)
     scene += sm.Box(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.GRAY)

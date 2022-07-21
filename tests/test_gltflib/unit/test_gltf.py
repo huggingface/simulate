@@ -1,30 +1,44 @@
-import os
-import json
 import base64
+import json
+import os
 import tempfile
 from os import path
-from tempfile import tempdir
 from unittest import TestCase
-from ..util import sample, custom_sample, get_file_from_hub
+
 from simenv.assets.gltflib import (
-    GLTF, GLTFModel, Accessor, Asset, FileResource, ExternalResource, Buffer, BufferView, Image, GLBResource,
-    Base64Resource, GLB_BINARY_CHUNK_TYPE, Sparse, SparseIndices, SparseValues)
+    GLB_BINARY_CHUNK_TYPE,
+    GLTF,
+    Accessor,
+    Asset,
+    Base64Resource,
+    Buffer,
+    BufferView,
+    ExternalResource,
+    FileResource,
+    GLBResource,
+    GLTFModel,
+    Image,
+    Sparse,
+    SparseIndices,
+    SparseValues,
+)
+
+from ..util import custom_sample, get_file_from_hub, sample
 
 
 class TestGLTF(TestCase):
-
     def assert_gltf_files_equal(self, filename1, filename2):
         """Helper method for asserting two GLTF files contain equivalent JSON"""
-        with open(filename1, 'r') as f1:
+        with open(filename1, "r") as f1:
             data1 = json.loads(f1.read())
-        with open(filename2, 'r') as f2:
+        with open(filename2, "r") as f2:
             data2 = json.loads(f2.read())
         self.assertDictEqual(data1, data2)
 
     def test_load(self):
         """Basic test ensuring the class can successfully load a minimal GLTF 2.0 file."""
         # Act
-        gltf = GLTF.load(custom_sample('Minimal/minimal.gltf'))
+        gltf = GLTF.load(custom_sample("Minimal/minimal.gltf"))
 
         # Assert
         self.assertIsInstance(gltf, GLTF)
@@ -35,44 +49,44 @@ class TestGLTF(TestCase):
         # Arrange
         gltf = GLTF(model=GLTFModel(asset=Asset(version="2.0")))
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'minimal.gltf')
+            filename = path.join(temp_dir, "minimal.gltf")
 
             # Act
             gltf.export(filename)
 
             # Assert
             self.assertTrue(path.exists(filename))
-            self.assert_gltf_files_equal(filename, custom_sample('Minimal/minimal.gltf'))
+            self.assert_gltf_files_equal(filename, custom_sample("Minimal/minimal.gltf"))
 
     def test_export_creates_directories(self):
         """Create directories if necessary when exporting a model to a directory that does not exist"""
         # Arrange
         gltf = GLTF(model=GLTFModel(asset=Asset(version="2.0")))
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'nested', 'directory', 'minimal.gltf')
+            filename = path.join(temp_dir, "nested", "directory", "minimal.gltf")
 
             # Act
             gltf.export(filename)
 
             # Assert
-            self.assert_gltf_files_equal(custom_sample('Minimal/minimal.gltf'), filename)
+            self.assert_gltf_files_equal(custom_sample("Minimal/minimal.gltf"), filename)
 
     def test_load_file_resource(self):
         """External files referenced in a glTF model should be loaded as FileResource"""
         # Act
-        gltf = GLTF.load(sample('TriangleWithoutIndices'))
+        gltf = GLTF.load(sample("TriangleWithoutIndices"))
 
         # Assert
         self.assertIsInstance(gltf.resources, list)
-        resource = gltf.get_resource('triangleWithoutIndices.bin')
+        resource = gltf.get_resource("triangleWithoutIndices.bin")
         self.assertIsInstance(resource, FileResource)
-        self.assertEqual('triangleWithoutIndices.bin', resource.filename)
+        self.assertEqual("triangleWithoutIndices.bin", resource.filename)
 
     def test_load_file_resource_no_autoload(self):
         """File resource contents should not be autoloaded by default"""
         # Act
-        gltf = GLTF.load(sample('TriangleWithoutIndices'))
-        resource = gltf.get_resource('triangleWithoutIndices.bin')
+        gltf = GLTF.load(sample("TriangleWithoutIndices"))
+        resource = gltf.get_resource("triangleWithoutIndices.bin")
 
         # Assert
         self.assertIsInstance(resource, FileResource)
@@ -82,35 +96,35 @@ class TestGLTF(TestCase):
     def test_load_file_resource_with_autoload(self):
         """When load_file_resources is true, file resource contents should be autoloaded"""
         # Act
-        gltf = GLTF.load(sample('TriangleWithoutIndices'), load_file_resources=True)
-        resource = gltf.get_resource('triangleWithoutIndices.bin')
+        gltf = GLTF.load(sample("TriangleWithoutIndices"), load_file_resources=True)
+        resource = gltf.get_resource("triangleWithoutIndices.bin")
 
         # Assert
         self.assertIsInstance(resource, FileResource)
         self.assertTrue(resource.loaded)
         bin_file = get_file_from_hub("TriangleWithoutIndices", "triangleWithoutIndices.bin", "glTF")
-        with open(bin_file, 'rb') as f:
+        with open(bin_file, "rb") as f:
             data = f.read()
         self.assertEqual(data, resource.data)
 
     def test_load_image_resources(self):
         """Ensure image resources are loaded"""
         # Act
-        gltf = GLTF.load(sample('BoxTextured'), load_file_resources=True)
-        texture = gltf.get_resource('CesiumLogoFlat.png')
+        gltf = GLTF.load(sample("BoxTextured"), load_file_resources=True)
+        texture = gltf.get_resource("CesiumLogoFlat.png")
 
         # Assert
         self.assertIsInstance(texture, FileResource)
         bin_file = get_file_from_hub("BoxTextured", "CesiumLogoFlat.png", "glTF")
-        with open(bin_file, 'rb') as f:
+        with open(bin_file, "rb") as f:
             texture_data = f.read()
         self.assertEqual(texture_data, texture.data)
 
     def test_load_external_resources(self):
         """External resources should be parsed as ExternalResource instances, but otherwise ignored (for now)"""
         # Act
-        gltf = GLTF.load(custom_sample('External/external.gltf'))
-        uri = 'http://www.example.com/image.jpg'
+        gltf = GLTF.load(custom_sample("External/external.gltf"))
+        uri = "http://www.example.com/image.jpg"
         resource = gltf.get_resource(uri)
 
         # Assert
@@ -126,12 +140,12 @@ class TestGLTF(TestCase):
         these resources from the filesystem).
         """
         # Arrange
-        data = b'sample binary data'
-        resource = FileResource('triangleWithoutIndices.bin', data=data)
+        data = b"sample binary data"
+        resource = FileResource("triangleWithoutIndices.bin", data=data)
 
         # Act
-        gltf = GLTF.load(sample('TriangleWithoutIndices'), resources=[resource])
-        loaded_resource = gltf.get_resource('triangleWithoutIndices.bin')
+        gltf = GLTF.load(sample("TriangleWithoutIndices"), resources=[resource])
+        loaded_resource = gltf.get_resource("triangleWithoutIndices.bin")
 
         # Assert
         self.assertIs(loaded_resource, resource)
@@ -142,21 +156,21 @@ class TestGLTF(TestCase):
     def test_export_file_resources(self):
         """Test exporting a GLTF model with external file resources"""
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        resource = FileResource('buffer.bin', data=data)
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri='buffer.bin', byteLength=bytelen)])
+        resource = FileResource("buffer.bin", data=data)
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri="buffer.bin", byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[resource])
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'sample.gltf')
+            filename = path.join(temp_dir, "sample.gltf")
 
             # Act
             gltf.export(filename, save_file_resources=True)
 
             # Assert
-            resource_filename = path.join(temp_dir, 'buffer.bin')
+            resource_filename = path.join(temp_dir, "buffer.bin")
             self.assertTrue(path.exists(resource_filename))
-            with open(resource_filename, 'rb') as f:
+            with open(resource_filename, "rb") as f:
                 self.assertEqual(data, f.read())
 
     def test_export_file_resources_creates_missing_parent_dirs(self):
@@ -164,21 +178,21 @@ class TestGLTF(TestCase):
         When exporting a GLTF model with external file resources, missing directories should be created automatically.
         """
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        resource = FileResource('subdir/buffer.bin', data=data)
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri='subdir/buffer.bin', byteLength=bytelen)])
+        resource = FileResource("subdir/buffer.bin", data=data)
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri="subdir/buffer.bin", byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[resource])
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'sample.gltf')
+            filename = path.join(temp_dir, "sample.gltf")
 
             # Act
             gltf.export(filename, save_file_resources=True)
 
             # Assert
-            resource_filename = path.join(temp_dir, 'subdir', 'buffer.bin')
+            resource_filename = path.join(temp_dir, "subdir", "buffer.bin")
             self.assertTrue(path.exists(resource_filename))
-            with open(resource_filename, 'rb') as f:
+            with open(resource_filename, "rb") as f:
                 self.assertEqual(data, f.read())
 
     def test_skip_exporting_file_resources(self):
@@ -187,15 +201,15 @@ class TestGLTF(TestCase):
         """
         # Arrange
         with tempfile.TemporaryDirectory() as temp_dir:
-            resource_filename = path.join(temp_dir, 'buffer.bin')
+            resource_filename = path.join(temp_dir, "buffer.bin")
             if path.exists(resource_filename):
                 os.remove(resource_filename)
-            data = b'sample binary data'
+            data = b"sample binary data"
             bytelen = len(data)
-            resource = FileResource('buffer.bin', data=data)
-            model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri='buffer.bin', byteLength=bytelen)])
+            resource = FileResource("buffer.bin", data=data)
+            model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri="buffer.bin", byteLength=bytelen)])
             gltf = GLTF(model=model, resources=[resource])
-            filename = path.join(temp_dir, 'sample.gltf')
+            filename = path.join(temp_dir, "sample.gltf")
 
             # Act
             gltf.export(filename, save_file_resources=False)
@@ -234,10 +248,10 @@ class TestGLTF(TestCase):
     def test_load_glb(self):
         """Ensure a model can be loaded from a binary glTF (GLB) file"""
         # Act
-        gltf = GLTF.load(sample('Box', 'glTF-Binary'))
+        gltf = GLTF.load(sample("Box", "glTF-Binary"))
 
         # Assert
-        self.assertEqual('2.0', gltf.model.asset.version)
+        self.assertEqual("2.0", gltf.model.asset.version)
         self.assertIsNone(gltf.model.buffers[0].uri)
         self.assertEqual(648, gltf.model.buffers[0].byteLength)
         self.assertEqual(1, len(gltf.resources))
@@ -263,10 +277,10 @@ class TestGLTF(TestCase):
     def test_clone_file_resources(self):
         """Cloning a model with file resources should clone both the model and its associated resources."""
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        resource = FileResource('buffer.bin', data=data)
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri='buffer.bin', byteLength=bytelen)])
+        resource = FileResource("buffer.bin", data=data)
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri="buffer.bin", byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[resource])
 
         # Act
@@ -298,9 +312,9 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Load a glTF model with load_file_resources set to False
-        gltf = GLTF.load(sample('BoxTextured'), load_file_resources=False)
+        gltf = GLTF.load(sample("BoxTextured"), load_file_resources=False)
         # Resource should initially not be loaded
-        resource = gltf.get_resource('CesiumLogoFlat.png')
+        resource = gltf.get_resource("CesiumLogoFlat.png")
         self.assertIsInstance(resource, FileResource)
         self.assertFalse(resource.loaded)
 
@@ -316,22 +330,22 @@ class TestGLTF(TestCase):
         self.assertIsNot(gltf.resources, cloned_gltf.resources)
         # Resource list should contain two FileResources
         self.assertEqual(2, len(cloned_gltf.resources))
-        cloned_file_resource = cloned_gltf.get_resource('CesiumLogoFlat.png')
+        cloned_file_resource = cloned_gltf.get_resource("CesiumLogoFlat.png")
         self.assertIsInstance(cloned_file_resource, FileResource)
         # FileResource should be cloned
         self.assertIsNot(cloned_file_resource, resource)
         # Since the original file resource was not loaded, the cloned file resource should also remain not loaded
         self.assertFalse(cloned_file_resource.loaded)
         # Cloned resource uri should be the same
-        self.assertEqual('CesiumLogoFlat.png', cloned_file_resource.uri)
+        self.assertEqual("CesiumLogoFlat.png", cloned_file_resource.uri)
         # Resource data should be None since it was not loaded
         self.assertIsNone(cloned_file_resource.data)
 
     def test_clone_model_with_glb_resource(self):
         """Cloning a model with a GLB resource should clone both the model and its associated resources."""
         # Arrange
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(byteLength=4)])
-        resource = GLBResource(b'data')
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(byteLength=4)])
+        resource = GLBResource(b"data")
         gltf = GLTF(model=model, resources=[resource])
 
         # Act
@@ -352,14 +366,14 @@ class TestGLTF(TestCase):
     def test_embed_file_resource(self):
         """Test embedding a file resource"""
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
         model = GLTFModel(
-            asset=Asset(version='2.0'),
-            buffers=[Buffer(uri='buffer.bin', byteLength=bytelen)],
-            bufferViews=[BufferView(buffer=0, byteOffset=0, byteLength=18)]
+            asset=Asset(version="2.0"),
+            buffers=[Buffer(uri="buffer.bin", byteLength=bytelen)],
+            bufferViews=[BufferView(buffer=0, byteOffset=0, byteLength=18)],
         )
-        file_resource = FileResource(filename='buffer.bin', data=data)
+        file_resource = FileResource(filename="buffer.bin", data=data)
         gltf = GLTF(model=model, resources=[file_resource])
 
         # Act
@@ -369,9 +383,9 @@ class TestGLTF(TestCase):
         # Model should now contain a single GLB resource
         self.assertEqual([glb_resource], gltf.resources)
         # Resource data should be null-padded to a multiple of 4 bytes
-        self.assertEqual(b'sample binary data\x00\x00', glb_resource.data)
+        self.assertEqual(b"sample binary data\x00\x00", glb_resource.data)
         # Original file resource should not be mutated
-        self.assertEqual(b'sample binary data', file_resource.data)
+        self.assertEqual(b"sample binary data", file_resource.data)
         # Buffer URI should now be undefined since it is embedded, and byte length should be padded to a multiple of 4
         self.assertEqual([Buffer(byteLength=20)], model.buffers)
         # Buffer view should not be modified in this case
@@ -380,8 +394,8 @@ class TestGLTF(TestCase):
     def test_embed_glb_resource_does_nothing(self):
         """Ensure that calling embed_resource on a GLBResource does nothing (since it is already embedded)"""
         # Arrange
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(byteLength=4)])
-        resource = GLBResource(b'data')
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(byteLength=4)])
+        resource = GLBResource(b"data")
         gltf = GLTF(model=model, resources=[resource])
 
         # Act
@@ -395,51 +409,50 @@ class TestGLTF(TestCase):
         """Ensure that embedding a file resource works correctly when the model already has existing GLB resources."""
         # Arrange
         # Existing GLB resource
-        glb_resource_data = b'some data'
+        glb_resource_data = b"some data"
         glb_resource_bytelen = len(glb_resource_data)
         glb_resource = GLBResource(glb_resource_data)
         # Another GLB resource with a custom resource type
-        custom_glb_resource_data = b'more data'
+        custom_glb_resource_data = b"more data"
         custom_glb_resource = GLBResource(custom_glb_resource_data, resource_type=123)
         # Sample buffer 1 data (to be embedded)
-        buffer_1_filename = 'buffer_1.bin'
-        buffer_1_data = b'sample buffer one data'
+        buffer_1_filename = "buffer_1.bin"
+        buffer_1_data = b"sample buffer one data"
         buffer_1_bytelen = len(buffer_1_data)
         # Sample buffer 2 data (to remain external)
-        buffer_2_filename = 'buffer_2.bin'
-        buffer_2_data = b'sample buffer two data'
+        buffer_2_filename = "buffer_2.bin"
+        buffer_2_data = b"sample buffer two data"
         buffer_2_bytelen = len(buffer_2_data)
         # Sample image data (to be embedded)
-        image_filename = 'image.png'
-        image_data = b'sample image data'
+        image_filename = "image.png"
+        image_data = b"sample image data"
         image_bytelen = len(image_data)
         # File Resources
         file_resource_1 = FileResource(filename=buffer_1_filename, data=buffer_1_data)
         file_resource_2 = FileResource(filename=buffer_2_filename, data=buffer_2_data)
-        file_resource_3 = FileResource(filename=image_filename, data=image_data, mimetype='image/jpeg')
+        file_resource_3 = FileResource(filename=image_filename, data=image_data, mimetype="image/jpeg")
         # Create GLTF Model
-        model = GLTFModel(asset=Asset(version='2.0'),
-                          buffers=[
-                              Buffer(byteLength=glb_resource_bytelen),
-                              Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
-                              Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen)
-                          ],
-                          bufferViews=[
-                              BufferView(buffer=0, byteOffset=0, byteLength=5),
-                              BufferView(buffer=0, byteOffset=5, byteLength=4),
-                              BufferView(buffer=1, byteOffset=0, byteLength=10),
-                              BufferView(buffer=1, byteOffset=10, byteLength=12),
-                              BufferView(buffer=2, byteOffset=0, byteLength=10),
-                              BufferView(buffer=2, byteOffset=10, byteLength=12)
-                          ],
-                          images=[Image(uri=image_filename)])
-        gltf = GLTF(model=model, resources=[
-            glb_resource,
-            custom_glb_resource,
-            file_resource_1,
-            file_resource_2,
-            file_resource_3
-        ])
+        model = GLTFModel(
+            asset=Asset(version="2.0"),
+            buffers=[
+                Buffer(byteLength=glb_resource_bytelen),
+                Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
+                Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen),
+            ],
+            bufferViews=[
+                BufferView(buffer=0, byteOffset=0, byteLength=5),
+                BufferView(buffer=0, byteOffset=5, byteLength=4),
+                BufferView(buffer=1, byteOffset=0, byteLength=10),
+                BufferView(buffer=1, byteOffset=10, byteLength=12),
+                BufferView(buffer=2, byteOffset=0, byteLength=10),
+                BufferView(buffer=2, byteOffset=10, byteLength=12),
+            ],
+            images=[Image(uri=image_filename)],
+        )
+        gltf = GLTF(
+            model=model,
+            resources=[glb_resource, custom_glb_resource, file_resource_1, file_resource_2, file_resource_3],
+        )
 
         # Act
         gltf.embed_resource(file_resource_1)
@@ -453,14 +466,15 @@ class TestGLTF(TestCase):
         self.assertIs(glb_resource, gltf.get_glb_resource())
         # Existing GLB resource should have its original data together with the data from file_resource_1 and
         # file_resource_3 (each block null-padded to 4 byte intervals).
-        self.assertEqual(b'some data\x00\x00\x00sample buffer one data\x00\x00sample image data\x00\x00\x00',
-                         glb_resource.data)
+        self.assertEqual(
+            b"some data\x00\x00\x00sample buffer one data\x00\x00sample image data\x00\x00\x00", glb_resource.data
+        )
         # The custom GLB resource should still be present and not mutated in any way
         self.assertIs(custom_glb_resource, gltf.get_glb_resource(123))
-        self.assertEqual(b'more data', custom_glb_resource.data)
+        self.assertEqual(b"more data", custom_glb_resource.data)
         # file_resource_2 should remain external with its data intact
         self.assertIs(file_resource_2, gltf.get_resource(buffer_2_filename))
-        self.assertEqual(b'sample buffer two data', file_resource_2.data)
+        self.assertEqual(b"sample buffer two data", file_resource_2.data)
         # First buffer (referring to the embedded GLB buffer) should be expanded, and its URI should remain undefined
         self.assertIsNone(model.buffers[0].uri)
         self.assertEqual(56, model.buffers[0].byteLength)
@@ -470,23 +484,26 @@ class TestGLTF(TestCase):
         self.assertEqual(2, len(model.buffers))
         # Ensure buffer view contents match what is expected. The offsets and byte lengths are adjusted to point to the
         # embedded data. There should be a new buffer view for the embedded image
-        self.assertEqual([
-            BufferView(buffer=0, byteOffset=0, byteLength=5),
-            BufferView(buffer=0, byteOffset=5, byteLength=4),
-            BufferView(buffer=0, byteOffset=12, byteLength=10),
-            BufferView(buffer=0, byteOffset=22, byteLength=12),
-            BufferView(buffer=1, byteOffset=0, byteLength=10),
-            BufferView(buffer=1, byteOffset=10, byteLength=12),
-            BufferView(buffer=0, byteOffset=36, byteLength=image_bytelen)
-        ], model.bufferViews)
+        self.assertEqual(
+            [
+                BufferView(buffer=0, byteOffset=0, byteLength=5),
+                BufferView(buffer=0, byteOffset=5, byteLength=4),
+                BufferView(buffer=0, byteOffset=12, byteLength=10),
+                BufferView(buffer=0, byteOffset=22, byteLength=12),
+                BufferView(buffer=1, byteOffset=0, byteLength=10),
+                BufferView(buffer=1, byteOffset=10, byteLength=12),
+                BufferView(buffer=0, byteOffset=36, byteLength=image_bytelen),
+            ],
+            model.bufferViews,
+        )
         # Embedded image should now point to a buffer view instead
-        self.assertEqual([Image(uri=None, bufferView=6, mimeType='image/jpeg')], model.images)
+        self.assertEqual([Image(uri=None, bufferView=6, mimeType="image/jpeg")], model.images)
 
     def test_embed_missing_resource_raises_error(self):
         """Attempting to embed a resource that is not present in the resources list should raise a ValueError"""
         # Arrange
-        file_resource = FileResource(filename='buffer.bin', data=b'sample binary data')
-        gltf = GLTF(model=GLTFModel(asset=Asset(version='2.0')))
+        file_resource = FileResource(filename="buffer.bin", data=b"sample binary data")
+        gltf = GLTF(model=GLTFModel(asset=Asset(version="2.0")))
 
         # Act/Assert
         with self.assertRaises(ValueError):
@@ -495,8 +512,8 @@ class TestGLTF(TestCase):
     def test_embed_external_resource_raises_error(self):
         """Attempting to embed an ExternalResource should raise a ValueError (not yet supported)"""
         # Arrange
-        resource = ExternalResource(uri='http://www.example.com/')
-        gltf = GLTF(model=GLTFModel(asset=Asset(version='2.0')), resources=[resource])
+        resource = ExternalResource(uri="http://www.example.com/")
+        gltf = GLTF(model=GLTFModel(asset=Asset(version="2.0")), resources=[resource])
 
         # Act/Assert
         with self.assertRaises(TypeError):
@@ -505,15 +522,15 @@ class TestGLTF(TestCase):
     def test_export_glb(self):
         """Basic test to ensure a model can be saved in GLB format"""
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri='buffer.bin', byteLength=bytelen)])
-        file_resource = FileResource(filename='buffer.bin', data=data)
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri="buffer.bin", byteLength=bytelen)])
+        file_resource = FileResource(filename="buffer.bin", data=data)
         gltf = GLTF(model=model, resources=[file_resource])
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'sample.glb')
+            filename = path.join(temp_dir, "sample.glb")
             gltf2 = gltf.export(filename)
 
             # Assert
@@ -534,15 +551,15 @@ class TestGLTF(TestCase):
             # Binary data should be padded to a multiple of 4
             self.assertEqual(20, buffer.byteLength)
             # Original model instance should retain its buffer with the original uri
-            self.assertEqual([Buffer(uri='buffer.bin', byteLength=bytelen)], gltf.model.buffers)
+            self.assertEqual([Buffer(uri="buffer.bin", byteLength=bytelen)], gltf.model.buffers)
             # Ensure embedded GLB resource was parsed correctly
             self.assertEqual(1, len(glb.resources))
             resource = glb.get_glb_resource()
             self.assertIsInstance(resource, GLBResource)
             # Binary data should be null-padded so its length is a multiple of 4 bytes
-            self.assertEqual(b'sample binary data\x00\x00', resource.data)
+            self.assertEqual(b"sample binary data\x00\x00", resource.data)
             # Original resource data should not be mutated
-            self.assertEqual(b'sample binary data', file_resource.data)
+            self.assertEqual(b"sample binary data", file_resource.data)
 
     def test_export_glb_multiple_buffers(self):
         """
@@ -551,32 +568,26 @@ class TestGLTF(TestCase):
         adjusted.
         """
         # Arrange
-        data1 = b'sample binary data'
+        data1 = b"sample binary data"
         bytelen1 = len(data1)
-        data2 = b'some more binary data'
+        data2 = b"some more binary data"
         bytelen2 = len(data2)
-        file_resource_1 = FileResource(filename='buffer1.bin', data=data1)
-        file_resource_2 = FileResource(filename='buffer2.bin', data=data2)
+        file_resource_1 = FileResource(filename="buffer1.bin", data=data1)
+        file_resource_2 = FileResource(filename="buffer2.bin", data=data2)
         model = GLTFModel(
-            asset=Asset(version='2.0'),
-            buffers=[
-                Buffer(uri='buffer1.bin', byteLength=bytelen1),
-                Buffer(uri='buffer2.bin', byteLength=bytelen2)
-            ],
+            asset=Asset(version="2.0"),
+            buffers=[Buffer(uri="buffer1.bin", byteLength=bytelen1), Buffer(uri="buffer2.bin", byteLength=bytelen2)],
             bufferViews=[
                 BufferView(buffer=0, byteOffset=0, byteLength=10),
                 BufferView(buffer=0, byteOffset=10, byteLength=8),
-                BufferView(buffer=1, byteOffset=0, byteLength=21)
-            ]
+                BufferView(buffer=1, byteOffset=0, byteLength=21),
+            ],
         )
-        gltf = GLTF(model=model, resources=[
-            file_resource_1,
-            file_resource_2
-        ])
+        gltf = GLTF(model=model, resources=[file_resource_1, file_resource_2])
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'test_export_glb_multiple_buffers.glb')
+            filename = path.join(temp_dir, "test_export_glb_multiple_buffers.glb")
             gltf2 = gltf.export(filename)
 
             # Assert
@@ -596,21 +607,24 @@ class TestGLTF(TestCase):
             buffer = glb.model.buffers[0]
             self.assertIsNone(buffer.uri)
             # Original model instance should retain its original buffers and buffer views
-            self.assertEqual([
-                Buffer(uri='buffer1.bin', byteLength=bytelen1),
-                Buffer(uri='buffer2.bin', byteLength=bytelen2)
-            ], gltf.model.buffers)
-            self.assertEqual([
-                BufferView(buffer=0, byteOffset=0, byteLength=10),
-                BufferView(buffer=0, byteOffset=10, byteLength=8),
-                BufferView(buffer=1, byteOffset=0, byteLength=21)
-            ], gltf.model.bufferViews)
+            self.assertEqual(
+                [Buffer(uri="buffer1.bin", byteLength=bytelen1), Buffer(uri="buffer2.bin", byteLength=bytelen2)],
+                gltf.model.buffers,
+            )
+            self.assertEqual(
+                [
+                    BufferView(buffer=0, byteOffset=0, byteLength=10),
+                    BufferView(buffer=0, byteOffset=10, byteLength=8),
+                    BufferView(buffer=1, byteOffset=0, byteLength=21),
+                ],
+                gltf.model.bufferViews,
+            )
             # Ensure embedded GLB resource was parsed correctly
             self.assertEqual(1, len(glb.resources))
             resource = glb.get_glb_resource()
             self.assertIsInstance(resource, GLBResource)
             # Binary data should be merged and its individual chunks null-padded so that they align to a 4-byte boundary
-            self.assertEqual(b'sample binary data\x00\x00some more binary data\x00\x00\x00', resource.data)
+            self.assertEqual(b"sample binary data\x00\x00some more binary data\x00\x00\x00", resource.data)
             self.assertEqual(44, buffer.byteLength)
             # Buffer views should now point to the GLB buffer (index 0) and have their offsets adjusted based on the
             # merged data.
@@ -621,15 +635,15 @@ class TestGLTF(TestCase):
     def test_export_glb_embed_image(self):
         """Tests embedding an image into the GLB that was previously an external file reference"""
         # Arrange
-        data = b'sample image data'
+        data = b"sample image data"
         bytelen = len(data)
-        image_filename = 'image.png'
-        model = GLTFModel(asset=Asset(version='2.0'), images=[Image(uri=image_filename)])
-        gltf = GLTF(model=model, resources=[FileResource(filename=image_filename, data=data, mimetype='image/jpeg')])
+        image_filename = "image.png"
+        model = GLTFModel(asset=Asset(version="2.0"), images=[Image(uri=image_filename)])
+        gltf = GLTF(model=model, resources=[FileResource(filename=image_filename, data=data, mimetype="image/jpeg")])
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'test_export_glb_embed_image.glb')
+            filename = path.join(temp_dir, "test_export_glb_embed_image.glb")
             gltf.export(filename)
 
             # Assert
@@ -648,7 +662,7 @@ class TestGLTF(TestCase):
             resource = glb.get_glb_resource()
             self.assertIsInstance(resource, GLBResource)
             # Binary data should be null-padded so its length is a multiple of 4 bytes
-            self.assertEqual(b'sample image data\x00\x00\x00', resource.data)
+            self.assertEqual(b"sample image data\x00\x00\x00", resource.data)
             # Ensure image was transformed so it points to a buffer view
             image = glb.model.images[0]
             self.assertIsInstance(image, Image)
@@ -657,7 +671,7 @@ class TestGLTF(TestCase):
             self.assertIsNone(image.uri)
             # MIME type is required if image is stored in a buffer. Ensure it got stored correctly based on what we
             # passed in via the FileResource (even if it's not technically the correct MIME type for a PNG image).
-            self.assertEqual('image/jpeg', image.mimeType)
+            self.assertEqual("image/jpeg", image.mimeType)
             # Ensure that a buffer view was created for the embedded image
             self.assertEqual(1, len(glb.model.bufferViews))
             buffer_view = glb.model.bufferViews[0]
@@ -671,43 +685,41 @@ class TestGLTF(TestCase):
         """Tests embedding both buffer and image resources into a GLB"""
         # Arrange
         # Sample buffer 1 data
-        buffer_1_filename = 'buffer_1.bin'
-        buffer_1_data = b'sample buffer one data'
+        buffer_1_filename = "buffer_1.bin"
+        buffer_1_data = b"sample buffer one data"
         buffer_1_bytelen = len(buffer_1_data)
         # Sample buffer 2 data
-        buffer_2_filename = 'buffer_2.bin'
-        buffer_2_data = b'sample buffer two data'
+        buffer_2_filename = "buffer_2.bin"
+        buffer_2_data = b"sample buffer two data"
         buffer_2_bytelen = len(buffer_2_data)
         # Sample image data
-        image_filename = 'image.png'
-        image_data = b'sample image data'
+        image_filename = "image.png"
+        image_data = b"sample image data"
         image_bytelen = len(image_data)
         # File Resources
         file_resource_1 = FileResource(filename=buffer_1_filename, data=buffer_1_data)
         file_resource_2 = FileResource(filename=buffer_2_filename, data=buffer_2_data)
-        file_resource_3 = FileResource(filename=image_filename, data=image_data, mimetype='image/jpeg')
+        file_resource_3 = FileResource(filename=image_filename, data=image_data, mimetype="image/jpeg")
         # Create GLTF Model
-        model = GLTFModel(asset=Asset(version='2.0'),
-                          buffers=[
-                              Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
-                              Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen)
-                          ],
-                          bufferViews=[
-                              BufferView(buffer=0, byteOffset=0, byteLength=10),
-                              BufferView(buffer=0, byteOffset=10, byteLength=12),
-                              BufferView(buffer=1, byteOffset=0, byteLength=10),
-                              BufferView(buffer=1, byteOffset=10, byteLength=12)
-                          ],
-                          images=[Image(uri=image_filename)])
-        gltf = GLTF(model=model, resources=[
-            file_resource_1,
-            file_resource_2,
-            file_resource_3
-        ])
+        model = GLTFModel(
+            asset=Asset(version="2.0"),
+            buffers=[
+                Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
+                Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen),
+            ],
+            bufferViews=[
+                BufferView(buffer=0, byteOffset=0, byteLength=10),
+                BufferView(buffer=0, byteOffset=10, byteLength=12),
+                BufferView(buffer=1, byteOffset=0, byteLength=10),
+                BufferView(buffer=1, byteOffset=10, byteLength=12),
+            ],
+            images=[Image(uri=image_filename)],
+        )
+        gltf = GLTF(model=model, resources=[file_resource_1, file_resource_2, file_resource_3])
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'test_export_glb_mixed_resources.glb')
+            filename = path.join(temp_dir, "test_export_glb_mixed_resources.glb")
             gltf2 = gltf.export(filename)
 
             # Assert
@@ -728,24 +740,32 @@ class TestGLTF(TestCase):
             # Buffer URI should be undefined since the data is now embedded
             self.assertIsNone(buffer.uri)
             # Original model instance should retain its original buffers, buffer views, and images
-            self.assertEqual([
-                Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
-                Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen)
-            ], gltf.model.buffers)
-            self.assertEqual([
-                BufferView(buffer=0, byteOffset=0, byteLength=10),
-                BufferView(buffer=0, byteOffset=10, byteLength=12),
-                BufferView(buffer=1, byteOffset=0, byteLength=10),
-                BufferView(buffer=1, byteOffset=10, byteLength=12)
-            ], gltf.model.bufferViews)
+            self.assertEqual(
+                [
+                    Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
+                    Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen),
+                ],
+                gltf.model.buffers,
+            )
+            self.assertEqual(
+                [
+                    BufferView(buffer=0, byteOffset=0, byteLength=10),
+                    BufferView(buffer=0, byteOffset=10, byteLength=12),
+                    BufferView(buffer=1, byteOffset=0, byteLength=10),
+                    BufferView(buffer=1, byteOffset=10, byteLength=12),
+                ],
+                gltf.model.bufferViews,
+            )
             self.assertEqual([Image(uri=image_filename)], gltf.model.images)
             # Ensure embedded GLB resource was parsed correctly
             self.assertEqual(1, len(glb.resources))
             resource = glb.get_glb_resource()
             self.assertIsInstance(resource, GLBResource)
             # Binary data should be merged and its individual chunks null-padded so that they align to a 4-byte boundary
-            self.assertEqual(b'sample buffer one data\x00\x00sample buffer two data\x00\x00sample image data\x00\x00\x00',
-                            resource.data)
+            self.assertEqual(
+                b"sample buffer one data\x00\x00sample buffer two data\x00\x00sample image data\x00\x00\x00",
+                resource.data,
+            )
             self.assertEqual(68, buffer.byteLength)
             # Buffer views should now point to the GLB buffer (index 0) and have their offsets adjusted based on the
             # merged data.
@@ -774,39 +794,38 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Sample buffer 1 data (to be embedded)
-        buffer_1_filename = 'buffer_1.bin'
-        buffer_1_data = b'sample buffer one data'
+        buffer_1_filename = "buffer_1.bin"
+        buffer_1_data = b"sample buffer one data"
         buffer_1_bytelen = len(buffer_1_data)
         # Sample image data (already embedded)
-        image_filename = 'image.png'
-        image_data = b'sample image data'
+        image_filename = "image.png"
+        image_data = b"sample image data"
         image_bytelen = len(image_data)
         # Create resources
         glb_resource = GLBResource(data=image_data)
         file_resource = FileResource(filename=buffer_1_filename, data=buffer_1_data)
         # Create GLTF Model
-        model = GLTFModel(asset=Asset(version='2.0'),
-                          buffers=[
-                              Buffer(byteLength=image_bytelen),
-                              Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen)
-                          ],
-                          bufferViews=[
-                              BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen),
-                              BufferView(buffer=1, byteOffset=0, byteLength=buffer_1_bytelen)
-                          ],
-                          images=[Image(uri=image_filename, bufferView=0)])
+        model = GLTFModel(
+            asset=Asset(version="2.0"),
+            buffers=[Buffer(byteLength=image_bytelen), Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen)],
+            bufferViews=[
+                BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen),
+                BufferView(buffer=1, byteOffset=0, byteLength=buffer_1_bytelen),
+            ],
+            images=[Image(uri=image_filename, bufferView=0)],
+        )
         gltf = GLTF(model=model, resources=[glb_resource, file_resource])
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'test_export_glb_with_embedded_image.glb')
+            filename = path.join(temp_dir, "test_export_glb_with_embedded_image.glb")
             gltf2 = gltf.export(filename)
 
             # Assert
             # Resources on the original model instance should not be mutated
             self.assertEqual([glb_resource, file_resource], gltf.resources)
-            self.assertEqual(b'sample image data', glb_resource.data)
-            self.assertEqual(b'sample buffer one data', file_resource.data)
+            self.assertEqual(b"sample image data", glb_resource.data)
+            self.assertEqual(b"sample buffer one data", file_resource.data)
             # The exported model should contain a single GLB resource
             self.assertEqual(1, len(gltf2.resources))
             self.assertIsInstance(gltf2.resources[0], GLBResource)
@@ -819,21 +838,24 @@ class TestGLTF(TestCase):
             # Buffer URI should be undefined since the data is now embedded
             self.assertIsNone(buffer.uri)
             # Original model instance should retain its original buffers, buffer views, and images
-            self.assertEqual([
-                Buffer(byteLength=image_bytelen),
-                Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen)
-            ], gltf.model.buffers)
-            self.assertEqual([
-                BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen),
-                BufferView(buffer=1, byteOffset=0, byteLength=buffer_1_bytelen)
-            ], gltf.model.bufferViews)
+            self.assertEqual(
+                [Buffer(byteLength=image_bytelen), Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen)],
+                gltf.model.buffers,
+            )
+            self.assertEqual(
+                [
+                    BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen),
+                    BufferView(buffer=1, byteOffset=0, byteLength=buffer_1_bytelen),
+                ],
+                gltf.model.bufferViews,
+            )
             self.assertEqual([Image(uri=image_filename, bufferView=0)], gltf.model.images)
             # Ensure embedded GLB resource was parsed correctly
             self.assertEqual(1, len(glb.resources))
             resource = glb.get_glb_resource()
             self.assertIsInstance(resource, GLBResource)
             # Binary data should be merged and its individual chunks null-padded so that they align to a 4-byte boundary
-            self.assertEqual(b'sample image data\x00\x00\x00sample buffer one data\x00\x00', resource.data)
+            self.assertEqual(b"sample image data\x00\x00\x00sample buffer one data\x00\x00", resource.data)
             self.assertEqual(44, buffer.byteLength)
             # Buffer views should now point to the GLB buffer (index 0) and have their offsets adjusted based on the
             # merged data.
@@ -847,13 +869,13 @@ class TestGLTF(TestCase):
         buffer and resource should be preserved, and no new ones added)
         """
         # Arrange
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(byteLength=4)])
-        resource = GLBResource(b'data')
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(byteLength=4)])
+        resource = GLBResource(b"data")
         gltf = GLTF(model=model, resources=[resource])
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'test_export_glb_with_existing_glb_buffer_and_resource.glb')
+            filename = path.join(temp_dir, "test_export_glb_with_existing_glb_buffer_and_resource.glb")
             gltf.export(filename)
 
             # Assert
@@ -868,7 +890,7 @@ class TestGLTF(TestCase):
             self.assertEqual(1, len(glb.resources))
             glb_resource = glb.get_glb_resource()
             self.assertIsInstance(glb_resource, GLBResource)
-            self.assertEqual(b'data', glb_resource.data)
+            self.assertEqual(b"data", glb_resource.data)
 
     def test_export_glb_with_external_image_resource(self):
         """
@@ -876,39 +898,44 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Sample buffer 1 data
-        buffer_1_filename = 'buffer_1.bin'
-        buffer_1_data = b'sample buffer one data'
+        buffer_1_filename = "buffer_1.bin"
+        buffer_1_data = b"sample buffer one data"
         buffer_1_bytelen = len(buffer_1_data)
         # Sample buffer 2 data
-        buffer_2_filename = 'buffer_2.bin'
-        buffer_2_data = b'sample buffer two data'
+        buffer_2_filename = "buffer_2.bin"
+        buffer_2_data = b"sample buffer two data"
         buffer_2_bytelen = len(buffer_2_data)
         # Sample image data (this will remain external)
-        image_filename = 'sample_image.png'
-        image_data = b'sample image data'
+        image_filename = "sample_image.png"
+        image_data = b"sample image data"
         # Create GLTF Model
-        model = GLTFModel(asset=Asset(version='2.0'),
-                          buffers=[
-                              Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
-                              Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen)
-                          ],
-                          bufferViews=[
-                              BufferView(buffer=0, byteOffset=0, byteLength=10),
-                              BufferView(buffer=0, byteOffset=10, byteLength=12),
-                              BufferView(buffer=1, byteOffset=0, byteLength=10),
-                              BufferView(buffer=1, byteOffset=10, byteLength=12)
-                          ],
-                          images=[Image(uri=image_filename)])
-        gltf = GLTF(model=model, resources=[
-            FileResource(filename=buffer_1_filename, data=buffer_1_data),
-            FileResource(filename=buffer_2_filename, data=buffer_2_data),
-            FileResource(filename=image_filename, data=image_data, mimetype='image/jpeg')
-        ])
+        model = GLTFModel(
+            asset=Asset(version="2.0"),
+            buffers=[
+                Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
+                Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen),
+            ],
+            bufferViews=[
+                BufferView(buffer=0, byteOffset=0, byteLength=10),
+                BufferView(buffer=0, byteOffset=10, byteLength=12),
+                BufferView(buffer=1, byteOffset=0, byteLength=10),
+                BufferView(buffer=1, byteOffset=10, byteLength=12),
+            ],
+            images=[Image(uri=image_filename)],
+        )
+        gltf = GLTF(
+            model=model,
+            resources=[
+                FileResource(filename=buffer_1_filename, data=buffer_1_data),
+                FileResource(filename=buffer_2_filename, data=buffer_2_data),
+                FileResource(filename=image_filename, data=image_data, mimetype="image/jpeg"),
+            ],
+        )
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
             # Export the GLB (do not embed image resources)
-            filename = path.join(temp_dir, 'test_export_glb_with_external_image_resource.glb')
+            filename = path.join(temp_dir, "test_export_glb_with_external_image_resource.glb")
             gltf.export_glb(filename, embed_image_resources=False)
 
             # Assert
@@ -928,8 +955,7 @@ class TestGLTF(TestCase):
             resource = glb.get_glb_resource()
             self.assertIsInstance(resource, GLBResource)
             # Binary data should be merged and its individual chunks null-padded so that they align to a 4-byte boundary
-            self.assertEqual(b'sample buffer one data\x00\x00sample buffer two data\x00\x00',
-                            resource.data)
+            self.assertEqual(b"sample buffer one data\x00\x00sample buffer two data\x00\x00", resource.data)
             self.assertEqual(48, buffer.byteLength)
             # Buffer views should now point to the GLB buffer (index 0) and have their offsets adjusted based on the
             # merged data.
@@ -944,7 +970,7 @@ class TestGLTF(TestCase):
             self.assertIsInstance(image_resource, FileResource)
             # Ensure image filename and data are retained after export
             self.assertEqual(image_filename, image_resource.filename)
-            self.assertEqual(b'sample image data', image_resource.data)
+            self.assertEqual(b"sample image data", image_resource.data)
             # Ensure image is retained in the model structure
             image = glb.model.images[0]
             self.assertIsInstance(image, Image)
@@ -959,42 +985,47 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Sample buffer 1 data
-        buffer_1_filename = 'buffer_1.bin'
-        buffer_1_data = b'sample buffer one data'
+        buffer_1_filename = "buffer_1.bin"
+        buffer_1_data = b"sample buffer one data"
         buffer_1_bytelen = len(buffer_1_data)
         # Sample buffer 2 data
-        buffer_2_filename = 'buffer_2.bin'
-        buffer_2_data = b'sample buffer two data'
+        buffer_2_filename = "buffer_2.bin"
+        buffer_2_data = b"sample buffer two data"
         buffer_2_bytelen = len(buffer_2_data)
         # Sample buffer 3 data
-        buffer_3_filename = 'buffer_3.bin'
-        buffer_3_data = b'sample buffer three data'
+        buffer_3_filename = "buffer_3.bin"
+        buffer_3_data = b"sample buffer three data"
         buffer_3_bytelen = len(buffer_3_data)
         # Create GLTF Model
-        model = GLTFModel(asset=Asset(version='2.0'),
-                          buffers=[
-                              Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
-                              Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen),
-                              Buffer(uri=buffer_3_filename, byteLength=buffer_3_bytelen)
-                          ],
-                          bufferViews=[
-                              BufferView(buffer=0, byteOffset=0, byteLength=10),
-                              BufferView(buffer=0, byteOffset=10, byteLength=12),
-                              BufferView(buffer=1, byteOffset=0, byteLength=10),
-                              BufferView(buffer=1, byteOffset=10, byteLength=12),
-                              BufferView(buffer=2, byteOffset=0, byteLength=10),
-                              BufferView(buffer=2, byteOffset=10, byteLength=14)
-                          ])
-        gltf = GLTF(model=model, resources=[
-            FileResource(filename=buffer_1_filename, data=buffer_1_data),
-            FileResource(filename=buffer_2_filename, data=buffer_2_data),
-            FileResource(filename=buffer_3_filename, data=buffer_3_data)
-        ])
+        model = GLTFModel(
+            asset=Asset(version="2.0"),
+            buffers=[
+                Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
+                Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen),
+                Buffer(uri=buffer_3_filename, byteLength=buffer_3_bytelen),
+            ],
+            bufferViews=[
+                BufferView(buffer=0, byteOffset=0, byteLength=10),
+                BufferView(buffer=0, byteOffset=10, byteLength=12),
+                BufferView(buffer=1, byteOffset=0, byteLength=10),
+                BufferView(buffer=1, byteOffset=10, byteLength=12),
+                BufferView(buffer=2, byteOffset=0, byteLength=10),
+                BufferView(buffer=2, byteOffset=10, byteLength=14),
+            ],
+        )
+        gltf = GLTF(
+            model=model,
+            resources=[
+                FileResource(filename=buffer_1_filename, data=buffer_1_data),
+                FileResource(filename=buffer_2_filename, data=buffer_2_data),
+                FileResource(filename=buffer_3_filename, data=buffer_3_data),
+            ],
+        )
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
             # Export the GLB
-            filename = path.join(temp_dir, 'test_export_glb_with_more_than_two_resources.glb')
+            filename = path.join(temp_dir, "test_export_glb_with_more_than_two_resources.glb")
             gltf.export_glb(filename)
 
             # Assert
@@ -1012,8 +1043,10 @@ class TestGLTF(TestCase):
             self.assertIsInstance(glb_resource, GLBResource)
             self.assertEqual(glb_resource, glb.resources[0])
             # Binary data should be merged and its individual chunks null-padded so that they align to a 4-byte boundary
-            self.assertEqual(b'sample buffer one data\x00\x00sample buffer two data\x00\x00sample buffer three data',
-                            glb_resource.data)
+            self.assertEqual(
+                b"sample buffer one data\x00\x00sample buffer two data\x00\x00sample buffer three data",
+                glb_resource.data,
+            )
             self.assertEqual(72, buffer.byteLength)
             # Buffer views should now point to the GLB buffer (index 0) and have their offsets adjusted based on the
             # merged data.
@@ -1031,28 +1064,32 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Sample image 1
-        image_1_filename = 'sample_image_1.png'
-        image_1_data = b'sample image 1 data'
+        image_1_filename = "sample_image_1.png"
+        image_1_data = b"sample image 1 data"
         # Sample image 2
-        image_2_filename = 'sample_image_2.png'
-        image_2_data = b'sample image 2 data'
+        image_2_filename = "sample_image_2.png"
+        image_2_data = b"sample image 2 data"
         # Sample image 3
-        image_3_filename = 'sample_image_3.png'
-        image_3_data = b'sample image 3 data'
+        image_3_filename = "sample_image_3.png"
+        image_3_data = b"sample image 3 data"
         # Create GLTF Model
-        model = GLTFModel(asset=Asset(version='2.0'),
-                          images=[Image(uri=image_1_filename), Image(uri=image_2_filename),
-                                  Image(uri=image_3_filename)])
-        gltf = GLTF(model=model, resources=[
-            FileResource(filename=image_1_filename, data=image_1_data, mimetype='image/jpeg'),
-            FileResource(filename=image_2_filename, data=image_2_data, mimetype='image/jpeg'),
-            FileResource(filename=image_3_filename, data=image_3_data, mimetype='image/jpeg')
-        ])
+        model = GLTFModel(
+            asset=Asset(version="2.0"),
+            images=[Image(uri=image_1_filename), Image(uri=image_2_filename), Image(uri=image_3_filename)],
+        )
+        gltf = GLTF(
+            model=model,
+            resources=[
+                FileResource(filename=image_1_filename, data=image_1_data, mimetype="image/jpeg"),
+                FileResource(filename=image_2_filename, data=image_2_data, mimetype="image/jpeg"),
+                FileResource(filename=image_3_filename, data=image_3_data, mimetype="image/jpeg"),
+            ],
+        )
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
             # Export the GLB
-            filename = path.join(temp_dir, 'test_export_glb_with_more_than_two_images.glb')
+            filename = path.join(temp_dir, "test_export_glb_with_more_than_two_images.glb")
             gltf.export_glb(filename)
 
             # Assert
@@ -1070,8 +1107,9 @@ class TestGLTF(TestCase):
             self.assertIsInstance(glb_resource, GLBResource)
             self.assertEqual(glb_resource, glb.resources[0])
             # Binary data should be merged and its individual chunks null-padded so that they align to a 4-byte boundary
-            self.assertEqual(b'sample image 1 data\x00sample image 2 data\x00sample image 3 data\x00',
-                            glb_resource.data)
+            self.assertEqual(
+                b"sample image 1 data\x00sample image 2 data\x00sample image 3 data\x00", glb_resource.data
+            )
             self.assertEqual(60, buffer.byteLength)
             # Buffer views should be created for each image
             self.assertEqual(BufferView(buffer=0, byteOffset=0, byteLength=19), glb.model.bufferViews[0])
@@ -1093,39 +1131,44 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Sample buffer 1 data (this will remain external)
-        buffer_1_filename = 'sample_8_buffer_1.bin'
-        buffer_1_data = b'sample buffer one data'
+        buffer_1_filename = "sample_8_buffer_1.bin"
+        buffer_1_data = b"sample buffer one data"
         buffer_1_bytelen = len(buffer_1_data)
         # Sample buffer 2 data (this will remain external)
-        buffer_2_filename = 'sample_8_buffer_2.bin'
-        buffer_2_data = b'sample buffer two data'
+        buffer_2_filename = "sample_8_buffer_2.bin"
+        buffer_2_data = b"sample buffer two data"
         buffer_2_bytelen = len(buffer_2_data)
         # Sample image data (this will remain external)
-        image_filename = 'sample_8_image.png'
-        image_data = b'sample image data'
+        image_filename = "sample_8_image.png"
+        image_data = b"sample image data"
         # Create GLTF Model
-        model = GLTFModel(asset=Asset(version='2.0'),
-                          buffers=[
-                              Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
-                              Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen)
-                          ],
-                          bufferViews=[
-                              BufferView(buffer=0, byteOffset=0, byteLength=10),
-                              BufferView(buffer=0, byteOffset=10, byteLength=12),
-                              BufferView(buffer=1, byteOffset=0, byteLength=10),
-                              BufferView(buffer=1, byteOffset=10, byteLength=12)
-                          ],
-                          images=[Image(uri=image_filename)])
-        gltf = GLTF(model=model, resources=[
-            FileResource(filename=buffer_1_filename, data=buffer_1_data),
-            FileResource(filename=buffer_2_filename, data=buffer_2_data),
-            FileResource(filename=image_filename, data=image_data, mimetype='image/jpeg')
-        ])
+        model = GLTFModel(
+            asset=Asset(version="2.0"),
+            buffers=[
+                Buffer(uri=buffer_1_filename, byteLength=buffer_1_bytelen),
+                Buffer(uri=buffer_2_filename, byteLength=buffer_2_bytelen),
+            ],
+            bufferViews=[
+                BufferView(buffer=0, byteOffset=0, byteLength=10),
+                BufferView(buffer=0, byteOffset=10, byteLength=12),
+                BufferView(buffer=1, byteOffset=0, byteLength=10),
+                BufferView(buffer=1, byteOffset=10, byteLength=12),
+            ],
+            images=[Image(uri=image_filename)],
+        )
+        gltf = GLTF(
+            model=model,
+            resources=[
+                FileResource(filename=buffer_1_filename, data=buffer_1_data),
+                FileResource(filename=buffer_2_filename, data=buffer_2_data),
+                FileResource(filename=image_filename, data=image_data, mimetype="image/jpeg"),
+            ],
+        )
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
             # Export the GLB (do not embed buffer or image resources)
-            filename = path.join(temp_dir, 'test_export_glb_with_all_resources_remaining_external.glb')
+            filename = path.join(temp_dir, "test_export_glb_with_all_resources_remaining_external.glb")
             gltf.export_glb(filename, embed_buffer_resources=False, embed_image_resources=False)
 
             # Assert
@@ -1170,7 +1213,7 @@ class TestGLTF(TestCase):
             self.assertIsInstance(image_resource, FileResource)
             # Ensure image filename and data are retained after export
             self.assertEqual(image_filename, image_resource.filename)
-            self.assertEqual(b'sample image data', image_resource.data)
+            self.assertEqual(b"sample image data", image_resource.data)
             # Ensure image is retained in the model structure
             image = glb.model.images[0]
             self.assertIsInstance(image, Image)
@@ -1183,30 +1226,35 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Sample buffer data
-        buffer_filename = 'buffer.bin'
-        buffer_data = b'sample buffer one data'
+        buffer_filename = "buffer.bin"
+        buffer_data = b"sample buffer one data"
         buffer_bytelen = len(buffer_data)
         # Sample image data (this will remain external, and we will skip actually saving it)
-        image_filename = 'sample_image.png'
-        image_data = b'sample image data'
+        image_filename = "sample_image.png"
+        image_data = b"sample image data"
         # Delete sample image if it exists
         with tempfile.TemporaryDirectory() as temp_dir:
             image_path = path.join(temp_dir, image_filename)
             if path.exists(image_path):
                 os.remove(image_path)
             # Create GLTF Model
-            model = GLTFModel(asset=Asset(version='2.0'),
-                            buffers=[Buffer(uri=buffer_filename, byteLength=buffer_bytelen)],
-                            bufferViews=[BufferView(buffer=0, byteOffset=0, byteLength=22)],
-                            images=[Image(uri=image_filename)])
-            gltf = GLTF(model=model, resources=[
-                FileResource(filename=buffer_filename, data=buffer_data),
-                FileResource(filename=image_filename, data=image_data, mimetype='image/jpeg')
-            ])
+            model = GLTFModel(
+                asset=Asset(version="2.0"),
+                buffers=[Buffer(uri=buffer_filename, byteLength=buffer_bytelen)],
+                bufferViews=[BufferView(buffer=0, byteOffset=0, byteLength=22)],
+                images=[Image(uri=image_filename)],
+            )
+            gltf = GLTF(
+                model=model,
+                resources=[
+                    FileResource(filename=buffer_filename, data=buffer_data),
+                    FileResource(filename=image_filename, data=image_data, mimetype="image/jpeg"),
+                ],
+            )
 
             # Act
             # Export the GLB (do not embed image resources, and skip saving file resources)
-            filename = path.join(temp_dir, 'test_export_glb_with_external_image_resource_skip_saving_files.glb')
+            filename = path.join(temp_dir, "test_export_glb_with_external_image_resource_skip_saving_files.glb")
             gltf.export_glb(filename, embed_image_resources=False, save_file_resources=False)
 
             # Assert
@@ -1240,16 +1288,16 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Load a glTF model with load_file_resources set to False
-        gltf = GLTF.load(sample('BoxTextured'), load_file_resources=False)
+        gltf = GLTF.load(sample("BoxTextured"), load_file_resources=False)
         # Ensure resource is initially not loaded
-        resource = gltf.get_resource('CesiumLogoFlat.png')
+        resource = gltf.get_resource("CesiumLogoFlat.png")
         self.assertIsInstance(resource, FileResource)
         self.assertFalse(resource.loaded)
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
             # Convert the glTF to a GLB
-            filename = path.join(temp_dir, 'test_export_glb_with_resource_not_yet_loaded.glb')
+            filename = path.join(temp_dir, "test_export_glb_with_resource_not_yet_loaded.glb")
             exported_glb = gltf.export(filename)
 
             # Assert
@@ -1259,12 +1307,12 @@ class TestGLTF(TestCase):
             image_buffer_view = exported_glb.model.bufferViews[image.bufferView]
             offset = image_buffer_view.byteOffset
             bytelen = image_buffer_view.byteLength
-            extracted_image_data = glb_resource.data[offset:(offset + bytelen)]
+            extracted_image_data = glb_resource.data[offset : (offset + bytelen)]
             # Ensure image data matches
             resource.load()
             self.assertEqual(resource.data, extracted_image_data)
             # MIME type should be automatically determined when loading the image
-            self.assertEqual('image/png', image.mimeType)
+            self.assertEqual("image/png", image.mimeType)
             # Image URI should be undefined since it is now embedded
             self.assertIsNone(image.uri)
 
@@ -1276,9 +1324,9 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Load a glTF model with load_file_resources set to False
-        gltf = GLTF.load(sample('BoxTextured'), load_file_resources=False)
+        gltf = GLTF.load(sample("BoxTextured"), load_file_resources=False)
         # Resource should initially not be loaded
-        resource = gltf.get_resource('CesiumLogoFlat.png')
+        resource = gltf.get_resource("CesiumLogoFlat.png")
         self.assertIsInstance(resource, FileResource)
         self.assertFalse(resource.loaded)
 
@@ -1286,24 +1334,24 @@ class TestGLTF(TestCase):
         with tempfile.TemporaryDirectory() as temp_dir:
             # Convert the glTF to a GLB without embedding the resource. However, set save_file_resources to True, so
             # the image should still get loaded and saved.
-            filename = path.join(temp_dir, 'test_export_glb_with_resource_not_yet_loaded_without_embedding.glb')
+            filename = path.join(temp_dir, "test_export_glb_with_resource_not_yet_loaded_without_embedding.glb")
             exported_glb = gltf.export_glb(filename, embed_image_resources=False, save_file_resources=True)
 
             # Assert
             # Original image resource should not be loaded
             self.assertFalse(resource.loaded)
             # Exported image resource should be loaded
-            exported_resource = exported_glb.get_resource('CesiumLogoFlat.png')
+            exported_resource = exported_glb.get_resource("CesiumLogoFlat.png")
             self.assertIsInstance(exported_resource, FileResource)
             self.assertTrue(exported_resource.loaded)
             # Ensure image got saved
-            image_filename = path.join(temp_dir, 'CesiumLogoFlat.png')
+            image_filename = path.join(temp_dir, "CesiumLogoFlat.png")
             self.assertTrue(path.exists(image_filename))
 
             bin_file = get_file_from_hub("BoxTextured", "CesiumLogoFlat.png", "glTF")
-            with open(bin_file, 'rb') as f:
+            with open(bin_file, "rb") as f:
                 original_texture_data = f.read()
-            with open(image_filename, 'rb') as f:
+            with open(image_filename, "rb") as f:
                 texture_data = f.read()
             self.assertEqual(original_texture_data, texture_data)
 
@@ -1314,17 +1362,20 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Load a glTF model with load_file_resources set to False
-        gltf = GLTF.load(sample('BoxTextured'), load_file_resources=False)
+        gltf = GLTF.load(sample("BoxTextured"), load_file_resources=False)
         # Resource should initially not be loaded
-        resource = gltf.get_resource('CesiumLogoFlat.png')
+        resource = gltf.get_resource("CesiumLogoFlat.png")
         self.assertIsInstance(resource, FileResource)
         self.assertFalse(resource.loaded)
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
             # Convert the glTF to a GLB without embedding or saving image resources
-            filename = path.join(temp_dir, 'test_resource_remains_not_loaded_when_exporting_glb_without_embedding_or_'
-                                        'saving_file_resources.glb')
+            filename = path.join(
+                temp_dir,
+                "test_resource_remains_not_loaded_when_exporting_glb_without_embedding_or_"
+                "saving_file_resources.glb",
+            )
             gltf.export_glb(filename, embed_image_resources=False, save_file_resources=False)
 
             # Assert
@@ -1337,27 +1388,27 @@ class TestGLTF(TestCase):
         a FileResource or EmbeddedResource first).
         """
         # Arrange
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(byteLength=4)])
-        resource = GLBResource(b'data')
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(byteLength=4)])
+        resource = GLBResource(b"data")
         gltf = GLTF(model=model, resources=[resource])
 
         # Act/Assert
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'test_export_gltf_raises_error_if_glb_resource_is_present.gltf')
+            filename = path.join(temp_dir, "test_export_gltf_raises_error_if_glb_resource_is_present.gltf")
             with self.assertRaises(TypeError):
                 gltf.export(filename)
 
     def test_export_glb_with_multiple_glb_resources(self):
         """Test exporting a GLB with multiple GLB resources with different types."""
         # Arrange
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(byteLength=4)])
-        glb_resource_1 = GLBResource(b'data')
-        glb_resource_2 = GLBResource(b'more data', resource_type=123)
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(byteLength=4)])
+        glb_resource_1 = GLBResource(b"data")
+        glb_resource_2 = GLBResource(b"more data", resource_type=123)
         gltf = GLTF(model=model, resources=[glb_resource_1, glb_resource_2])
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'test_export_glb_with_multiple_glb_resources.glb')
+            filename = path.join(temp_dir, "test_export_glb_with_multiple_glb_resources.glb")
             gltf2 = gltf.export(filename)
 
             # Assert
@@ -1374,7 +1425,7 @@ class TestGLTF(TestCase):
     def test_load_glb_with_multiple_glb_resources(self):
         """Test loading a GLB with multiple GLB resources with different types."""
         # Act
-        gltf = GLTF.load(custom_sample('MultipleChunks/MultipleChunks.glb'))
+        gltf = GLTF.load(custom_sample("MultipleChunks/MultipleChunks.glb"))
 
         # Assert
         # Model should have two GLB resources
@@ -1390,25 +1441,25 @@ class TestGLTF(TestCase):
         self.assertEqual(GLB_BINARY_CHUNK_TYPE, glb_resource_1.resource_type)
         self.assertEqual(123, glb_resource_2.resource_type)
         # Validate chunk data
-        self.assertEqual(b'data', glb_resource_1.data)
-        self.assertEqual(b'more data\x00\x00\x00', glb_resource_2.data)
+        self.assertEqual(b"data", glb_resource_1.data)
+        self.assertEqual(b"more data\x00\x00\x00", glb_resource_2.data)
 
     def test_create_base64_resource_from_uri(self):
         """Ensures a Base64Resource is created successfully using the Base64Resource.from_uri factory method."""
         # Arrage
-        uri = 'data:application/octet-stream;base64,c2FtcGxlIGJpbmFyeSBkYXRh'
+        uri = "data:application/octet-stream;base64,c2FtcGxlIGJpbmFyeSBkYXRh"
 
         # Act
         resource = Base64Resource.from_uri(uri)
 
         # Assert
-        self.assertEqual(b'sample binary data', resource.data)
-        self.assertEqual('application/octet-stream', resource.mime_type)
+        self.assertEqual(b"sample binary data", resource.data)
+        self.assertEqual("application/octet-stream", resource.mime_type)
 
     def test_load_gltf_with_base64_resource(self):
         """Basic test to ensure a model with an embedded base64-encoded resource is parsed correctly."""
         # Act
-        gltf = GLTF.load(sample('Box', 'glTF-Embedded'))
+        gltf = GLTF.load(sample("Box", "glTF-Embedded"))
 
         # Assert
         # Ensure the resource got parsed correctly as a Base64Resource
@@ -1420,86 +1471,91 @@ class TestGLTF(TestCase):
 
         # Ensure binary data matches
         bin_file = get_file_from_hub("Box", "Box0.bin", "glTF")
-        with open(bin_file, 'rb') as f:
+        with open(bin_file, "rb") as f:
             data = f.read()
         self.assertEqual(data, resource.data)
         # Ensure buffer URI is preserved as base64
         buffer = gltf.model.buffers[0]
-        self.assertTrue(buffer.uri.startswith('data:application/octet-stream;base64,AAAAAAAAAAAAAIA'))
+        self.assertTrue(buffer.uri.startswith("data:application/octet-stream;base64,AAAAAAAAAAAAAIA"))
         # Ensure MIME type is parsed correctly
-        self.assertEqual('application/octet-stream', resource.mime_type)
+        self.assertEqual("application/octet-stream", resource.mime_type)
 
     def test_load_gltf_with_base64_image_resource(self):
         """Ensure a base64-encoded image resource is parsed correctly."""
         # Act
-        gltf = GLTF.load(sample('BoxTextured', 'glTF-Embedded'))
+        gltf = GLTF.load(sample("BoxTextured", "glTF-Embedded"))
 
         # Assert
         # There should be two resources (one for the image and another for the buffer data)
         self.assertEqual(2, len(gltf.resources))
-        buffer_resource = next(r for r in gltf.resources if isinstance(r, Base64Resource)
-                               and r.mime_type == 'application/octet-stream')
-        image_resource = next(r for r in gltf.resources if isinstance(r, Base64Resource) and r.mime_type == 'image/png')
+        buffer_resource = next(
+            r for r in gltf.resources if isinstance(r, Base64Resource) and r.mime_type == "application/octet-stream"
+        )
+        image_resource = next(
+            r for r in gltf.resources if isinstance(r, Base64Resource) and r.mime_type == "image/png"
+        )
         # Ensure byte length is correct on both resources
         self.assertEqual(4333, len(image_resource.data))
         self.assertEqual(840, len(buffer_resource.data))
 
         # Ensure binary data matches on both resources
         bin_file = get_file_from_hub("BoxTextured", "CesiumLogoFlat.png", "glTF")
-        with open(bin_file, 'rb') as f1:
+        with open(bin_file, "rb") as f1:
             image_data = f1.read()
         bin_file = get_file_from_hub("BoxTextured", "BoxTextured0.bin", "glTF")
-        with open(bin_file, 'rb') as f2:
+        with open(bin_file, "rb") as f2:
             buffer_data = f2.read()
         self.assertEqual(image_data, image_resource.data)
         self.assertEqual(buffer_data, buffer_resource.data)
         # Ensure image URI is preserved as base64
         image = gltf.model.images[0]
-        self.assertTrue(image.uri.startswith('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA'))
+        self.assertTrue(image.uri.startswith("data:image/png;base64,iVBORw0KGgoAAAANSUhEUgA"))
         # Ensure buffer URI is preserved as base64
         buffer = gltf.model.buffers[0]
-        self.assertTrue(buffer.uri.startswith('data:application/octet-stream;base64,AAAAAAAAAAAAAIA'))
+        self.assertTrue(buffer.uri.startswith("data:application/octet-stream;base64,AAAAAAAAAAAAAIA"))
         # Ensure MIME types are parsed correctly
-        self.assertEqual('image/png', image_resource.mime_type)
-        self.assertEqual('application/octet-stream', buffer_resource.mime_type)
+        self.assertEqual("image/png", image_resource.mime_type)
+        self.assertEqual("application/octet-stream", buffer_resource.mime_type)
 
     def test_export_gltf_with_base64_resources(self):
         """Ensure a model with Base64-encoded resources can be exported successfully"""
         # Arrange
         # Sample buffer 1 data
-        buffer_1_data = b'sample buffer one data'
+        buffer_1_data = b"sample buffer one data"
         buffer_1_bytelen = len(buffer_1_data)
-        buffer_1_uri = 'data:application/octet-stream;base64,' + base64.b64encode(buffer_1_data).decode('utf-8')
+        buffer_1_uri = "data:application/octet-stream;base64," + base64.b64encode(buffer_1_data).decode("utf-8")
         # Sample buffer 2 data
-        buffer_2_data = b'sample buffer two data'
+        buffer_2_data = b"sample buffer two data"
         buffer_2_bytelen = len(buffer_2_data)
-        buffer_2_uri = 'data:application/octet-stream;base64,' + base64.b64encode(buffer_2_data).decode('utf-8')
+        buffer_2_uri = "data:application/octet-stream;base64," + base64.b64encode(buffer_2_data).decode("utf-8")
         # Sample image data
-        image_data = b'sample image data'
-        image_uri = 'data:image/png;base64,' + base64.b64encode(image_data).decode('utf-8')
+        image_data = b"sample image data"
+        image_uri = "data:image/png;base64," + base64.b64encode(image_data).decode("utf-8")
         # Create resources
         resource_1 = Base64Resource.from_uri(buffer_1_uri)
         resource_2 = Base64Resource.from_uri(buffer_2_uri)
         resource_3 = Base64Resource.from_uri(image_uri)
         # Create GLTF Model
-        model = GLTFModel(asset=Asset(version='2.0'),
-                          buffers=[
-                              Buffer(uri=buffer_1_uri, byteLength=buffer_1_bytelen),
-                              Buffer(uri=buffer_2_uri, byteLength=buffer_2_bytelen)
-                          ],
-                          bufferViews=[
-                              BufferView(buffer=0, byteOffset=0, byteLength=10),
-                              BufferView(buffer=0, byteOffset=10, byteLength=12),
-                              BufferView(buffer=1, byteOffset=0, byteLength=10),
-                              BufferView(buffer=1, byteOffset=10, byteLength=12)
-                          ],
-                          images=[Image(uri=image_uri)])
+        model = GLTFModel(
+            asset=Asset(version="2.0"),
+            buffers=[
+                Buffer(uri=buffer_1_uri, byteLength=buffer_1_bytelen),
+                Buffer(uri=buffer_2_uri, byteLength=buffer_2_bytelen),
+            ],
+            bufferViews=[
+                BufferView(buffer=0, byteOffset=0, byteLength=10),
+                BufferView(buffer=0, byteOffset=10, byteLength=12),
+                BufferView(buffer=1, byteOffset=0, byteLength=10),
+                BufferView(buffer=1, byteOffset=10, byteLength=12),
+            ],
+            images=[Image(uri=image_uri)],
+        )
         gltf = GLTF(model=model, resources=[resource_1, resource_2, resource_3])
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'test_export_gltf_with_base64_resources.gltf')
-            exported_gltf = gltf.export(filename)
+            filename = path.join(temp_dir, "test_export_gltf_with_base64_resources.gltf")
+            _ = gltf.export(filename)
 
             # Assert
             # Read the model back in
@@ -1526,9 +1582,9 @@ class TestGLTF(TestCase):
             self.assertEqual(buffer_2_data, loaded_resource_2.data)
             self.assertEqual(image_data, loaded_resource_3.data)
             # Ensure MIME types were stored correctly
-            self.assertEqual('application/octet-stream', loaded_resource_1.mime_type)
-            self.assertEqual('application/octet-stream', loaded_resource_2.mime_type)
-            self.assertEqual('image/png', loaded_resource_3.mime_type)
+            self.assertEqual("application/octet-stream", loaded_resource_1.mime_type)
+            self.assertEqual("application/octet-stream", loaded_resource_2.mime_type)
+            self.assertEqual("image/png", loaded_resource_3.mime_type)
             # Ensure exported GLTF instance contains the same 3 resources
             # self.assertEqual(3, len(exported_gltf.resources))
             # exported_resource_1 = exported_gltf.resources[0]
@@ -1545,7 +1601,7 @@ class TestGLTF(TestCase):
     def test_embed_base64_resource_to_glb(self):
         """Ensure base64-encoded resources can be embedded as GLB using embed_resource."""
         # Arrage
-        gltf = GLTF.load(sample('BoxTextured', 'glTF-Embedded'))
+        gltf = GLTF.load(sample("BoxTextured", "glTF-Embedded"))
         image_resource = gltf.resources[0]
         buffer_resource = gltf.resources[1]
 
@@ -1564,16 +1620,16 @@ class TestGLTF(TestCase):
         self.assertIsNone(gltf.model.images[0].uri)
         self.assertIsNone(gltf.model.buffers[0].uri)
         # Ensure image MIME type is preserved
-        self.assertEqual('image/png', gltf.model.images[0].mimeType)
+        self.assertEqual("image/png", gltf.model.images[0].mimeType)
 
     def test_export_base64_resource_to_glb(self):
         """Ensure exporting a model containing base64-encoded resources to GLB."""
         # Arrage
-        gltf = GLTF.load(sample('BoxTextured', 'glTF-Embedded'))
+        gltf = GLTF.load(sample("BoxTextured", "glTF-Embedded"))
 
         # Act
         with tempfile.TemporaryDirectory() as temp_dir:
-            filename = path.join(temp_dir, 'test_export_base64_resource_to_glb.glb')
+            filename = path.join(temp_dir, "test_export_base64_resource_to_glb.glb")
             exported_glb = gltf.export(filename)
 
             # Assert
@@ -1595,23 +1651,25 @@ class TestGLTF(TestCase):
             self.assertEqual(0, loaded_glb.model.bufferViews[buffer_view].buffer)
             self.assertIsNone(loaded_glb.model.images[0].uri)
             # Ensure image data matches
-            image_resource = next(r for r in gltf.resources if isinstance(r, Base64Resource) and r.mime_type == 'image/png')
+            image_resource = next(
+                r for r in gltf.resources if isinstance(r, Base64Resource) and r.mime_type == "image/png"
+            )
             image_buffer_view_index = loaded_glb.model.images[0].bufferView
             image_buffer_view = loaded_glb.model.bufferViews[image_buffer_view_index]
             offset = image_buffer_view.byteOffset
             bytelen = image_buffer_view.byteLength
-            image_data = glb_resource.data[offset:(offset + bytelen)]
+            image_data = glb_resource.data[offset : (offset + bytelen)]
             self.assertEqual(image_resource.data, image_data)
-            self.assertEqual('image/png', image_resource.mime_type)
+            self.assertEqual("image/png", image_resource.mime_type)
 
     def test_load_gltf_with_external_resource(self):
         """Test that a GLTF with external web URL resources is parsed correctly"""
         # Arrange
-        image_uri = 'http://www.example.com/image.jpg'
-        data_uri = 'http://www.example.com/data.bin'
+        image_uri = "http://www.example.com/image.jpg"
+        data_uri = "http://www.example.com/data.bin"
 
         # Act
-        gltf = GLTF.load(custom_sample('External/external.gltf'))
+        gltf = GLTF.load(custom_sample("External/external.gltf"))
 
         # Assert
         self.assertEqual(2, len(gltf.resources))
@@ -1625,10 +1683,10 @@ class TestGLTF(TestCase):
     def test_load_glb_with_external_resource(self):
         """Test that a GLB with external web URL resources is parsed correctly"""
         # Arrange
-        external_uri = 'http://www.example.com/data.bin'
+        external_uri = "http://www.example.com/data.bin"
 
         # Act
-        gltf = GLTF.load(custom_sample('External/external.glb'))
+        gltf = GLTF.load(custom_sample("External/external.glb"))
 
         # Assert
         self.assertEqual(1, len(gltf.resources))
@@ -1644,20 +1702,20 @@ class TestGLTF(TestCase):
         Ensures GLTF.convert_to_file_resource does nothing if the resource is already a FileResource with the same URI.
         """
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        resource = FileResource('buffer.bin', data=data)
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri='buffer.bin', byteLength=bytelen)])
+        resource = FileResource("buffer.bin", data=data)
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri="buffer.bin", byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[resource])
 
         # Act
-        converted_resource = gltf.convert_to_file_resource(resource, 'buffer.bin')
+        converted_resource = gltf.convert_to_file_resource(resource, "buffer.bin")
 
         # Assert
         self.assertIs(resource, converted_resource)
         self.assertIsInstance(converted_resource, FileResource)
-        self.assertEqual('buffer.bin', converted_resource.filename)
-        self.assertEqual('buffer.bin', gltf.model.buffers[0].uri)
+        self.assertEqual("buffer.bin", converted_resource.filename)
+        self.assertEqual("buffer.bin", gltf.model.buffers[0].uri)
 
     def test_convert_to_file_resource_updates_uri_if_resource_is_already_file_resource_and_uri_is_different(self):
         """
@@ -1666,21 +1724,22 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Binary resource
-        binary_data = b'sample binary data'
+        binary_data = b"sample binary data"
         binary_data_bytelen = len(binary_data)
-        binary_data_old_uri = 'buffer.bin'
-        binary_data_new_uri = 'buffer_updated.bin'
+        binary_data_old_uri = "buffer.bin"
+        binary_data_new_uri = "buffer_updated.bin"
         binary_resource = FileResource(binary_data_old_uri, data=binary_data)
         # Image resource
-        image_data = b'sample image data'
-        image_old_uri = 'image.png'
-        image_new_uri = 'image_updated.png'
+        image_data = b"sample image data"
+        image_old_uri = "image.png"
+        image_new_uri = "image_updated.png"
         image_resource = FileResource(image_old_uri, data=image_data)
         # Model
         model = GLTFModel(
-            asset=Asset(version='2.0'),
+            asset=Asset(version="2.0"),
             buffers=[Buffer(uri=binary_data_old_uri, byteLength=binary_data_bytelen)],
-            images=[Image(uri=image_old_uri, mimeType='image/png')])
+            images=[Image(uri=image_old_uri, mimeType="image/png")],
+        )
         gltf = GLTF(model=model, resources=[binary_resource, image_resource])
 
         # Act
@@ -1705,12 +1764,12 @@ class TestGLTF(TestCase):
     def test_convert_base64_resource_to_file_resource(self):
         """Ensures GLTF.convert_to_file_resource can convert a Base64Resource to a FileResource"""
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        base64_resource = Base64Resource(data, 'application/octet-stream')
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri=base64_resource.uri, byteLength=bytelen)])
+        base64_resource = Base64Resource(data, "application/octet-stream")
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri=base64_resource.uri, byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[base64_resource])
-        exported_uri = 'test_convert_base64_resource_to_file_resource.bin'
+        exported_uri = "test_convert_base64_resource_to_file_resource.bin"
 
         # Act
         converted_resource = gltf.convert_to_file_resource(base64_resource, exported_uri)
@@ -1726,11 +1785,11 @@ class TestGLTF(TestCase):
     def test_convert_glb_resource_to_file_resource(self):
         """Ensures GLTF.convert_to_file_resource can convert a GLBResource to a FileResource"""
         # Arrange
-        gltf = GLTF.load(sample('BoxTextured', 'glTF-Binary'))
+        gltf = GLTF.load(sample("BoxTextured", "glTF-Binary"))
         # Ensure there is 1 resource to begin with
         self.assertEqual(1, len(gltf.resources))
         glb_resource = gltf.get_glb_resource()
-        uri = 'test_convert_glb_resource_to_file_resource.bin'
+        uri = "test_convert_glb_resource_to_file_resource.bin"
 
         # Act
         converted_resource = gltf.convert_to_file_resource(glb_resource, uri)
@@ -1757,38 +1816,38 @@ class TestGLTF(TestCase):
         FileResource (loading external data is not supported for now)
         """
         # Arrange
-        image_uri = 'http://www.example.com/image.jpg'
-        data_uri = 'http://www.example.com/data.bin'
-        gltf = GLTF.load(custom_sample('External/external.gltf'))
+        image_uri = "http://www.example.com/image.jpg"
+        data_uri = "http://www.example.com/data.bin"
+        gltf = GLTF.load(custom_sample("External/external.gltf"))
         image_resource = next(r for r in gltf.resources if r.uri == image_uri)
         data_resource = next(r for r in gltf.resources if r.uri == data_uri)
 
         # Act/Assert
         with self.assertRaises(ValueError):
-            _ = gltf.convert_to_file_resource(image_resource, 'image.png')
+            _ = gltf.convert_to_file_resource(image_resource, "image.png")
         with self.assertRaises(ValueError):
-            _ = gltf.convert_to_file_resource(data_resource, 'data.bin')
+            _ = gltf.convert_to_file_resource(data_resource, "data.bin")
 
     def test_convert_to_file_resource_raises_error_if_resource_is_not_in_model(self):
         """Ensures GLTF.convert_to_file_resource raises an error if the resource is not part of the model."""
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        resource = FileResource('buffer.bin', data=data)
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri='buffer.bin', byteLength=bytelen)])
+        resource = FileResource("buffer.bin", data=data)
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri="buffer.bin", byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[])
 
         # Act/Assert
         with self.assertRaises(RuntimeError):
-            _ = gltf.convert_to_file_resource(resource, 'buffer.bin')
+            _ = gltf.convert_to_file_resource(resource, "buffer.bin")
 
     def test_convert_to_base64_resource_does_nothing_if_resource_is_already_base64_resource(self):
         """Ensures GLTF.convert_to_base64_resource does nothing if the resource is already a Base64Resource"""
         # Arrage
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        base64_resource = Base64Resource(data, 'application/octet-stream')
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri=base64_resource.uri, byteLength=bytelen)])
+        base64_resource = Base64Resource(data, "application/octet-stream")
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri=base64_resource.uri, byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[base64_resource])
 
         # Act
@@ -1803,10 +1862,10 @@ class TestGLTF(TestCase):
     def test_convert_file_resource_to_base64(self):
         """Ensures GLTF.convert_to_base64_resource can convert a FileResource to a Base64Resource"""
         # Arrage
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        file_resource = FileResource('sample.bin', data=data, mimetype='application/octet-stream')
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri=file_resource.uri, byteLength=bytelen)])
+        file_resource = FileResource("sample.bin", data=data, mimetype="application/octet-stream")
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri=file_resource.uri, byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[file_resource])
 
         # Act
@@ -1817,7 +1876,7 @@ class TestGLTF(TestCase):
         self.assertEqual(1, len(gltf.resources))
         resource = gltf.resources[0]
         self.assertIs(resource, converted_resource)
-        self.assertEqual('data:application/octet-stream;base64,c2FtcGxlIGJpbmFyeSBkYXRh', gltf.model.buffers[0].uri)
+        self.assertEqual("data:application/octet-stream;base64,c2FtcGxlIGJpbmFyeSBkYXRh", gltf.model.buffers[0].uri)
 
     def test_convert_file_resource_to_base64_loads_file_resource_if_not_loaded(self):
         """
@@ -1825,8 +1884,8 @@ class TestGLTF(TestCase):
         FileResource was not initially loaded.
         """
         # Arrange
-        gltf = GLTF.load(sample('TriangleWithoutIndices'), load_file_resources=False)
-        file_resource = gltf.get_resource('triangleWithoutIndices.bin')
+        gltf = GLTF.load(sample("TriangleWithoutIndices"), load_file_resources=False)
+        file_resource = gltf.get_resource("triangleWithoutIndices.bin")
         self.assertIsInstance(file_resource, FileResource)
         self.assertFalse(file_resource.loaded)
 
@@ -1839,34 +1898,34 @@ class TestGLTF(TestCase):
     def test_convert_image_file_resource_to_base64_updates_image_uri(self):
         """Ensures when converting a FileResource to a Base64Resource, the URI is updated on the image directly."""
         # Arrange
-        image_uri = 'sample.png'
-        image_data = b'sample image data'
+        image_uri = "sample.png"
+        image_data = b"sample image data"
         image_resource = FileResource(image_uri, data=image_data)
-        model = GLTFModel(asset=Asset(version='2.0'), images=[Image(uri=image_uri)])
+        model = GLTFModel(asset=Asset(version="2.0"), images=[Image(uri=image_uri)])
         gltf = GLTF(model=model, resources=[image_resource])
 
         # Act
-        converted_resource = gltf.convert_to_base64_resource(image_resource, 'image/png')
+        converted_resource = gltf.convert_to_base64_resource(image_resource, "image/png")
 
         # Assert
         self.assertEqual(1, len(gltf.resources))
         resource = gltf.resources[0]
         self.assertIsInstance(resource, Base64Resource)
         self.assertIs(converted_resource, resource)
-        self.assertEqual('data:image/png;base64,c2FtcGxlIGltYWdlIGRhdGE=', resource.uri)
-        self.assertEqual('data:image/png;base64,c2FtcGxlIGltYWdlIGRhdGE=', gltf.model.images[0].uri)
-        self.assertEqual('image/png', resource.mime_type)
+        self.assertEqual("data:image/png;base64,c2FtcGxlIGltYWdlIGRhdGE=", resource.uri)
+        self.assertEqual("data:image/png;base64,c2FtcGxlIGltYWdlIGRhdGE=", gltf.model.images[0].uri)
+        self.assertEqual("image/png", resource.mime_type)
 
     def test_convert_glb_resource_to_base64(self):
         """Ensures GLTF.convert_to_base64_resource can convert a GLBResource to a Base64Resource"""
         # Arrange
         model = GLTFModel(
-            asset=Asset(version='2.0'),
+            asset=Asset(version="2.0"),
             buffers=[Buffer(byteLength=4)],
             bufferViews=[BufferView(buffer=0)],
-            accessors=[Accessor(bufferView=0)]
+            accessors=[Accessor(bufferView=0)],
         )
-        glb_resource = GLBResource(b'data')
+        glb_resource = GLBResource(b"data")
         gltf = GLTF(model=model, resources=[glb_resource])
 
         # Act
@@ -1877,9 +1936,9 @@ class TestGLTF(TestCase):
         resource = gltf.resources[0]
         self.assertIs(resource, converted_resource)
         self.assertIsInstance(resource, Base64Resource)
-        self.assertEqual('data:application/octet-stream;base64,ZGF0YQ==', resource.uri)
-        self.assertEqual('data:application/octet-stream;base64,ZGF0YQ==', model.buffers[0].uri)
-        self.assertEqual(b'data', resource.data)
+        self.assertEqual("data:application/octet-stream;base64,ZGF0YQ==", resource.uri)
+        self.assertEqual("data:application/octet-stream;base64,ZGF0YQ==", model.buffers[0].uri)
+        self.assertEqual(b"data", resource.data)
 
     def test_convert_glb_resource_to_base64_updates_image_uri_and_removes_buffer_view_for_embedded_images(self):
         """
@@ -1889,39 +1948,42 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Image data and GLB resource
-        image_data = b'sample image data'
+        image_data = b"sample image data"
         image_bytelen = len(image_data)
         # GLB Resource
         glb_resource = GLBResource(image_data)
         # Another external file resource containing other data
-        binary_data = b'sample binary data'
+        binary_data = b"sample binary data"
         binary_data_bytelen = len(binary_data)
-        file_resource_uri = 'sample.bin'
+        file_resource_uri = "sample.bin"
         file_resource = FileResource(file_resource_uri, data=binary_data)
         # Create model
         model = GLTFModel(
-            asset=Asset(version='2.0'),
+            asset=Asset(version="2.0"),
             accessors=[
-                Accessor(bufferView=0, componentType=999, count=1, type='foo'),
-                Accessor(bufferView=2, componentType=999, count=1, type='bar',
-                         sparse=Sparse(count=1, indices=SparseIndices(bufferView=3, byteOffset=0, componentType=1),
-                                       values=SparseValues(bufferView=4, byteOffset=0)))
+                Accessor(bufferView=0, componentType=999, count=1, type="foo"),
+                Accessor(
+                    bufferView=2,
+                    componentType=999,
+                    count=1,
+                    type="bar",
+                    sparse=Sparse(
+                        count=1,
+                        indices=SparseIndices(bufferView=3, byteOffset=0, componentType=1),
+                        values=SparseValues(bufferView=4, byteOffset=0),
+                    ),
+                ),
             ],
-            buffers=[
-                Buffer(byteLength=image_bytelen),
-                Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen)
-            ],
+            buffers=[Buffer(byteLength=image_bytelen), Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen)],
             bufferViews=[
                 BufferView(buffer=1, byteOffset=0, byteLength=6),
                 BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen),
                 BufferView(buffer=1, byteOffset=6, byteLength=4),
                 BufferView(buffer=1, byteOffset=10, byteLength=6),
-                BufferView(buffer=1, byteOffset=16, byteLength=2)
+                BufferView(buffer=1, byteOffset=16, byteLength=2),
             ],
-            images=[
-                Image(bufferView=1, mimeType='image/png'),
-                Image(bufferView=3, mimeType='image/png')
-            ])
+            images=[Image(bufferView=1, mimeType="image/png"), Image(bufferView=3, mimeType="image/png")],
+        )
         gltf = GLTF(model=model, resources=[glb_resource, file_resource])
 
         # Act
@@ -1936,29 +1998,43 @@ class TestGLTF(TestCase):
         self.assertIsInstance(base64_resource, Base64Resource)
         self.assertIs(converted_resource, base64_resource)
         # Ensure Base64Resource URI is correct
-        self.assertEqual(b'sample image data', base64_resource.data)
-        self.assertEqual('data:application/octet-stream;base64,c2FtcGxlIGltYWdlIGRhdGE=', base64_resource.uri)
+        self.assertEqual(b"sample image data", base64_resource.data)
+        self.assertEqual("data:application/octet-stream;base64,c2FtcGxlIGltYWdlIGRhdGE=", base64_resource.uri)
         # There should now be one buffer for the external file resource
         self.assertEqual(1, len(gltf.model.buffers))
         self.assertEqual(Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen), gltf.model.buffers[0])
         # There should now be 4 buffer views (the buffer view for the image should be removed). The remaining ones
         # should have the buffer index changed to reflect the removed buffer.
-        self.assertEqual([
-            BufferView(buffer=0, byteOffset=0, byteLength=6),
-            BufferView(buffer=0, byteOffset=6, byteLength=4),
-            BufferView(buffer=0, byteOffset=10, byteLength=6),
-            BufferView(buffer=0, byteOffset=16, byteLength=2)
-        ], gltf.model.bufferViews)
+        self.assertEqual(
+            [
+                BufferView(buffer=0, byteOffset=0, byteLength=6),
+                BufferView(buffer=0, byteOffset=6, byteLength=4),
+                BufferView(buffer=0, byteOffset=10, byteLength=6),
+                BufferView(buffer=0, byteOffset=16, byteLength=2),
+            ],
+            gltf.model.bufferViews,
+        )
         # Image should now have a data URI instead of referencing a buffer view
-        self.assertEqual('data:application/octet-stream;base64,c2FtcGxlIGltYWdlIGRhdGE=', gltf.model.images[0].uri)
+        self.assertEqual("data:application/octet-stream;base64,c2FtcGxlIGltYWdlIGRhdGE=", gltf.model.images[0].uri)
         self.assertIsNone(gltf.model.images[0].bufferView)
         # Accessors that reference a buffer view after the one that was removed should have their indices updated
-        self.assertEqual([
-            Accessor(bufferView=0, componentType=999, count=1, type='foo'),
-            Accessor(bufferView=1, componentType=999, count=1, type='bar',
-                     sparse=Sparse(count=1, indices=SparseIndices(bufferView=2, byteOffset=0, componentType=1),
-                                   values=SparseValues(bufferView=3, byteOffset=0)))
-        ], gltf.model.accessors)
+        self.assertEqual(
+            [
+                Accessor(bufferView=0, componentType=999, count=1, type="foo"),
+                Accessor(
+                    bufferView=1,
+                    componentType=999,
+                    count=1,
+                    type="bar",
+                    sparse=Sparse(
+                        count=1,
+                        indices=SparseIndices(bufferView=2, byteOffset=0, componentType=1),
+                        values=SparseValues(bufferView=3, byteOffset=0),
+                    ),
+                ),
+            ],
+            gltf.model.accessors,
+        )
         # Images that reference a buffer view after the one that was removed should have their indices updated
         self.assertEqual(2, gltf.model.images[1].bufferView)
 
@@ -1969,33 +2045,27 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Image data and GLB resource
-        image_data = b'sample image data'
+        image_data = b"sample image data"
         image_bytelen = len(image_data)
         # GLB Resource
         glb_resource = GLBResource(image_data)
         # Another external file resource containing other data
-        binary_data = b'sample binary data'
+        binary_data = b"sample binary data"
         binary_data_bytelen = len(binary_data)
-        file_resource_uri = 'sample.bin'
+        file_resource_uri = "sample.bin"
         file_resource = FileResource(file_resource_uri, data=binary_data)
         # Create model. Note accessor references the same buffer view as embedded image. Maybe not a very realistic
         # scenario, but in this case the buffer view should be retained when the image is converted.
         model = GLTFModel(
-            asset=Asset(version='2.0'),
-            accessors=[
-                Accessor(bufferView=1, componentType=999, count=1, type='foo')
-            ],
-            buffers=[
-                Buffer(byteLength=image_bytelen),
-                Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen)
-            ],
+            asset=Asset(version="2.0"),
+            accessors=[Accessor(bufferView=1, componentType=999, count=1, type="foo")],
+            buffers=[Buffer(byteLength=image_bytelen), Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen)],
             bufferViews=[
                 BufferView(buffer=1, byteOffset=0, byteLength=6),
-                BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen)
+                BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen),
             ],
-            images=[
-                Image(bufferView=1, mimeType='image/png')
-            ])
+            images=[Image(bufferView=1, mimeType="image/png")],
+        )
         gltf = GLTF(model=model, resources=[glb_resource, file_resource])
 
         # Act
@@ -2010,8 +2080,8 @@ class TestGLTF(TestCase):
         self.assertIsInstance(base64_resource, Base64Resource)
         self.assertIs(converted_resource, base64_resource)
         # Ensure Base64Resource URI is correct
-        self.assertEqual(b'sample image data', base64_resource.data)
-        expected_uri = 'data:application/octet-stream;base64,c2FtcGxlIGltYWdlIGRhdGE='
+        self.assertEqual(b"sample image data", base64_resource.data)
+        expected_uri = "data:application/octet-stream;base64,c2FtcGxlIGltYWdlIGRhdGE="
         self.assertEqual(expected_uri, base64_resource.uri)
         # There should be two buffers, one that now has Base64 data URI, and another for file resource that wasn't
         # converted.
@@ -2020,16 +2090,19 @@ class TestGLTF(TestCase):
         self.assertEqual(Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen), gltf.model.buffers[1])
         # There should still be 2 buffer views (i.e., the buffer view for the image should NOT be removed in this case
         # since it is also referenced by an accessor)
-        self.assertEqual([
-            BufferView(buffer=1, byteOffset=0, byteLength=6),
-            BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen)
-        ], gltf.model.bufferViews)
+        self.assertEqual(
+            [
+                BufferView(buffer=1, byteOffset=0, byteLength=6),
+                BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen),
+            ],
+            gltf.model.bufferViews,
+        )
         # Image should continue to reference the buffer view since it wasn't removed
         self.assertIsNone(gltf.model.images[0].uri)
         self.assertEqual(1, gltf.model.images[0].bufferView)
         # Accessors should be retained (buffer views indices should not be updated since no buffer views were removed)
         self.assertEqual(1, len(gltf.model.accessors))
-        self.assertEqual(Accessor(bufferView=1, componentType=999, count=1, type='foo'), gltf.model.accessors[0])
+        self.assertEqual(Accessor(bufferView=1, componentType=999, count=1, type="foo"), gltf.model.accessors[0])
 
     def test_convert_external_resource_to_base64_resource_should_raise_error(self):
         """
@@ -2037,9 +2110,9 @@ class TestGLTF(TestCase):
         Base64Resource (loading external data is not supported for now)
         """
         # Arrange
-        image_uri = 'http://www.example.com/image.jpg'
-        data_uri = 'http://www.example.com/data.bin'
-        gltf = GLTF.load(custom_sample('External/external.gltf'))
+        image_uri = "http://www.example.com/image.jpg"
+        data_uri = "http://www.example.com/data.bin"
+        gltf = GLTF.load(custom_sample("External/external.gltf"))
         image_resource = next(r for r in gltf.resources if r.uri == image_uri)
         data_resource = next(r for r in gltf.resources if r.uri == data_uri)
 
@@ -2052,15 +2125,15 @@ class TestGLTF(TestCase):
     def test_convert_to_base64_resource_raises_error_if_resource_is_not_in_model(self):
         """Ensures GLTF.convert_to_base64_resource raises an error if the resource is not part of the model."""
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        resource = FileResource('buffer.bin', data=data)
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri='buffer.bin', byteLength=bytelen)])
+        resource = FileResource("buffer.bin", data=data)
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri="buffer.bin", byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[])
 
         # Act/Assert
         with self.assertRaises(RuntimeError):
-            _ = gltf.convert_to_base64_resource(resource, 'buffer.bin')
+            _ = gltf.convert_to_base64_resource(resource, "buffer.bin")
 
     def test_convert_to_external_resource_does_nothing_if_resource_is_already_external_resource_and_uri_matches(self):
         """
@@ -2068,9 +2141,9 @@ class TestGLTF(TestCase):
         same URI.
         """
         # Arrange
-        uri = 'http://www.example.com/data.bin'
-        resource = ExternalResource('http://www.example.com/data.bin')
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri=uri, byteLength=123)])
+        uri = "http://www.example.com/data.bin"
+        resource = ExternalResource("http://www.example.com/data.bin")
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri=uri, byteLength=123)])
         gltf = GLTF(model=model, resources=[resource])
 
         # Act
@@ -2089,18 +2162,19 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Binary resource
-        binary_data_old_uri = 'http://www.example.com/data.bin'
-        binary_data_new_uri = 'http://www.example.com/data_updated.bin'
+        binary_data_old_uri = "http://www.example.com/data.bin"
+        binary_data_new_uri = "http://www.example.com/data_updated.bin"
         binary_resource = ExternalResource(binary_data_old_uri)
         # Image resource
-        image_old_uri = 'http://www.example.com/image.png'
-        image_new_uri = 'http://www.example.com/image_updated.png'
+        image_old_uri = "http://www.example.com/image.png"
+        image_new_uri = "http://www.example.com/image_updated.png"
         image_resource = ExternalResource(image_old_uri)
         # Model
         model = GLTFModel(
-            asset=Asset(version='2.0'),
+            asset=Asset(version="2.0"),
             buffers=[Buffer(uri=binary_data_old_uri, byteLength=123)],
-            images=[Image(uri=image_old_uri, mimeType='image/png')])
+            images=[Image(uri=image_old_uri, mimeType="image/png")],
+        )
         gltf = GLTF(model=model, resources=[binary_resource, image_resource])
 
         # Act
@@ -2125,14 +2199,14 @@ class TestGLTF(TestCase):
     def test_convert_image_file_resource_to_external(self):
         """Ensures when converting a FileResource to an ExternalResource, the URI is updated on the image directly."""
         # Arrange
-        image_filename = 'sample.png'
-        image_data = b'sample image data'
+        image_filename = "sample.png"
+        image_data = b"sample image data"
         image_resource = FileResource(image_filename, data=image_data)
-        model = GLTFModel(asset=Asset(version='2.0'), images=[Image(uri=image_filename)])
+        model = GLTFModel(asset=Asset(version="2.0"), images=[Image(uri=image_filename)])
         gltf = GLTF(model=model, resources=[image_resource])
 
         # Act
-        image_uri = 'http://www.example.com/image.png'
+        image_uri = "http://www.example.com/image.png"
         converted_resource = gltf.convert_to_external_resource(image_resource, image_uri)
 
         # Assert
@@ -2146,14 +2220,14 @@ class TestGLTF(TestCase):
     def test_convert_base64_resource_to_external(self):
         """Ensures a Base64Resource can be converted to an ExternalResource"""
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        base64_resource = Base64Resource(data, 'application/octet-stream')
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri=base64_resource.uri, byteLength=bytelen)])
+        base64_resource = Base64Resource(data, "application/octet-stream")
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri=base64_resource.uri, byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[base64_resource])
 
         # Act
-        exported_uri = 'http://www.example.com/data.bin'
+        exported_uri = "http://www.example.com/data.bin"
         converted_resource = gltf.convert_to_external_resource(base64_resource, exported_uri)
 
         # Assert
@@ -2166,16 +2240,16 @@ class TestGLTF(TestCase):
         """Ensures GLTF.convert_to_external_resource can convert a GLBResource to an ExternalResource"""
         # Arrange
         model = GLTFModel(
-            asset=Asset(version='2.0'),
+            asset=Asset(version="2.0"),
             buffers=[Buffer(byteLength=4)],
             bufferViews=[BufferView(buffer=0)],
-            accessors=[Accessor(bufferView=0)]
+            accessors=[Accessor(bufferView=0)],
         )
-        glb_resource = GLBResource(b'data')
+        glb_resource = GLBResource(b"data")
         gltf = GLTF(model=model, resources=[glb_resource])
 
         # Act
-        exported_uri = 'http://www.example.com/data.bin'
+        exported_uri = "http://www.example.com/data.bin"
         converted_resource = gltf.convert_to_external_resource(glb_resource, exported_uri)
 
         # Assert
@@ -2194,43 +2268,46 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Image data and GLB resource
-        image_data = b'sample image data'
+        image_data = b"sample image data"
         image_bytelen = len(image_data)
         # GLB Resource
         glb_resource = GLBResource(image_data)
         # Another external file resource containing other data
-        binary_data = b'sample binary data'
+        binary_data = b"sample binary data"
         binary_data_bytelen = len(binary_data)
-        file_resource_uri = 'sample.bin'
+        file_resource_uri = "sample.bin"
         file_resource = FileResource(file_resource_uri, data=binary_data)
         # Create model
         model = GLTFModel(
-            asset=Asset(version='2.0'),
+            asset=Asset(version="2.0"),
             accessors=[
-                Accessor(bufferView=0, componentType=999, count=1, type='foo'),
-                Accessor(bufferView=2, componentType=999, count=1, type='bar',
-                         sparse=Sparse(count=1, indices=SparseIndices(bufferView=3, byteOffset=0, componentType=1),
-                                       values=SparseValues(bufferView=4, byteOffset=0)))
+                Accessor(bufferView=0, componentType=999, count=1, type="foo"),
+                Accessor(
+                    bufferView=2,
+                    componentType=999,
+                    count=1,
+                    type="bar",
+                    sparse=Sparse(
+                        count=1,
+                        indices=SparseIndices(bufferView=3, byteOffset=0, componentType=1),
+                        values=SparseValues(bufferView=4, byteOffset=0),
+                    ),
+                ),
             ],
-            buffers=[
-                Buffer(byteLength=image_bytelen),
-                Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen)
-            ],
+            buffers=[Buffer(byteLength=image_bytelen), Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen)],
             bufferViews=[
                 BufferView(buffer=1, byteOffset=0, byteLength=6),
                 BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen),
                 BufferView(buffer=1, byteOffset=6, byteLength=4),
                 BufferView(buffer=1, byteOffset=10, byteLength=6),
-                BufferView(buffer=1, byteOffset=16, byteLength=2)
+                BufferView(buffer=1, byteOffset=16, byteLength=2),
             ],
-            images=[
-                Image(bufferView=1, mimeType='image/png'),
-                Image(bufferView=3, mimeType='image/png')
-            ])
+            images=[Image(bufferView=1, mimeType="image/png"), Image(bufferView=3, mimeType="image/png")],
+        )
         gltf = GLTF(model=model, resources=[glb_resource, file_resource])
 
         # Act
-        exported_uri = 'http://www.example.com/data.bin'
+        exported_uri = "http://www.example.com/data.bin"
         converted_resource = gltf.convert_to_external_resource(glb_resource, exported_uri)
 
         # Assert
@@ -2248,22 +2325,36 @@ class TestGLTF(TestCase):
         self.assertEqual(Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen), gltf.model.buffers[0])
         # There should now be 4 buffer views (the buffer view for the image should be removed). The buffer index should
         # be changed to 0 since the first buffer was removed.
-        self.assertEqual([
-            BufferView(buffer=0, byteOffset=0, byteLength=6),
-            BufferView(buffer=0, byteOffset=6, byteLength=4),
-            BufferView(buffer=0, byteOffset=10, byteLength=6),
-            BufferView(buffer=0, byteOffset=16, byteLength=2)
-        ], gltf.model.bufferViews)
+        self.assertEqual(
+            [
+                BufferView(buffer=0, byteOffset=0, byteLength=6),
+                BufferView(buffer=0, byteOffset=6, byteLength=4),
+                BufferView(buffer=0, byteOffset=10, byteLength=6),
+                BufferView(buffer=0, byteOffset=16, byteLength=2),
+            ],
+            gltf.model.bufferViews,
+        )
         # Image should now have an external URI instead of referencing a buffer view
         self.assertEqual(exported_uri, gltf.model.images[0].uri)
         self.assertIsNone(gltf.model.images[0].bufferView)
         # Accessors that reference a buffer view after the one that was removed should have their indices updated
-        self.assertEqual([
-            Accessor(bufferView=0, componentType=999, count=1, type='foo'),
-            Accessor(bufferView=1, componentType=999, count=1, type='bar',
-                     sparse=Sparse(count=1, indices=SparseIndices(bufferView=2, byteOffset=0, componentType=1),
-                                   values=SparseValues(bufferView=3, byteOffset=0)))
-        ], gltf.model.accessors)
+        self.assertEqual(
+            [
+                Accessor(bufferView=0, componentType=999, count=1, type="foo"),
+                Accessor(
+                    bufferView=1,
+                    componentType=999,
+                    count=1,
+                    type="bar",
+                    sparse=Sparse(
+                        count=1,
+                        indices=SparseIndices(bufferView=2, byteOffset=0, componentType=1),
+                        values=SparseValues(bufferView=3, byteOffset=0),
+                    ),
+                ),
+            ],
+            gltf.model.accessors,
+        )
         # Images that reference a buffer view after the one that was removed should have their indices updated
         self.assertEqual(2, gltf.model.images[1].bufferView)
 
@@ -2274,37 +2365,31 @@ class TestGLTF(TestCase):
         """
         # Arrange
         # Image data and GLB resource
-        image_data = b'sample image data'
+        image_data = b"sample image data"
         image_bytelen = len(image_data)
         # GLB Resource
         glb_resource = GLBResource(image_data)
         # Another external file resource containing other data
-        binary_data = b'sample binary data'
+        binary_data = b"sample binary data"
         binary_data_bytelen = len(binary_data)
-        file_resource_uri = 'sample.bin'
+        file_resource_uri = "sample.bin"
         file_resource = FileResource(file_resource_uri, data=binary_data)
         # Create model. Note accessor references the same buffer view as embedded image. Maybe not a very realistic
         # scenario, but in this case the buffer view should be retained when the image is converted.
         model = GLTFModel(
-            asset=Asset(version='2.0'),
-            accessors=[
-                Accessor(bufferView=1, componentType=999, count=1, type='foo')
-            ],
-            buffers=[
-                Buffer(byteLength=image_bytelen),
-                Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen)
-            ],
+            asset=Asset(version="2.0"),
+            accessors=[Accessor(bufferView=1, componentType=999, count=1, type="foo")],
+            buffers=[Buffer(byteLength=image_bytelen), Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen)],
             bufferViews=[
                 BufferView(buffer=1, byteOffset=0, byteLength=6),
-                BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen)
+                BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen),
             ],
-            images=[
-                Image(bufferView=1, mimeType='image/png')
-            ])
+            images=[Image(bufferView=1, mimeType="image/png")],
+        )
         gltf = GLTF(model=model, resources=[glb_resource, file_resource])
 
         # Act
-        exported_uri = 'http://www.example.com/data.bin'
+        exported_uri = "http://www.example.com/data.bin"
         converted_resource = gltf.convert_to_external_resource(glb_resource, exported_uri)
 
         # Assert
@@ -2324,40 +2409,43 @@ class TestGLTF(TestCase):
         self.assertEqual(Buffer(uri=file_resource_uri, byteLength=binary_data_bytelen), gltf.model.buffers[1])
         # There should still be 2 buffer views (i.e., the buffer view for the image should NOT be removed in this case
         # since it is also referenced by an accessor)
-        self.assertEqual([
-            BufferView(buffer=1, byteOffset=0, byteLength=6),
-            BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen)
-        ], gltf.model.bufferViews)
+        self.assertEqual(
+            [
+                BufferView(buffer=1, byteOffset=0, byteLength=6),
+                BufferView(buffer=0, byteOffset=0, byteLength=image_bytelen),
+            ],
+            gltf.model.bufferViews,
+        )
         # Image should continue to reference the buffer view since it wasn't removed
         self.assertIsNone(gltf.model.images[0].uri)
         self.assertEqual(1, gltf.model.images[0].bufferView)
         # Accessors should be retained (buffer views indices should not be updated since no buffer views were removed)
         self.assertEqual(1, len(gltf.model.accessors))
-        self.assertEqual(Accessor(bufferView=1, componentType=999, count=1, type='foo'), gltf.model.accessors[0])
+        self.assertEqual(Accessor(bufferView=1, componentType=999, count=1, type="foo"), gltf.model.accessors[0])
 
     def test_convert_to_external_resource_raises_error_if_resource_is_not_in_model(self):
         """Ensures GLTF.convert_to_external_resource raises an error if the resource is not part of the model."""
         # Arrange
-        data = b'sample binary data'
+        data = b"sample binary data"
         bytelen = len(data)
-        resource = FileResource('buffer.bin', data=data)
-        model = GLTFModel(asset=Asset(version='2.0'), buffers=[Buffer(uri='buffer.bin', byteLength=bytelen)])
+        resource = FileResource("buffer.bin", data=data)
+        model = GLTFModel(asset=Asset(version="2.0"), buffers=[Buffer(uri="buffer.bin", byteLength=bytelen)])
         gltf = GLTF(model=model, resources=[])
 
         # Act/Assert
         with self.assertRaises(RuntimeError):
-            _ = gltf.convert_to_external_resource(resource, 'buffer.bin')
+            _ = gltf.convert_to_external_resource(resource, "buffer.bin")
 
     def test_import_empty_binary_chunk(self):
         """Ensures a GLB file with a binary chunk having zero byte length can be loaded"""
         # Act
-        glb = GLTF.load(custom_sample('EmptyChunk/EmptyBinaryChunk.glb'))
+        glb = GLTF.load(custom_sample("EmptyChunk/EmptyBinaryChunk.glb"))
 
         # Assert
         self.assertEqual(1, len(glb.resources))
         resource = glb.resources[0]
         self.assertIsInstance(resource, GLBResource)
-        self.assertEqual(b'', resource.data)
+        self.assertEqual(b"", resource.data)
 
     def test_load_glb_unexpected_eof_in_json_chunk_emits_warning(self):
         """
@@ -2366,14 +2454,14 @@ class TestGLTF(TestCase):
         """
         # Act/Assert
         with self.assertWarnsRegex(RuntimeWarning, "Unexpected EOF when parsing JSON chunk body"):
-            glb = GLTF.load(custom_sample('Corrupt/JsonChunkEOF.glb'))
+            glb = GLTF.load(custom_sample("Corrupt/JsonChunkEOF.glb"))
             self.assertEqual(GLTFModel(asset=Asset(version="2.0")), glb.model)
 
     def test_load_glb_unexpected_eof_in_binary_chunk_body_emits_warning(self):
         """Ensures loading a GLB with unexpected EOF in binary chunk body emits a warning."""
         # Act/Assert
         with self.assertWarnsRegex(RuntimeWarning, "Unexpected EOF when parsing binary chunk body"):
-            glb = GLTF.load(custom_sample('Corrupt/BinaryChunkEOF.glb'))
+            glb = GLTF.load(custom_sample("Corrupt/BinaryChunkEOF.glb"))
             self.assertEqual(GLTFModel(asset=Asset(version="2.0")), glb.model)
 
     def test_gltf_wrong_encoding(self):
@@ -2395,7 +2483,7 @@ class TestGLTF(TestCase):
         self.assertEqual(GLTFModel(asset=Asset(version="2.0")), utf8_bom.model)
         self.assertEqual(GLTFModel(asset=Asset(version="2.0")), utf16_le.model)
         self.assertEqual(GLTFModel(asset=Asset(version="2.0")), utf16_be.model)
-        self.assertEqual(GLTFModel(asset=Asset(version="2.0", copyright='�Test� � Company')), windows1252.model)
+        self.assertEqual(GLTFModel(asset=Asset(version="2.0", copyright="�Test� � Company")), windows1252.model)
 
     def test_glb_wrong_encoding(self):
         """
@@ -2416,7 +2504,7 @@ class TestGLTF(TestCase):
         self.assertEqual(GLTFModel(asset=Asset(version="2.0")), utf8_bom.model)
         self.assertEqual(GLTFModel(asset=Asset(version="2.0")), utf16_le.model)
         self.assertEqual(GLTFModel(asset=Asset(version="2.0")), utf16_be.model)
-        self.assertEqual(GLTFModel(asset=Asset(version="2.0", copyright='�Test� � Company')), windows1252.model)
+        self.assertEqual(GLTFModel(asset=Asset(version="2.0", copyright="�Test� � Company")), windows1252.model)
 
     def test_gltf_windows_1252(self):
         """
@@ -2431,10 +2519,10 @@ class TestGLTF(TestCase):
         replaced by question marks since the encoding was specified when loading the file.
         """
         # Act
-        gltf = GLTF.load(custom_sample("BadEncoding/gltf/windows-1252.gltf"), encoding='cp1252')
+        gltf = GLTF.load(custom_sample("BadEncoding/gltf/windows-1252.gltf"), encoding="cp1252")
 
         # Assert
-        self.assertEqual(GLTFModel(asset=Asset(version="2.0", copyright='“Test” – Company')), gltf.model)
+        self.assertEqual(GLTFModel(asset=Asset(version="2.0", copyright="“Test” – Company")), gltf.model)
 
     def test_glb_windows_1252(self):
         """
@@ -2449,43 +2537,42 @@ class TestGLTF(TestCase):
         without being replaced by question marks since the encoding was specified when loading the file.
         """
         # Act
-        gltf = GLTF.load(custom_sample("BadEncoding/glb/windows-1252.glb"), encoding='cp1252')
+        gltf = GLTF.load(custom_sample("BadEncoding/glb/windows-1252.glb"), encoding="cp1252")
 
         # Assert
-        self.assertEqual(GLTFModel(asset=Asset(version="2.0", copyright='“Test” – Company')), gltf.model)
-
+        self.assertEqual(GLTFModel(asset=Asset(version="2.0", copyright="“Test” – Company")), gltf.model)
 
     def test_uri_encoding_save_mixed(self):
         """
         URIs may be encoded and not encoded (see https://github.com/KhronosGroup/glTF/issues/1449).
         """
         # Act
-        file_resource = FileResource('File Resource.bin', data=b'')
+        file_resource = FileResource("File Resource.bin", data=b"")
         model = GLTFModel(
-            asset=Asset(version='2.0'),
+            asset=Asset(version="2.0"),
             buffers=[
                 Buffer(uri=file_resource.filename, byteLength=0),
                 Buffer(uri=file_resource.uri, byteLength=0),
-            ]
+            ],
         )
         gltf = GLTF(model=model, resources=[file_resource])
 
         # Act/Assert
         with tempfile.TemporaryDirectory() as temp_dir:
-            gltf.export(path.join(temp_dir, 'uri_encoding_save_mixed.glb'))
+            gltf.export(path.join(temp_dir, "uri_encoding_save_mixed.glb"))
 
     def test_uri_encoding_validate_mixed_base64(self):
         """
         URIs may be encoded and not encoded (see https://github.com/KhronosGroup/glTF/issues/1449).
         """
         # Act
-        file_resource = FileResource('File Resource.bin', data=b'')
+        file_resource = FileResource("File Resource.bin", data=b"")
         model = GLTFModel(
-            asset=Asset(version='2.0'),
+            asset=Asset(version="2.0"),
             buffers=[
                 Buffer(uri=file_resource.filename, byteLength=0),
                 Buffer(uri=file_resource.uri, byteLength=0),
-            ]
+            ],
         )
         gltf = GLTF(model=model, resources=[file_resource])
 
@@ -2501,13 +2588,13 @@ class TestGLTF(TestCase):
         URIs may be encoded and not encoded (see https://github.com/KhronosGroup/glTF/issues/1449).
         """
         # Act
-        file_resource = FileResource('File Resource.bin', data=b'')
+        file_resource = FileResource("File Resource.bin", data=b"")
         model = GLTFModel(
-            asset=Asset(version='2.0'),
+            asset=Asset(version="2.0"),
             buffers=[
                 Buffer(uri=file_resource.filename, byteLength=0),
                 Buffer(uri=file_resource.uri, byteLength=0),
-            ]
+            ],
         )
         gltf = GLTF(model=model, resources=[file_resource])
 

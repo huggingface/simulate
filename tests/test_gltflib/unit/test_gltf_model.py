@@ -1,7 +1,9 @@
 import json
 from unittest import TestCase
+
+from simenv.assets.gltflib import GLTF, Animation, AnimationSampler, Asset, Buffer, Channel, GLTFModel, Target
+
 from ..util import sample
-from simenv.assets.gltflib import GLTF, GLTFModel, Asset, Buffer, Animation, AnimationSampler, Channel, Target
 
 
 class TestGLTFModel(TestCase):
@@ -25,15 +27,15 @@ class TestGLTFModel(TestCase):
         model = GLTFModel(asset=Asset())
 
         # Assert
-        self.assertEqual(model.asset.version, '2.0')
+        self.assertEqual(model.asset.version, "2.0")
 
     def test_asset_version(self):
         """Ensures asset version is retained if a value is passed in"""
         # Act
-        model = GLTFModel(asset=Asset(version='2.1'))
+        model = GLTFModel(asset=Asset(version="2.1"))
 
         # Assert
-        self.assertEqual(model.asset.version, '2.1')
+        self.assertEqual(model.asset.version, "2.1")
 
     def test_to_json_removes_properties_set_to_None(self):
         """
@@ -47,7 +49,7 @@ class TestGLTFModel(TestCase):
 
         # Assert
         data = json.loads(v)
-        self.assertDictEqual(data, {'asset': {'version': '2.0'}})
+        self.assertDictEqual(data, {"asset": {"version": "2.0"}})
 
     def test_to_json_retains_empty_strings_lists_and_dicts(self):
         """
@@ -62,7 +64,7 @@ class TestGLTFModel(TestCase):
 
         # Assert
         data = json.loads(v)
-        self.assertDictEqual(data, {'asset': {'version': '2.0', 'generator': ''}, 'buffers': [], 'extensions': {}})
+        self.assertDictEqual(data, {"asset": {"version": "2.0", "generator": ""}, "buffers": [], "extensions": {}})
 
     def test_decode(self):
         """Ensures that a simple model can be decoded successfully from JSON."""
@@ -73,7 +75,9 @@ class TestGLTFModel(TestCase):
         model = GLTFModel.from_json(v)
 
         # Assert
-        self.assertEqual(model, GLTFModel(asset=Asset(version='2.1'), buffers=[Buffer(uri='triangle.bin', byteLength=44)]))
+        self.assertEqual(
+            model, GLTFModel(asset=Asset(version="2.1"), buffers=[Buffer(uri="triangle.bin", byteLength=44)])
+        )
 
     def test_decode_missing_required_property(self):
         """
@@ -81,7 +85,7 @@ class TestGLTFModel(TestCase):
         In this case, the "asset" property on the model is missing.
         """
         # Arrange
-        v = '{}'
+        v = "{}"
 
         # Act/Assert
         with self.assertWarnsRegex(RuntimeWarning, "non-optional type asset"):
@@ -90,7 +94,7 @@ class TestGLTFModel(TestCase):
     def test_load_skins(self):
         """Ensures skin data is loaded"""
         # Act
-        gltf = GLTF.load(sample('RiggedSimple'))
+        gltf = GLTF.load(sample("RiggedSimple"))
 
         # Assert
         self.assertEqual(1, len(gltf.model.skins))
@@ -102,11 +106,16 @@ class TestGLTFModel(TestCase):
     def test_load_animations(self):
         """Ensures animation data is loaded correctly"""
         # Act
-        gltf = GLTF.load(sample('AnimatedCube'))
+        gltf = GLTF.load(sample("AnimatedCube"))
 
         # Assert
-        self.assertCountEqual([Animation(
-            name="animation_AnimatedCube",
-            channels=[Channel(sampler=0, target=Target(node=0, path="rotation"))],
-            samplers=[AnimationSampler(input=0, interpolation="LINEAR", output=1)]
-        )], gltf.model.animations)
+        self.assertCountEqual(
+            [
+                Animation(
+                    name="animation_AnimatedCube",
+                    channels=[Channel(sampler=0, target=Target(node=0, path="rotation"))],
+                    samplers=[AnimationSampler(input=0, interpolation="LINEAR", output=1)],
+                )
+            ],
+            gltf.model.animations,
+        )

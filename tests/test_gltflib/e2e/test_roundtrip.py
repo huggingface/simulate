@@ -1,14 +1,14 @@
-import json
-import tempfile
 import subprocess
+import tempfile
 from os import path
+from pathlib import Path
 from pprint import pformat
 from unittest import TestCase
-from pathlib import Path
-from ..util import SIMENV_TEST_REPOS, sample
+
 from simenv.assets.gltflib import GLTF
 
-import pytest
+from ..util import SIMENV_TEST_REPOS, sample
+
 
 # If set to True, for any models that fail to pass the equality check, this will automatically launch kdiff3 to compare
 # the original model to the roundtrip model (execution will be paused while kdiff3 is open).
@@ -32,7 +32,7 @@ class TestRoundtrip(TestCase):
     @classmethod
     def setUpClass(cls):
         print()
-        print('Running round-trip tests:')
+        print("Running round-trip tests:")
         print()
 
     def setUp(self):
@@ -53,7 +53,7 @@ class TestRoundtrip(TestCase):
 
             # Export a copy of the parsed model to a temporary location
             with tempfile.TemporaryDirectory() as temp_dir:
-                output_filename = path.join(temp_dir, model_name + '.gltf')
+                output_filename = path.join(temp_dir, model_name + ".gltf")
                 original_model.export(output_filename)
 
                 # Parse the exported copy
@@ -73,10 +73,10 @@ class TestRoundtrip(TestCase):
         ext = p.suffix
         v1 = pformat(model_1.model.to_dict())
         v2 = pformat(model_2.model.to_dict())
-        with tempfile.NamedTemporaryFile(mode='w+', prefix=f"{basename}_original_", suffix=ext) as f1:
+        with tempfile.NamedTemporaryFile(mode="w+", prefix=f"{basename}_original_", suffix=ext) as f1:
             f1.write(v1)
             f1.flush()
-            with tempfile.NamedTemporaryFile(mode='w+', prefix=f"{basename}_roundtrip_", suffix=ext) as f2:
+            with tempfile.NamedTemporaryFile(mode="w+", prefix=f"{basename}_roundtrip_", suffix=ext) as f2:
                 f2.write(v2)
                 f2.flush()
-                subprocess.run(['kdiff3', f1.name, f2.name])
+                subprocess.run(["kdiff3", f1.name, f2.name])
