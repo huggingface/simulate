@@ -97,9 +97,9 @@ class MappedBox(GymBox, MappedActions):
     ):
         # Gym
         if isinstance(low, float):
-            low = [low]
+            low = np.array([low])
         if isinstance(high, float):
-            high = [high]
+            high = np.array([high])
         if shape is None:
             shape = [1] * len(low)
         super().__init__(low=low, high=high, shape=shape, dtype=dtype, seed=seed)

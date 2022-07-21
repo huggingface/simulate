@@ -25,7 +25,17 @@ class ActionTest(unittest.TestCase):
         self.assertIsInstance(action, sm.MappedBox)
         self.assertIsInstance(action, sm.MappedActions)
 
+        with self.assertRaises(ValueError):
+            sm.MappedBox(low=1.0, high=2.0, physics=[sm.Physics.POSITION_X, sm.Physics.POSITION_X])
+
     def test_create_mappeddiscrete(self):
-        action = sm.MappedDiscrete(n=3, physics=sm.Physics.POSITION_X)
-        self.assertIsInstance(action, sm.MappedBox)
+        action = sm.MappedDiscrete(n=3,
+                   physics=[sm.Physics.POSITION_X,
+                            sm.Physics.ROTATION_Y,
+                            sm.Physics.ROTATION_Y],
+                   amplitudes=[1, 10, -10])
+        self.assertIsInstance(action, sm.MappedDiscrete)
         self.assertIsInstance(action, sm.MappedActions)
+
+        with self.assertRaises(ValueError):
+            action = sm.MappedDiscrete(n=3, physics=sm.Physics.POSITION_X)
