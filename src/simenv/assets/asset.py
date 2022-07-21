@@ -25,7 +25,7 @@ from huggingface_hub import create_repo, hf_hub_download, upload_file
 
 from .anytree import NodeMixin
 from .collider import Collider
-from .rigidbody import RigidBody
+from .rigidbody_component import RigidBodyComponent
 from .utils import (
     camelcase_to_snakecase,
     get_product_of_quaternions,
@@ -36,7 +36,7 @@ from .utils import (
 
 
 if TYPE_CHECKING:
-    from ..rl.components import RlComponent
+    from ..rl.rl_component import RlComponent
 
 
 class Asset(NodeMixin, object):
@@ -65,7 +65,7 @@ class Asset(NodeMixin, object):
         transformation_matrix=None,
         collider: Optional[Collider] = None,
         rl_component: Optional["RlComponent"] = None,
-        physics_component: Optional[RigidBody] = None,
+        physics_component: Optional[RigidBodyComponent] = None,
         parent=None,
         children=None,
         created_from_file=None,
@@ -120,7 +120,7 @@ class Asset(NodeMixin, object):
         return self._physics_component
 
     @physics_component.setter
-    def physics_component(self, physics_component: RigidBody):
+    def physics_component(self, physics_component: RigidBodyComponent):
         self._physics_component = physics_component
 
     def __len__(self):

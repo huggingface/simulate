@@ -19,7 +19,13 @@ import simenv as sm
 
 
 # TODO add more tests on saving/exporting/loading in gltf files
-class RigidBodyTest(unittest.TestCase):
-    def test_create_rigidbody(self):
-        rb = sm.RigidBody()
-        self.assertIsInstance(rb, sm.RigidBody)
+class ActionTest(unittest.TestCase):
+    def test_create_mappedbox(self):
+        action = sm.MappedBox(low=-1.0, high=2.0, physics=sm.Physics.POSITION_X)
+        self.assertIsInstance(action, sm.MappedBox)
+        self.assertIsInstance(action, sm.MappedActions)
+
+    def test_create_mappeddiscrete(self):
+        action = sm.MappedDiscrete(n=3, physics=sm.Physics.POSITION_X)
+        self.assertIsInstance(action, sm.MappedBox)
+        self.assertIsInstance(action, sm.MappedActions)

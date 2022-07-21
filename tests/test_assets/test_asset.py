@@ -172,16 +172,6 @@ class AssetTest(unittest.TestCase):
         asset = sm.Asset().scale((2.0, 3.0, 4.0))
         np.testing.assert_array_equal(asset.scaling, np.array([2.0, 3.0, 4.0]))
 
-    def test_transformation_matrix_and_trs_conversion_functions(self):
-
-        matrix = sm.assets.utils.get_transform_from_trs(TRANSLATION, ROTATION, SCALE)
-        trs = sm.assets.utils.get_trs_from_transform_matrix(TRANSFORMATION_MAT)
-
-        np.testing.assert_allclose(matrix, TRANSFORMATION_MAT, rtol=1e-03)
-        np.testing.assert_allclose(trs[0], TRANSLATION, rtol=1e-03)
-        np.testing.assert_allclose(trs[1], ROTATION, rtol=1e-03)
-        np.testing.assert_allclose(trs[2], SCALE, rtol=1e-03)
-
     def test_transformation_matrix_asset(self):
         matrix = sm.Asset().transformation_matrix
         np.testing.assert_array_equal(matrix, np.eye(4))

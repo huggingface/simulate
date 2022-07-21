@@ -38,6 +38,7 @@ PREDEFINED_MATERIALS = [
 
 DEFAULT_COLOR = [1.0, 1.0, 1.0, 1.0]
 
+
 # TODO add more tests on saving/exporting/loading in gltf files
 class MaterialssTest(unittest.TestCase):
     def test_create_material(self):

@@ -21,5 +21,5 @@ import simenv as sm
 # TODO add more tests on saving/exporting/loading in gltf files
 class RigidBodyTest(unittest.TestCase):
     def test_create_rigidbody(self):
-        rb = sm.RigidBody()
-        self.assertIsInstance(rb, sm.RigidBody)
+        rb = sm.RigidBodyComponent()
+        self.assertIsInstance(rb, sm.RigidBodyComponent)

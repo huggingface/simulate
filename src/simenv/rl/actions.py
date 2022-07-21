@@ -50,7 +50,9 @@ class Physics(str, Enum):
 
 
 class MappedActions:
-    """A generic action space mapped to physics engine actions"""
+    """A generic action space mapped to physics engine actions
+    We use this dummy class mostly to reference all the action with isInstance.
+    """
 
     pass
 
@@ -60,8 +62,24 @@ class MappedBox(GymBox, MappedActions):
 
     We currently force identical bound for each dimension
 
-        >>> MappedBox(low=-1.0, high=2.0, shape=(3, 4), dtype=np.float32)
-        MappedBox(3, 4)
+    MappedBox(low=-1.0, high=2.0, physics=sm.Physics.POSITION_X)
+    Will map a linear input between -1 and 2 to a linear change in X position of the object.
+
+    scaling: float, optional (default=1.0)
+        scale the input to the physics engine with regard to the action
+    offset: float, optional (default=0.0)
+        offset the input to the physics engine with regard to the action
+    clip_low: List[float], optional (default=None)
+        clip the input to the physics engine with regard to the action
+    clip_high: List[float], optional (default=None)
+        clip the input to the physics engine with regard to the action
+
+    Resulting conversion is as follow (where X is the RL input action and Y the physics engine action):
+        Y = Y + (X - offset) * scaling
+        if clip_low is not None:
+            Y = max(Y, clip_low)
+        if clip_high is not None:
+            Y = min(Y, clip_high)
     """
 
     def __init__(
@@ -77,6 +95,7 @@ class MappedBox(GymBox, MappedActions):
         clip_low: Optional[List[float]] = None,
         clip_high: Optional[List[float]] = None,
     ):
+        # Gym
         if isinstance(low, float):
             low = [low]
         if isinstance(high, float):
@@ -84,22 +103,51 @@ class MappedBox(GymBox, MappedActions):
         if shape is None:
             shape = [1] * len(low)
         super().__init__(low=low, high=high, shape=shape, dtype=dtype, seed=seed)
+
+        # Physics
+        if not isinstance(physics, Physics):
+            raise ValueError("physics must be a Physics enum")
         self.physics = physics
         self.scaling = scaling
         self.offset = offset
+
+        if clip_low is not None:
+            if isinstance(clip_low, float):
+                clip_low = [clip_low]
+            if len(clip_low) != len(low):
+                raise ValueError("clip_low must have the same length as low")
         self.clip_low = clip_low
+
+        if clip_high is not None:
+            if isinstance(clip_high, float):
+                clip_high = [clip_high]
+            if len(clip_high) != len(high):
+                raise ValueError("clip_high must have the same length as high")
         self.clip_high = clip_high
 
 
 class MappedDiscrete(GymDiscrete, MappedActions):
     r"""A gym Discrete Space where each action is mapped to a physics engine action.
 
-    A discrete space in :math:`\{ 0, 1, \\dots, n-1 \}`.
+    MappedDiscrete(n=3,
+                   physics=[sm.Physics.POSITION_X,
+                            sm.Physics.ROTATION_Y,
+                            sm.Physics.ROTATION_Y],
+                   amplitudes=[1, 10, -10])
 
-    Example::
+    Will map 3 discrete actions to 3 physics actions increments:
+        Action 1 => moving in X direction with amplitude 1 meter
+        Action 2 => rotating in Y direction with amplitude 10 degree
+        Action 3 => rotating in Y direction with amplitude -10 degree
 
-        >>> Discrete(2)
+    Additionally, the final physics can be clipped to a certain range after conversion in amplitude.
 
+    The resulting conversion is as follow (where X is the RL input action and Y the physics engine action):
+        Y = Y + amplitude
+        if clip_low is not None:
+            Y = max(Y, clip_low)
+        if clip_high is not None:
+            Y = min(Y, clip_high)
     """
 
     def __init__(
@@ -111,9 +159,27 @@ class MappedDiscrete(GymDiscrete, MappedActions):
         clip_low: Optional[List[float]] = None,
         clip_high: Optional[List[float]] = None,
     ):
-
         super().__init__(n=n, seed=seed)
+
+        # Physics
+        if physics is not None:
+            if not isinstance(physics, list):
+                raise ValueError("physics must be a list of physic actions for each discrete action")
+            if not all(isinstance(p, Physics) for p in physics):
+                raise ValueError("All the physics mapping must be Physics enum")
         self.physics = physics
         self.amplitudes = amplitudes
+
+        if clip_low is not None:
+            if isinstance(clip_low, float):
+                clip_low = [clip_low]
+            if len(clip_low) != n:
+                raise ValueError("clip_low must have length equal to n")
         self.clip_low = clip_low
+
+        if clip_high is not None:
+            if isinstance(clip_high, float):
+                clip_high = [clip_high]
+            if len(clip_high) != n:
+                raise ValueError("clip_high must have length equal to n")
         self.clip_high = clip_high

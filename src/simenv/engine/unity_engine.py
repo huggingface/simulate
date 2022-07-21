@@ -6,7 +6,7 @@ import subprocess
 
 import numpy as np
 
-from simenv.rl.components import RlComponent
+from simenv.rl.rl_component import RlComponent
 
 from .engine import Engine
 

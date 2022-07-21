@@ -27,14 +27,6 @@ _lowercase_uppercase_re = re.compile(r"([a-z\d])([A-Z])")
 _single_underscore_re = re.compile(r"(?<!_)_(?!_)")
 _multiple_underscores_re = re.compile(r"(_{2,})")
 
-_split_re = r"^\w+(\.\w+)*$"
-
-
-def make_default_name_for_object(obj):
-    id = next(obj.__class__.__NEW_ID)
-    name = camelcase_to_snakecase(obj.__class__.__name__ + f"_{id:02d}")
-    return name
-
 
 def camelcase_to_snakecase(name: str) -> str:
     """Convert camel-case string to snake-case."""

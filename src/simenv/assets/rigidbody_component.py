@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simenv RigidBody."""
+""" A simenv RigidBodyComponent."""
 import copy
 import itertools
 from dataclasses import dataclass
@@ -33,7 +33,7 @@ ALLOWED_CONSTRAINTS = [
 
 
 @dataclass()
-class RigidBody:
+class RigidBodyComponent:
     """
     A rigid body caracteristics that can be added to a primitive.
 
