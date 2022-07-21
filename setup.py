@@ -72,8 +72,10 @@ REQUIRED_PKGS = [
 DEV_REQUIRE = [
    "gym",  # For RL action spaces and API
    "stable-baselines3",  # For training with SB3
-   "pyvistaqt",  # For having a background vizualization capabilities (could be optional - note than some Qt backend can have GPL license)
-   "PySide6",
+
+   # For background vizualization capabilities (could be optional - note than some Qt backend can have GPL license)
+   "pyvistaqt",
+   "pyqt5",  # You can also use PySide2, PyQt6 or PySide6 (see https://github.com/spyder-ide/qtpy#requirements)
 ]
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
@@ -81,6 +83,7 @@ QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.
 TESTS_REQUIRE = [
    "pytest",
    "pytest-xdist",
+   "pytest-qt"
 ]
 
 EXTRAS_REQUIRE = {
