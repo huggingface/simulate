@@ -96,19 +96,25 @@ namespace SimEnv.RlAgents {
     public class RewardFunctionPredicate : RewardFunction {
         // TODO: works in the assumption that A and B has the same reward
         public RewardFunction rewardFunctionA;
-        public RewardFunction rewardFunctionB;
+        public RewardFunction rewardFunctionB = null;
+        public bool hasTriggered = false;
+        public bool isTerminal = false;
         public RewardFunctionPredicate(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
-                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) {
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, bool isTerminal) {
             this.rewardFunctionA = rewardFunctionA;
             this.rewardFunctionB = rewardFunctionB;
             this.entity_a = entity_a;
             this.entity_b = entity_b;
             this.distanceMetric = distanceMetric;
+            this.isTerminal = isTerminal;
         }
 
         public override void Reset() {
+            hasTriggered = false;
             rewardFunctionA.Reset();
-            rewardFunctionB.Reset();
+            if (rewardFunctionB != null) {
+                rewardFunctionB.Reset();
+            }
         }
 
         public override float CalculateReward() {
@@ -119,56 +125,57 @@ namespace SimEnv.RlAgents {
 
     public class RewardFunctionAnd : RewardFunctionPredicate {
         public RewardFunctionAnd(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
-                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) :
-            base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric) {}
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, bool isTerminal) :
+            base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric, isTerminal) {}
+
         public override float CalculateReward() {
-            return Math.Min(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());
+            hasTriggered = true;
+            float reward = Math.Min(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());
+            return reward;
         }
+        
     }
 
     public class RewardFunctionOr : RewardFunctionPredicate{
         public RewardFunctionOr(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
-                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) :
-            base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric) {}
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, bool isTerminal) :
+            base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric, isTerminal) {}
+
         public override float CalculateReward() {
-            return Math.Max(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());
+            hasTriggered = true;
+            float reward = Math.Max(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());
+            return reward;
         }
     }
 
     public class RewardFunctionXor : RewardFunctionPredicate {
         public RewardFunctionXor(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB, 
-                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) :
-            base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric) {}
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, bool isTerminal) :
+            base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric, isTerminal) {}
+
         public override float CalculateReward() {
-            return Math.Abs(rewardFunctionA.CalculateReward() - rewardFunctionB.CalculateReward());
+            hasTriggered = true;
+            float reward = Math.Abs(rewardFunctionA.CalculateReward() - rewardFunctionB.CalculateReward());
+            return reward;
         }
     }
 
-    public class RewardFunctionNot : RewardFunction{
+    public class RewardFunctionNot : RewardFunctionPredicate {
         // TODO: works in the assumption that A is sparse
-        public RewardFunction rewardFunctionA;
-
         public RewardFunctionNot(RewardFunction rewardFunctionA,
-                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric) {
-            this.rewardFunctionA = rewardFunctionA;
-            this.entity_a = entity_a;
-            this.entity_b = entity_b;
-            this.distanceMetric = distanceMetric;
-        }
-
-        public override void Reset() {
-            rewardFunctionA.Reset();
-        }
+                GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric,
+                bool isTerminal) :
+            base(rewardFunctionA, null, entity_a, entity_b, distanceMetric, isTerminal) {}
 
         public override float CalculateReward() {
-            if (rewardFunctionA.CalculateReward() > 0.0f) {
-                return 0.0f;
-            } else {
-                return rewardFunctionA.rewardScalar;
+            float reward = 0.0f;
+            if (!(rewardFunctionA.CalculateReward() > 0.0f)) {
+                hasTriggered = true;
+                reward += rewardFunctionA.rewardScalar;
             }
+            return reward;
         }
     }
-
 
     public class TimeoutRewardFunction : SparseRewardFunction {
         int steps = 0;

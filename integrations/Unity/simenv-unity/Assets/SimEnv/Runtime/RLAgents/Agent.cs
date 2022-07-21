@@ -95,24 +95,24 @@ namespace SimEnv.RlAgents {
                 case "and":
                     rewardFunction = new RewardFunctionAnd(
                         GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
-                            entity_a, entity_b, distanceMetric);
+                            entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
                 
                 case "or":
                     rewardFunction = new RewardFunctionOr(
                         GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
-                            entity_a, entity_b, distanceMetric);
+                            entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
 
                 case "xor":
                     rewardFunction = new RewardFunctionXor(
                         GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
-                            entity_a, entity_b, distanceMetric);
+                            entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
                 
                 case "not":
                     rewardFunction = new RewardFunctionNot(
-                        GetRewardFunction(reward.reward_function_a), entity_a, entity_b, distanceMetric);
+                        GetRewardFunction(reward.reward_function_a), entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
 
                 default:
@@ -272,6 +272,10 @@ namespace SimEnv.RlAgents {
                 if (rewardFunction is SparseRewardFunction) {
                     var sparseRewardFunction = rewardFunction as SparseRewardFunction;
                     done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);
+                }
+                else if (rewardFunction is RewardFunctionPredicate) {
+                    var rewardFunctionPredicate = rewardFunction as RewardFunctionPredicate;
+                    done = done | (rewardFunctionPredicate.hasTriggered && rewardFunctionPredicate.isTerminal);
                 }
             }
 
