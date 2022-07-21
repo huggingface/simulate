@@ -17,6 +17,7 @@ import unittest
 
 import simenv as sm
 
+
 PREDEFINED_MATERIALS = [
     "RED",
     "GREEN",
@@ -32,7 +33,7 @@ PREDEFINED_MATERIALS = [
     "GRAY75",
     "TEAL",
     "PURPLE",
-    "OLIVE"
+    "OLIVE",
 ]
 
 DEFAULT_COLOR = [1.0, 1.0, 1.0, 1.0]
@@ -52,5 +53,7 @@ class MaterialssTest(unittest.TestCase):
             self.assertIsInstance(material, sm.Material)
 
             if material_name != "WHITE":
-                self.assertTrue(any(color not in DEFAULT_COLOR for color in material.base_color),
-                msg=f"{material_name} has an issue")
+                self.assertTrue(
+                    any(color not in DEFAULT_COLOR for color in material.base_color),
+                    msg=f"{material_name} has an issue",
+                )

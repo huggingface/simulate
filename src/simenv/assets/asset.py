@@ -31,7 +31,7 @@ from .utils import (
     get_product_of_quaternions,
     get_transform_from_trs,
     get_trs_from_transform_matrix,
-    quat_from_euler,
+    rotation_from_euler_degrees,
 )
 
 
@@ -692,7 +692,7 @@ class Asset(NodeMixin, object):
             if value is None:
                 value = [0.0, 0.0, 0.0, 1.0]
             elif len(value) == 3:
-                value = quat_from_euler(*value)
+                value = rotation_from_euler_degrees(*value)
             elif len(value) != 4:
                 raise ValueError("rotation should be of size 3 (Euler angles) or 4 (Quaternions")
             else:

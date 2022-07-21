@@ -15,7 +15,6 @@
 # Lint as: python3
 """Utilities."""
 import itertools
-import math
 import re
 from typing import List, Tuple, Union
 
@@ -74,7 +73,7 @@ def get_transform_from_trs(
     if not translation.shape == (3,):
         raise ValueError("The translation vector should be of size 3")
     if not rotation.shape == (4,):
-        raise ValueError("The rotation vector should be of size 4")
+        raise ValueError("The rotation quaternions should be of size 4")
     if not scale.shape == (3,):
         raise ValueError("The scale vector should be of size 3")
 
@@ -182,7 +181,8 @@ def get_product_of_quaternions(q: Union[np.ndarray, List[float]], r: Union[np.nd
     )
 
 
-def quat_from_euler(x: float, y: float, z: float) -> List[float]:
+def rotation_from_euler_radians(x: float, y: float, z: float) -> List[float]:
+    """Return a rotation quaternion from Euler angles in radians."""
     qx = np.sin(x / 2) * np.cos(y / 2) * np.cos(z / 2) - np.cos(x / 2) * np.sin(y / 2) * np.sin(z / 2)
     qy = np.cos(x / 2) * np.sin(y / 2) * np.cos(z / 2) + np.sin(x / 2) * np.cos(y / 2) * np.sin(z / 2)
     qz = np.cos(x / 2) * np.cos(y / 2) * np.sin(z / 2) - np.sin(x / 2) * np.sin(y / 2) * np.cos(z / 2)
@@ -190,9 +190,6 @@ def quat_from_euler(x: float, y: float, z: float) -> List[float]:
     return [qx, qy, qz, qw]
 
 
-def quat_from_degrees(x, y, z):
-    return quat_from_euler(math.radians(x), math.radians(y), math.radians(z))
-
-
-def degrees_to_radians(x, y, z):
-    return quat_from_euler(math.radians(x), math.radians(y), math.radians(z))
+def rotation_from_euler_degrees(x: float, y: float, z: float) -> List[float]:
+    """Return a rotation Quaternion from Euler angles in degrees."""
+    return rotation_from_euler_radians(np.radians(x), np.radians(y), np.radians(z))

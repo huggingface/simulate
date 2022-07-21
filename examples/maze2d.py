@@ -1,4 +1,3 @@
-
 # from .maze2denvs import LARGE_MAZE, LARGE_MAZE_EVAL, MEDIUM_MAZE, MEDIUM_MAZE_EVAL, U_MAZE, U_MAZE_EVAL, OPEN, parse_maze, WALL, GOAL, EMPTY
 
 import simenv as sm
@@ -6,33 +5,29 @@ import simenv as sm
 scene = sm.Scene()
 
 scene += sm.Plane(i_size=40, j_size=40, position=[0, 0, -0.1], material=sm.Material())
-scene += sm.Sphere(name='particle', position=[1.2, 0 ,1.2], radius=0.1, material=sm.Material([0.0, 0.0, 1.0, 0.0]))
+scene += sm.Sphere(name="particle", position=[1.2, 0, 1.2], radius=0.1, material=sm.Material([0.0, 0.0, 1.0, 0.0]))
 
-OPEN = \
-        "#######\\"+\
-        "#OOOOO#\\"+\
-        "#OOGOO#\\"+\
-        "#OOOOO#\\"+\
-        "#######"
+OPEN = "#######\\" + "#OOOOO#\\" + "#OOGOO#\\" + "#OOOOO#\\" + "#######"
 
-LARGE_MAZE = \
-        "############\\"+\
-        "#OOOO#OOOOO#\\"+\
-        "#O##O#O#O#O#\\"+\
-        "#OOOOOO#OOO#\\"+\
-        "#O####O###O#\\"+\
-        "#OO#O#OOOOO#\\"+\
-        "##O#O#O#O###\\"+\
-        "#OO#OOO#OGO#\\"+\
-        "############"
+LARGE_MAZE = (
+    "############\\"
+    + "#OOOO#OOOOO#\\"
+    + "#O##O#O#O#O#\\"
+    + "#OOOOOO#OOO#\\"
+    + "#O####O###O#\\"
+    + "#OO#O#OOOOO#\\"
+    + "##O#O#O#O###\\"
+    + "#OO#OOO#OGO#\\"
+    + "############"
+)
 
 maze_str = LARGE_MAZE
 
-lines = maze_str.strip().split('\\')
+lines = maze_str.strip().split("\\")
 for h, row in enumerate(lines):
     for w, el in enumerate(row):
-        if el == '#':
-            scene += sm.Box(bounds=(1, .4, 1), position=(w, 0, h), material=sm.Material([.7, .5, .3, 1]))
+        if el == "#":
+            scene += sm.Box(bounds=(1, 0.4, 1), position=(w, 0, h), material=sm.Material([0.7, 0.5, 0.3, 1]))
 
 scene.show()
 print(scene)

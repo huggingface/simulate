@@ -22,20 +22,21 @@ from .collider import Collider
 
 
 class Camera(Asset):
-    """ A Camera asset.
-        This Camera is located at the origin by default and has no rotation.
+    """A Camera asset.
+    This Camera is located at the origin by default and has no rotation.
 
-        Args:
-            width: The width of the Camera. Default: 256
-            height: The height of the Camera. Default: 256
-            aspect_ratio: The aspect ratio of the Camera if needed
-            yfov: The vertical field of view of the Camera in degrees. Default: 60 degrees
-            znear: The near clipping plane of the Camera.
-            zfar: The far clipping plane of the Camera.
-            camera_type: The type of camera.
-            xmag: The x magnification of the Camera.
-            ymag: The y magnification of the Camera.
+    Args:
+        width: The width of the Camera. Default: 256
+        height: The height of the Camera. Default: 256
+        aspect_ratio: The aspect ratio of the Camera if needed
+        yfov: The vertical field of view of the Camera in degrees. Default: 60 degrees
+        znear: The near clipping plane of the Camera.
+        zfar: The far clipping plane of the Camera.
+        camera_type: The type of camera.
+        xmag: The x magnification of the Camera.
+        ymag: The y magnification of the Camera.
     """
+
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
@@ -112,11 +113,12 @@ class Camera(Asset):
 
 
 class CameraDistant(Camera):
-    """ A Distant Camera looking at the origin.
+    """A Distant Camera looking at the origin.
 
-        The Dstant Camera is identical to the Camera but override the default position and rotation to be located
-        slightly away from the origin along the z axis and look toward the origin.
+    The Dstant Camera is identical to the Camera but override the default position and rotation to be located
+    slightly away from the origin along the z axis and look toward the origin.
     """
+
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(

@@ -3,7 +3,7 @@ from typing import List, Optional, Union
 
 from .asset import Asset
 from .collider import Collider
-from .utils import quat_from_degrees
+from .utils import rotation_from_euler_degrees
 
 
 class Light(Asset):
@@ -81,6 +81,7 @@ class Light(Asset):
 
         return instance_copy
 
+
 class LightSun(Light):
     """A Sun-like scene Light
 
@@ -107,7 +108,7 @@ class LightSun(Light):
     ):
 
         if rotation is None:
-            rotation = quat_from_degrees(-60, 225, 0)
+            rotation = [-60, 225, 0]
 
         super().__init__(
             intensity=intensity,
@@ -122,5 +123,5 @@ class LightSun(Light):
             scaling=scaling,
             collider=collider,
             parent=parent,
-            children=children
+            children=children,
         )

@@ -176,7 +176,7 @@ def generate_colliders(sg):
             collider_assets.append(
                 sm.Asset(
                     position=position,
-                    rotation=sm.utils.quat_from_degrees(*angles),
+                    rotation=sm.utils.rotation_from_euler_degrees(*angles),
                     collider=sm.Collider(type=sm.ColliderType.BOX, bounding_box=bounding_box),
                 )
             )
