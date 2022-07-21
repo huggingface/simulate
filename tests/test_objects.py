@@ -297,39 +297,172 @@ class ObjectsTest(unittest.TestCase):
         self.assertIsNone(asset.collider)
 
     def test_polygon(self):
-        asset = sm.Polygon()
-        default_faces = np.array([ 3,  1,  0, 17,  3, 17,  0, 16,  3,  2,  1, 18,  3, 18,  1, 17,  3,
-        3,  2, 19,  3, 19,  2, 18,  3,  4,  3, 20,  3, 20,  3, 19,  3,  5,
-        4, 21,  3, 21,  4, 20,  3,  6,  5, 22,  3, 22,  5, 21,  3,  7,  6,
-       23,  3, 23,  6, 22,  3,  8,  7, 24,  3, 24,  7, 23,  3,  9,  8, 25,
-        3, 25,  8, 24,  3, 10,  9, 26,  3, 26,  9, 25,  3, 11, 10, 27,  3,
-       27, 10, 26,  3, 12, 11, 28,  3, 28, 11, 27,  3, 13, 12, 29,  3, 29,
-       12, 28,  3, 14, 13, 30,  3, 30, 13, 29,  3, 15, 14, 31,  3, 31, 14,
-       30,  3,  0, 15, 16,  3, 16, 15, 31])
+        asset = sm.Polygon([[-1.,  0.,  0.], [0.,  0.,  1.],
+                 [ 1.,  0.,  0.],
+                 [ 0.,  0.,  -1.]])
+        default_faces = np.array([4, 0, 1, 2, 3])
         np.testing.assert_allclose(asset.mesh.faces, default_faces, atol=1e-5)
 
-        dafault_mesh = np.array([[-1.0000000e+00,  0.0000000e+00,  1.0000000e+00],
-                 [-1.0000000e+00,  3.8268343e-01,  9.2387950e-01],
-                 [-1.0000000e+00,  7.0710677e-01,  7.0710677e-01],
-                 [-1.0000000e+00,  9.2387950e-01,  3.8268343e-01],
-                 [-1.0000000e+00,  1.0000000e+00,  6.1232343e-17],
-                 [-1.0000000e+00,  9.2387950e-01, -3.8268343e-01],
-                 [-1.0000000e+00,  7.0710677e-01, -7.0710677e-01],
-                 [-1.0000000e+00,  3.8268343e-01, -9.2387950e-01],
-                 [-1.0000000e+00,  1.2246469e-16, -1.0000000e+00],
-                 [-1.0000000e+00, -3.8268343e-01, -9.2387950e-01],
-                 [-1.0000000e+00, -7.0710677e-01, -7.0710677e-01],
-                 [-1.0000000e+00, -9.2387950e-01, -3.8268343e-01],
-                 [-1.0000000e+00, -1.0000000e+00, -1.8369701e-16],
-                 [-1.0000000e+00, -9.2387950e-01,  3.8268343e-01],
-                 [-1.0000000e+00, -7.0710677e-01,  7.0710677e-01],
-                 [-1.0000000e+00, -3.8268343e-01,  9.2387950e-01],
-                 [ 1.0000000e+00,  0.0000000e+00,  1.0000000e+00],
-                 [ 1.0000000e+00,  3.8268343e-01,  9.2387950e-01],
-                 [ 1.0000000e+00,  7.0710677e-01,  7.0710677e-01],
-                 [ 1.0000000e+00,  9.2387950e-01,  3.8268343e-01]])
+        dafault_mesh = np.array([[-1.,  0.,  0.],
+                 [ 0.,  0.,  1.],
+                 [ 1.,  0.,  0.],
+                 [ 0.,  0., -1.]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
         self.assertIsNone(asset.collider)
+
+    def test_regular_polygon(self):
+        asset = sm.RegularPolygon()
+        default_faces = np.array([6, 0, 1, 2, 3, 4, 5])
+        np.testing.assert_allclose(asset.mesh.faces, default_faces, atol=1e-5)
+
+        dafault_mesh = np.array([[ 0.0000000e+00,  0.0000000e+00, -1.0000000e+00],
+                 [ 8.6602539e-01,  0.0000000e+00, -5.0000000e-01],
+                 [ 8.6602539e-01,  0.0000000e+00,  5.0000000e-01],
+                 [ 1.2246469e-16,  0.0000000e+00,  1.0000000e+00],
+                 [-8.6602539e-01,  0.0000000e+00,  5.0000000e-01],
+                 [-8.6602539e-01,  0.0000000e+00, -5.0000000e-01]])
+        np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
+
+        self.assertIsNone(asset.collider)
+
+    def test_ring(self):
+        asset = sm.Ring()
+        default_faces = np.array([ 4,  0,  1,  3,  2,  4,  2,  3,  5,  4,  4,  4,  5,  7,  6,  4,  6,
+        7,  9,  8,  4,  8,  9, 11, 10,  4, 10, 11,  1,  0])
+        np.testing.assert_allclose(asset.mesh.faces, default_faces, atol=1e-5)
+
+        dafault_mesh = np.array([[-2.5000000e-01,  2.7755576e-17,  0.0000000e+00],
+                 [-5.0000000e-01,  5.5511151e-17,  0.0000000e+00],
+                 [-1.2500000e-01,  1.3877788e-17,  2.1650635e-01],
+                 [-2.5000000e-01,  2.7755576e-17,  4.3301269e-01],
+                 [ 1.2500000e-01, -1.3877788e-17,  2.1650635e-01],
+                 [ 2.5000000e-01, -2.7755576e-17,  4.3301269e-01],
+                 [ 2.5000000e-01, -2.7755576e-17,  3.0616171e-17],
+                 [ 5.0000000e-01, -5.5511151e-17,  6.1232343e-17],
+                 [ 1.2500000e-01, -1.3877788e-17, -2.1650635e-01],
+                 [ 2.5000000e-01, -2.7755576e-17, -4.3301269e-01],
+                 [-1.2500000e-01,  1.3877788e-17, -2.1650635e-01],
+                 [-2.5000000e-01,  2.7755576e-17, -4.3301269e-01]])
+        np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
+
+        self.assertIsNone(asset.collider)
+
+    def test_text3d(self):
+        asset = sm.Text3D()
+        default_faces = np.array([  3,   4,   9,   7,   3, 161, 163, 158,   3,   0,   5,  13,   3,
+       167, 159, 154,   3,   5,  10,  13])
+        np.testing.assert_allclose(asset.mesh.faces[:20], default_faces, atol=1e-5)
+
+        dafault_mesh = np.array([[ 2.68570006e-01, -7.18600005e-02, -2.98172604e-17],
+                 [ 4.05710012e-01, -7.18600005e-02, -4.50428596e-17],
+                 [ 9.88569975e-01, -7.29499981e-02, -1.09753315e-16],
+                 [ 9.82860029e-01, -6.87799975e-02, -1.09119383e-16],
+                 [ 1.12571001e+00, -6.87799975e-02, -1.24978917e-16],
+                 [ 4.09909993e-01,  4.37139988e-01, -4.55091513e-17],
+                 [ 4.17140007e-01,  4.44370002e-01, -4.63118440e-17],
+                 [ 9.77140009e-01,  4.43289995e-01, -1.08484334e-16],
+                 [ 4.17140007e-01,  5.72770000e-01, -4.63118440e-17],
+                 [ 9.77140009e-01,  5.73849976e-01, -1.08484334e-16],
+                 [ 4.09909993e-01,  5.79999983e-01, -4.55091513e-17],
+                 [ 9.85499978e-01,  1.02570999e+00, -1.09412477e-16],
+                 [ 1.12571001e+00,  1.02306998e+00, -1.24978917e-16],
+                 [ 2.68570006e-01,  1.02614999e+00, -2.98172604e-17],
+                 [ 4.05710012e-01,  1.02614999e+00, -4.50428596e-17],
+                 [ 1.12000000e+00,  1.02723002e+00, -1.24344979e-16],
+                 [ 1.67428398e+00, -9.00899991e-02, -1.85882863e-16],
+                 [ 1.73714399e+00, -9.00899991e-02, -1.92861726e-16],
+                 [ 1.58285391e+00, -7.46200010e-02, -1.75732086e-16],
+                 [ 1.84000397e+00, -7.10100010e-02, -2.04281477e-16]])
+        np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
+
+        self.assertIsNone(asset.collider)
+
+    def test_triangle(self):
+        asset = sm.Triangle()
+        default_faces = np.array([3, 0, 1, 2])
+        np.testing.assert_allclose(asset.mesh.faces[:20], default_faces, atol=1e-5)
+
+        dafault_mesh = np.array([[0.        , 0.        , 0.        ],
+                 [1.        , 0.        , 0.        ],
+                 [0.5       , 0.70710678, 0.        ]])
+        np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
+
+        self.assertIsNone(asset.collider)
+
+    def test_rectangle(self):
+        asset = sm.Rectangle()
+        default_faces = np.array([4, 0, 1, 2, 3])
+        np.testing.assert_allclose(asset.mesh.faces[:20], default_faces, atol=1e-5)
+
+        dafault_mesh = np.array([[1., 0., 0.],
+                 [1., 1., 0.],
+                 [0., 1., 0.],
+                 [0., 0., 0.]])
+        np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
+
+        self.assertIsNone(asset.collider)
+
+    def test_circle(self):
+        asset = sm.Circle(resolution=10)
+        default_faces = np.array([10,  0,  1,  2,  3,  4,  5,  6,  7,  8,  9])
+        np.testing.assert_allclose(asset.mesh.faces[:20], default_faces, atol=1e-5)
+
+        dafault_mesh = np.array([[ 5.00000000e-01,  5.55111512e-17,  0.00000000e+00],
+                 [ 3.83022222e-01,  4.25240089e-17,  3.21393805e-01],
+                 [ 8.68240888e-02,  9.63941025e-18,  4.92403877e-01],
+                 [-2.50000000e-01, -2.77555756e-17,  4.33012702e-01],
+                 [-4.69846310e-01, -5.21634192e-17,  1.71010072e-01],
+                 [-4.69846310e-01, -5.21634192e-17, -1.71010072e-01],
+                 [-2.50000000e-01, -2.77555756e-17, -4.33012702e-01],
+                 [ 8.68240888e-02,  9.63941025e-18, -4.92403877e-01],
+                 [ 3.83022222e-01,  4.25240089e-17, -3.21393805e-01],
+                 [ 5.00000000e-01,  5.55111512e-17, -1.22464680e-16]])
+        np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
+
+        self.assertIsNone(asset.collider)
+
+    def test_structured_grid(self):
+        # let's make a sort of cone
+        xrng = np.arange(-2, 3, dtype=np.float32)
+        zrng = np.arange(-2, 3, dtype=np.float32)
+        x, z = np.meshgrid(xrng, zrng)  # A 5X5 meshgrid
+        y = 1. / np.sqrt(x*x + z*z + 0.1)
+
+        asset = sm.StructuredGrid(x, y, z)
+        default_faces = np.array([4, 0, 5, 6, 1, 4, 1, 6, 7, 2, 4, 2, 7, 8, 3, 4, 3, 8, 9, 4])
+        np.testing.assert_allclose(asset.mesh.faces[:20], default_faces, atol=1e-5)
+
+        dafault_mesh = np.array([[-2.        ,  0.35136417, -2.        ],
+                 [-1.        ,  0.44280744, -2.        ],
+                 [ 0.        ,  0.4938648 , -2.        ],
+                 [ 1.        ,  0.44280744, -2.        ],
+                 [ 2.        ,  0.35136417, -2.        ],
+                 [-2.        ,  0.44280744, -1.        ],
+                 [-1.        ,  0.69006556, -1.        ],
+                 [ 0.        ,  0.9534626 , -1.        ],
+                 [ 1.        ,  0.69006556, -1.        ],
+                 [ 2.        ,  0.44280744, -1.        ],
+                 [-2.        ,  0.4938648 ,  0.        ],
+                 [-1.        ,  0.9534626 ,  0.        ],
+                 [ 0.        ,  3.1622777 ,  0.        ],
+                 [ 1.        ,  0.9534626 ,  0.        ],
+                 [ 2.        ,  0.4938648 ,  0.        ],
+                 [-2.        ,  0.44280744,  1.        ],
+                 [-1.        ,  0.69006556,  1.        ],
+                 [ 0.        ,  0.9534626 ,  1.        ],
+                 [ 1.        ,  0.69006556,  1.        ],
+                 [ 2.        ,  0.44280744,  1.        ]])
+        np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
+
+        self.assertIsNone(asset.collider)
+
+    def test_procgen_grid(self):
+        # TODO (Alicia): add a test for procgen grid
+        pass
+
+    def test_procgen_prims(self):
+        # TODO (Ed): add a test for procgen prims
+        pass
 
 # fmt: on

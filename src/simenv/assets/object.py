@@ -787,7 +787,7 @@ class RegularPolygon(Object3D):
         super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
-class Disc(Object3D):
+class Ring(Object3D):
     """Create a polygonal disk with a hole in the center.
 
     The disk has zero height. The user can specify the inner and outer
@@ -1024,15 +1024,23 @@ class StructuredGrid(Object3D):
     Examples
     --------
 
+    # create a 5x5 mesh grid
+    xrng = np.arange(-2, 3, dtype=np.float32)
+    zrng = np.arange(-2, 3, dtype=np.float32)
+    x, z = np.meshgrid(xrng, zrng)
+    # let's make the y axis a sort of cone
+    y = 1. / np.sqrt(x*x + z*z + 0.1)
+    asset = sm.StructuredGrid(x, y, z)
+
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
-        x: Union[np.ndarray, List[List[float]]] = None,
-        y: Union[np.ndarray, List[List[float]]] = None,
-        z: Union[np.ndarray, List[List[float]]] = None,
+        x: Union[np.ndarray, List[List[float]]],
+        y: Union[np.ndarray, List[List[float]]],
+        z: Union[np.ndarray, List[List[float]]],
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
