@@ -103,6 +103,12 @@ namespace SimEnv.RlAgents {
                         GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
                             entity_a, entity_b, distanceMetric);
                     break;
+
+                case "xor":
+                    rewardFunction = new RewardFunctionXor(
+                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
+                            entity_a, entity_b, distanceMetric);
+                    break;
                 
                 case "not":
                     rewardFunction = new RewardFunctionNot(
