@@ -18,7 +18,7 @@ if __name__ == "__main__":
 
     example_map = np.load("benchmark/examples/example_map_01.npy")
     env_fn = make_env(
-        executable=None,
+        executable=None,  # ALICIA_UNITY_BUILD_URL
         sample_from=example_map,
         engine="Unity",
         seed=None,
@@ -26,11 +26,12 @@ if __name__ == "__main__":
         n_objects=6,
         width=6,
         height=6,
+        n_show=9,
+        n_maps=64,
     )
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
-    obs = env.reset()
     model = PPO("CnnPolicy", env, verbose=3)
-    model.learn(total_timesteps=100000)
+    model.learn(total_timesteps=5000000)
 
     env.close()

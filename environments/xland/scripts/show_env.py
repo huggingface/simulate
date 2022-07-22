@@ -63,7 +63,7 @@ if __name__ == "__main__":
             extra_args["sample_map"] = m
 
     t = time.time()
-    success, scene = create_scene(executable=None, **vars(args), **extra_args)
+    success, scene = create_scene(executable=None, **vars(args), **extra_args, root=-1)
     print("Time in seconds to generate map: {}".format(time.time() - t))
 
     # If we want to show the map and we were successful

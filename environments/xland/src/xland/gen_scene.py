@@ -31,6 +31,7 @@ def create_scene(
     executable=None,
     port=None,
     headless=None,
+    root=0,
     **kwargs,
 ):
     """
@@ -62,6 +63,7 @@ def create_scene(
         executable: engine executable path
         port: port to be used to communicate with the engine
         headless: whether to run the engine in headless mode
+        root: return only root.
         **kwargs: Additional arguments. Handles unused args as well.
     Returns:
         scene: the generated scene in simenv format.
@@ -74,12 +76,12 @@ def create_scene(
     success = False
     attempt = 0
     scene = None
-    nb_tries = kwargs.get("nb_tries", 10)
+    nb_attempts = kwargs.get("nb_attempts", 10)
 
-    while not success and attempt < nb_tries:
+    while not success and attempt < nb_attempts:
 
         if verbose:
-            print("Try {}".format(attempt + 1))
+            print("Attempt {}".format(attempt + 1))
 
         sg = sm.ProcgenGrid(
             width=width,
@@ -119,8 +121,7 @@ def create_scene(
                 port=port,
                 headless=headless,
                 verbose=verbose,
-                physics_update_rate=kwargs.get("physics_update_rate", 30),
-                frame_skip=kwargs.get("frame_skip", 4),
+                root_value=root,
             )
 
         else:
