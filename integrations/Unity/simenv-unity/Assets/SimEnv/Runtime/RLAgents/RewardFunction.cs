@@ -116,11 +116,6 @@ namespace SimEnv.RlAgents {
                 rewardFunctionB.Reset();
             }
         }
-
-        // public override float CalculateReward() {
-        //     // Placeholder since this class is not supposed to be used by itself.
-        //     return 0;
-        // }
     }
 
     public class RewardFunctionAnd : RewardFunctionPredicate {
@@ -129,8 +124,8 @@ namespace SimEnv.RlAgents {
             base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric, isTerminal) {}
 
         public override float CalculateReward() {
-            hasTriggered = true;
             float reward = Math.Min(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());
+            if (reward > 0.0f) hasTriggered = true;
             return reward;
         }
         
@@ -142,8 +137,8 @@ namespace SimEnv.RlAgents {
             base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric, isTerminal) {}
 
         public override float CalculateReward() {
-            hasTriggered = true;
             float reward = Math.Max(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());
+            if (reward > 0.0f) hasTriggered = true;
             return reward;
         }
     }
@@ -154,8 +149,8 @@ namespace SimEnv.RlAgents {
             base(rewardFunctionA, rewardFunctionB, entity_a, entity_b, distanceMetric, isTerminal) {}
 
         public override float CalculateReward() {
-            hasTriggered = true;
             float reward = Math.Abs(rewardFunctionA.CalculateReward() - rewardFunctionB.CalculateReward());
+            if (reward > 0.0f) hasTriggered = true;
             return reward;
         }
     }
