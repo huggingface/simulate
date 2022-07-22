@@ -69,8 +69,8 @@ class HFRlAgentsReward:
     is_terminal: Optional[bool] = False
     is_collectable: Optional[bool] = False
     trigger_once: Optional[bool] = True
-    reward_function_a: Optional = None
-    reward_function_b: Optional = None
+    reward_function_a: Optional["HFRlAgentsReward"] = None
+    reward_function_b: Optional["HFRlAgentsReward"] = None
 
 
 @dataclass_json

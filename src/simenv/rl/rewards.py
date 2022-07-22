@@ -45,8 +45,8 @@ class RewardFunction:
     is_terminal: Optional[bool] = False
     is_collectable: Optional[bool] = False
     trigger_once: Optional[bool] = True
-    reward_function_a: Optional = None
-    reward_function_b: Optional = None
+    reward_function_a: Optional["RewardFunction"] = None
+    reward_function_b: Optional["RewardFunction"] = None
 
     def __post_init__(self):
         if self.type is None:

@@ -93,7 +93,7 @@ namespace SimEnv.RlAgents {
         }
     }
 
-    public class RewardFunctionPredicate : RewardFunction {
+    public abstract class RewardFunctionPredicate : RewardFunction {
         // TODO: works in the assumption that A and B has the same reward
         public RewardFunction rewardFunctionA;
         public RewardFunction rewardFunctionB = null;
@@ -117,10 +117,10 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public override float CalculateReward() {
-            // Placeholder since this class is not supposed to be used by itself.
-            return 0;
-        }
+        // public override float CalculateReward() {
+        //     // Placeholder since this class is not supposed to be used by itself.
+        //     return 0;
+        // }
     }
 
     public class RewardFunctionAnd : RewardFunctionPredicate {
