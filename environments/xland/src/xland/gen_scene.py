@@ -106,7 +106,11 @@ def create_scene(
 
         # Get objects and agents positions
         obj_pos, agent_pos, success = get_positions(
-            sg.map_2d, n_objects=n_objects, n_agents=n_agents, threshold=kwargs.get("threshold", 0.5)
+            sg.map_2d,
+            n_objects=n_objects,
+            n_agents=n_agents,
+            threshold=kwargs.get("threshold", 0.5),
+            enforce_lower_floor=kwargs.get("enforce_lower_floor", True),
         )
 
         # If there is no enough area, we should try again and continue the loop

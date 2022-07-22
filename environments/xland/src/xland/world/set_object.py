@@ -26,6 +26,8 @@ def get_connectivity_graph(y):
     edges = defaultdict(list)
     N, M, _, _ = y.shape
     nodes = np.arange(N * M).reshape((N, M))
+    lowest_plain_nodes = []
+    min_height = np.min(np.amax(y, axis=(2, 3)))
 
     # Identify plain tiles to use them to place objects
     plain_tiles = []
@@ -35,6 +37,10 @@ def get_connectivity_graph(y):
 
             if np.all(y[x, z] == y[x, z, 0, 0]):
                 plain_tiles.append(z + M * x)
+                # We check if the plain tile is in the lowest height
+                # BUG: there is a bug on the connected components that needs to be solved.
+                if y[x, z, 0, 0] == min_height:
+                    lowest_plain_nodes.append(z + M * x)
 
             min_x, max_x, min_z, max_z = max(0, x - 1), min(N, x + 2), max(0, z - 1), min(M, z + 2)
 
@@ -79,10 +85,10 @@ def get_connectivity_graph(y):
     # This array will be useful to identify where to set the objects
     plain_tiles = np.array(plain_tiles)
 
-    return nodes, edges, plain_tiles
+    return nodes, edges, plain_tiles, lowest_plain_nodes
 
 
-def get_playable_area(y):
+def get_playable_area(y, enforce_lower_floor=True):
     """
     Returns playable area.
 
@@ -91,7 +97,7 @@ def get_playable_area(y):
     """
 
     # Get connectivity graph
-    nodes, edges, plain_tiles = get_connectivity_graph(y)
+    nodes, edges, plain_tiles, lowest_plain_nodes = get_connectivity_graph(y)
 
     # Get connected components
     n_nodes = nodes.shape[0] * nodes.shape[1]
@@ -101,6 +107,12 @@ def get_playable_area(y):
     component_lens = [len(c) for c in connected_components]
     largest_connected_component = connected_components[np.argmax(component_lens)]
     total_area = len(largest_connected_component)
+
+    # Check if the lower floor is fully inside the largest connected component
+    # Get lowest floor nodes and then just check if they are inside the largest_connected_component
+    if enforce_lower_floor:
+        if not np.all([elem in largest_connected_component for elem in lowest_plain_nodes]):
+            return None, -1
 
     # Avoid putting objects in ramps
     plain_idxs = [plain_tiles[i] in largest_connected_component for i in range(len(plain_tiles))]
@@ -183,6 +195,7 @@ def create_objects(positions, object_type=None, object_size=0.5):
         get_object_fn(obj)(
             position=pos,
             material=color,
+            physics_component=sm.RigidBody(mass=1.0),
             **get_bounds(object_type=obj, object_size=object_size),
         )
         for pos, color, obj in zip(positions, colors, objects)
@@ -190,7 +203,7 @@ def create_objects(positions, object_type=None, object_size=0.5):
 
 
 # TODO: move this to utils
-def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform"):
+def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform", enforce_lower_floor=True):
     """
     Returns None if there isn't enough playable area.
     """
@@ -198,9 +211,11 @@ def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform")
     if n_agents == 0 and n_objects == 0:
         return [], [], True
 
-    playable_nodes, area = get_playable_area(y)
+    playable_nodes, area = get_playable_area(y, enforce_lower_floor=True)
 
-    if area < threshold:
+    if area < 0:
+        print("Lower floor is enforced and not all tiles of this floor are accessible.")
+    elif area < threshold:
         print("Unsufficient playable area: {:.3f} when minimum is {}".format(area, threshold))
         return None, None, False
 
