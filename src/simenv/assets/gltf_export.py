@@ -20,7 +20,6 @@ from typing import TYPE_CHECKING, Any, ByteString, Dict, List, Optional, Set
 import numpy as np
 import pyvista as pv
 
-from simenv.assets.sensors import StateSensor
 
 
 if TYPE_CHECKING:
@@ -428,41 +427,36 @@ def add_camera_to_model(
 
     return camera_id
 
-def add_sensor_to_model(
-    sensor: Sensor, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+def add_camera_sensor_to_model(
+    camera_sensor: CameraSensor, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
 
-    id
-
-    if isinstance(sensor, CameraSensor):
-        add_camera_to_model(sensor)
-
-    elif isinstance(sensor, StateSensor):
-        add_state_sensor_to_model(sensor)
-
-    gl_camera = gl.Camera(type=camera.camera_type, width=camera.width, height=camera.height)
-
-    if camera.camera_type == "perspective":
-        gl_camera.perspective = gl.PerspectiveCameraInfo(
-            aspectRatio=camera.aspect_ratio, yfov=camera.yfov, zfar=camera.zfar, znear=camera.znear
+    gl_camera_sensor = gl.HFCameraSensor(type=camera_sensor.camera_type, width=camera_sensor.width, height=camera_sensor.height)
+    if camera_sensor.camera_type == "perspective":
+        gl_camera_sensor.perspective = gl.PerspectiveCameraInfo(
+            aspectRatio=camera_sensor.aspect_ratio, yfov=camera_sensor.yfov, zfar=camera_sensor.zfar, znear=camera_sensor.znear
         )
     else:
-        gl_camera.orthographic = gl.OrthographicCameraInfo(
-            xmag=camera.xmag, ymag=camera.ymag, zfar=camera.zfar, znear=camera.znear
+        gl_camera_sensor.orthographic = gl.OrthographicCameraInfo(
+            xmag=camera_sensor.xmag, ymag=camera_sensor.ymag, zfar=camera_sensor.zfar, znear=camera_sensor.znear
         )
 
     # If we have already created exactly the same camera we avoid double storing
-    cached_id = is_data_cached(data=gl_camera.to_json(), cache=cache)
+    cached_id = is_data_cached(data=gl_camera_sensor.to_json(), cache=cache)
     if cached_id is not None:
         return cached_id
 
-    # Add the new camera
-    gltf_model.cameras.append(gl_camera)
-    camera_id = len(gltf_model.cameras) - 1
+    # Add the new camera sensor
+    
+    if gltf_model.extensions.HF_camera_sensors is None:
+        gltf_model.extensions.HF_camera_sensors = gl.HFCameraSensors(camera_sensors=[gl_camera_sensor])
+    else:
+        gltf_model.extensions.HF_camera_sensors.camera_sensors.append(gl_camera_sensor)
+    id = len(gltf_model.extensions.HF_camera_sensors.camera_sensors) - 1
 
-    cache_data(data=gl_camera.to_json(), data_id=camera_id, cache=cache)
+    cache_data(data=gl_camera_sensor.to_json(), data_id=id, cache=cache)
 
-    return camera_id
+    return id
 
 
 def add_light_to_model(
@@ -660,16 +654,18 @@ def add_node_to_scene(
 
     extensions = gl.Extensions()
     extension_used = set()
-    if isinstance(node, Sensor):
-        
-        gl_node.sensor = add_sensor_to_model(
-            sensor=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+    if isinstance(node, CameraSensor):
+        sensor_id = add_camera_sensor_to_model(
+            camera_sensor=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
+        extensions.HF_camera_sensors = gl.HFCameraSensors(camera_sensor=sensor_id)
+        extension_used.add("HF_camera_sensor")
+
     elif isinstance(node, Camera):
-        
         gl_node.camera = add_camera_to_model(
             camera=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
+
     elif isinstance(node, Light):
         light_id = add_light_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache

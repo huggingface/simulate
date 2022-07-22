@@ -1,0 +1,46 @@
+from dataclasses import dataclass
+from typing import List, Optional
+
+from ..orthographic_camera_info import OrthographicCameraInfo
+from ..perspective_camera_info import PerspectiveCameraInfo
+from dataclasses_json import dataclass_json
+
+@dataclass_json
+@dataclass
+class HFCameraSensor:
+    """
+    A camera's projection. A node can reference a camera to apply a transform to place the camera in the scene.
+
+    Properties:
+    orthographic (object) An orthographic camera containing properties to create an orthographic projection matrix.
+        (Optional)
+    perspective (object) A perspective camera containing properties to create a perspective projection matrix.
+        (Optional)
+    type (string) Specifies if the camera uses a perspective or orthographic projection. (Required)
+    name (string) The user-defined name of this object. (Optional)
+    width (int) The width of the camera render result. (Optional)
+    height (int) The height of the camera render result. (Optional)s
+    extensions (object) Dictionary object with extension-specific objects. (Optional)
+    extras (any) Application-specific data. (Optional)
+    """
+
+    orthographic: Optional[OrthographicCameraInfo] = None
+    perspective: Optional[PerspectiveCameraInfo] = None
+    type: str = None
+    width: int = None
+    height: int = None
+
+
+
+@dataclass_json
+@dataclass
+class HFCameraSensors:
+    """
+    A camera sensor within a scene. This extension defines Camera Sensors.
+
+    Properties:
+    camera_sensors (list) Array of Camera Sensors
+    """
+
+    camera_sensors: Optional[List[HFCameraSensor]] = None
+    camera_sensor: Optional[int] = None

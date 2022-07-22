@@ -12,7 +12,7 @@ namespace SimEnv {
         Camera m_camera;
         Node m_node;
 
-        public CameraSensor(Node node, GLTF.GLTFCamera data) {
+        public CameraSensor(Node node, SimEnv.GLTF.HFCameraSensors.HFCameraSensor data) {
             m_node = node;
 
             m_camera = node.gameObject.AddComponent<Camera>();
