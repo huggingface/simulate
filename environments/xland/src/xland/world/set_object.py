@@ -169,7 +169,7 @@ def get_object_fn(obj):
         raise ValueError
 
 
-def create_objects(positions, object_type=None, object_size=0.5):
+def create_objects(positions, object_type=None, object_size=0.5, n_instance=0):
     """
     Create objects in simenv.
     """
