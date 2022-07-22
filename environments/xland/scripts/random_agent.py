@@ -29,6 +29,8 @@ if __name__ == "__main__":
         height=9,
         frame_skip=4,
         physics_update_rate=20,
+        n_maps=1,
+        n_show=1,
     )(port=55000)
 
     done = False
