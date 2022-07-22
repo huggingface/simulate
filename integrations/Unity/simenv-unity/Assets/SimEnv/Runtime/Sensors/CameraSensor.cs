@@ -5,6 +5,7 @@ using UnityEngine.Rendering.Universal;
 
 namespace SimEnv {
     public class CameraSensor : ISensor {
+        public static string name = "CameraSensor";
         public Node node => m_node;
         public Camera camera => m_camera;
         Texture2D tex;
@@ -44,6 +45,9 @@ namespace SimEnv {
             if (Application.isPlaying)
                 Simulator.Register(this);
         }
+        public string GetName() {
+            return name;
+        }
         public int getSize() {
             return camera.targetTexture.width * camera.targetTexture.height * 3;
         }
@@ -70,10 +74,10 @@ namespace SimEnv {
             tex.Apply();
             Color32[] pixels = tex.GetPixels32();
 
-            for (int i = 0; i < pixels.Length; i++){
-                buffer[index + i*3] = pixels[i].r;
-                buffer[index + i*3+1] = pixels[i].g;
-                buffer[index + i*3+2] = pixels[i].b;
+            for (int i = 0; i < pixels.Length; i++) {
+                buffer[index + i * 3] = pixels[i].r;
+                buffer[index + i * 3 + 1] = pixels[i].g;
+                buffer[index + i * 3 + 2] = pixels[i].b;
             }
         }
     }

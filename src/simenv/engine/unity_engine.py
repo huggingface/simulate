@@ -191,8 +191,19 @@ class UnityEngine(Engine):
         command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
         encoded_obs = self.run_command(command)
         data = json.loads(encoded_obs)
-        decoded_obs = self._reshape_obs(data)
+        
+        decoded_obs = self._extract_sensor_obs(data)
         return decoded_obs
+
+    def _extract_sensor_obs(self, data):
+        sensor_obs = {}
+
+        for obs_json in data["Items"]:
+            obs_data = json.loads(obs_json)
+            name = obs_data["name"]
+            sensor_obs[name] = self._reshape_obs(obs_data)
+
+        return sensor_obs
 
     def get_observation_send(self):
         command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
@@ -201,7 +212,7 @@ class UnityEngine(Engine):
     def get_observation_recv(self):
         encoded_obs = self._get_response()
         data = json.loads(encoded_obs)
-        decoded_obs = self._reshape_obs(data)
+        decoded_obs = self._extract_sensor_obs(data)
         return decoded_obs
 
     def _reshape_obs(self, obs):

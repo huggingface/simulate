@@ -81,7 +81,7 @@ if __name__ == "__main__":
     print(envs.observation_space)
 
     obs = envs.reset()
-    model = PPO("CnnPolicy", envs, verbose=3)
+    model = PPO("MultiInputPolicy", envs, verbose=3)
     model.learn(total_timesteps=100000)
 
     envs.close()

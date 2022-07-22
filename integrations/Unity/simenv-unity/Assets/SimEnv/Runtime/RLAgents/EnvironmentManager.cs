@@ -20,6 +20,7 @@ namespace SimEnv.RlAgents {
 
         List<uint[]> agentPixelValues = new List<uint[]>();
         List<int> obsSizes = new List<int>();
+        List<string> sensorNames = new List<string>();
 
         public void Initialize() {
             frameSkip = Client.instance.frameSkip;
@@ -48,6 +49,7 @@ namespace SimEnv.RlAgents {
             }
 
             obsSizes = activeEnvironments[0].GetObservationSizes();
+            sensorNames = activeEnvironments[0].GetSensorNames();
             foreach (var size in obsSizes) {
                 agentPixelValues.Add(new uint[nEnvironments * size]);
             }
@@ -145,18 +147,17 @@ namespace SimEnv.RlAgents {
             List<int[]> obsShapes = activeEnvironments[0].GetObservationShapes();
             List<int[]> shapesWithAgents = new List<int[]>();
 
-        
-            for (int j = 0; j < obsShapes.Count; j++)
-            {
+
+            for (int j = 0; j < obsShapes.Count; j++) {
                 int[] obsShape = obsShapes[j];
                 int[] shapeWithAgents = new int[obsShape.Length + 1];
-                shapeWithAgents[0] = activeEnvironments.Count;       
+                shapeWithAgents[0] = activeEnvironments.Count;
                 Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values
                 shapesWithAgents.Add(shapeWithAgents);
             }
 
             List<Coroutine> coroutines = new List<Coroutine>();
-            
+
             for (int i = 0; i < activeEnvironments.Count; i++) {
                 Coroutine coroutine = activeEnvironments[i].GetObservationCoroutine(agentPixelValues, obsSizes, i).RunCoroutine();
                 coroutines.Add(coroutine);
@@ -166,8 +167,13 @@ namespace SimEnv.RlAgents {
                 yield return coroutine;
             }
             // flatten the two arrays
-            string string_array = JsonHelper.ToJson(agentPixelValues[0], shapesWithAgents[0]);
-            callback(string_array);
+            List<string> strings = new List<string>();
+            for (int j = 0; j < obsShapes.Count; j++) {
+                string string_array = JsonHelper.ToJson(agentPixelValues[j], shapesWithAgents[j], sensorNames[j]);
+                strings.Add(string_array);
+
+            }
+            callback(JsonHelper.ToJson(strings.ToArray()));
         }
 
     }

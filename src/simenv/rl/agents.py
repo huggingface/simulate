@@ -17,9 +17,12 @@
 import itertools
 from typing import List, Optional, Union
 
-from simenv.rl.actions import MappedDiscrete
+import numpy as np
+from simenv.assets.sensors import StateSensor
 
-from ..assets import Asset, Camera, Capsule, Collider, RigidBodyComponent
+from simenv.rl.actions import MappedBox, MappedDiscrete
+
+from ..assets import Asset, CameraSensor, Capsule, Collider, RigidBody
 from .actions import Physics
 from .rewards import RewardFunction
 from .rl_component import RlComponent
@@ -86,7 +89,22 @@ class SimpleRlAgent(Capsule):
             transformation_matrix=transformation_matrix,
         )
 
-        # Add our RL component:
+        # Rescale the agent
+        if scaling is not None:
+            self.scale(scaling)
+
+        # Move our agent a bit higher than the ground
+        self.translate_y(0.51)
+
+        # Add a camera as children
+        sensors = [
+            CameraSensor(width=camera_width, height=camera_height, position=[0, 0.75, 0]),
+            StateSensor(self)
+        ]
+
+        self.tree_children = sensors
+
+        # Create a reward function if a target is provided
         rewards = None
         if reward_target is not None:
             # Create a reward function if a target is provided
@@ -97,7 +115,9 @@ class SimpleRlAgent(Capsule):
             physics=[Physics.ROTATION_Y, Physics.ROTATION_Y, Physics.POSITION_X],
             amplitudes=[-90, 90, 2.0],
         )
-        self.rl_component = RlComponent(actions=actions, observations=camera, rewards=rewards)
+
+        self.rl_component = RlComponent(actions=actions, sensors=sensors, rewards=rewards)
+        self.physics_component = RigidBody(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
 
         # Add our physics component (by default the agent can only rotation along y axis)
         self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
@@ -128,7 +148,7 @@ class SimpleRlAgent(Capsule):
                 child._post_copy()
 
         instance_copy.rl_component = RlComponent(
-            self.rl_component.actions, self.rl_component.observations, self.rl_component.rewards
+            self.rl_component.actions, self.rl_component.sensors, self.rl_component.rewards
         )
 
         instance_copy.physics_component = self.physics_component

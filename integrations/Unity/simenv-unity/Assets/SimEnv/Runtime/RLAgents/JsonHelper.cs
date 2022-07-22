@@ -21,6 +21,14 @@ namespace SimEnv.RlAgents {
             return JsonUtility.ToJson(wrapper);
         }
 
+        public static string ToJson<T>(T[] array, int[] shape, string name) {
+            Wrapper<T> wrapper = new Wrapper<T>();
+            wrapper.Items = array;
+            wrapper.shape = shape;
+            wrapper.name = name;
+            return JsonUtility.ToJson(wrapper);
+        }
+
         public static string ToJson<T>(T[] array, bool prettyPrint) {
             Wrapper<T> wrapper = new Wrapper<T>();
             wrapper.Items = array;
@@ -31,6 +39,7 @@ namespace SimEnv.RlAgents {
         private class Wrapper<T> {
             public T[] Items;
             public int[] shape;
+            public string name;
         }
     }
 }

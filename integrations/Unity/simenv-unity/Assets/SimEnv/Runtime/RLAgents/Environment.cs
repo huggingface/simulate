@@ -81,10 +81,13 @@ namespace SimEnv.RlAgents {
             return agents[0].IsDone();
         }
         public List<int[]> GetObservationShapes() {
-            return agents[0].getObservationShapes();
+            return agents[0].GetObservationShapes();
         }
         public List<int> GetObservationSizes() {
-            return agents[0].getObservationSizes();
+            return agents[0].GetObservationSizes();
+        }
+        public List<string> GetSensorNames() {
+            return agents[0].GetSensorNames();
         }
 
         public void Reset() {
@@ -99,7 +102,7 @@ namespace SimEnv.RlAgents {
         }
 
         public IEnumerator GetObservationCoroutine(List<uint[]> buffers, List<int> sizes, int index) {
-            yield return agents[0].GetObservationCoroutine(buffers, sizes,  index);
+            yield return agents[0].GetObservationCoroutine(buffers, sizes, index);
         }
 
 

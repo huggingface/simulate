@@ -277,7 +277,7 @@ namespace SimEnv.RlAgents {
             return done;
         }
 
-        public List<int> getObservationSizes() {
+        public List<int> GetObservationSizes() {
             List<int> sizes = new List<int>();
             foreach (var sensor in sensors) {
                 sizes.Add(sensor.getSize());
@@ -285,7 +285,7 @@ namespace SimEnv.RlAgents {
             return sizes;
         }
 
-        public List<int[]> getObservationShapes() {
+        public List<int[]> GetObservationShapes() {
             List<int[]> shapes = new List<int[]>();
             foreach (var sensor in sensors) {
                 shapes.Add(sensor.getShape());
@@ -293,11 +293,18 @@ namespace SimEnv.RlAgents {
             return shapes;
         }
 
+        public List<string> GetSensorNames() {
+            List<string> names = new List<string>();
+            foreach (var sensor in sensors) {
+                names.Add(sensor.GetName());
+            }
+            return names;
+        }
+
         public IEnumerator GetObservationCoroutine(List<uint[]> buffers, List<int> sizes, int index) {
             List<Coroutine> coroutines = new List<Coroutine>();
-            for (int i = 0; i < sensors.Count; i++)
-            {
-                Coroutine coroutine = sensors[i].getObs(buffers[i], sizes[i]*index).RunCoroutine();;
+            for (int i = 0; i < sensors.Count; i++) {
+                Coroutine coroutine = sensors[i].getObs(buffers[i], sizes[i] * index).RunCoroutine(); ;
                 coroutines.Add(coroutine);
             }
             foreach (var coroutine in coroutines) {
