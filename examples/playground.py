@@ -1,7 +1,10 @@
-import simenv as sm
+import random
+
 import matplotlib.pyplot as plt
 import numpy as np
-import random
+
+import simenv as sm
+
 
 scene = sm.Scene(engine="Unity")
 scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)

@@ -25,12 +25,18 @@ from huggingface_hub import create_repo, hf_hub_download, upload_file
 
 from .anytree import NodeMixin
 from .collider import Collider
-from .rigidbody import RigidBody
-from .utils import camelcase_to_snakecase, get_transform_from_trs, quat_from_euler
+from .rigidbody_component import RigidBodyComponent
+from .utils import (
+    camelcase_to_snakecase,
+    get_product_of_quaternions,
+    get_transform_from_trs,
+    get_trs_from_transform_matrix,
+    rotation_from_euler_degrees,
+)
 
 
 if TYPE_CHECKING:
-    from ..rl.components import RlComponent
+    from ..rl.rl_component import RlComponent
 
 
 class Asset(NodeMixin, object):
@@ -59,9 +65,10 @@ class Asset(NodeMixin, object):
         transformation_matrix=None,
         collider: Optional[Collider] = None,
         rl_component: Optional["RlComponent"] = None,
-        physics_component: Optional[RigidBody] = None,
+        physics_component: Optional[RigidBodyComponent] = None,
         parent=None,
         children=None,
+        created_from_file=None,
     ):
         self._uuid = uuid.uuid4()
         id = next(getattr(self.__class__, f"_{self.__class__.__name__}__NEW_ID"))
@@ -87,6 +94,7 @@ class Asset(NodeMixin, object):
         self._rl_component = rl_component
         self._physics_component = physics_component
         self._n_copies = 0
+        self._created_from_file = created_from_file
 
     @property
     def uuid(self):
@@ -112,8 +120,11 @@ class Asset(NodeMixin, object):
         return self._physics_component
 
     @physics_component.setter
-    def physics_component(self, physics_component: RigidBody):
+    def physics_component(self, physics_component: RigidBodyComponent):
         self._physics_component = physics_component
+
+    def __len__(self):
+        return len(self.tree_descendants)
 
     def get(self, name: str):
         """Return the first children tree node with the given name."""
@@ -145,8 +156,13 @@ class Asset(NodeMixin, object):
 
         return instance_copy
 
+    def clear(self):
+        """Remove all assets in the scene or children to the asset."""
+        self.tree_children = []
+        return self
+
     def _post_copy(self):
-        return
+        pass
 
     def _get_last_copy_name(self):
         assert self._n_copies > 0, "this object is yet to be copied"
@@ -428,7 +444,7 @@ class Asset(NodeMixin, object):
         self.position += np.array((0.0, 0.0, float(amount)))
         return self
 
-    def rotate(self, rotation: Optional[List[float]] = None):
+    def rotate_by_quaternion(self, quaternion: Optional[List[float]] = None):
         """Rotate the asset with a given rotation quaternion.
         Use ``rotate_x``, ``rotate_y`` or ``rotate_z`` for simple rotations around a specific axis.
 
@@ -446,16 +462,43 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        if rotation is None:
+        if quaternion is None:
             return self
-        self.rotation = np.array(rotation) * self.rotation
+        if len(quaternion) != 4:
+            raise ValueError("Rotation quaternion must be of length 4")
+        normalized_quaternion = np.array(quaternion) / np.linalg.norm(quaternion)
+        self.rotation = get_product_of_quaternions(normalized_quaternion, self.rotation)
         return self
 
-    def _rotate_axis(self, vector: Optional[List[float]] = None, value: Optional[float] = None):
-        """Helper to rotate around a single axis."""
+    def rotate_around_vector(self, vector: Optional[List[float]] = None, value: Optional[float] = None):
+        """Rotate around a vector from a specific amount.
+        Use ``rotate_x``, ``rotate_y`` or ``rotate_z`` for simple rotations around a specific axis.
+
+        Parameters
+        ----------
+        vector : np.ndarray or list, optional
+            Vector to rotate around.
+
+        value : float, optional
+            Rotation value in degree to apply to the object around the vector.
+            Default to applying no rotation.
+
+        Returns
+        -------
+        self : Asset modified in-place with the rotation.
+
+        Examples
+        --------
+
+        """
         if value is None or vector is None:
             return self
-        self.rotation = np.array(vector + [np.radians(value)]) * self.rotation
+        if len(vector) != 3:
+            raise ValueError("Vector must be a 3D vector")
+        radian_value = np.radians(value) / 2  # We use value/2 in radian in the quaternion values
+        normalized_vector = np.array(vector) / np.linalg.norm(vector)
+        new_rotation = np.append(normalized_vector * np.sin(radian_value), np.cos(radian_value))
+        self.rotation = get_product_of_quaternions(new_rotation, self.rotation)
         return self
 
     def rotate_x(self, value: Optional[float] = None):
@@ -475,7 +518,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        return self._rotate_axis(vector=[1.0, 0.0, 0.0], value=value)
+        return self.rotate_around_vector(vector=[1.0, 0.0, 0.0], value=value)
 
     def rotate_y(self, value: Optional[float] = None):
         """Rotate the asset around the ``y`` axis with a given rotation value in degree.
@@ -494,7 +537,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        return self._rotate_axis(vector=[0.0, 1.0, 0.0], value=value)
+        return self.rotate_around_vector(vector=[0.0, 1.0, 0.0], value=value)
 
     def rotate_z(self, value: Optional[float] = None):
         """Rotate the asset around the ``z`` axis with a given rotation value in degree.
@@ -513,7 +556,7 @@ class Asset(NodeMixin, object):
         --------
 
         """
-        return self._rotate_axis(vector=[0.0, 0.0, 1.0], value=value)
+        return self.rotate_around_vector(vector=[0.0, 0.0, 1.0], value=value)
 
     def scale(self, scaling: Optional[Union[float, List[float]]] = None):
         """Scale the asset with a given scaling, either a global scaling value or a vector of ``[x, y, z]`` scaling values.
@@ -649,14 +692,14 @@ class Asset(NodeMixin, object):
             if value is None:
                 value = [0.0, 0.0, 0.0, 1.0]
             elif len(value) == 3:
-                value = quat_from_euler(*value)
+                value = rotation_from_euler_degrees(*value)
             elif len(value) != 4:
                 raise ValueError("rotation should be of size 3 (Euler angles) or 4 (Quaternions")
             else:
                 value = [float(v) for v in value]
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._rotation = np.array(value)
+        self._rotation = np.array(value) / np.linalg.norm(value)
         self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
         if getattr(self.tree_root, "engine", None) is not None:
@@ -690,11 +733,10 @@ class Asset(NodeMixin, object):
             raise NotImplementedError()
         self._transformation_matrix = np.array(value)
 
-        # Not sure we can extract position/rotation/scale from transform matrix in a unique way
-        # Reset position/rotation/scale
-        self._position = None
-        self._rotation = None
-        self._scaling = None
+        translation, rotation, scale = get_trs_from_transform_matrix(value)
+        self._position = translation
+        self._rotation = rotation
+        self._scaling = scale
 
         self._post_asset_modification()
 
@@ -704,8 +746,8 @@ class Asset(NodeMixin, object):
 
     def _post_attach_parent(self, parent):
         """NodeMixing nethod call after attaching to a `parent`."""
+        parent.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
         if getattr(parent.tree_root, "engine", None) is not None:
-            parent.tree_root._check_all_names_unique()  # Check that all names are unique if we are in a Scene
             if parent.tree_root.engine.auto_update:
                 parent.tree_root.engine.update_asset(self)
 
@@ -716,11 +758,10 @@ class Asset(NodeMixin, object):
 
     def _post_name_change(self, value):
         """NodeMixing nethod call after changing the name of a node."""
-        if getattr(self.tree_root, "engine", None) is not None:
-            self.tree_root._check_all_names_unique()  # Check that all names are unique if we are in a Scene
+        self.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
 
     def _check_all_names_unique(self):
-        """Check that all names are unique in the whole tree."""
+        """Check that all names are unique in the tree."""
         seen = set()  # O(1) lookups
         for node in self.tree_descendants:
             if node.name not in seen:

@@ -274,13 +274,13 @@ class PyVistaEngine(Engine):
 
         self.plotter.reset_camera()
 
-    def show(self, auto_update: Optional[bool] = None):
+    def show(self, auto_update: Optional[bool] = None, **plotter_kwargs):
         if auto_update is not None and auto_update != self.auto_update:
             self.plotter = None
             self.auto_update = auto_update
 
         self.regenerate_scene()
-        self.plotter.show()
+        self.plotter.show(**plotter_kwargs)
 
     def close(self):
         if self.plotter is not None:

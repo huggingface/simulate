@@ -1,5 +1,7 @@
-import simenv as sm
 import numpy as np
+
+import simenv as sm
+
 
 FPS = 50
 SCALE = 30.0  # affects how fast-paced the game is, forces should be adjusted as well
@@ -36,14 +38,9 @@ height[CHUNKS // 2 - 1] = helipad_y
 height[CHUNKS // 2 + 0] = helipad_y
 height[CHUNKS // 2 + 1] = helipad_y
 height[CHUNKS // 2 + 2] = helipad_y
-smooth_y = [
-    0.33 * (height[i - 1] + height[i + 0] + height[i + 1])
-    for i in range(CHUNKS)
-]
+smooth_y = [0.33 * (height[i - 1] + height[i + 0] + height[i + 1]) for i in range(CHUNKS)]
 
-moon = world.CreateStaticBody(
-    shapes=edgeShape(vertices=[(0, 0), (W, 0)])
-)
+moon = world.CreateStaticBody(shapes=edgeShape(vertices=[(0, 0), (W, 0)]))
 sky_polys = []
 for i in range(CHUNKS - 1):
     p1 = (chunk_x[i], smooth_y[i])
@@ -59,9 +56,7 @@ lander = world.CreateDynamicBody(
     position=(VIEWPORT_W / SCALE / 2, initial_y),
     angle=0.0,
     fixtures=fixtureDef(
-        shape=polygonShape(
-            vertices=[(x / SCALE, y / SCALE) for x, y in LANDER_POLY]
-        ),
+        shape=polygonShape(vertices=[(x / SCALE, y / SCALE) for x, y in LANDER_POLY]),
         density=5.0,
         friction=0.1,
         categoryBits=0x0010,
@@ -106,9 +101,7 @@ for i in [-1, +1]:
         motorSpeed=+0.3 * i,  # low enough not to jump back into the sky
     )
     if i == -1:
-        rjd.lowerAngle = (
-            +0.9 - 0.5
-        )  # The most esoteric numbers here, angled legs have freedom to travel within
+        rjd.lowerAngle = +0.9 - 0.5  # The most esoteric numbers here, angled legs have freedom to travel within
         rjd.upperAngle = +0.9
     else:
         rjd.lowerAngle = -0.9

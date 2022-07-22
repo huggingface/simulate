@@ -65,7 +65,7 @@ The following objects creation helpers are currently provided:
 - `MultipleLines`
 - `Tube`
 - `Polygon`
-- `Disc`
+- `Ring`
 - `Text3D`
 - `Triangle`
 - `Rectangle`

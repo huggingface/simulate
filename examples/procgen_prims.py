@@ -1,11 +1,12 @@
 import math
+import random
+import time
+
+from stable_baselines3 import PPO
 
 import simenv as sm
-from simenv.assets.object import ProcGenPrimsMaze3D
-import random
 from simenv import ParallelSimEnv
-from stable_baselines3 import PPO
-import time
+from simenv.assets.object import ProcGenPrimsMaze3D
 
 
 def create_env(executable=None, port=None, headless=None):

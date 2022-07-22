@@ -26,7 +26,7 @@ except ImportError:
     spaces = None
 
 
-def map_observation_devices_to_spaces(asset: Asset):
+def map_observation_devices_to_spaces(asset: Asset) -> spaces:
     if isinstance(asset, Camera):
         if spaces is None:
             raise ImportError("gym is not installed. Please install gym to use the RL agent.")

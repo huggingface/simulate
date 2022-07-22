@@ -1,8 +1,10 @@
+import random
 import time
-import simenv as sm
+
 import matplotlib.pyplot as plt
 import numpy as np
-import random
+
+import simenv as sm
 
 
 scene = sm.Scene(engine="unity")

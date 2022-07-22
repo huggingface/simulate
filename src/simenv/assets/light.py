@@ -3,7 +3,6 @@ from typing import List, Optional, Union
 
 from .asset import Asset
 from .collider import Collider
-from .utils import quat_from_degrees
 
 
 class Light(Asset):
@@ -81,9 +80,47 @@ class Light(Asset):
 
         return instance_copy
 
-    @Asset.rotation.setter
-    def rotation(self, value):  # override default rotation to be like the sun
-        if self.dimensionality == 3:
-            if value is None:
-                value = quat_from_degrees(-60, 225, 0)
-        Asset.rotation.fset(self, value)
+
+class LightSun(Light):
+    """A Sun-like scene Light
+
+    Overide the default properties of the Light class to get a distant light coming from an angle.
+    """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
+    def __init__(
+        self,
+        intensity: Optional[float] = 1.0,
+        color: Optional[List[float]] = [1.0, 1.0, 1.0],
+        range: Optional[float] = None,
+        inner_cone_angle: Optional[float] = 0.0,
+        outer_cone_angle: Optional[float] = 45.0,
+        light_type: Optional[str] = "directional",
+        name: Optional[str] = None,
+        position: Optional[List[float]] = None,
+        rotation: Optional[List[float]] = None,
+        scaling: Optional[Union[float, List[float]]] = None,
+        collider: Optional[Collider] = None,
+        parent: Optional[Asset] = None,
+        children: Optional[List[Asset]] = None,
+    ):
+
+        if rotation is None:
+            rotation = [-60, 225, 0]
+
+        super().__init__(
+            intensity=intensity,
+            color=color,
+            range=range,
+            inner_cone_angle=inner_cone_angle,
+            outer_cone_angle=outer_cone_angle,
+            light_type=light_type,
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            collider=collider,
+            parent=parent,
+            children=children,
+        )

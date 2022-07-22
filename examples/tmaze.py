@@ -1,15 +1,15 @@
-import simenv as sm
-import simenv.assets.utils as utils
 import time
+
 import matplotlib.pyplot as plt
 import numpy as np
+
+import simenv as sm
+import simenv.assets.utils as utils
 
 
 scene = sm.Scene(engine="Unity")
 
-scene += sm.Light(
-    name="sun", position=[0, 20, 0], intensity=0.9
-)
+scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
 scene += sm.Box(name="floor", position=[0, -0.05, 0], scaling=[100, 0.1, 100])
 scene += sm.Box(name="wall1", position=[-1, 0.5, 0], scaling=[0.1, 1, 5.1])
 scene += sm.Box(name="wall2", position=[1, 0.5, 0], scaling=[0.1, 1, 5.1])
@@ -40,7 +40,7 @@ for i in range(1000):
         action = action.tolist()
 
     obs, reward, done, info = scene.step(action)
-    axim1.set_data(obs.transpose(1,2,0))
+    axim1.set_data(obs.transpose(1, 2, 0))
     fig1.canvas.flush_events()
 
     time.sleep(0.1)

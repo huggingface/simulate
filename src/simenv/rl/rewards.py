@@ -12,7 +12,29 @@ ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO(Ed) other metrics?
 
 @dataclass
 class RewardFunction:
-    """An RL reward function"""
+    """An RL reward function
+
+    Attributes:
+        type: str, optional (default="dense")
+            The type of reward function. Must be one of the following:
+                "dense"
+                "sparse"
+        entity_a: Asset
+            The first entity in the reward function
+        entity_b: Asset
+            The second entity in the reward function
+        distance_metric: str, optional (default="euclidean")
+            The distance metric to use. Must be one of the following:
+                "euclidean"
+        scalar: float, optional (default=1.0)
+            The scalar reward
+        threshold: float, optional (default=0.0)
+            The distance threshold to give the reward
+        is_terminal: bool, optional (default=False)
+            Whether the reward is terminal
+        is_collectable: bool, optional (default=False)
+            Whether the reward is collectable
+    """
 
     entity_a: "Asset"
     entity_b: "Asset"

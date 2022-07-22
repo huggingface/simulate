@@ -1,7 +1,7 @@
 import simenv as sm
 
 
-scene = sm.Scene(engine='Unity')
+scene = sm.Scene(engine="Unity")
 
 scene += sm.Sphere()
 scene += sm.Light()

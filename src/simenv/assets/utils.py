@@ -15,9 +15,8 @@
 # Lint as: python3
 """Utilities."""
 import itertools
-import math
 import re
-from typing import List, Union
+from typing import List, Tuple, Union
 
 import numpy as np
 
@@ -27,14 +26,6 @@ _lowercase_uppercase_re = re.compile(r"([a-z\d])([A-Z])")
 
 _single_underscore_re = re.compile(r"(?<!_)_(?!_)")
 _multiple_underscores_re = re.compile(r"(_{2,})")
-
-_split_re = r"^\w+(\.\w+)*$"
-
-
-def make_default_name_for_object(obj):
-    id = next(obj.__class__.__NEW_ID)
-    name = camelcase_to_snakecase(obj.__class__.__name__ + f"_{id:02d}")
-    return name
 
 
 def camelcase_to_snakecase(name: str) -> str:
@@ -74,7 +65,7 @@ def get_transform_from_trs(
     if not translation.shape == (3,):
         raise ValueError("The translation vector should be of size 3")
     if not rotation.shape == (4,):
-        raise ValueError("The rotation vector should be of size 4")
+        raise ValueError("The rotation quaternions should be of size 4")
     if not scale.shape == (3,):
         raise ValueError("The scale vector should be of size 3")
 
@@ -110,45 +101,80 @@ def get_transform_from_trs(
     return transformation_matrix
 
 
-# def quaternion_from_transformation_matrix(matrix, isprecise=False):
-#     m00, m01, m02 = M[0, :3]
-#     m10, m11, m12 = M[1, :3]
-#     m20, m21, m22 = M[2, :3]
-#     # Sym matrix
-#     sym_matrix = np.array([[m00-m11-m22, 0.0, 0.0, 0.0],
-#                     [m01+m10,     m11-m00-m22, 0.0,         0.0],
-#                         [m02+m20,     m12+m21,     m22-m00-m11, 0.0],
-#                         [m21-m12,     m02-m20,     m10-m01,     m00+m11+m22]])
-#     sym_matrix /= 3.0
-#     # We take the largest eigenvector of sym_matrix
-#     eigen_w, eigen_vector = np.linalg.eigh(sym_matrix)
-#     quaternion = eigen_vector[[3, 0, 1, 2], np.argmax(eigen_w)]
-#     if quaternion[0] < 0.0:
-#         quaternion = -quaternion
-#     return quaternion
+def get_trs_from_transform_matrix(transform_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
+    """Get the translation, rotation and scale from a homogeneous transform matrix."""
+    if not transform_matrix.shape == (4, 4):
+        raise ValueError("The transform matrix should be of size 4x4")
+
+    # See https://math.stackexchange.com/questions/237369/given-this-transformation-matrix-how-do-i-decompose-it-into-translation-rotati
+
+    translation = transform_matrix[:3, 3]
+    scale = np.array(
+        [
+            np.linalg.norm(transform_matrix[:3, 0]),
+            np.linalg.norm(transform_matrix[:3, 1]),
+            np.linalg.norm(transform_matrix[:3, 2]),
+        ]
+    )
+
+    rotation = np.zeros((3, 3))
+    rotation[:, 0] = transform_matrix[:3, 0] / scale[0]
+    rotation[:, 1] = transform_matrix[:3, 1] / scale[1]
+    rotation[:, 2] = transform_matrix[:3, 2] / scale[2]
+
+    m00, m01, m02 = rotation[0].tolist()
+    m10, m11, m12 = rotation[1].tolist()
+    m20, m21, m22 = rotation[2].tolist()
+
+    # See https://www.euclideanspace.com/maths/geometry/rotations/conversions/matrixToQuaternion/
+
+    tr = m00 + m11 + m22
+
+    if tr > 0:
+        S = np.sqrt(tr + 1.0) * 2  # S=4*qw
+        qw = 0.25 * S
+        qx = (m21 - m12) / S
+        qy = (m02 - m20) / S
+        qz = (m10 - m01) / S
+    elif (m00 > m11) and (m00 > m22):
+        S = np.sqrt(1.0 + m00 - m11 - m22) * 2  # S=4*qx
+        qw = (m21 - m12) / S
+        qx = 0.25 * S
+        qy = (m01 + m10) / S
+        qz = (m02 + m20) / S
+    elif m11 > m22:
+        S = np.sqrt(1.0 + m11 - m00 - m22) * 2  # S=4*qy
+        qw = (m02 - m20) / S
+        qx = (m01 + m10) / S
+        qy = 0.25 * S
+        qz = (m12 + m21) / S
+    else:
+        S = np.sqrt(1.0 + m22 - m00 - m11) * 2  # S=4*qz
+        qw = (m10 - m01) / S
+        qx = (m02 + m20) / S
+        qy = (m12 + m21) / S
+        qz = 0.25 * S
+
+    rotation = np.array([qx, qy, qz, qw])
+
+    return translation, rotation, scale
 
 
-# def get_scale_from_transformation_matrix(transformation_matrix):
-#     mat = np.asarray(transformation_matrix, dtype=np.float64)
-#     factor = np.trace(mat) - 2.0
-#     # direction: unit eigenvector corresponding to eigenvalue factor
-#     l, V = np.linalg.eig(mat)
-#     near_factors, = np.nonzero(abs(np.real(l.squeeze()) - factor) < 1e-8)
-#     if near_factors.size == 0:
-#         # uniform scaling
-#         factor = (factor + 2.0) / 3.0
-#         return factor, None
-#     direction = np.real(V[:, near_factors[0]])
+def get_product_of_quaternions(q: Union[np.ndarray, List[float]], r: Union[np.ndarray, List[float]]) -> np.ndarray:
+    qx, qy, qz, qw = q[0], q[1], q[2], q[3]
+    rx, ry, rz, rw = r[0], r[1], r[2], r[3]
+    return np.array(
+        [
+            rw * qx + rx * qw - ry * qz + rz * qy,
+            rw * qy + rx * qz + ry * qw - rz * qx,
+            rw * qz - rx * qy + ry * qx + rz * qw,
+            rw * qw - rx * qx - ry * qy - rz * qz,
+        ]
+    )
 
 
-# def get_trs_from_transformation_matrix(transformation_matrix: np.ndarray):
-#     translation_matrix = np.array(transformation_matrix, copy=False)[:3, 3].copy()
-#     transformation_matrix[:, 3] = 0
-#     rotation_matrix = quaternion_from_transformation_matrix(transformation_matrix)
-#     scale_matrix
-
-
-def quat_from_euler(x: float, y: float, z: float) -> List[float]:
+def rotation_from_euler_radians(x: float, y: float, z: float) -> List[float]:
+    """Return a rotation quaternion from Euler angles in radians."""
     qx = np.sin(x / 2) * np.cos(y / 2) * np.cos(z / 2) - np.cos(x / 2) * np.sin(y / 2) * np.sin(z / 2)
     qy = np.cos(x / 2) * np.sin(y / 2) * np.cos(z / 2) + np.sin(x / 2) * np.cos(y / 2) * np.sin(z / 2)
     qz = np.cos(x / 2) * np.cos(y / 2) * np.sin(z / 2) - np.sin(x / 2) * np.sin(y / 2) * np.cos(z / 2)
@@ -156,9 +182,6 @@ def quat_from_euler(x: float, y: float, z: float) -> List[float]:
     return [qx, qy, qz, qw]
 
 
-def quat_from_degrees(x, y, z):
-    return quat_from_euler(math.radians(x), math.radians(y), math.radians(z))
-
-
-def degrees_to_radians(x, y, z):
-    return quat_from_euler(math.radians(x), math.radians(y), math.radians(z))
+def rotation_from_euler_degrees(x: float, y: float, z: float) -> List[float]:
+    """Return a rotation Quaternion from Euler angles in degrees."""
+    return rotation_from_euler_radians(np.radians(x), np.radians(y), np.radians(z))

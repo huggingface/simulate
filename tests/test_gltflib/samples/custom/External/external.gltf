@@ -1,0 +1,17 @@
+{
+    "asset": {
+        "version": "2.0"
+    },
+    "images": [
+        {
+            "uri": "http://www.example.com/image.jpg",
+            "mimeType": "image/jpeg"
+        }
+    ],
+    "buffers": [
+        {
+            "byteLength": 840,
+            "uri": "http://www.example.com/data.bin"
+        }
+    ]
+}

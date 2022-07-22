@@ -1,23 +1,33 @@
-import simenv as sm
-import simenv.assets.utils as utils
-import os, time
-from simenv.rl_env import RLEnv
+import os
+import random
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
-import random
-from stable_baselines3.common.vec_env import SubprocVecEnv
+from parallel_envs import make_env
 from stable_baselines3 import PPO
 from stable_baselines3.common.env_checker import check_env
+from stable_baselines3.common.vec_env import SubprocVecEnv
 
-
-from parallel_envs import make_env
+import simenv as sm
+import simenv.assets.utils as utils
+from simenv.rl_env import RLEnv
 
 
 if __name__ == "__main__":
     n_envs = 16
     #
-    bench_index = 200 # used to ensure unique ports
-    envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i + bench_index, headless=True) for i in range(n_envs)])
+    bench_index = 200  # used to ensure unique ports
+    envs = SubprocVecEnv(
+        [
+            make_env(
+                "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64",
+                i + bench_index,
+                headless=True,
+            )
+            for i in range(n_envs)
+        ]
+    )
     obs = envs.reset()
 
     total_interactions = 1000

@@ -19,16 +19,21 @@ from typing import List, Optional, Union
 
 from simenv.rl.actions import MappedDiscrete
 
-from ..assets import Asset, Camera, Capsule, Collider, RigidBody
+from ..assets import Asset, Camera, Capsule, Collider, RigidBodyComponent
 from .actions import Physics
-from .components import RlComponent
 from .rewards import RewardFunction
+from .rl_component import RlComponent
 
 
 class SimpleRlAgent(Capsule):
     """Create a Simple RL Agent in the Scene
 
-        A capsule mesh with a Camera as observation device, 3 discrete actions, and a reward function as the distance to a target.
+        A simple agent is a capsule asset with:
+        - a Camera as a child asset for observation device
+        - a RigidBodyComponent component with a mass of 1.0
+        - a RLComponent component with
+            * 3 discrete actions, and
+            * a dense reward function as the distance to a target asset.
 
     Parameters
     ----------
@@ -59,42 +64,40 @@ class SimpleRlAgent(Capsule):
         parent=None,
         children=None,
     ):
+
+        if position is None:
+            position = [0, 0.51, 0]  # A bit above the reference plane
+
+        # Add a camera as children
+        camera = Camera(width=camera_width, height=camera_height, position=[0, 0.75, 0])
+        children = children + [camera] if children is not None else [camera]
+
         super().__init__(
             name=name,
             position=position,
             rotation=rotation,
+            scaling=scaling,
             parent=parent,
             children=children,
             collider=collider,
             transformation_matrix=transformation_matrix,
         )
 
-        # Rescale the agent
-        if scaling is not None:
-            self.scale(scaling)
-
-        # Move our agent a bit higher than the ground
-        self.translate_y(0.51)
-
-        # Add a camera as children
-        camera = Camera(width=camera_width, height=camera_height, position=[0, 0.75, 0])
-
-        self.tree_children = [camera]
-
-        # Create a reward function if a target is provided
+        # Add our RL component:
         rewards = None
         if reward_target is not None:
+            # Create a reward function if a target is provided
             rewards = RewardFunction(self, reward_target)
-
         # Create our action space mapped to physics engine
         actions = MappedDiscrete(
             n=3,
             physics=[Physics.ROTATION_Y, Physics.ROTATION_Y, Physics.POSITION_X],
             amplitudes=[-90, 90, 2.0],
         )
-
         self.rl_component = RlComponent(actions=actions, observations=camera, rewards=rewards)
-        self.physics_component = RigidBody(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
+
+        # Add our physics component (by default the agent can only rotation along y axis)
+        self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
 
     def add_reward_function(self, reward_function: RewardFunction):
         self.rl_component.rewards.append(reward_function)
