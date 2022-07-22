@@ -69,7 +69,7 @@ if __name__ == "__main__":
     # If we want to show the map and we were successful
     if args.show and success:
         if args.engine is None or args.engine.lower() == "pyvista":
-            scene.remove(scene.root.agents_root)
+            scene.remove(scene.root_0.agents_root_0)
 
         scene.show()
 

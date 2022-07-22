@@ -121,7 +121,7 @@ def get_sides_and_bottom(x, y, z, material):
     # We get each of the extra structures
     # We use z as y since it's the way it is in most game engines:
     structures = [
-        sm.StructuredGrid(x=x_down, y=y_down, z=z_down, name="bottom_surface", material=material),
+        sm.StructuredGrid(x=x_down, y=y_down, z=z_down, material=material),
         sm.StructuredGrid(x=xx_0, y=yx_0, z=zx_0, material=material),
         sm.StructuredGrid(x=xx_1, y=yx_1, z=zx_1, material=material),
         sm.StructuredGrid(x=xz_0, y=yz_0, z=zz_0, material=material),
@@ -209,10 +209,8 @@ def generate_scene(
     """
 
     # Create root
-    if root_value > -1:
-        root = sm.Asset(name="root_" + str(root_value))
-    else:
-        root = sm.Asset(name="root")
+    this_map = max(root_value, 0)
+    root = sm.Asset(name="root_" + str(this_map))
 
     # Add colliders to StructuredGrid
     material = sm.Material.GRAY25
@@ -228,7 +226,7 @@ def generate_scene(
     sg += generate_colliders(sg)
 
     # Add procedurally generated grid and sides and bottom
-    map_root = sm.Asset(name="map_root")
+    map_root = sm.Asset(name="map_root_" + str(this_map))
     map_root += sg
     map_root += get_sides_and_bottom(x, y, z, material=material)
 
@@ -237,19 +235,20 @@ def generate_scene(
     root += map_root
 
     # Add objects
-    objects_root = sm.Asset(name="objects_root")
-    objects = create_objects(obj_pos)
+    objects_root = sm.Asset(name="objects_root_" + str(this_map))
+    objects = create_objects(obj_pos, n_instance=this_map)
     objects_root += objects
     root += objects_root
 
     # Add agent
-    agents_root = sm.Asset(name="agents_root")
-    agents_root += create_agents(agent_pos, objects, predicate="random", verbose=verbose)
+    # TODO: Generate random predicates
+    agents_root = sm.Asset(name="agents_root_" + str(this_map))
+    agents_root += create_agents(agent_pos, objects, predicate="random", verbose=verbose, n_instance=this_map)
     root += agents_root
 
     if engine is not None and engine.lower() != "pyvista":
         root += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
-        root += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+        root += sm.Light(name="sun_" + str(this_map), position=[0, 20, 0], intensity=0.9)
 
     if root_value > -1:
         return root
