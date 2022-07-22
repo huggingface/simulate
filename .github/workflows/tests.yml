@@ -13,8 +13,8 @@ jobs:
       # see discussion at https://github.com/pyvista/pyvista/issues/2867
       matrix:
         include:
-          - python-version: '3.7'
-            vtk-version: '8.1.2'
+          # - python-version: '3.7'  # Let's drop support for vtk < 9 - people should then use Unity (see how to update that in setup.py)
+          #   vtk-version: '8.1.2'
           - python-version: '3.8'
             vtk-version: '9.0.3'
           - python-version: '3.9'
