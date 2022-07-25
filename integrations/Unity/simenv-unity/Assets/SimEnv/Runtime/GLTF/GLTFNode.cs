@@ -184,7 +184,7 @@ namespace SimEnv.GLTF {
                         }
                     }
 
-                    // Extensions (lights, colliders, RL agents, etc)
+                    // Extensions (lights, colliders, sensors, RL agents, etc)
                     if (nodes[i].extensions != null) {
 
                         // RL Agents
@@ -199,14 +199,15 @@ namespace SimEnv.GLTF {
                         }
 
                         // Sensors
-                        // Camera Sensors
+                        // Camera Sensor
                         if (nodes[i].extensions.HF_camera_sensors != null) {
+
                             int sensorValue = nodes[i].extensions.HF_camera_sensors.camera_sensor;
-                            if (extensions == null || extensions.HF_camera_sensors == null || extensions.HF_camera_sensors.sensors == null || extensions.HF_camera_sensors.sensors.Count < sensorValue) {
+                            if (extensions == null || extensions.HF_camera_sensors == null || extensions.HF_camera_sensors.camera_sensors == null || extensions.HF_camera_sensors.camera_sensors.Count < sensorValue) {
                                 Debug.LogWarning("Error importing camera sensor");
                             } else {
-
-                                HFCameraSensors.HFCameraSensor cameraData = extensions.HF_camera_sensors.sensors[sensorValue];
+                                Debug.Log("Loading camera " + extensions.HF_camera_sensors.camera_sensors.Count.ToString());
+                                HFCameraSensors.HFCameraSensor cameraData = extensions.HF_camera_sensors.camera_sensors[sensorValue];
 
                                 CameraSensor camera = new CameraSensor(result[i].node, cameraData);
                             }

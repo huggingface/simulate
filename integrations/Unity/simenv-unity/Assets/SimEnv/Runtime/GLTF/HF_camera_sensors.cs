@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 namespace SimEnv.GLTF {
     public class HFCameraSensors {
-        public List<HFCameraSensor> sensors;
+        public List<HFCameraSensor> camera_sensors;
 
         public HFCameraSensors() {
-            sensors = new List<HFCameraSensor>();
+            camera_sensors = new List<HFCameraSensor>();
         }
         public class HFCameraSensor {
             public Orthographic orthographic;

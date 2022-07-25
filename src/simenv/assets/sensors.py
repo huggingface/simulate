@@ -34,7 +34,6 @@ class StateSensor(Asset, Sensor):
         Asset.__init__(self, **kwargs)
         self.entity = entity
         self.property = property
-        pass
 
 
 class RaycastSensor(Asset, Sensor):
