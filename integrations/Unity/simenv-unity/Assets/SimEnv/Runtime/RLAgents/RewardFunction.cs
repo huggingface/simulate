@@ -89,7 +89,7 @@ namespace SimEnv.RlAgents {
                     entity_b.SetActive(false);
                 }
             }
-            return reward * rewardScalar;
+            return reward;
         }
     }
 
