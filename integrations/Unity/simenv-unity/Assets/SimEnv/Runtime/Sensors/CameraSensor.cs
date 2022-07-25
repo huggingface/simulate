@@ -5,7 +5,8 @@ using UnityEngine.Rendering.Universal;
 
 namespace SimEnv {
     public class CameraSensor : ISensor {
-        public static string name = "CameraSensor";
+        public static string mName = "CameraSensor";
+        public static string mType = "uint8";
         public Node node => m_node;
         public Camera camera => m_camera;
         Texture2D tex;
@@ -46,28 +47,34 @@ namespace SimEnv {
                 Simulator.Register(this);
         }
         public string GetName() {
-            return name;
+            return mName;
         }
-        public int getSize() {
+        public string GetSensorType() {
+            return mType;
+        }
+        public int GetSize() {
             return camera.targetTexture.width * camera.targetTexture.height * 3;
         }
 
-        public int[] getShape() {
+        public int[] GetShape() {
             int[] shape = { camera.targetTexture.height, camera.targetTexture.width, 3 };
             return shape;
         }
         // public IEnumerator getObs(UnityAction<Color32[]> callback) {
         //     RenderCoroutine(callback).RunCoroutine();
         // }
+        public string GetBufferType() {
+            return "uint";
+        }
 
-        public IEnumerator getObs(uint[] buffer, int index) {
+        public IEnumerator GetObs(SensorBuffer buffer, int index) {
             camera.enabled = true; // Enable camera so that it renders in Unity's internal render loop
             yield return new WaitForEndOfFrame(); // Wait for Unity to render
             CopyRenderResultToColorBuffer(buffer, index);
             camera.enabled = false; // Disable camera for performance
         }
 
-        private void CopyRenderResultToColorBuffer(uint[] buffer, int index) {
+        private void CopyRenderResultToColorBuffer(SensorBuffer buffer, int index) {
             RenderTexture activeRenderTexture = RenderTexture.active;
             RenderTexture.active = camera.targetTexture;
             tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
@@ -75,9 +82,9 @@ namespace SimEnv {
             Color32[] pixels = tex.GetPixels32();
 
             for (int i = 0; i < pixels.Length; i++) {
-                buffer[index + i * 3] = pixels[i].r;
-                buffer[index + i * 3 + 1] = pixels[i].g;
-                buffer[index + i * 3 + 2] = pixels[i].b;
+                buffer.uintBuffer[index + i * 3] = pixels[i].r;
+                buffer.uintBuffer[index + i * 3 + 1] = pixels[i].g;
+                buffer.uintBuffer[index + i * 3 + 2] = pixels[i].b;
             }
         }
     }

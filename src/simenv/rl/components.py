@@ -22,7 +22,7 @@ from .rewards import RewardFunction
 
 
 if TYPE_CHECKING:
-    from ..assets import Sensor
+    from ..assets import Sensor, Asset
 
 try:
     from gym import spaces

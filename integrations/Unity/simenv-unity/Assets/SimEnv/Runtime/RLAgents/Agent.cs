@@ -280,7 +280,7 @@ namespace SimEnv.RlAgents {
         public List<int> GetObservationSizes() {
             List<int> sizes = new List<int>();
             foreach (var sensor in sensors) {
-                sizes.Add(sensor.getSize());
+                sizes.Add(sensor.GetSize());
             }
             return sizes;
         }
@@ -288,7 +288,7 @@ namespace SimEnv.RlAgents {
         public List<int[]> GetObservationShapes() {
             List<int[]> shapes = new List<int[]>();
             foreach (var sensor in sensors) {
-                shapes.Add(sensor.getShape());
+                shapes.Add(sensor.GetShape());
             }
             return shapes;
         }
@@ -301,24 +301,23 @@ namespace SimEnv.RlAgents {
             return names;
         }
 
-        public IEnumerator GetObservationCoroutine(List<uint[]> buffers, List<int> sizes, int index) {
+        public List<string> GetSensorTypes() {
+            List<string> names = new List<string>();
+            foreach (var sensor in sensors) {
+                names.Add(sensor.GetSensorType());
+            }
+            return names;
+        }
+
+        public IEnumerator GetObservationCoroutine(List<SensorBuffer> buffers, List<int> sizes, int index) {
             List<Coroutine> coroutines = new List<Coroutine>();
             for (int i = 0; i < sensors.Count; i++) {
-                Coroutine coroutine = sensors[i].getObs(buffers[i], sizes[i] * index).RunCoroutine(); ;
+                Coroutine coroutine = sensors[i].GetObs(buffers[i], sizes[i] * index).RunCoroutine(); ;
                 coroutines.Add(coroutine);
             }
             foreach (var coroutine in coroutines) {
                 yield return coroutine;
             }
-
-            // yield return sensors[0].getObs(colors => {
-            //     for (int i = 0; i < colors.Length; i++) {
-            //         pixelValues[startingIndex + i * 3] = colors[i].r;
-            //         pixelValues[startingIndex + i * 3 + 1] = colors[i].g;
-            //         pixelValues[startingIndex + i * 3 + 2] = colors[i].b;
-            //     }
-            // }
-            // );
         }
 
         public void SetAction(List<float> step_action) {

@@ -44,3 +44,28 @@ class HFCameraSensors:
 
     camera_sensors: Optional[List[HFCameraSensor]] = None
     camera_sensor: Optional[int] = None
+
+@dataclass_json
+@dataclass
+class HFStateSensor:
+    """
+    A State Sensor, which measures properties such a position of an object
+    """
+
+    entity_name: Optional[str] = None
+    properties: Optional[List[str]] = None
+
+
+
+@dataclass_json
+@dataclass
+class HFStateSensors:
+    """
+    A state sensor within a scene.
+
+    Properties:
+    state_sensors (list) Array of State Sensors
+    """
+
+    state_sensors: Optional[List[HFStateSensor]] = None
+    state_sensor: Optional[int] = None

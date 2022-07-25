@@ -98,8 +98,8 @@ class SimpleRlAgent(Capsule):
 
         # Add a camera as children
         sensors = [
-            CameraSensor(width=camera_width, height=camera_height, position=[0, 0.75, 0]),
-            #StateSensor(self)
+            #CameraSensor(width=camera_width, height=camera_height, position=[0, 0.75, 0]),
+            StateSensor(self)
         ]
 
         self.tree_children = sensors

@@ -89,6 +89,9 @@ namespace SimEnv.RlAgents {
         public List<string> GetSensorNames() {
             return agents[0].GetSensorNames();
         }
+        public List<string> GetSensorTypes() {
+            return agents[0].GetSensorTypes();
+        }
 
         public void Reset() {
             agents[0].Reset();
@@ -101,7 +104,7 @@ namespace SimEnv.RlAgents {
             root.SetActive(true);
         }
 
-        public IEnumerator GetObservationCoroutine(List<uint[]> buffers, List<int> sizes, int index) {
+        public IEnumerator GetObservationCoroutine(List<SensorBuffer> buffers, List<int> sizes, int index) {
             yield return agents[0].GetObservationCoroutine(buffers, sizes, index);
         }
 

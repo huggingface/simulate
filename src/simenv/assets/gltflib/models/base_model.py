@@ -25,6 +25,7 @@ from .extensions.hf_rigidbodies import HFRigidbodies
 from .extensions.hf_rl_agents import HFRlAgents
 from .extensions.khr_lights_ponctual import KHRLightsPunctual
 from .extensions.hf_sensors import HFCameraSensors
+from .extensions.hf_sensors import HFStateSensors
 
 
 @dataclass_json
@@ -39,5 +40,6 @@ class Extensions:
     HF_rl_agents: Optional[HFRlAgents] = None
     HF_rigidbodies: Optional[HFRigidbodies] = None
     HF_camera_sensors: Optional[HFCameraSensors] = None
+    HF_state_sensors: Optional[HFStateSensors] = None
     HF_custom: Optional[List[str]] = None
 

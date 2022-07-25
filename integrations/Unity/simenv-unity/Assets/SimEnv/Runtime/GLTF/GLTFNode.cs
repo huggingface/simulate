@@ -34,6 +34,7 @@ namespace SimEnv.GLTF {
             public HFRigidbody HF_rigidbodies;
 
             public HFCameraSensor HF_camera_sensors;
+            public HFStateSensor HF_state_sensors;
             public string[] HF_custom;
         }
 
@@ -48,6 +49,9 @@ namespace SimEnv.GLTF {
         }
         public class HFCameraSensor {
             public int camera_sensor;
+        }
+        public class HFStateSensor {
+            public int state_sensor;
         }
 
         public class HFRigidbody {
@@ -210,6 +214,19 @@ namespace SimEnv.GLTF {
                                 HFCameraSensors.HFCameraSensor cameraData = extensions.HF_camera_sensors.camera_sensors[sensorValue];
 
                                 CameraSensor camera = new CameraSensor(result[i].node, cameraData);
+                            }
+                        }
+                        // Camera Sensor
+                        if (nodes[i].extensions.HF_state_sensors != null) {
+
+                            int sensorValue = nodes[i].extensions.HF_state_sensors.state_sensor;
+                            if (extensions == null || extensions.HF_state_sensors == null || extensions.HF_state_sensors.state_sensors == null || extensions.HF_state_sensors.state_sensors.Count < sensorValue) {
+                                Debug.LogWarning("Error importing camera sensor");
+                            } else {
+                                Debug.Log("Loading camera " + extensions.HF_state_sensors.state_sensors.Count.ToString());
+                                HFStateSensors.HFStateSensor stateSensorData = extensions.HF_state_sensors.state_sensors[sensorValue];
+
+                                StateSensor stateSensor = new StateSensor(result[i].node, stateSensorData);
                             }
                         }
                         // Lights

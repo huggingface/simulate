@@ -458,6 +458,29 @@ def add_camera_sensor_to_model(
 
     return id
 
+def add_state_sensor_to_model(
+    state_sensor: StateSensor, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+) -> int:
+
+    gl_state_sensor = gl.HFStateSensor(entity_name=state_sensor.entity.name, properties=state_sensor.properties)
+
+    # If we have already created exactly the same state sensor we avoid double storing
+    cached_id = is_data_cached(data=gl_state_sensor.to_json(), cache=cache)
+    if cached_id is not None:
+        return cached_id
+
+    # Add the new state sensor
+    
+    if gltf_model.extensions.HF_state_sensors is None:
+        gltf_model.extensions.HF_state_sensors = gl.HFStateSensors(state_sensors=[gl_state_sensor])
+    else:
+        gltf_model.extensions.HF_state_sensors.state_sensors.append(gl_state_sensor)
+    id = len(gltf_model.extensions.HF_state_sensors.state_sensors) - 1
+
+    cache_data(data=gl_state_sensor.to_json(), data_id=id, cache=cache)
+
+    return id
+
 
 def add_light_to_model(
     node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
@@ -660,6 +683,12 @@ def add_node_to_scene(
         )
         extensions.HF_camera_sensors = gl.HFCameraSensors(camera_sensor=sensor_id)
         extension_used.add("HF_camera_sensor")
+    elif isinstance(node, StateSensor):
+        sensor_id = add_state_sensor_to_model(
+            state_sensor=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+        )
+        extensions.HF_state_sensors = gl.HFStateSensors(state_sensor=sensor_id)
+        extension_used.add("HF_state_sensor")
 
     elif isinstance(node, Camera):
         gl_node.camera = add_camera_to_model(

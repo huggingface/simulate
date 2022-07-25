@@ -13,14 +13,13 @@ namespace SimEnv.RlAgents {
         List<Vector3> positionPool = new List<Vector3>();
         List<Environment> activeEnvironments = new List<Environment>();
 
-        int nextEnvIndex = 0;
-
         float physicsUpdateRate = 1.0f / 30.0f;
         int frameSkip = 4;
 
-        List<uint[]> agentPixelValues = new List<uint[]>();
+        List<SensorBuffer> agentSensorBuffer = new List<SensorBuffer>();
         List<int> obsSizes = new List<int>();
         List<string> sensorNames = new List<string>();
+        List<string> sensortypes = new List<string>();
 
         public void Initialize() {
             frameSkip = Client.instance.frameSkip;
@@ -50,8 +49,10 @@ namespace SimEnv.RlAgents {
 
             obsSizes = activeEnvironments[0].GetObservationSizes();
             sensorNames = activeEnvironments[0].GetSensorNames();
-            foreach (var size in obsSizes) {
-                agentPixelValues.Add(new uint[nEnvironments * size]);
+            sensortypes = activeEnvironments[0].GetSensorTypes();
+
+            for (int i = 0; i < obsSizes.Count; i++) {
+                agentSensorBuffer.Add(new SensorBuffer(nEnvironments * obsSizes[i], sensortypes[i]));
             }
 
             frameSkip = Client.instance.frameSkip;
@@ -159,7 +160,7 @@ namespace SimEnv.RlAgents {
             List<Coroutine> coroutines = new List<Coroutine>();
 
             for (int i = 0; i < activeEnvironments.Count; i++) {
-                Coroutine coroutine = activeEnvironments[i].GetObservationCoroutine(agentPixelValues, obsSizes, i).RunCoroutine();
+                Coroutine coroutine = activeEnvironments[i].GetObservationCoroutine(agentSensorBuffer, obsSizes, i).RunCoroutine();
                 coroutines.Add(coroutine);
             }
 
@@ -169,7 +170,10 @@ namespace SimEnv.RlAgents {
             // flatten the two arrays
             List<string> strings = new List<string>();
             for (int j = 0; j < obsShapes.Count; j++) {
-                string string_array = JsonHelper.ToJson(agentPixelValues[j], shapesWithAgents[j], sensorNames[j]);
+
+                string string_array = agentSensorBuffer[j].ToJson(shapesWithAgents[j], sensorNames[j]);
+
+                //string string_array = JsonHelper.ToJson(agentSensorBuffer[j], shapesWithAgents[j], sensorNames[j]);
                 strings.Add(string_array);
 
             }

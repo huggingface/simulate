@@ -1,7 +1,7 @@
 using UnityEngine;
 using System;
 
-namespace SimEnv.RlAgents {
+namespace SimEnv {
     public static class JsonHelper {
         public static T[] FromJson<T>(string json) {
             Wrapper<T> wrapper = JsonUtility.FromJson<Wrapper<T>>(json);
