@@ -14,8 +14,7 @@
 
 # Lint as: python3
 """ Export a Scene as a GLTF file."""
-from dataclasses import asdict, fields
-from io import BytesIO
+import hashlib
 from typing import TYPE_CHECKING, Any, ByteString, Dict, List, Optional, Set
 
 import numpy as np

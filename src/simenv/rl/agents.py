@@ -16,10 +16,11 @@
 """ Some pre-built simple agents."""
 import itertools
 from typing import List, Optional, Union
+from simenv.assets.sensors import StateSensor
 
 from simenv.rl.actions import MappedDiscrete
 
-from ..assets import Asset, Capsule, Collider, RigidBody, Sensor
+from ..assets import Asset, Capsule, Collider, RigidBodyComponent, Sensor
 from .actions import Physics
 from .rewards import RewardFunction
 from .rl_component import RlComponent
@@ -69,9 +70,13 @@ class SimpleRlAgent(Capsule):
         if camera_position is None:
             camera_position = [0, 0.75, 0]
 
-        # Add a camera as children
-        camera = Camera(width=camera_width, height=camera_height, position=camera_position)
-        children = children + [camera] if children is not None else [camera]
+        # add self as the ref entity if it has not been provided
+        for sensor in sensors:
+            if isinstance(sensor, StateSensor) and sensor.reference_entity is None:
+                sensor.reference_entity = self
+
+        # Add a sensors as children
+        children = children + sensors if children is not None else sensors
 
         super().__init__(
             name=name,
@@ -91,12 +96,6 @@ class SimpleRlAgent(Capsule):
         # Move our agent a bit higher than the ground
         self.translate_y(0.51)
 
-        # add self as the ref entity if it has not been provided
-        for sensor in sensors:
-            if sensor.reference_entity is None:
-                sensor.reference_entity = self
-        # Add a sensors as children
-        self.tree_children = sensors
 
         # Create a reward function if a target is provided
         rewards = None
@@ -111,7 +110,7 @@ class SimpleRlAgent(Capsule):
         )
 
         self.rl_component = RlComponent(actions=actions, sensors=sensors, rewards=rewards)
-        self.physics_component = RigidBody(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
+        self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
 
         # Add our physics component (by default the agent can only rotation along y axis)
         self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
