@@ -16,13 +16,13 @@
 """ An RL component."""
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from .actions import MappedBox, MappedDiscrete
 from ..assets.sensors import map_sensors_to_spaces
+from .actions import MappedBox, MappedDiscrete
 from .rewards import RewardFunction
 
 
 if TYPE_CHECKING:
-    from ..assets import Sensor, Asset
+    from ..assets import Asset, Sensor
 
 try:
     from gym import spaces
@@ -56,7 +56,7 @@ class RlComponent:
         self.sensors = sensors
         # TODO: to be compatable with StableBaselines3, a list of observations spaces should be a spaces.Tuple
         # or spaces.Dict observation space. This requires a refactor that will be in its own PR.
-        self.observation_space = spaces.Dict({sensor.sensor_name : map_sensors_to_spaces(sensor) for sensor in sensors})
+        self.observation_space = spaces.Dict({sensor.sensor_name: map_sensors_to_spaces(sensor) for sensor in sensors})
 
         # Reward functions
         if rewards is None:

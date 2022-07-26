@@ -191,7 +191,7 @@ class UnityEngine(Engine):
         command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
         encoded_obs = self.run_command(command)
         data = json.loads(encoded_obs)
-        
+
         decoded_obs = self._extract_sensor_obs(data)
         return decoded_obs
 
@@ -220,7 +220,7 @@ class UnityEngine(Engine):
         # TODO: have unity side send in B,C,H,W order
         shape = obs["shape"]
         if len(shape) < 3:
-            return np.array(obs["Items"]).astype(np.float32).reshape(*shape) # TODO make the type conversion automatic
+            return np.array(obs["Items"]).astype(np.float32).reshape(*shape)  # TODO make the type conversion automatic
         else:
             return np.flip(np.array(obs["Items"]).astype(np.uint8).reshape(*shape), 1).transpose(0, 3, 1, 2)
 

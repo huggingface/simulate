@@ -25,7 +25,7 @@ import pyvista as pv
 if TYPE_CHECKING:
     from ..rl import RlComponent, RewardFunction
 
-from . import Asset, Camera, Light, Material, Object3D, Sensor, CameraSensor, StateSensor
+from . import Asset, Camera, CameraSensor, Light, Material, Object3D, Sensor, StateSensor
 from . import gltflib as gl
 
 
@@ -427,14 +427,24 @@ def add_camera_to_model(
 
     return camera_id
 
+
 def add_camera_sensor_to_model(
-    camera_sensor: CameraSensor, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+    camera_sensor: CameraSensor,
+    gltf_model: gl.GLTFModel,
+    buffer_data: ByteString,
+    buffer_id: int = 0,
+    cache: Optional[Dict] = None,
 ) -> int:
 
-    gl_camera_sensor = gl.HFCameraSensor(type=camera_sensor.camera_type, width=camera_sensor.width, height=camera_sensor.height)
+    gl_camera_sensor = gl.HFCameraSensor(
+        type=camera_sensor.camera_type, width=camera_sensor.width, height=camera_sensor.height
+    )
     if camera_sensor.camera_type == "perspective":
         gl_camera_sensor.perspective = gl.PerspectiveCameraInfo(
-            aspectRatio=camera_sensor.aspect_ratio, yfov=camera_sensor.yfov, zfar=camera_sensor.zfar, znear=camera_sensor.znear
+            aspectRatio=camera_sensor.aspect_ratio,
+            yfov=camera_sensor.yfov,
+            zfar=camera_sensor.zfar,
+            znear=camera_sensor.znear,
         )
     else:
         gl_camera_sensor.orthographic = gl.OrthographicCameraInfo(
@@ -447,7 +457,7 @@ def add_camera_sensor_to_model(
         return cached_id
 
     # Add the new camera sensor
-    
+
     if gltf_model.extensions.HF_camera_sensors is None:
         gltf_model.extensions.HF_camera_sensors = gl.HFCameraSensors(camera_sensors=[gl_camera_sensor])
     else:
@@ -458,11 +468,20 @@ def add_camera_sensor_to_model(
 
     return id
 
+
 def add_state_sensor_to_model(
-    state_sensor: StateSensor, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+    state_sensor: StateSensor,
+    gltf_model: gl.GLTFModel,
+    buffer_data: ByteString,
+    buffer_id: int = 0,
+    cache: Optional[Dict] = None,
 ) -> int:
 
-    gl_state_sensor = gl.HFStateSensor(reference_entity_name=state_sensor.reference_entity.name,target_entity_name=state_sensor.target_entity.name, properties=state_sensor.properties)
+    gl_state_sensor = gl.HFStateSensor(
+        reference_entity_name=state_sensor.reference_entity.name,
+        target_entity_name=state_sensor.target_entity.name,
+        properties=state_sensor.properties,
+    )
 
     # If we have already created exactly the same state sensor we avoid double storing
     cached_id = is_data_cached(data=gl_state_sensor.to_json(), cache=cache)
@@ -470,7 +489,7 @@ def add_state_sensor_to_model(
         return cached_id
 
     # Add the new state sensor
-    
+
     if gltf_model.extensions.HF_state_sensors is None:
         gltf_model.extensions.HF_state_sensors = gl.HFStateSensors(state_sensors=[gl_state_sensor])
     else:

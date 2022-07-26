@@ -1,9 +1,11 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
+from dataclasses_json import dataclass_json
+
 from ..orthographic_camera_info import OrthographicCameraInfo
 from ..perspective_camera_info import PerspectiveCameraInfo
-from dataclasses_json import dataclass_json
+
 
 @dataclass_json
 @dataclass
@@ -31,7 +33,6 @@ class HFCameraSensor:
     height: int = None
 
 
-
 @dataclass_json
 @dataclass
 class HFCameraSensors:
@@ -45,6 +46,7 @@ class HFCameraSensors:
     camera_sensors: Optional[List[HFCameraSensor]] = None
     camera_sensor: Optional[int] = None
 
+
 @dataclass_json
 @dataclass
 class HFStateSensor:
@@ -55,7 +57,6 @@ class HFStateSensor:
     reference_entity_name: Optional[str] = None
     target_entity_name: Optional[str] = None
     properties: Optional[List[str]] = None
-
 
 
 @dataclass_json

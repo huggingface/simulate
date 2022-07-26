@@ -1,10 +1,14 @@
+import itertools
 from cmath import inf
-from typing import Optional, List
+from typing import List, Optional
+
+import numpy as np
+
 from simenv.assets.asset import Asset
+
 from .camera import Camera
 
-import itertools
-import numpy as np
+
 try:
     from gym import spaces
 except ImportError:
@@ -20,17 +24,18 @@ def map_sensors_to_spaces(sensor: "Sensor"):
         f"This Asset ({type(Asset)})is not yet implemented " f"as an RlAgent type of observation."
     )
 
+
 def get_state_sensor_n_properties(sensor):
     VALID_PROPERTIES = {
-        "position":3,
-        "position.x":1,
-        "position.y":1,
-        "position.z":1,
-        "rotation":3,
-        "rotation.x":1,
-        "rotation.y":1,
-        "rotation.z":1,
-        "distance":1
+        "position": 3,
+        "position.x": 1,
+        "position.y": 1,
+        "position.z": 1,
+        "rotation": 3,
+        "rotation.x": 1,
+        "rotation.y": 1,
+        "rotation.z": 1,
+        "distance": 1,
     }
 
     n_features = 0
@@ -44,29 +49,35 @@ def get_state_sensor_n_properties(sensor):
     return n_features
 
 
-
-class Sensor():
+class Sensor:
     @property
     def sensor_name(self):
         return type(self).__name__
 
+
 class CameraSensor(Camera, Sensor):
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
     def __init__(self, **kwargs):
         Camera.__init__(self, **kwargs)
 
 
 class StateSensor(Asset, Sensor):
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-    def __init__(self, reference_entity: Optional[Asset]=None, target_entity: Optional[Asset]=None, properties: Optional[List[str]]=["position"], **kwargs):
+
+    def __init__(
+        self,
+        reference_entity: Optional[Asset] = None,
+        target_entity: Optional[Asset] = None,
+        properties: Optional[List[str]] = ["position"],
+        **kwargs,
+    ):
         Asset.__init__(self, **kwargs)
         self.reference_entity = reference_entity
         self.target_entity = target_entity
-        self.properties = properties # e.g. [position, rotatation, position.x, distance]
+        self.properties = properties  # e.g. [position, rotatation, position.x, distance]
 
 
 class RaycastSensor(Asset, Sensor):
-    def __init__(self, n_rays=1,  **kwargs):
+    def __init__(self, n_rays=1, **kwargs):
         raise NotImplementedError
-
-
