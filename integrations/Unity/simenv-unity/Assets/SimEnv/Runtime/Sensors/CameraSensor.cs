@@ -35,7 +35,7 @@ namespace SimEnv {
                         camera.farClipPlane = data.perspective.zfar.Value;
                     if (data.perspective.aspectRatio.HasValue)
                         camera.aspect = data.perspective.aspectRatio.Value;
-                    camera.fieldOfView = Mathf.Rad2Deg * data.perspective.yfov;
+                    camera.fieldOfView = data.perspective.yfov;
                     break;
             }
             UniversalAdditionalCameraData cameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();
@@ -80,7 +80,7 @@ namespace SimEnv {
             tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
             tex.Apply();
             Color32[] pixels = tex.GetPixels32();
-
+            Debug.Log(pixels.Length.ToString() + " " + buffer.uintBuffer.Length.ToString() + " " + index.ToString());
             for (int i = 0; i < pixels.Length; i++) {
                 buffer.uintBuffer[index + i * 3] = pixels[i].r;
                 buffer.uintBuffer[index + i * 3 + 1] = pixels[i].g;
