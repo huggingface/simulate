@@ -35,7 +35,7 @@ namespace SimEnv {
                         camera.farClipPlane = data.perspective.zfar.Value;
                     if (data.perspective.aspectRatio.HasValue)
                         camera.aspect = data.perspective.aspectRatio.Value;
-                    camera.fieldOfView = data.perspective.yfov;
+                    camera.fieldOfView = Mathf.Rad2Deg * data.perspective.yfov;
                     break;
             }
             UniversalAdditionalCameraData cameraData = camera.gameObject.AddComponent<UniversalAdditionalCameraData>();

@@ -447,7 +447,7 @@ def add_camera_sensor_to_model(
     if camera_sensor.camera_type == "perspective":
         gl_camera_sensor.perspective = gl.PerspectiveCameraInfo(
             aspectRatio=camera_sensor.aspect_ratio,
-            yfov=camera_sensor.yfov,
+            yfov=np.radians(camera_sensor.yfov),
             zfar=camera_sensor.zfar,
             znear=camera_sensor.znear,
         )
