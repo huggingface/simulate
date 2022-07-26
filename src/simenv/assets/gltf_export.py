@@ -14,7 +14,8 @@
 
 # Lint as: python3
 """ Export a Scene as a GLTF file."""
-import hashlib
+from dataclasses import asdict, fields
+from io import BytesIO
 from typing import TYPE_CHECKING, Any, ByteString, Dict, List, Optional, Set
 
 import numpy as np
@@ -22,10 +23,15 @@ import pyvista as pv
 
 
 
+try:
+    from gym import spaces
+except ImportError:
+    space = None
+
 if TYPE_CHECKING:
     from ..rl import RlComponent, RewardFunction
 
-from . import Asset, Camera, CameraSensor, Light, Material, Object3D, Sensor, StateSensor
+from . import Asset, Camera, CameraSensor, Light, Material, Object3D, StateSensor
 from . import gltflib as gl
 
 
