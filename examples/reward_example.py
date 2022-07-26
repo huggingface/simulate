@@ -12,7 +12,7 @@ ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/s
 
 def create_scene(port=55000):
     scene = sm.Scene(engine="Unity", engine_exe=ALICIA_UNITY_BUILD_URL, frame_skip=4, engine_port=port)
-    scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
+    scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
     blue_material = sm.Material.BLUE
     red_material = sm.Material.RED
@@ -26,7 +26,7 @@ def create_scene(port=55000):
     scene += sm.Box(name="wall4", position=[0, 0, -5], bounds=[-5, 5, 0, 1, 0, 0.1], material=red_material)
     scene += sm.Box(name="target", position=[1, 0.5, 1], material=red_material)
     scene += sm.Box(name="target_2", position=[-1, 0.5, 1], material=green_material)
-    scene += sm.SimpleRlAgent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
+    scene += sm.SimpleRlAgent(name="agent", camera_width=64, camera_height=40, position=[0, 0.1, 0.0])
 
     return scene
 

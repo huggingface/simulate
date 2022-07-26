@@ -15,7 +15,7 @@ r = np.sqrt(x**2 + z**2)
 y = np.sin(r)
 
 scene += sm.StructuredGrid(x, y, z)
-scene += sm.Light()
+scene += sm.LightSun()
 scene += sm.Camera(position=[0, 5, -15], rotation=[0, 1, 0, 0])
 scene.show()
 

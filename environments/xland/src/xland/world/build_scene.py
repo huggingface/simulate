@@ -215,7 +215,7 @@ def generate_scene(
             scene = sm.Scene(engine=engine, engine_exe=executable, engine_headless=headless)
 
         scene += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
-        scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
+        scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
     else:
         scene = sm.Scene(engine=engine)
@@ -252,7 +252,6 @@ def generate_scene(
     root += objects_root
 
     # Add agent
-    # TODO: Generate random predicates
     agents_root = sm.Asset(name="agents_root")
     agents_root += create_agents(agent_pos, objects, predicate="random", verbose=verbose)
     root += agents_root
