@@ -20,11 +20,11 @@ class BaseModel:
 
 
 # These imports had to be moved to to circular imports
-from .extensions.hf_collider import HFColliders
-from .extensions.hf_rigidbodies import HFRigidbodies
-from .extensions.hf_rl_agents import HFRlAgents
-from .extensions.hf_sensors import HFCameraSensors, HFStateSensors
-from .extensions.khr_lights_ponctual import KHRLightsPunctual
+from .extensions.hf_collider import HFColliders  # noqa: E402
+from .extensions.hf_rigidbodies import HFRigidbodies  # noqa: E402
+from .extensions.hf_rl_agents import HFRlAgents  # noqa: E402
+from .extensions.hf_sensors import HFCameraSensors, HFStateSensors  # noqa: E402
+from .extensions.khr_lights_ponctual import KHRLightsPunctual  # noqa: E402
 
 
 @dataclass_json
