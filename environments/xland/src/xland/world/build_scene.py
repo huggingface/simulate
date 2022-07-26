@@ -201,6 +201,8 @@ def generate_scene(
     headless=None,
     verbose=False,
     root_value=0,
+    physics_update_rate=20,
+    frame_skip=4,
 ):
     """
     Generate scene using simenv library.
@@ -259,10 +261,18 @@ def generate_scene(
                 engine_exe=executable,
                 engine_port=port,
                 engine_headless=headless,
+                physics_update_rate=physics_update_rate,
+                frame_skip=frame_skip,
             )
 
         else:
-            scene = sm.Scene(engine=engine, engine_exe=executable, engine_headless=headless)
+            scene = sm.Scene(
+                engine=engine,
+                engine_exe=executable,
+                engine_headless=headless,
+                physics_update_rate=physics_update_rate,
+                frame_skip=frame_skip,
+            )
 
     else:
         scene = sm.Scene(engine=engine)
