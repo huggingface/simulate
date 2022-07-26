@@ -30,8 +30,13 @@ def create_env(executable=None, port=None, headless=None):
     scene += sm.Box(name="wall7", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1])
     scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
-    agent = sm.SimpleRlAgent(camera_width=64, camera_height=40, position=[0.0, 0.0, 0.0])
     collectable = sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
+
+    agent = sm.SimpleRlAgent(sensors=[
+            sm.CameraSensor(width=64, height=40, position=[0, 0.75, 0]),
+            sm.StateSensor(None, collectable, properties=["position.x", "position.z", "distance"])
+        ], position=[0.0, 0.0, 0.0])
+
     scene += collectable
 
     reward_function = sm.RewardFunction(
