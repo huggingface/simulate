@@ -16,11 +16,11 @@
 """ Some pre-built simple agents."""
 import itertools
 from typing import List, Optional, Union
-from simenv.assets.sensors import StateSensor
 
+from simenv.assets.sensors import StateSensor
 from simenv.rl.actions import MappedDiscrete
 
-from ..assets import Asset, Capsule, Collider, RigidBodyComponent, Sensor
+from ..assets import Asset, CameraSensor, Capsule, Collider, RigidBodyComponent, Sensor
 from .actions import Physics
 from .rewards import RewardFunction
 from .rl_component import RlComponent
@@ -71,6 +71,8 @@ class SimpleRlAgent(Capsule):
             camera_position = [0, 0.75, 0]
 
         # add self as the ref entity if it has not been provided
+        if sensors is None:
+            sensors = [CameraSensor(width=40, height=32)]
         for sensor in sensors:
             if isinstance(sensor, StateSensor) and sensor.reference_entity is None:
                 sensor.reference_entity = self
@@ -95,7 +97,6 @@ class SimpleRlAgent(Capsule):
 
         # Move our agent a bit higher than the ground
         self.translate_y(0.51)
-
 
         # Create a reward function if a target is provided
         rewards = None

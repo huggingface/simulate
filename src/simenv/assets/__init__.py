@@ -1,5 +1,5 @@
 from .asset import Asset
-from .camera import Camera
+from .camera import Camera, CameraDistant
 from .collider import *
 from .light import *
 from .material import *

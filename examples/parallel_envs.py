@@ -32,10 +32,13 @@ def create_env(executable=None, port=None, headless=None):
 
     collectable = sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
 
-    agent = sm.SimpleRlAgent(sensors=[
+    agent = sm.SimpleRlAgent(
+        sensors=[
             sm.CameraSensor(width=64, height=40, position=[0, 0.75, 0]),
-            sm.StateSensor(None, collectable, properties=["position.x", "position.z", "distance"])
-        ], position=[0.0, 0.0, 0.0])
+            sm.StateSensor(None, collectable, properties=["position.x", "position.z", "distance"]),
+        ],
+        position=[0.0, 0.0, 0.0],
+    )
 
     scene += collectable
 

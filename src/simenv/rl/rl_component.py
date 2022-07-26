@@ -16,8 +16,8 @@
 """ An RL component."""
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from .actions import MappedBox, MappedDiscrete
 from ..assets.sensors import map_sensors_to_spaces
+from .actions import MappedBox, MappedDiscrete
 from .rewards import RewardFunction
 
 
@@ -27,6 +27,7 @@ try:
     from gym import spaces
 except ImportError:
     raise
+
 
 class RlComponent:
     """A reinforcement learning component to make an RL Agent from an Asset.

@@ -21,7 +21,6 @@ import numpy as np
 import pyvista as pv
 
 
-
 try:
     from gym import spaces
 except ImportError:
