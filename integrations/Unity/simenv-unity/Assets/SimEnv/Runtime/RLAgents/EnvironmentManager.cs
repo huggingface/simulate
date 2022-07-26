@@ -102,7 +102,6 @@ namespace SimEnv.RlAgents {
         }
 
         public void ResetEnvironments() {
-            Debug.Log("resetting agents");
             for (int i = 0; i < activeEnvironments.Count; i++) {
                 ResetAt(i);
             }

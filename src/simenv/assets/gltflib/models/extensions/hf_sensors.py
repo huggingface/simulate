@@ -52,7 +52,8 @@ class HFStateSensor:
     A State Sensor, which measures properties such a position of an object
     """
 
-    entity_name: Optional[str] = None
+    reference_entity_name: Optional[str] = None
+    target_entity_name: Optional[str] = None
     properties: Optional[List[str]] = None
 
 

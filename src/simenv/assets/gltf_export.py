@@ -462,7 +462,7 @@ def add_state_sensor_to_model(
     state_sensor: StateSensor, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
 
-    gl_state_sensor = gl.HFStateSensor(entity_name=state_sensor.entity.name, properties=state_sensor.properties)
+    gl_state_sensor = gl.HFStateSensor(reference_entity_name=state_sensor.reference_entity.name,target_entity_name=state_sensor.target_entity.name, properties=state_sensor.properties)
 
     # If we have already created exactly the same state sensor we avoid double storing
     cached_id = is_data_cached(data=gl_state_sensor.to_json(), cache=cache)

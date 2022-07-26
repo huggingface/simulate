@@ -22,7 +22,7 @@ from simenv.assets.sensors import StateSensor
 
 from simenv.rl.actions import MappedBox, MappedDiscrete
 
-from ..assets import Asset, CameraSensor, Capsule, Collider, RigidBody
+from ..assets import Asset, Capsule, Collider, RigidBody, Sensor
 from .actions import Physics
 from .rewards import RewardFunction
 from .rl_component import RlComponent
@@ -55,9 +55,7 @@ class SimpleRlAgent(Capsule):
     def __init__(
         self,
         reward_target: Optional[Asset] = None,
-        camera_width: Optional[int] = 64,
-        camera_height: Optional[int] = 64,
-        camera_position: Optional[List[float]] = None,
+        sensors: Optional[List[Sensor]] = None,
         mass: Optional[float] = 1.0,
         name=None,
         position: Optional[List[float]] = None,
@@ -96,12 +94,11 @@ class SimpleRlAgent(Capsule):
         # Move our agent a bit higher than the ground
         self.translate_y(0.51)
 
-        # Add a camera as children
-        sensors = [
-            #CameraSensor(width=camera_width, height=camera_height, position=[0, 0.75, 0]),
-            StateSensor(self)
-        ]
-
+        # add self as the ref entity if it has not been provided
+        for sensor in sensors:
+            if sensor.reference_entity is None:
+                sensor.reference_entity = self
+        # Add a sensors as children
         self.tree_children = sensors
 
         # Create a reward function if a target is provided

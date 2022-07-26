@@ -10,7 +10,8 @@ namespace SimEnv.GLTF {
             state_sensors = new List<HFStateSensor>();
         }
         public class HFStateSensor {
-            public string entity_name;
+            public string reference_entity_name;
+            public string target_entity_name;
             public List<string> properties;
         }
 
