@@ -26,7 +26,7 @@ material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0,
 target = sm.Box(name=f"cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 scene += target
 
-agent = sm.SimpleRlAgent(camera_width=64, camera_height=40, reward_target=target, position=[0, 0, 0.0])
+agent = sm.SimpleRlAgent(sensors=[sm.CameraSensor(width=64, height=40, position=[0, 0.75, 0])], position=[0.0, 0.0, 0.0])
 scene += agent
 
 agent.observation_space
