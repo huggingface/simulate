@@ -1,11 +1,14 @@
-import simenv as sm
-import matplotlib.pyplot as plt
-import numpy as np
 import random
 import time
 
+import matplotlib.pyplot as plt
+import numpy as np
+
+import simenv as sm
+
 
 ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+
 
 def create_scene(port=55000):
     scene = sm.Scene(engine="Unity", engine_exe=ALICIA_UNITY_BUILD_URL, frame_skip=4, engine_port=port)
@@ -24,14 +27,17 @@ def create_scene(port=55000):
     scene += sm.Box(name="target", position=[1, 0.5, 1], material=red_material)
     scene += sm.Box(name="target_2", position=[-1, 0.5, 1], material=green_material)
     scene += sm.SimpleRlAgent(name="agent", camera_width=64, camera_height=40, position=[0, 0, 0.0])
-    
+
     return scene
+
 
 def run_scene(scene):
     scene.show()
     plt.ion()
     fig1, ax1 = plt.subplots()
-    dummy_obs = np.zeros(shape=(*scene.agent.observation_space.shape[1:], scene.agent.observation_space.shape[0]), dtype=np.uint8)
+    dummy_obs = np.zeros(
+        shape=(*scene.agent.observation_space.shape[1:], scene.agent.observation_space.shape[0]), dtype=np.uint8
+    )
     axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
     scene.reset()
@@ -47,6 +53,7 @@ def run_scene(scene):
 
     scene.close()
     plt.close()
+
 
 scene = create_scene()
 

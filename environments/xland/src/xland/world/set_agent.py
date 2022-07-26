@@ -28,7 +28,7 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_he
             camera_width=camera_width,
             camera_height=camera_height,
             position=pos,
-            scaling=0.9,
+            scaling=[0.9, 0.9, 0.9],
         )
         agents.append(agent)
 
