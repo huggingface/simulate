@@ -34,7 +34,7 @@ agent.observation_space
 scene.show()
 plt.ion()
 fig1, ax1 = plt.subplots()
-dummy_obs = np.zeros(shape=(*agent.observation_space.shape[1:], agent.observation_space.shape[0]), dtype=np.uint8)
+dummy_obs = np.zeros(shape=(40, 64, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 scene.reset()
@@ -44,7 +44,7 @@ for i in range(1000):
     obs, reward, done, info = scene.step(action)
 
     print(done, reward, info)
-    axim1.set_data(obs.transpose(1, 2, 0))
+    axim1.set_data(obs["CameraSensor"].transpose(1, 2, 0))
     fig1.canvas.flush_events()
 
     # time.sleep(0.1)
