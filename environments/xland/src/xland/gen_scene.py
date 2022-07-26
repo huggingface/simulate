@@ -32,6 +32,7 @@ def create_scene(
     port=None,
     headless=None,
     root=0,
+    predicate='random',
     **kwargs,
 ):
     """
@@ -64,6 +65,7 @@ def create_scene(
         port: port to be used to communicate with the engine
         headless: whether to run the engine in headless mode
         root: return only root.
+        predicate: type of predicate (random or None)
         **kwargs: Additional arguments. Handles unused args as well.
     Returns:
         scene: the generated scene in simenv format.
@@ -126,6 +128,9 @@ def create_scene(
                 headless=headless,
                 verbose=verbose,
                 root_value=root,
+                physics_update_rate = kwargs.get("physics_update_rate", 30),
+                frame_skip = kwargs.get("frame_skip", 4),
+                predicate=predicate,
             )
 
         else:

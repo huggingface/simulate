@@ -35,7 +35,7 @@ def collect(entity_a, entity_b):
     )
 
 
-def and_reward(reward_function_a, reward_function_b, agent):
+def and_reward(reward_function_a, reward_function_b, agent, is_terminal=False):
     return RewardFunction(
         type="and",
         entity_a=agent,
@@ -43,10 +43,11 @@ def and_reward(reward_function_a, reward_function_b, agent):
         distance_metric="euclidean",
         reward_function_a=reward_function_a,
         reward_function_b=reward_function_b,
+        is_terminal=is_terminal,
     )
 
 
-def or_reward(reward_function_a, reward_function_b, agent):
+def or_reward(reward_function_a, reward_function_b, agent, is_terminal=False):
     return RewardFunction(
         type="or",
         entity_a=agent,
@@ -54,16 +55,18 @@ def or_reward(reward_function_a, reward_function_b, agent):
         distance_metric="euclidean",
         reward_function_a=reward_function_a,
         reward_function_b=reward_function_b,
+        is_terminal=is_terminal,
     )
 
 
-def not_reward(reward_function_a, agent):
+def not_reward(reward_function_a, agent, is_terminal=False):
     return RewardFunction(
         type="not",
         entity_a=agent,
         entity_b=agent,
         distance_metric="euclidean",
         reward_function_a=reward_function_a,
+        is_terminal=False,
     )
 
 
@@ -118,6 +121,10 @@ def add_collect_all_rewards(agents, objects, verbose=False):
 
     All agents have to collect all objects.
     """
+    terminal = False
+    if len(objects) == 1:
+        terminal = True
+
     for agent in agents:
         for obj in objects:
             reward_function = RewardFunction(
@@ -126,14 +133,14 @@ def add_collect_all_rewards(agents, objects, verbose=False):
                 entity_b=obj,
                 distance_metric="euclidean",
                 threshold=1.0,
-                is_terminal=False,
+                is_terminal=terminal,
                 is_collectable=True,
             )
 
             agent.add_reward_function(reward_function)
 
 
-def add_timeout_rewards(agents):
+def add_timeout_rewards(agents, scalar=0.0):
     for agent in agents:
         timeout_reward_function = RewardFunction(
             type="timeout",
@@ -142,7 +149,7 @@ def add_timeout_rewards(agents):
             distance_metric="euclidean",
             threshold=1000,
             is_terminal=True,
-            scalar=0.0,
+            scalar=scalar,
         )
 
         agent.add_reward_function(timeout_reward_function)
