@@ -11,7 +11,11 @@ from .set_agent import create_agents
 from .set_object import create_objects
 
 
-def add_walls(x, z, height=None, thickness=5):
+# Height of walls and height of box colliders of plane tiles
+MAX_SIZE = 10
+
+
+def add_walls(x, z, height=None, thickness=1):
     """
     Adding walls to prevent agent from falling.
 
@@ -26,7 +30,7 @@ def add_walls(x, z, height=None, thickness=5):
             agent of falling
     """
     if height is None:
-        height = 10 * HEIGHT_CONSTANT
+        height = MAX_SIZE * HEIGHT_CONSTANT
 
     x_min, z_min, x_max, z_max = np.min(x), np.min(z), np.max(x), np.max(z)
 
@@ -151,7 +155,10 @@ def generate_colliders(sg):
 
             # Calculate the bounding box:
             if np.all(sg.map_2d[i][j] == h):
-                bounding_box = (1, HEIGHT_CONSTANT, 1)
+                # We create a large bounding_box to avoid agents falling
+                # below ramps
+                bounding_box = (1, MAX_SIZE * HEIGHT_CONSTANT, 1)
+                position[1] -= ((MAX_SIZE - 1) / 2) * HEIGHT_CONSTANT
             else:
                 position[1] += (HEIGHT_CONSTANT / 2) * np.cos(angle)
 
@@ -193,38 +200,22 @@ def generate_scene(
     port=None,
     headless=None,
     verbose=False,
-    physics_update_rate=30,
+    root_value=0,
+    physics_update_rate=20,
     frame_skip=4,
 ):
     """
     Generate scene using simenv library.
     """
-    # Create scene and add camera
-    if engine is not None and engine != "pyvista":
-        if port is not None:
-            scene = sm.Scene(
-                engine=engine,
-                engine_exe=executable,
-                engine_port=port,
-                engine_headless=headless,
-                physics_update_rate=physics_update_rate,
-                frame_skip=frame_skip,
-            )
-
-        else:
-            scene = sm.Scene(engine=engine, engine_exe=executable, engine_headless=headless)
-
-        scene += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
-        scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
-
-    else:
-        scene = sm.Scene(engine=engine)
 
     # Create root
-    root = sm.Asset(name="root")
+    if root_value > -1:
+        root = sm.Asset(name="root_" + str(root_value))
+    else:
+        root = sm.Asset(name="root")
 
     # Add colliders to StructuredGrid
-    material = sm.Material.WHITE
+    material = sm.Material.GRAY25
     sg.generate_3D(material=material)
 
     obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
@@ -255,6 +246,37 @@ def generate_scene(
     agents_root = sm.Asset(name="agents_root")
     agents_root += create_agents(agent_pos, objects, predicate="random", verbose=verbose)
     root += agents_root
+
+    if engine is not None and engine.lower() != "pyvista":
+        root += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
+        root += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+
+    if root_value > -1:
+        return root
+
+    if engine is not None and engine.lower() != "pyvista":
+        if port is not None:
+            scene = sm.Scene(
+                engine=engine,
+                engine_exe=executable,
+                engine_port=port,
+                engine_headless=headless,
+                physics_update_rate=physics_update_rate,
+                frame_skip=frame_skip,
+            )
+
+        else:
+            scene = sm.Scene(
+                engine=engine,
+                engine_exe=executable,
+                engine_headless=headless,
+                physics_update_rate=physics_update_rate,
+                frame_skip=frame_skip,
+            )
+
+    else:
+        scene = sm.Scene(engine=engine)
+
     scene += root
 
     return scene
