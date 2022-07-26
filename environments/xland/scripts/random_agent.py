@@ -24,9 +24,11 @@ if __name__ == "__main__":
         engine="Unity",
         seed=None,
         n_agents=1,
-        n_objects=6,
+        n_objects=4,
         width=9,
         height=9,
+        frame_skip=4,
+        physics_update_rate=20,
     )(port=55000)
 
     done = False

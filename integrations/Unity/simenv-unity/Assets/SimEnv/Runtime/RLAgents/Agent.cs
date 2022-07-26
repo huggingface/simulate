@@ -49,6 +49,79 @@ namespace SimEnv.RlAgents {
             // actions.Print();
         }
 
+        public RewardFunction GetRewardFunction(HFRlAgents.HFRlAgentsReward reward) {
+            // Debug.Log("Creating reward function");
+            // get the shared properties
+            // Debug.Log("Finding entity_a " + reward.entity_a);
+            // Debug.Log("Finding entity_b " + reward.entity_b);
+            GameObject entity_a = GameObject.Find(reward.entity_a);
+            GameObject entity_b = GameObject.Find(reward.entity_b);
+
+            if (entity_a == null) {
+                Debug.LogWarning("Failed to find entity_a " + reward.entity_a);
+            }
+            if (entity_b == null) {
+                Debug.LogWarning("Failed to find entity_b " + reward.entity_b);
+            }
+            IDistanceMetric distanceMetric = null; // refactor this to a reward factory?
+            RewardFunction rewardFunction = null;
+
+            switch (reward.distance_metric) {
+                case "euclidean":
+                    distanceMetric = new EuclideanDistance();
+                    break;
+                case "cosine":
+                    distanceMetric = new CosineDistance();
+                    break;
+                default:
+                    Debug.Assert(false, "incompatable distance metric provided, chose from (euclidean, cosine)");
+                    break;
+            }
+
+            switch (reward.type) {
+                case "dense":
+                    rewardFunction = new DenseRewardFunction(
+                        entity_a, entity_b, distanceMetric, reward.scalar
+                    );
+                    break;
+                case "sparse":
+                    rewardFunction = new SparseRewardFunction(
+                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable, reward.trigger_once);
+                    break;
+                case "timeout":
+                    rewardFunction = new TimeoutRewardFunction(
+                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable, reward.trigger_once);
+                    break;
+                case "and":
+                    rewardFunction = new RewardFunctionAnd(
+                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
+                            entity_a, entity_b, distanceMetric, reward.is_terminal);
+                    break;
+                
+                case "or":
+                    rewardFunction = new RewardFunctionOr(
+                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
+                            entity_a, entity_b, distanceMetric, reward.is_terminal);
+                    break;
+
+                case "xor":
+                    rewardFunction = new RewardFunctionXor(
+                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
+                            entity_a, entity_b, distanceMetric, reward.is_terminal);
+                    break;
+                
+                case "not":
+                    rewardFunction = new RewardFunctionNot(
+                        GetRewardFunction(reward.reward_function_a), entity_a, entity_b, distanceMetric, reward.is_terminal);
+                    break;
+
+                default:
+                    Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
+                    break;
+        }
+        return rewardFunction;
+    }
+
         public void SetProperties(HFRlAgents.HFRlAgentsComponent agentData) {
             // Debug.Log("Setting Agent properties");
 
@@ -101,54 +174,7 @@ namespace SimEnv.RlAgents {
             // add the reward functions to the agent
             List<HFRlAgents.HFRlAgentsReward> gl_rewardFunctions = agentData.rewards;
             foreach (var reward in gl_rewardFunctions) {
-                // Debug.Log("Creating reward function");
-                // get the shared properties
-                // Debug.Log("Finding entity_a " + reward.entity_a);
-                // Debug.Log("Finding entity_b " + reward.entity_b);
-                GameObject entity_a = GameObject.Find(reward.entity_a);
-
-                GameObject entity_b = GameObject.Find(reward.entity_b);
-                if (entity_a == null) {
-                    Debug.LogWarning("Failed to find entity_a " + reward.entity_a);
-                }
-                if (entity_b == null) {
-                    Debug.LogWarning("Failed to find entity_b " + reward.entity_b);
-                }
-                IDistanceMetric distanceMetric = null; // refactor this to a reward factory?
-                RewardFunction rewardFunction = null;
-
-                switch (reward.distance_metric) {
-                    case "euclidean":
-                        distanceMetric = new EuclideanDistance();
-                        break;
-                    case "cosine":
-                        distanceMetric = new CosineDistance();
-                        break;
-                    default:
-                        Debug.Assert(false, "incompatable distance metric provided, chose from (euclidean, cosine)");
-                        break;
-                }
-
-                switch (reward.type) {
-                    case "dense":
-                        rewardFunction = new DenseRewardFunction(
-                            entity_a, entity_b, distanceMetric, reward.scalar
-                        );
-                        break;
-                    case "sparse":
-                        rewardFunction = new SparseRewardFunction(
-                            entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable);
-                        break;
-                    case "timeout":
-                        rewardFunction = new TimeoutRewardFunction(
-                            entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable);
-                        break;
-
-                    default:
-                        Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
-                        break;
-                }
-
+                RewardFunction rewardFunction = GetRewardFunction(reward);
                 rewardFunctions.Add(rewardFunction);
             }
         }
@@ -246,6 +272,10 @@ namespace SimEnv.RlAgents {
                 if (rewardFunction is SparseRewardFunction) {
                     var sparseRewardFunction = rewardFunction as SparseRewardFunction;
                     done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);
+                }
+                else if (rewardFunction is RewardFunctionPredicate) {
+                    var rewardFunctionPredicate = rewardFunction as RewardFunctionPredicate;
+                    done = done | (rewardFunctionPredicate.hasTriggered && rewardFunctionPredicate.isTerminal);
                 }
             }
 

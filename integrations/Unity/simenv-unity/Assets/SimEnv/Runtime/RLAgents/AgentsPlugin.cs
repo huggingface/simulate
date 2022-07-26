@@ -3,6 +3,7 @@ namespace SimEnv.RlAgents {
         public void OnCreated() {
             //AgentManager.instance ??= new AgentManager(); // superceded by the EnvironmentManager
             EnvironmentManager.instance ??= new EnvironmentManager();
+            EnvironmentManager.instance.Initialize();
         }
 
         public void OnReleased() {

@@ -54,6 +54,7 @@ class SimpleRlAgent(Capsule):
         reward_target: Optional[Asset] = None,
         camera_width: Optional[int] = 64,
         camera_height: Optional[int] = 64,
+        camera_position: Optional[List[float]] = None,
         mass: Optional[float] = 1.0,
         name=None,
         position: Optional[List[float]] = None,
@@ -67,9 +68,11 @@ class SimpleRlAgent(Capsule):
 
         if position is None:
             position = [0, 0.51, 0]  # A bit above the reference plane
+        if camera_position is None:
+            camera_position = [0, 0.75, 0]
 
         # Add a camera as children
-        camera = Camera(width=camera_width, height=camera_height, position=[0, 0.75, 0])
+        camera = Camera(width=camera_width, height=camera_height, position=camera_position)
         children = children + [camera] if children is not None else [camera]
 
         super().__init__(

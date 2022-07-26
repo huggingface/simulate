@@ -39,6 +39,9 @@ namespace SimEnv.GLTF {
             public float threshold = 1f;
             public bool is_terminal = false;
             public bool is_collectable = false;
+            public bool trigger_once = true;
+            public HFRlAgentsReward reward_function_a = null;
+            public HFRlAgentsReward reward_function_b = null;
         }
     }
 }

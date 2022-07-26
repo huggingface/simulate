@@ -11,7 +11,7 @@ from .set_agent import create_agents
 from .set_object import create_objects
 
 
-def add_walls(x, z, height=None, thickness=0.1):
+def add_walls(x, z, height=None, thickness=5):
     """
     Adding walls to prevent agent from falling.
 
@@ -184,7 +184,18 @@ def generate_colliders(sg):
     return collider_assets
 
 
-def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=None, headless=None, verbose=False):
+def generate_scene(
+    sg,
+    obj_pos,
+    agent_pos,
+    engine=None,
+    executable=None,
+    port=None,
+    headless=None,
+    verbose=False,
+    physics_update_rate=30,
+    frame_skip=4,
+):
     """
     Generate scene using simenv library.
     """
@@ -196,13 +207,15 @@ def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=No
                 engine_exe=executable,
                 engine_port=port,
                 engine_headless=headless,
+                physics_update_rate=physics_update_rate,
+                frame_skip=frame_skip,
             )
 
         else:
             scene = sm.Scene(engine=engine, engine_exe=executable, engine_headless=headless)
 
         scene += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
-        scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
+        scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
     else:
         scene = sm.Scene(engine=engine)
@@ -211,7 +224,7 @@ def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=No
     root = sm.Asset(name="root")
 
     # Add colliders to StructuredGrid
-    material = sm.Material(base_color=[0.0, 0.67, 0.66])
+    material = sm.Material.WHITE
     sg.generate_3D(material=material)
 
     obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
@@ -239,9 +252,8 @@ def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=No
     root += objects_root
 
     # Add agent
-    # TODO: Generate random predicates
     agents_root = sm.Asset(name="agents_root")
-    agents_root += create_agents(agent_pos, objects, predicate=None, verbose=verbose)
+    agents_root += create_agents(agent_pos, objects, predicate="random", verbose=verbose)
     root += agents_root
     scene += root
 

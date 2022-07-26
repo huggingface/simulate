@@ -168,7 +168,7 @@ def create_objects(positions, object_type=None, object_size=0.5):
     extra_height = np.array([0, object_size / 2, 0])
     positions = positions + extra_height
 
-    color_idxs = np.random.choice(np.arange(len(COLORS), dtype=int), size=len(positions))
+    color_idxs = np.random.choice(np.arange(len(COLORS), dtype=int), size=len(positions), replace=False)
     colors = [COLORS[idx] for idx in color_idxs]
 
     if object_type is not None:
@@ -176,13 +176,13 @@ def create_objects(positions, object_type=None, object_size=0.5):
 
     else:
         # Choose among options of objects
-        obj_idxs = np.random.choice(np.arange(len(COLORS), dtype=int), size=len(positions))
+        obj_idxs = np.random.choice(np.arange(len(OBJECTS), dtype=int), size=len(positions))
         objects = [OBJECTS[idx] for idx in obj_idxs]
 
     return [
         get_object_fn(obj)(
             position=pos,
-            material=sm.Material(base_color=color),
+            material=color,
             **get_bounds(object_type=obj, object_size=object_size),
         )
         for pos, color, obj in zip(positions, colors, objects)
