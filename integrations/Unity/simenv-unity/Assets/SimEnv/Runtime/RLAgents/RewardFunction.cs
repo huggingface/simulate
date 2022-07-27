@@ -101,9 +101,13 @@ namespace SimEnv.RlAgents {
             float reward = 0.0f;
 
             // Get angle in degrees and then compare to the threshold
-            if (Vector3.Angle(entity_a.transform.position - entity_b.transform.position, entity_a.transform.forward) <= threshold) {
+            float angle = Vector3.Angle(entity_a.transform.position - entity_b.transform.position, entity_a.transform.forward);
+            if ((!hasTriggered || !triggerOnce) && (angle < threshold)) {
                 hasTriggered = true;
                 reward += rewardScalar;
+                if (isCollectable) {
+                    entity_b.SetActive(false);
+                }
             }
 
             return reward;

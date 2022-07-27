@@ -17,6 +17,7 @@ namespace SimEnv.RlAgents {
         private const bool HUMAN = false;
         private float accumReward = 0.0f;
         private Vector3 originalPosition;
+        private Quaternion originalRotation;
 
         // TODO remove
         // private const float radius = .25f;
@@ -132,6 +133,8 @@ namespace SimEnv.RlAgents {
             // Debug.Log("Setting Agent properties");
 
             originalPosition = node.transform.localPosition;
+            originalRotation = node.transform.localRotation;
+
             // Store pointers to all our observation devices
             sensorNames = agentData.sensorNames;
 
@@ -240,7 +243,7 @@ namespace SimEnv.RlAgents {
             accumReward = 0.0f;
             // Reset the agent
             node.gameObject.transform.localPosition = originalPosition;
-
+            node.gameObject.transform.localRotation = originalRotation;
 
             // Reset reward objects?
             // Reset reward functions

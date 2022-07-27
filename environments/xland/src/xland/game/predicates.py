@@ -53,6 +53,20 @@ def collect(entity_a, entity_b):
     )
 
 
+def see(agent, entity_b):
+    return RewardFunction(
+        type="see",
+        entity_a=agent,
+        entity_b=entity_b,
+        distance_metric="euclidean",
+        threshold=30.0,
+        is_terminal=False,
+        is_collectable=False,
+        scalar=1.0,
+        trigger_once=False,
+    )
+
+
 def and_reward(reward_function_a, reward_function_b, agent, is_terminal=False):
     return RewardFunction(
         type="and",
@@ -86,10 +100,6 @@ def not_reward(reward_function_a, agent, is_terminal=False):
         reward_function_a=reward_function_a,
         is_terminal=is_terminal,
     )
-
-
-def see():
-    raise NotImplementedError
 
 
 def hold():

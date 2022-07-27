@@ -11,7 +11,7 @@ ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/s
 
 
 def create_scene(port=55000):
-    scene = sm.Scene(engine="Unity", engine_exe=ALICIA_UNITY_BUILD_URL, frame_skip=4, engine_port=port)
+    scene = sm.Scene(engine="Unity", engine_exe=None, frame_skip=4, engine_port=port)
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
     blue_material = sm.Material.BLUE
@@ -66,7 +66,7 @@ target_reward = sm.RewardFunction(
     distance_metric="euclidean",
     threshold=30.0,
     is_terminal=False,
-    is_collectable=False,
+    is_collectable=True,
     scalar=1.0,
     trigger_once=False,
 )
