@@ -195,7 +195,7 @@ def create_objects(positions, object_type=None, object_size=0.5, n_instance=0):
         get_object_fn(obj)(
             position=pos,
             material=color,
-            physics_component=sm.RigidBody(mass=1.0),
+            physics_component=sm.RigidBodyComponent(mass=0.2),
             **get_bounds(object_type=obj, object_size=object_size),
         )
         for pos, color, obj in zip(positions, colors, objects)

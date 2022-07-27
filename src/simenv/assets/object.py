@@ -1185,8 +1185,7 @@ class ProcgenGrid(Object3D):
             self.coordinates, self.map_2d = coordinates[0], map_2ds[0]
 
             # If it is a structured grid, extract the surface mesh (PolyData)
-            self.structured_grid = pv.StructuredGrid(*self.coordinates)
-            mesh = self.structured_grid.extract_surface()
+            mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
             super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
     def generate_3D(
@@ -1203,8 +1202,7 @@ class ProcgenGrid(Object3D):
         self.coordinates = coordinates[0]
 
         # If it is a structured grid, extract the surface mesh (PolyData)
-        self.structured_grid = pv.StructuredGrid(*self.coordinates)
-        mesh = self.structured_grid.extract_surface()
+        mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
         super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
 

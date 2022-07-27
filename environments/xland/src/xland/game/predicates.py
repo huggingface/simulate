@@ -66,7 +66,7 @@ def not_reward(reward_function_a, agent, is_terminal=False):
         entity_b=agent,
         distance_metric="euclidean",
         reward_function_a=reward_function_a,
-        is_terminal=False,
+        is_terminal=is_terminal,
     )
 
 
