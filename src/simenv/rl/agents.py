@@ -67,12 +67,10 @@ class SimpleRlAgent(Capsule):
 
         if position is None:
             position = [0, 0.51, 0]  # A bit above the reference plane
-        if camera_position is None:
-            camera_position = [0, 0.75, 0]
 
         # add self as the ref entity if it has not been provided
         if sensors is None:
-            sensors = [CameraSensor(width=40, height=32)]
+            sensors = [CameraSensor(width=40, height=32, position=[0, 0.75, 0])]
         for sensor in sensors:
             if isinstance(sensor, StateSensor) and sensor.reference_entity is None:
                 sensor.reference_entity = self
