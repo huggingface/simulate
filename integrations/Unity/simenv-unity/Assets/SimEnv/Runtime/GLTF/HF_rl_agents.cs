@@ -9,7 +9,6 @@ namespace SimEnv.GLTF {
         // A serialization of an agent components (actions possibly mapped to physics, observations devices, reward functions)
         public class HFRlAgentsComponent {
             public HFRlAgentsActions actions;
-            public List<string> sensorTypes;
             public List<string> sensorNames;
             public List<HFRlAgentsReward> rewards;
         }
