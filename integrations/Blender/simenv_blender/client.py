@@ -1,6 +1,4 @@
 import socket
-import json
-import base64
 
 
 class Client:

@@ -1,5 +1,15 @@
-extends Node
 class_name Client
+extends Node
+# This class sets up the TCP client to receive data
+# from the Python SimEnv API through the TCP server
+#
+# Reading the stream is synchronized on the _physics_process
+# Physics will only step if the command received tells it to do so
+# (see SimEnv/Commands/step.gd)
+#
+# Data is received by chunks of _chunk_size
+# _warmed_up is a hacky bugfix to start the TCP stream before the physics sync
+
 
 signal connected
 signal data
@@ -11,16 +21,20 @@ var _stream: StreamPeerTCP = StreamPeerTCP.new()
 var _chunk_size: int = 1024
 var _warmed_up: bool = false
 
+
 func _ready() -> void:
 	_status = _stream.get_status()
+
 
 func _physics_process(_delta):
 	# this is called at a fixed rate
 	update_status()
 
 	if _status == _stream.STATUS_CONNECTED:
+		# to sync commands with the physics steps
 		get_tree().paused = true
 		read()
+
 
 func update_status():
 	_stream.poll()
@@ -39,6 +53,7 @@ func update_status():
 			_stream.STATUS_ERROR:
 				print("Error with socket stream.")
 				emit_signal("error")
+
 
 func read():
 	update_status()
@@ -66,6 +81,7 @@ func read():
 		else:
 			get_tree().paused = false
 
+
 func connect_to_host(host: String, port: int) -> void:
 	print("Connecting to %s:%d" % [host, port])
 	if _status == _stream.STATUS_CONNECTED:
@@ -75,6 +91,7 @@ func connect_to_host(host: String, port: int) -> void:
 		print("Error connecting to host.")
 		_stream.disconnect_from_host()
 		emit_signal("error")
+
 
 func send(out_data: PackedByteArray) -> bool:
 	if _status != _stream.STATUS_CONNECTED:

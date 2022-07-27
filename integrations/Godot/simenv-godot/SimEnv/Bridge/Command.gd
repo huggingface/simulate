@@ -1,10 +1,12 @@
-extends Node
 class_name Command
+extends Node
+# 
 
 signal callback
 
 var content : Variant
 var _commands : Dictionary
+
 
 func load_commands():
 	var directory: Directory = Directory.new()
@@ -24,11 +26,13 @@ func load_commands():
 
 	directory.list_dir_end()
 
+
 func execute(type: String) -> void:
 	if type in _commands:
 		_commands[type].execute(content)
 	else:
 		print("Unknown command.")
-		
+
+
 func _handle_callback(callback_data: PackedByteArray):
 	emit_signal("callback", callback_data)

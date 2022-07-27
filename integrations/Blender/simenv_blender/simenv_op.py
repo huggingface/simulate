@@ -1,4 +1,3 @@
-import bpy
 from bpy.types import Operator
 from .simulator import Simulator
 
