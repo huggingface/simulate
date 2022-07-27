@@ -1,11 +1,29 @@
-"""Possible predicates for XLand."""
+"""Possible predicates for XLand.
+
+When selecting randomly predicates:
+
+The pseudo-algorithm on XLand supposes a multi-agent setting which
+is not the case yet. So we implement the random selection of predicates
+in a simpler way by just randomly choosing pairs of two objects (one of which might
+be the agent), and applying the `be near` task to them. We randomly choose to negate
+this predicate, and in the end we combine different predicates the same
+way as in XLand - in the disjunctive normal form, which is a canonical
+representation of boolean formula.
+Example: [(obj1 near obj2) and (agent near obj1)] or [!(obj3 near obj4) and (agent near obj1)]
+            or [(obj2 near obj3) and !(agent near obj2)].
+        In this particular example, we have 3 options and 2 conjunctions on each option.
+
+The original possible predicates on Xland were: being
+near, on, seeing, and holding, as well as their negations,
+with the entities being objects, players, and floors of the
+topology. However, due to limitations on the library, we will only consider
+the predicates near, and seeing, and the negations of these. We also don't
+take the floor into consideration to simplify things.
+"""
 
 import numpy as np
 
 from simenv import RewardFunction
-
-
-""" When selecting randomly predicates """
 
 
 def near(entity_a, entity_b, reward_type="sparse"):
@@ -70,15 +88,15 @@ def not_reward(reward_function_a, agent, is_terminal=False):
     )
 
 
+def see():
+    raise NotImplementedError
+
+
 def hold():
     raise NotImplementedError
 
 
 def on():
-    raise NotImplementedError
-
-
-def see():
     raise NotImplementedError
 
 

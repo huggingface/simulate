@@ -61,7 +61,7 @@ def add_dummy_generated_reward_fn(objects, agents, n_conj=2, n_options=1, verbos
                     + instances[obj2].name
                     + " "
                 )
-                
+
         if option == 0:
             reward_function = option_reward
         else:
