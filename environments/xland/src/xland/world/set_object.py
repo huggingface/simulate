@@ -211,10 +211,11 @@ def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform",
     if n_agents == 0 and n_objects == 0:
         return [], [], True
 
-    playable_nodes, area = get_playable_area(y, enforce_lower_floor=True)
+    playable_nodes, area = get_playable_area(y, enforce_lower_floor=enforce_lower_floor)
 
     if area < 0:
         print("Lower floor is enforced and not all tiles of this floor are accessible.")
+        return None, None, False
     elif area < threshold:
         print("Unsufficient playable area: {:.3f} when minimum is {}".format(area, threshold))
         return None, None, False
