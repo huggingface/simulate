@@ -9,8 +9,8 @@ namespace SimEnv {
         public static string mType = "float";
         public Node node => m_node;
         Node m_node;
-        private GameObject reference_entity;
-        private GameObject target_entity;
+        private GameObject referenceEntity;
+        private GameObject targetEntity;
         private List<string> properties;
 
         public StateSensor(Node node, SimEnv.GLTF.HFStateSensors.HFStateSensor data) {
@@ -19,13 +19,13 @@ namespace SimEnv {
             properties = data.properties;
 
             Debug.Log("State Sensor finding reference entity " + data.reference_entity_name);
-            reference_entity = GameObject.Find(data.reference_entity_name);
-            if (reference_entity != null) {
+            referenceEntity = GameObject.Find(data.reference_entity_name);
+            if (referenceEntity != null) {
                 Debug.Log("State Sensor found reference entity " + data.reference_entity_name);
             }
             Debug.Log("State Sensor finding target entity " + data.target_entity_name);
-            target_entity = GameObject.Find(data.target_entity_name);
-            if (target_entity != null) {
+            targetEntity = GameObject.Find(data.target_entity_name);
+            if (targetEntity != null) {
                 Debug.Log("State Sensor found target entity " + data.target_entity_name);
             }
 
@@ -80,8 +80,8 @@ namespace SimEnv {
         public void GetState(SensorBuffer buffer, int index) {
             int subIndex = 0;
             // TODO: these should be transformed into the frame of reference of the reference entity
-            Vector3 relative_position = target_entity.transform.position - reference_entity.transform.position;
-            Vector3 rotation = target_entity.transform.eulerAngles;
+            Vector3 relative_position = targetEntity.transform.position - referenceEntity.transform.position;
+            Vector3 rotation = targetEntity.transform.eulerAngles;
 
             foreach (var property in properties) {
                 switch (property) {

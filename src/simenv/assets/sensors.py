@@ -75,7 +75,7 @@ class StateSensor(Asset, Sensor):
         Asset.__init__(self, **kwargs)
         self.reference_entity = reference_entity
         self.target_entity = target_entity
-        self.properties = properties  # e.g. [position, rotatation, position.x, distance]
+        self.properties = properties  # e.g. [position, rotation, position.x, distance]
 
 
 class RaycastSensor(Asset, Sensor):

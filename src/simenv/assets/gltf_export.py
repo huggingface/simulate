@@ -456,7 +456,6 @@ def add_camera_sensor_to_model(
         return cached_id
 
     # Add the new camera sensor
-
     if gltf_model.extensions.HF_camera_sensors is None:
         gltf_model.extensions.HF_camera_sensors = gl.HFCameraSensors(camera_sensors=[gl_camera_sensor])
     else:
@@ -488,7 +487,6 @@ def add_state_sensor_to_model(
         return cached_id
 
     # Add the new state sensor
-
     if gltf_model.extensions.HF_state_sensors is None:
         gltf_model.extensions.HF_state_sensors = gl.HFStateSensors(state_sensors=[gl_state_sensor])
     else:
@@ -644,7 +642,6 @@ def add_rl_component_to_model(
 
     agent = gl.HFRlAgentsComponent(
         actions=gl_actions,
-        sensorTypes=[type(asset).__name__ for asset in rl_component.sensors],
         sensorNames=[asset.name for asset in rl_component.sensors],
         rewards=gl_rewards,
     )

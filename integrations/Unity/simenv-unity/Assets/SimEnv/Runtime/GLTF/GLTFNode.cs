@@ -32,7 +32,6 @@ namespace SimEnv.GLTF {
             public HFCollider HF_colliders;
             public HFRlAgent HF_rl_agents;
             public HFRigidbody HF_rigidbodies;
-
             public HFCameraSensor HF_camera_sensors;
             public HFStateSensor HF_state_sensors;
             public string[] HF_custom;
@@ -216,7 +215,7 @@ namespace SimEnv.GLTF {
                                 CameraSensor camera = new CameraSensor(result[i].node, cameraData);
                             }
                         }
-                        // Camera Sensor
+                        // State Sensor
                         if (nodes[i].extensions.HF_state_sensors != null) {
 
                             int sensorValue = nodes[i].extensions.HF_state_sensors.state_sensor;

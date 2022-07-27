@@ -19,7 +19,7 @@ class BaseModel:
     extras: Optional[Any] = None
 
 
-# These imports had to be moved to to circular imports
+# These imports had to be moved to avoid circular imports
 from .extensions.hf_collider import HFColliders  # noqa: E402
 from .extensions.hf_rigidbodies import HFRigidbodies  # noqa: E402
 from .extensions.hf_rl_agents import HFRlAgents  # noqa: E402

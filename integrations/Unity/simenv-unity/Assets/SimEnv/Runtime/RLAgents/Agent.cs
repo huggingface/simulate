@@ -302,11 +302,11 @@ namespace SimEnv.RlAgents {
         }
 
         public List<string> GetSensorTypes() {
-            List<string> names = new List<string>();
+            List<string> types = new List<string>();
             foreach (var sensor in sensors) {
-                names.Add(sensor.GetSensorType());
+                types.Add(sensor.GetSensorType());
             }
-            return names;
+            return types;
         }
 
         public IEnumerator GetObservationCoroutine(List<SensorBuffer> buffers, List<int> sizes, int index) {

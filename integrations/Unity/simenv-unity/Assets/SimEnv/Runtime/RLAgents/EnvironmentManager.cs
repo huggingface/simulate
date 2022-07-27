@@ -106,6 +106,7 @@ namespace SimEnv.RlAgents {
                 ResetAt(i);
             }
         }
+
         public void ResetAt(int i) {
             activeEnvironments[i].SetPosition(new Vector3(-10f, 0f, -10f));
             activeEnvironments[i].Disable();
@@ -147,7 +148,6 @@ namespace SimEnv.RlAgents {
             List<int[]> obsShapes = activeEnvironments[0].GetObservationShapes();
             List<int[]> shapesWithAgents = new List<int[]>();
 
-
             for (int j = 0; j < obsShapes.Count; j++) {
                 int[] obsShape = obsShapes[j];
                 int[] shapeWithAgents = new int[obsShape.Length + 1];
@@ -171,8 +171,6 @@ namespace SimEnv.RlAgents {
             for (int j = 0; j < obsShapes.Count; j++) {
 
                 string string_array = agentSensorBuffer[j].ToJson(shapesWithAgents[j], sensorNames[j]);
-
-                //string string_array = JsonHelper.ToJson(agentSensorBuffer[j], shapesWithAgents[j], sensorNames[j]);
                 strings.Add(string_array);
 
             }

@@ -60,9 +60,6 @@ namespace SimEnv {
             int[] shape = { camera.targetTexture.height, camera.targetTexture.width, 3 };
             return shape;
         }
-        // public IEnumerator getObs(UnityAction<Color32[]> callback) {
-        //     RenderCoroutine(callback).RunCoroutine();
-        // }
         public string GetBufferType() {
             return "uint";
         }
@@ -80,7 +77,6 @@ namespace SimEnv {
             tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
             tex.Apply();
             Color32[] pixels = tex.GetPixels32();
-            Debug.Log(pixels.Length.ToString() + " " + buffer.uintBuffer.Length.ToString() + " " + index.ToString());
             for (int i = 0; i < pixels.Length; i++) {
                 buffer.uintBuffer[index + i * 3] = pixels[i].r;
                 buffer.uintBuffer[index + i * 3 + 1] = pixels[i].g;
