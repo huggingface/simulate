@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lint as: python3
 import unittest
+
+# Lint as: python3
+from functools import partial
 
 import numpy as np
 
@@ -22,9 +24,19 @@ import simenv as sm
 
 # TODO add more tests on saving/exporting/loading in gltf files
 class ObservationsTest(unittest.TestCase):
-    def test_map_observation_devices_to_spaces(self):
-        camera = sm.Camera(height=64, width=64)
-        space = sm.map_observation_devices_to_spaces(camera)
+    def test_map_sensors_to_spaces(self):
+        camera_sensor = sm.CameraSensor(height=64, width=64)
+        space = sm.map_sensors_to_spaces(camera_sensor)
 
         self.assertEqual(space.shape, (3, 64, 64))
         self.assertEqual(space.dtype, np.uint8)
+
+        state_sensor = sm.StateSensor(None, None, properties=["position", "distance", "position.x"])
+        space = sm.map_sensors_to_spaces(state_sensor)
+
+        self.assertEqual(space.shape, (5,))
+        self.assertEqual(space.dtype, np.float32)
+
+        typo_state_sensor = sm.StateSensor(None, None, properties=["position", "distance", "position,x"])
+        f = partial(sm.map_sensors_to_spaces, typo_state_sensor)
+        self.assertRaises(KeyError, f)

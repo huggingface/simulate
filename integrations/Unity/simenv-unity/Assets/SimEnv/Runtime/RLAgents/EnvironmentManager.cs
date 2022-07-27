@@ -13,15 +13,15 @@ namespace SimEnv.RlAgents {
         List<Vector3> positionPool = new List<Vector3>();
         List<Environment> activeEnvironments = new List<Environment>();
 
-        int nextEnvIndex = 0;
-
         float physicsUpdateRate = 1.0f / 30.0f;
         int frameSkip = 4;
 
-        uint[] agentPixelValues;
-        int obsSize;
+        List<SensorBuffer> agentSensorBuffer = new List<SensorBuffer>();
+        List<int> obsSizes = new List<int>();
+        List<string> sensorNames = new List<string>();
+        List<string> sensortypes = new List<string>();
 
-        public void Initialize(){
+        public void Initialize() {
             frameSkip = Client.instance.frameSkip;
             physicsUpdateRate = Client.instance.physicsUpdateRate;
         }
@@ -47,8 +47,14 @@ namespace SimEnv.RlAgents {
                 activeEnvironments.Add(environment);
             }
 
-            obsSize = activeEnvironments[0].GetObservationSize();
-            agentPixelValues = new uint[nEnvironments * obsSize];
+            obsSizes = activeEnvironments[0].GetObservationSizes();
+            sensorNames = activeEnvironments[0].GetSensorNames();
+            sensortypes = activeEnvironments[0].GetSensorTypes();
+
+            for (int i = 0; i < obsSizes.Count; i++) {
+                agentSensorBuffer.Add(new SensorBuffer(nEnvironments * obsSizes[i], sensortypes[i]));
+            }
+
             frameSkip = Client.instance.frameSkip;
             physicsUpdateRate = Client.instance.physicsUpdateRate;
         }
@@ -95,14 +101,13 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public void ResetAgents() {
-            Debug.Log("resetting agents");
+        public void ResetEnvironments() {
             for (int i = 0; i < activeEnvironments.Count; i++) {
                 ResetAt(i);
             }
         }
-        public void ResetAt(int i) {
 
+        public void ResetAt(int i) {
             activeEnvironments[i].SetPosition(new Vector3(-10f, 0f, -10f));
             activeEnvironments[i].Disable();
             environmentQueue.Enqueue(activeEnvironments[i]);
@@ -111,8 +116,6 @@ namespace SimEnv.RlAgents {
             activeEnvironments[i].SetPosition(positionPool[i]);
             activeEnvironments[i].Enable();
             activeEnvironments[i].Reset();
-
-
         }
         public float[] GetReward() {
             List<float> rewards = new List<float>();
@@ -142,24 +145,36 @@ namespace SimEnv.RlAgents {
             GetObservationCoroutine(callback).RunCoroutine();
         }
         private IEnumerator GetObservationCoroutine(UnityAction<string> callback) {
-            // TODO: implement obs coroutine
-            int[] obsShape = activeEnvironments[0].GetObservationShape();
-            int[] shapeWithAgents = new int[obsShape.Length + 1];
-            shapeWithAgents[0] = activeEnvironments.Count;                                // set the prepended value
-            Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values
+            List<int[]> obsShapes = activeEnvironments[0].GetObservationShapes();
+            List<int[]> shapesWithAgents = new List<int[]>();
+
+            for (int j = 0; j < obsShapes.Count; j++) {
+                int[] obsShape = obsShapes[j];
+                int[] shapeWithAgents = new int[obsShape.Length + 1];
+                shapeWithAgents[0] = activeEnvironments.Count;
+                Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values
+                shapesWithAgents.Add(shapeWithAgents);
+            }
 
             List<Coroutine> coroutines = new List<Coroutine>();
+
             for (int i = 0; i < activeEnvironments.Count; i++) {
-                Coroutine coroutine = activeEnvironments[i].GetObservationCoroutine(agentPixelValues, i * obsSize).RunCoroutine();
+                Coroutine coroutine = activeEnvironments[i].GetObservationCoroutine(agentSensorBuffer, obsSizes, i).RunCoroutine();
                 coroutines.Add(coroutine);
             }
 
             foreach (var coroutine in coroutines) {
                 yield return coroutine;
             }
+            // flatten the two arrays
+            List<string> strings = new List<string>();
+            for (int j = 0; j < obsShapes.Count; j++) {
 
-            string string_array = JsonHelper.ToJson(agentPixelValues, shapeWithAgents);
-            callback(string_array);
+                string string_array = agentSensorBuffer[j].ToJson(shapesWithAgents[j], sensorNames[j]);
+                strings.Add(string_array);
+
+            }
+            callback(JsonHelper.ToJson(strings.ToArray()));
         }
 
     }

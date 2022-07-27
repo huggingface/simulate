@@ -32,6 +32,8 @@ namespace SimEnv.GLTF {
             public HFCollider HF_colliders;
             public HFRlAgent HF_rl_agents;
             public HFRigidbody HF_rigidbodies;
+            public HFCameraSensor HF_camera_sensors;
+            public HFStateSensor HF_state_sensors;
             public string[] HF_custom;
         }
 
@@ -43,6 +45,12 @@ namespace SimEnv.GLTF {
 
         public class HFRlAgent {
             public int agent;
+        }
+        public class HFCameraSensor {
+            public int camera_sensor;
+        }
+        public class HFStateSensor {
+            public int state_sensor;
         }
 
         public class HFRigidbody {
@@ -157,12 +165,29 @@ namespace SimEnv.GLTF {
 
                     // Camera
                     if (nodes[i].camera.HasValue) {
-                        result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
                         GLTFCamera cameraData = cameras[nodes[i].camera.Value];
-                        RenderCamera camera = new RenderCamera(result[i].node, cameraData);
+                        Camera camera = result[i].transform.gameObject.AddComponent<Camera>();
+                        result[i].transform.localRotation *= Quaternion.Euler(0, 180, 0);
+                        switch (cameraData.type) {
+                            case CameraType.orthographic:
+                                camera.orthographic = true;
+                                camera.nearClipPlane = cameraData.orthographic.znear;
+                                camera.farClipPlane = cameraData.orthographic.zfar;
+                                camera.orthographicSize = cameraData.orthographic.ymag;
+                                break;
+                            case CameraType.perspective:
+                                camera.orthographic = false;
+                                camera.nearClipPlane = cameraData.perspective.znear;
+                                if (cameraData.perspective.zfar.HasValue)
+                                    camera.farClipPlane = cameraData.perspective.zfar.Value;
+                                if (cameraData.perspective.aspectRatio.HasValue)
+                                    camera.aspect = cameraData.perspective.aspectRatio.Value;
+                                camera.fieldOfView = Mathf.Rad2Deg * cameraData.perspective.yfov;
+                                break;
+                        }
                     }
 
-                    // Extensions (lights, colliders, RL agents, etc)
+                    // Extensions (lights, colliders, sensors, RL agents, etc)
                     if (nodes[i].extensions != null) {
 
                         // RL Agents
@@ -176,6 +201,33 @@ namespace SimEnv.GLTF {
                             }
                         }
 
+                        // Sensors
+                        // Camera Sensor
+                        if (nodes[i].extensions.HF_camera_sensors != null) {
+
+                            int sensorValue = nodes[i].extensions.HF_camera_sensors.camera_sensor;
+                            if (extensions == null || extensions.HF_camera_sensors == null || extensions.HF_camera_sensors.camera_sensors == null || extensions.HF_camera_sensors.camera_sensors.Count < sensorValue) {
+                                Debug.LogWarning("Error importing camera sensor");
+                            } else {
+                                Debug.Log("Loading camera " + extensions.HF_camera_sensors.camera_sensors.Count.ToString());
+                                HFCameraSensors.HFCameraSensor cameraData = extensions.HF_camera_sensors.camera_sensors[sensorValue];
+
+                                CameraSensor camera = new CameraSensor(result[i].node, cameraData);
+                            }
+                        }
+                        // State Sensor
+                        if (nodes[i].extensions.HF_state_sensors != null) {
+
+                            int sensorValue = nodes[i].extensions.HF_state_sensors.state_sensor;
+                            if (extensions == null || extensions.HF_state_sensors == null || extensions.HF_state_sensors.state_sensors == null || extensions.HF_state_sensors.state_sensors.Count < sensorValue) {
+                                Debug.LogWarning("Error importing camera sensor");
+                            } else {
+                                Debug.Log("Loading camera " + extensions.HF_state_sensors.state_sensors.Count.ToString());
+                                HFStateSensors.HFStateSensor stateSensorData = extensions.HF_state_sensors.state_sensors[sensorValue];
+
+                                StateSensor stateSensor = new StateSensor(result[i].node, stateSensorData);
+                            }
+                        }
                         // Lights
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
                             int lightValue = nodes[i].extensions.KHR_lights_punctual.light;

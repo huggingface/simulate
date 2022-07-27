@@ -9,8 +9,8 @@ namespace SimEnv.RlAgents {
         public Node node;
         public Rigidbody body;
         public RlAction actions;
-        private List<string> obsDeviceNames = new List<string>();
-        private List<RenderCamera> obsDevices = new List<RenderCamera>();
+        private List<string> sensorNames = new List<string>();
+        private List<ISensor> sensors = new List<ISensor>();
         private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
 
         // TODO check and update in particular with reset
@@ -35,15 +35,15 @@ namespace SimEnv.RlAgents {
             body = node.gameObject.GetComponent<Rigidbody>();
 
             // We connect the observation devices to the agent now that the whole scene is imported
-            foreach (string obsDeviceName in obsDeviceNames) {
-                Debug.Log("Finding obs device" + obsDeviceName);
-                Node cameraNode = GameObject.Find(obsDeviceName).GetComponent<Node>();
+            foreach (string sensorName in sensorNames) {
+                Debug.Log("Finding sensor" + sensorName);
+                Node sensorNode = GameObject.Find(sensorName).GetComponent<Node>();
 
-                if (cameraNode != null) {
-                    Debug.Log("Adding observation device " + obsDeviceName + cameraNode.renderCamera);
-                    obsDevices.Add(cameraNode.renderCamera);
+                if (sensorNode != null) {
+                    Debug.Log("Adding observation device " + sensorName + sensorNode.sensor);
+                    sensors.Add(sensorNode.sensor);
                 } else {
-                    Debug.LogError("Could not find observation device " + obsDeviceName);
+                    Debug.LogError("Could not find observation device " + sensorName);
                 }
             }
             // actions.Print();
@@ -126,12 +126,8 @@ namespace SimEnv.RlAgents {
             // Debug.Log("Setting Agent properties");
 
             originalPosition = node.transform.localPosition;
-
             // Store pointers to all our observation devices
-            obsDeviceNames = agentData.observations;
-            if (obsDeviceNames.Count != 1) {
-                Debug.LogError("More or less than one observation device not implemented yet.");
-            }
+            sensorNames = agentData.sensorNames;
 
             // Create our agent actions
             HFRlAgents.HFRlAgentsActions gl_act = agentData.actions;
@@ -278,26 +274,50 @@ namespace SimEnv.RlAgents {
                     done = done | (rewardFunctionPredicate.hasTriggered && rewardFunctionPredicate.isTerminal);
                 }
             }
-
             return done;
         }
 
-        public int getObservationSizes() {
-            return obsDevices[0].getObservationSizes();
+        public List<int> GetObservationSizes() {
+            List<int> sizes = new List<int>();
+            foreach (var sensor in sensors) {
+                sizes.Add(sensor.GetSize());
+            }
+            return sizes;
         }
 
-        public int[] getObservationShape() {
-            return obsDevices[0].getObservationShape();
+        public List<int[]> GetObservationShapes() {
+            List<int[]> shapes = new List<int[]>();
+            foreach (var sensor in sensors) {
+                shapes.Add(sensor.GetShape());
+            }
+            return shapes;
         }
 
-        public IEnumerator GetObservationCoroutine(uint[] pixelValues, int startingIndex) {
-            yield return obsDevices[0].RenderCoroutine(colors => {
-                for (int i = 0; i < colors.Length; i++) {
-                    pixelValues[startingIndex + i * 3] = colors[i].r;
-                    pixelValues[startingIndex + i * 3 + 1] = colors[i].g;
-                    pixelValues[startingIndex + i * 3 + 2] = colors[i].b;
-                }
-            });
+        public List<string> GetSensorNames() {
+            List<string> names = new List<string>();
+            foreach (var sensor in sensors) {
+                names.Add(sensor.GetName());
+            }
+            return names;
+        }
+
+        public List<string> GetSensorTypes() {
+            List<string> types = new List<string>();
+            foreach (var sensor in sensors) {
+                types.Add(sensor.GetSensorType());
+            }
+            return types;
+        }
+
+        public IEnumerator GetObservationCoroutine(List<SensorBuffer> buffers, List<int> sizes, int index) {
+            List<Coroutine> coroutines = new List<Coroutine>();
+            for (int i = 0; i < sensors.Count; i++) {
+                Coroutine coroutine = sensors[i].GetObs(buffers[i], sizes[i] * index).RunCoroutine(); ;
+                coroutines.Add(coroutine);
+            }
+            foreach (var coroutine in coroutines) {
+                yield return coroutine;
+            }
         }
 
         public void SetAction(List<float> step_action) {

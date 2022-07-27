@@ -4,14 +4,16 @@ using UnityEngine.Events;
 using UnityEngine.Rendering.Universal;
 
 namespace SimEnv {
-    public class RenderCamera {
+    public class CameraSensor : ISensor {
+        public static string mName = "CameraSensor";
+        public static string mType = "uint8";
         public Node node => m_node;
         public Camera camera => m_camera;
         Texture2D tex;
         Camera m_camera;
         Node m_node;
 
-        public RenderCamera(Node node, GLTF.GLTFCamera data) {
+        public CameraSensor(Node node, SimEnv.GLTF.HFCameraSensors.HFCameraSensor data) {
             m_node = node;
 
             m_camera = node.gameObject.AddComponent<Camera>();
@@ -40,40 +42,46 @@ namespace SimEnv {
             cameraData.renderPostProcessing = true;
             camera.enabled = false;
             tex = new Texture2D(camera.targetTexture.width, camera.targetTexture.height);
-            node.renderCamera = this;
+            node.sensor = this;
             if (Application.isPlaying)
                 Simulator.Register(this);
         }
-
-        public void Render(UnityAction<Color32[]> callback) {
-            RenderCoroutine(callback).RunCoroutine();
+        public string GetName() {
+            return mName;
         }
-
-        public int getObservationSizes() {
+        public string GetSensorType() {
+            return mType;
+        }
+        public int GetSize() {
             return camera.targetTexture.width * camera.targetTexture.height * 3;
         }
 
-        public int[] getObservationShape() {
+        public int[] GetShape() {
             int[] shape = { camera.targetTexture.height, camera.targetTexture.width, 3 };
             return shape;
         }
-
-        public IEnumerator RenderCoroutine(UnityAction<Color32[]> callback) {
-            camera.enabled = true; // Enable camera so that it renders in Unity's internal render loop
-            yield return new WaitForEndOfFrame(); // Wait for Unity to render
-            CopyRenderResultToColorBuffer(out Color32[] buffer);
-            camera.enabled = false; // Disable camera for performance
-            if (callback != null)
-                callback(buffer);
+        public string GetBufferType() {
+            return "uint";
         }
 
-        private void CopyRenderResultToColorBuffer(out Color32[] buffer) {
-            buffer = new Color32[0];
+        public IEnumerator GetObs(SensorBuffer buffer, int index) {
+            camera.enabled = true; // Enable camera so that it renders in Unity's internal render loop
+            yield return new WaitForEndOfFrame(); // Wait for Unity to render
+            CopyRenderResultToColorBuffer(buffer, index);
+            camera.enabled = false; // Disable camera for performance
+        }
+
+        private void CopyRenderResultToColorBuffer(SensorBuffer buffer, int index) {
             RenderTexture activeRenderTexture = RenderTexture.active;
             RenderTexture.active = camera.targetTexture;
             tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
             tex.Apply();
-            buffer = tex.GetPixels32();
+            Color32[] pixels = tex.GetPixels32();
+            for (int i = 0; i < pixels.Length; i++) {
+                buffer.uintBuffer[index + i * 3] = pixels[i].r;
+                buffer.uintBuffer[index + i * 3 + 1] = pixels[i].g;
+                buffer.uintBuffer[index + i * 3 + 2] = pixels[i].b;
+            }
         }
     }
 }

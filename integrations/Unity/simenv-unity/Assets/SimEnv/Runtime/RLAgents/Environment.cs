@@ -80,11 +80,17 @@ namespace SimEnv.RlAgents {
         public bool GetDone() {
             return agents[0].IsDone();
         }
-        public int[] GetObservationShape() {
-            return agents[0].getObservationShape();
+        public List<int[]> GetObservationShapes() {
+            return agents[0].GetObservationShapes();
         }
-        public int GetObservationSize() {
-            return agents[0].getObservationSizes();
+        public List<int> GetObservationSizes() {
+            return agents[0].GetObservationSizes();
+        }
+        public List<string> GetSensorNames() {
+            return agents[0].GetSensorNames();
+        }
+        public List<string> GetSensorTypes() {
+            return agents[0].GetSensorTypes();
         }
 
         public void Reset() {
@@ -98,8 +104,8 @@ namespace SimEnv.RlAgents {
             root.SetActive(true);
         }
 
-        public IEnumerator GetObservationCoroutine(uint[] pixelValues, int startingIndex) {
-            yield return agents[0].GetObservationCoroutine(pixelValues, startingIndex);
+        public IEnumerator GetObservationCoroutine(List<SensorBuffer> buffers, List<int> sizes, int index) {
+            yield return agents[0].GetObservationCoroutine(buffers, sizes, index);
         }
 
 

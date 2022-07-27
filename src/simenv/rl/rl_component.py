@@ -16,13 +16,17 @@
 """ An RL component."""
 from typing import TYPE_CHECKING, List, Optional, Union
 
+from ..assets.sensors import map_sensors_to_spaces
 from .actions import MappedBox, MappedDiscrete
-from .observations import map_observation_devices_to_spaces
 from .rewards import RewardFunction
 
 
 if TYPE_CHECKING:
-    from ..assets import Asset
+    from ..assets import Asset, Sensor
+try:
+    from gym import spaces
+except ImportError:
+    raise
 
 
 class RlComponent:
@@ -37,22 +41,21 @@ class RlComponent:
     def __init__(
         self,
         actions: Union[MappedBox, MappedDiscrete] = None,
-        observations: Optional[Union["Asset", List["Asset"]]] = None,
+        sensors: Optional[Union["Sensor", List["Sensor"]]] = None,
         rewards: Optional[Union[RewardFunction, List[RewardFunction]]] = None,
     ):
         # Action space mapped to physics engine variables
         self.actions = actions
 
         # Observation devices as Assets
-        if observations is None:
-            observations = []
-        elif not isinstance(observations, (list, tuple)):
-            observations = [observations]
-        self.observations = observations
-
+        if sensors is None:
+            sensors = []
+        elif not isinstance(sensors, (list, tuple)):
+            sensors = [sensors]
+        self.sensors = sensors
         # TODO: to be compatable with StableBaselines3, a list of observations spaces should be a spaces.Tuple
         # or spaces.Dict observation space. This requires a refactor that will be in its own PR.
-        self.observation_space = [map_observation_devices_to_spaces(device) for device in observations][0]
+        self.observation_space = spaces.Dict({sensor.sensor_name: map_sensors_to_spaces(sensor) for sensor in sensors})
 
         # Reward functions
         if rewards is None:
@@ -69,12 +72,12 @@ class RlComponent:
         self.rewards = [rf._post_copy(agent) for rf in self.rewards]
 
         root = agent.tree_root
-        updated_observations = []
-        for obs in self.observations:
+        updated_sensors = []
+        for obs in self.sensors:
             updated_obs = root.get(obs._get_last_copy_name())
-            updated_observations.append(updated_obs)
+            updated_sensors.append(updated_obs)
 
-        self.observations = updated_observations
+        self.sensors = updated_sensors
 
     def __repr__(self):
-        return f"RlComponent(actions={self.actions}, observations={self.observations}, rewards={self.rewards})"
+        return f"RlComponent(actions={self.actions}, observations={self.sensors}, rewards={self.rewards})"
