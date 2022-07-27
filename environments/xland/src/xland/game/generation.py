@@ -7,7 +7,7 @@ import numpy as np
 from .predicates import and_reward, near, not_reward, or_reward
 
 
-def add_dummy_generated_reward_fn(objects, agents, n_conj=2, n_options=1, verbose=True):
+def add_dummy_generated_reward_fn(objects, agents, n_conj=2, n_options=1, verbose=True, strictly_agent_object=False):
     """
     Generate the game.
     """
@@ -24,8 +24,11 @@ def add_dummy_generated_reward_fn(objects, agents, n_conj=2, n_options=1, verbos
         # Select objects and conjunctions:
         done = False
         while not done:
-            # objs1 = np.random.choice(2 * len(objects), size=n_conj, replace=False)
-            objs1 = np.full(n_conj, fill_value=len(objects))
+            if strictly_agent_object:
+                objs1 = np.full(n_conj, fill_value=len(objects))
+            else:
+                # 50 % of chance of having the agent on the predicate
+                objs1 = np.random.choice(2 * len(objects), size=n_conj, replace=False)
             objs2 = np.random.choice(len(objects), size=n_conj, replace=False)
             if np.all(objs1 != objs2):
                 done = True
@@ -58,7 +61,7 @@ def add_dummy_generated_reward_fn(objects, agents, n_conj=2, n_options=1, verbos
                     + instances[obj2].name
                     + " "
                 )
-
+                
         if option == 0:
             reward_function = option_reward
         else:
