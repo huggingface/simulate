@@ -32,7 +32,7 @@ def create_scene(
     port=None,
     headless=None,
     root=0,
-    predicate='random',
+    predicate="random",
     **kwargs,
 ):
     """
@@ -128,8 +128,8 @@ def create_scene(
                 headless=headless,
                 verbose=verbose,
                 root_value=root,
-                physics_update_rate = kwargs.get("physics_update_rate", 30),
-                frame_skip = kwargs.get("frame_skip", 4),
+                physics_update_rate=kwargs.get("physics_update_rate", 30),
+                frame_skip=kwargs.get("frame_skip", 4),
                 predicate=predicate,
             )
 

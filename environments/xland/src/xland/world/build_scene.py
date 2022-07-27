@@ -9,8 +9,6 @@ import simenv as sm
 from ..utils import HEIGHT_CONSTANT, convert_to_actual_pos
 from .set_agent import create_agents
 from .set_object import create_objects
-from matplotlib import pyplot as plt
-import PIL
 
 
 # Height of walls and height of box colliders of plane tiles
@@ -205,7 +203,7 @@ def generate_scene(
     root_value=0,
     physics_update_rate=20,
     frame_skip=4,
-    predicate='random',
+    predicate="random",
 ):
     """
     Generate scene using simenv library.
@@ -218,49 +216,6 @@ def generate_scene(
     # Add colliders to StructuredGrid
     material = sm.Material.GRAY25
     sg.generate_3D(material=material)
-
-    # from matplotlib.colors import ListedColormap
-    # import matplotlib.pyplot as plt
-    # import numpy as np
-
-    # import pyvista as pv
-
-    # low_point = list(sg.structured_grid.center)
-    # low_point[1] = sg.structured_grid.bounds[2]
-    # high_point = list(sg.structured_grid.center)
-    # high_point[1] = sg.structured_grid.bounds[3]
-    # elevation = sg.structured_grid.elevation(low_point=low_point, high_point=high_point, scalar_range=(low_point[1],high_point[1]))
-    # print(elevation['Elevation'])
-
-    # # Define the colors we want to use
-    # blue = np.array([12 / 256, 238 / 256, 246 / 256, 1.0])
-    # black = np.array([11 / 256, 11 / 256, 11 / 256, 1.0])
-    # grey = np.array([189 / 256, 189 / 256, 189 / 256, 1.0])
-    # yellow = np.array([255 / 256, 247 / 256, 0 / 256, 1.0])
-    # red = np.array([1.0, 0.0, 0.0, 1.0])
-
-    # mapping = np.linspace(elevation['Elevation'].min(), elevation['Elevation'].max(), 256)
-    # newcolors = np.empty((256, 4))
-    # newcolors[mapping > 2.7001] = black
-    # newcolors[mapping <= 2.7001] = blue
-    # newcolors[mapping <= 1.8001] = red
-    # newcolors[mapping <= 0.9001] = grey
-    # newcolors[mapping == 0.0] = yellow
-
-    # # Make the colormap from the listed colors
-    # my_colormap = ListedColormap(newcolors)
-    # img = elevation.plot(scalars='Elevation', cmap=my_colormap, screenshot=True)
-    # print(len(elevation['Elevation']))
-    # fig, ax = plt.subplots()
-    # ax.pcolormesh(np.array(elevation['Elevation']).reshape((80,100), order="F"), cmap=my_colormap, rasterized=True)
-    # fig.canvas.draw()
-    # pil_img = PIL.Image.frombytes('RGB', 
-    #     fig.canvas.get_width_height(),fig.canvas.tostring_rgb())
-    # material = sm.Material(base_color_texture=pil_img)
-    # a = sm.Box(material=material)
-    # root += a
-    # data = np.frombuffer(fig.canvas.tostring_rgb(), dtype=np.uint8)
-    # data = data.reshape(fig.canvas.get_width_height()[::-1] + (3,))
 
     obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
     agent_pos = convert_to_actual_pos(agent_pos, sg.coordinates)
@@ -294,7 +249,7 @@ def generate_scene(
 
     if engine is not None and engine.lower() != "pyvista":
         root += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
-        root += sm.Light(name="sun_" + str(this_map), position=[0, 20, 0], intensity=0.9)
+        root += sm.LightSun(name="sun_" + str(this_map), position=[0, 20, 0], intensity=0.9)
 
     if root_value > -1:
         return root
