@@ -1,5 +1,6 @@
 import simenv as sm
 
+
 def test_blender():
     scene = sm.Scene(engine="blender")
     scene.load("simenv-tests/Chair/glTF-Binary/SheenChair.glb")
@@ -8,6 +9,7 @@ def test_blender():
     scene.show()
     # scene.render(path="") # <-- uncomment to render the scene to an image in the desired folder
     scene.close()
+
 
 if __name__ == "__main__":
     test_blender()

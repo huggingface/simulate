@@ -5,6 +5,7 @@ import numpy as np
 
 import simenv as sm
 
+
 if __name__ == "__main__":
     scene = sm.Scene(engine="unity")
     scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
@@ -21,13 +22,16 @@ if __name__ == "__main__":
     root += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.RED)
     root += sm.Box(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.RED)
 
-
     material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
     cube = sm.Box(name=f"cube_1", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
     root += cube
     for i in range(20):
-        material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
-        root += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
+        material = sm.Material(
+            base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)]
+        )
+        root += sm.Box(
+            name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material
+        )
 
     agent = sm.SimpleRlAgent(
         sensors=[
@@ -49,10 +53,8 @@ if __name__ == "__main__":
 
     scene.engine.add_to_pool(root)
 
-
     for i in range(15):
         scene.engine.add_to_pool(root.copy())
-
 
     scene.show(n_maps=16)
 
@@ -69,13 +71,13 @@ if __name__ == "__main__":
         obs, reward, done, info = scene.step(actions)
         for i in range(4):
             for j in range(4):
-                dummy_obs[i * CAMERA_HEIGHT : (i + 1) * CAMERA_HEIGHT, j * CAMERA_WIDTH : (j + 1) * CAMERA_WIDTH] = obs[
-                    "CameraSensor"
-                ][i * 4 + j].transpose(1, 2, 0)
+                dummy_obs[
+                    i * CAMERA_HEIGHT : (i + 1) * CAMERA_HEIGHT, j * CAMERA_WIDTH : (j + 1) * CAMERA_WIDTH
+                ] = obs["CameraSensor"][i * 4 + j].transpose(1, 2, 0)
         axim1.set_data(dummy_obs)
         fig1.canvas.flush_events()
         print(done, reward, info)
 
-            # time.sleep(0.1)
+        # time.sleep(0.1)
 
         scene.close()
