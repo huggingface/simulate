@@ -8,7 +8,7 @@ import numpy as np
 
 import simenv as sm
 
-from ..utils import COLORS, OBJECTS, get_bounds, get_connected_components
+from ..utils import COLOR_NAMES, COLORS, OBJECTS, get_bounds, get_connected_components
 
 
 def get_connectivity_graph(y):
@@ -156,13 +156,13 @@ def get_object_fn(obj):
     """
     Returns classes depending on the object.
     """
-    if obj == "Box":
+    if obj == "box":
         return sm.Box
 
-    elif obj == "Capsule":
+    elif obj == "capsule":
         return sm.Capsule
 
-    elif obj == "Sphere":
+    elif obj == "sphere":
         return sm.Sphere
 
     else:
@@ -182,6 +182,7 @@ def create_objects(positions, object_type=None, object_size=0.5, n_instance=0):
 
     color_idxs = np.random.choice(np.arange(len(COLORS), dtype=int), size=len(positions), replace=False)
     colors = [COLORS[idx] for idx in color_idxs]
+    color_names = [COLOR_NAMES[idx] for idx in color_idxs]
 
     if object_type is not None:
         objects = [object_type] * len(positions)
@@ -193,12 +194,13 @@ def create_objects(positions, object_type=None, object_size=0.5, n_instance=0):
 
     return [
         get_object_fn(obj)(
+            name=color_name + "_" + obj + "_" + str(n_instance),
             position=pos,
             material=color,
             physics_component=sm.RigidBodyComponent(mass=0.2),
             **get_bounds(object_type=obj, object_size=object_size),
         )
-        for pos, color, obj in zip(positions, colors, objects)
+        for pos, color, color_name, obj in zip(positions, colors, color_names, objects)
     ]
 
 

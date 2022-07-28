@@ -32,7 +32,7 @@ if __name__ == "__main__":
     )
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
-    model = PPO("CnnPolicy", env, verbose=3)
+    model = PPO("MultiInputPolicy", env, verbose=3)
     model.learn(total_timesteps=5000000)
 
     env.close()

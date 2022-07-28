@@ -81,8 +81,10 @@ def generate_tiles(max_height=6, double_ramp=True):
             neighbors.append((get_tile(h, 1), get_tile(h), 0, 0))
             neighbors.append((get_tile(h + 1), get_tile(h, 1), 0, 0))
 
-            # TODO: Two ramps one on the side of the another
-            # neighbors.append((get_tile(h, 1), get_tile(h, 1), 3, 3))
+            # BUG: Two ramps one on the side of the another
+            # For some reason, if we add them, we get some unexpected results, so we
+            # won't use it for now
+            # neighbors.append((get_tile(h, 1), get_tile(h, 1), 1, 1))
 
             # Adding ramp to going upwards
             if h < max_height - 2 and double_ramp:
