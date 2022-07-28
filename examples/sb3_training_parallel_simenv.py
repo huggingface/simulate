@@ -29,7 +29,7 @@ def create_env(executable=None, port=None, headless=None):
         frame_skip=4,
         physics_update_rate=30,
     )
-    scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
+    scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
     blue_material = sm.Material(base_color=(0, 0, 0.8))
     red_material = sm.Material(base_color=(0.8, 0, 0))
     gray_material = sm.Material(base_color=(0.8, 0.8, 0.8))
@@ -44,7 +44,12 @@ def create_env(executable=None, port=None, headless=None):
     root += sm.Box(name="wall7", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1], material=gray_material)
     root += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1], material=gray_material)
 
-    agent = sm.SimpleRlAgent(camera_width=64, camera_height=40, position=[0.0, 0.0, 0.0])
+    agent = sm.SimpleRlAgent(
+        sensors=[
+            sm.CameraSensor(width=64, height=40, position=[0, 0.75, 0]),
+        ],
+        position=[0.0, 0.0, 0.0],
+    )
     collectable = sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
     scene += collectable
 
@@ -76,13 +81,10 @@ def create_env(executable=None, port=None, headless=None):
     root += agent
     root += collectable
     scene.engine.add_to_pool(root)
-    for x in [-10, 0, 11, 22]:
-        for z in [0, 11, 22, 33]:
-            if x == 0 and z == 0:
-                continue
+    for i in range(15):
             scene.engine.add_to_pool(root.copy())
 
-    scene.show(16)
+    scene.show(n_maps=16)
 
     return scene
 
@@ -97,7 +99,7 @@ def make_env(executable, seed=0, headless=True):
 
 if __name__ == "__main__":
     n_parallel = 1
-    env_fn = make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")  #
+    env_fn = make_env(None)#"/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")  #
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
     # obs = env.reset()
@@ -107,7 +109,7 @@ if __name__ == "__main__":
     #     print(i)
     #     obs = env.step(actions)
 
-    model = PPO("CnnPolicy", env, verbose=3, n_epochs=1)
+    model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
     model.learn(total_timesteps=100000)
 
     env.close()

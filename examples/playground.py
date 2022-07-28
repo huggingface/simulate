@@ -7,7 +7,7 @@ import simenv as sm
 
 
 scene = sm.Scene(engine="Unity")
-scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
+scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
 blue_material = sm.Material(base_color=(0, 0, 0.8))
 red_material = sm.Material(base_color=(0.8, 0, 0))
@@ -30,8 +30,6 @@ agent = sm.SimpleRlAgent(
     sensors=[sm.CameraSensor(width=64, height=40, position=[0, 0.75, 0])], position=[0.0, 0.0, 0.0]
 )
 scene += agent
-
-agent.observation_space
 
 scene.show()
 plt.ion()
