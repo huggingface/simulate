@@ -9,16 +9,13 @@ from simenv.rl.wrappers import ParallelSimEnv
 def create_env(executable=None, port=None, headless=None):
     scene = sm.Scene(engine="Unity", engine_exe=executable, engine_port=port, engine_headless=headless)
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
-    blue_material = sm.Material(base_color=(0, 0, 0.8))
-    red_material = sm.Material(base_color=(0.8, 0, 0))
-    green_material = sm.Material(base_color=(0.2, 0.8, 0.2))
-    gray_material = sm.Material(base_color=(0.8, 0.8, 0.8))
+
     root = sm.Asset(name="root")
-    root += sm.Box(name="floor", position=[0, 0, 0], bounds=[-10, 10, 0, 0.1, -10, 10], material=blue_material)
-    root += sm.Box(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=gray_material)
-    root += sm.Box(name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=gray_material)
-    root += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=gray_material)
-    root += sm.Box(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=gray_material)
+    root += sm.Box(name="floor", position=[0, 0, 0], bounds=[-10, 10, 0, 0.1, -10, 10], material=sm.Material.BLUE)
+    root += sm.Box(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.GRAY75)
+    root += sm.Box(name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.GRAY75)
+    root += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY75)
+    root += sm.Box(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY75)
 
     agent = sm.SimpleRlAgent(
         sensors=[
@@ -29,12 +26,12 @@ def create_env(executable=None, port=None, headless=None):
     root += agent
     for i in range(20):
 
-        # material = sm.Material(base_color=(random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)))
+        # material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
         collectable = sm.Sphere(
             name=f"collectable_{i}",
             position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)],
             radius=0.4,
-            material=green_material,
+            material=sm.Material.GREEN,
         )
 
         root += collectable

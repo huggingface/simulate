@@ -20,19 +20,15 @@ def create_env(executable=None, port=None, headless=None):
     )
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
-    blue_material = sm.Material(base_color=(0, 0, 0.8))
-    yellow_material = sm.Material(base_color=(0.95, 0.83, 0.28))
-    red_material = sm.Material(base_color=(0.8, 0.2, 0.2))
-
     maze_width = 3
     maze_depth = 3
     n_objects = 1
 
     for i in range(2):
         for j in range(2):
-            maze = ProcGenPrimsMaze3D(maze_width, maze_depth, wall_material=yellow_material)
+            maze = ProcGenPrimsMaze3D(maze_width, maze_depth, wall_material=sm.Material.YELLOW)
             maze += sm.Box(
-                position=[0, 0, 0], bounds=[0.0, maze_width, 0, 0.1, 0.0, maze_depth], material=blue_material
+                position=[0, 0, 0], bounds=[0.0, maze_width, 0, 0.1, 0.0, maze_depth], material=sm.Material.BLUE
             )
             agent_position = [math.floor(maze_width / 2.0) + 0.5, 0.0, math.floor(maze_depth / 2.0) + 0.5]
 
@@ -53,7 +49,7 @@ def create_env(executable=None, port=None, headless=None):
                 collectable = sm.Sphere(
                     position=position,
                     radius=0.2,
-                    material=red_material,
+                    material=sm.Material.RED,
                 )
                 maze += collectable
                 reward_function = sm.RewardFunction(

@@ -16,18 +16,13 @@ def create_scene(port=55000):
     scene = sm.Scene(engine="Unity", engine_exe=ALICIA_UNITY_BUILD_URL, frame_skip=4, engine_port=port)
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
-    blue_material = sm.Material.BLUE
-    red_material = sm.Material.RED
-    yellow_material = sm.Material.YELLOW
-    green_material = sm.Material.GREEN
-
-    scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=blue_material)
-    scene += sm.Box(name="wall1", position=[-5, 0, 0], bounds=[0, 0.1, 0, 1, -5, 5], material=red_material)
-    scene += sm.Box(name="wall2", position=[5, 0, 0], bounds=[0, 0.1, 0, 1, -5, 5], material=red_material)
-    scene += sm.Box(name="wall3", position=[0, 0, 5], bounds=[-5, 5, 0, 1, 0, 0.1], material=red_material)
-    scene += sm.Box(name="wall4", position=[0, 0, -5], bounds=[-5, 5, 0, 1, 0, 0.1], material=red_material)
-    scene += sm.Box(name="target", position=[1, 0.5, 1], material=red_material)
-    scene += sm.Box(name="target_2", position=[-1, 0.5, 1], material=green_material)
+    scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material.BLUE)
+    scene += sm.Box(name="wall1", position=[-5, 0, 0], bounds=[0, 0.1, 0, 1, -5, 5], material=sm.Material.RED)
+    scene += sm.Box(name="wall2", position=[5, 0, 0], bounds=[0, 0.1, 0, 1, -5, 5], material=sm.Material.RED)
+    scene += sm.Box(name="wall3", position=[0, 0, 5], bounds=[-5, 5, 0, 1, 0, 0.1], material=sm.Material.RED)
+    scene += sm.Box(name="wall4", position=[0, 0, -5], bounds=[-5, 5, 0, 1, 0, 0.1], material=sm.Material.RED)
+    scene += sm.Box(name="target", position=[1, 0.5, 1], material=sm.Material.RED)
+    scene += sm.Box(name="target_2", position=[-1, 0.5, 1], material=sm.Material.GREEN)
     scene += sm.SimpleRlAgent(
         name="agent",
         sensors=[
