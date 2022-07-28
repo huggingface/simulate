@@ -78,67 +78,68 @@ def run_scene(scene):
     plt.close()
 
 
-scene = create_scene()
+if __name__ == "__main__":
+    scene = create_scene()
 
-red_yellow_target_reward_single = sm.RewardFunction(
-    type="sparse",
-    entity_a=scene.red_target,
-    entity_b=scene.yellow_target,
-    distance_metric="euclidean",
-    threshold=2.0,
-    is_terminal=False,
-    is_collectable=False,
-    scalar=10.0,
-    trigger_once=True,
-)
+    red_yellow_target_reward_single = sm.RewardFunction(
+        type="sparse",
+        entity_a=scene.red_target,
+        entity_b=scene.yellow_target,
+        distance_metric="euclidean",
+        threshold=2.0,
+        is_terminal=False,
+        is_collectable=False,
+        scalar=10.0,
+        trigger_once=True,
+    )
 
-red_yellow_target_reward_multiple = sm.RewardFunction(
-    type="sparse",
-    entity_a=scene.red_target,
-    entity_b=scene.yellow_target,
-    distance_metric="euclidean",
-    threshold=2.0,
-    is_terminal=False,
-    is_collectable=False,
-    scalar=20.0,
-    trigger_once=False,
-)
+    red_yellow_target_reward_multiple = sm.RewardFunction(
+        type="sparse",
+        entity_a=scene.red_target,
+        entity_b=scene.yellow_target,
+        distance_metric="euclidean",
+        threshold=2.0,
+        is_terminal=False,
+        is_collectable=False,
+        scalar=20.0,
+        trigger_once=False,
+    )
 
-green_white_target_reward_single = sm.RewardFunction(
-    type="sparse",
-    entity_a=scene.green_target,
-    entity_b=scene.white_target,
-    distance_metric="euclidean",
-    threshold=2.0,
-    is_terminal=False,
-    is_collectable=False,
-    scalar=10.0,
-    trigger_once=True,
-)
+    green_white_target_reward_single = sm.RewardFunction(
+        type="sparse",
+        entity_a=scene.green_target,
+        entity_b=scene.white_target,
+        distance_metric="euclidean",
+        threshold=2.0,
+        is_terminal=False,
+        is_collectable=False,
+        scalar=10.0,
+        trigger_once=True,
+    )
 
-green_white_target_reward_multiple = sm.RewardFunction(
-    type="sparse",
-    entity_a=scene.red_target,
-    entity_b=scene.yellow_target,
-    distance_metric="euclidean",
-    threshold=2.0,
-    is_terminal=False,
-    is_collectable=False,
-    scalar=20.0,
-    trigger_once=False,
-)
+    green_white_target_reward_multiple = sm.RewardFunction(
+        type="sparse",
+        entity_a=scene.red_target,
+        entity_b=scene.yellow_target,
+        distance_metric="euclidean",
+        threshold=2.0,
+        is_terminal=False,
+        is_collectable=False,
+        scalar=20.0,
+        trigger_once=False,
+    )
 
-and_reward = sm.RewardFunction(
-    type="and",
-    entity_a=scene.agent,
-    entity_b=scene.agent,
-    distance_metric="euclidean",
-    reward_function_a=red_yellow_target_reward_multiple,
-    reward_function_b=green_white_target_reward_multiple,
-    is_terminal=True,
-)
+    and_reward = sm.RewardFunction(
+        type="and",
+        entity_a=scene.agent,
+        entity_b=scene.agent,
+        distance_metric="euclidean",
+        reward_function_a=red_yellow_target_reward_multiple,
+        reward_function_b=green_white_target_reward_multiple,
+        is_terminal=True,
+    )
 
-scene.agent.add_reward_function(red_yellow_target_reward_single)
-scene.agent.add_reward_function(green_white_target_reward_single)
-scene.agent.add_reward_function(and_reward)
-run_scene(scene)
+    scene.agent.add_reward_function(red_yellow_target_reward_single)
+    scene.agent.add_reward_function(green_white_target_reward_single)
+    scene.agent.add_reward_function(and_reward)
+    run_scene(scene)
