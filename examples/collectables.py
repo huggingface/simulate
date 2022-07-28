@@ -1,6 +1,7 @@
-
 import random
+
 from stable_baselines3 import PPO
+
 import simenv as sm
 from simenv.rl.wrappers import ParallelSimEnv
 
@@ -81,7 +82,7 @@ def make_env(executable, seed=0, headless=None):
 
 if __name__ == "__main__":
     n_parallel = 1
-    env_fn = make_env(None)#"/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")
+    env_fn = make_env(None)  # "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel, starting_port=55000)
 

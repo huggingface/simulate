@@ -15,6 +15,7 @@
 # Lint as: python3
 """ A parallel env wrapper for Stable Baseline 3 mostly but also more general."""
 from collections import defaultdict
+
 import numpy as np
 
 
@@ -123,7 +124,7 @@ class ParallelSimEnv(VecEnv):
             obs = self.envs[i].engine.get_observation_recv()
             for sensor_name, reading in obs.items():
                 obss[sensor_name].append(reading)
-        
+
         for sensor_name in obss.keys():
             obss[sensor_name] = np.concatenate(obss[sensor_name], 0)
 

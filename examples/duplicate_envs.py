@@ -6,6 +6,7 @@ import numpy as np
 
 import simenv as sm
 
+
 CAMERA_HEIGHT = 40
 CAMERA_WIDTH = 64
 scene = sm.Scene(engine="unity")
@@ -52,7 +53,6 @@ for i in range(15):
     scene.engine.add_to_pool(root.copy())
 
 
-
 scene.show(n_maps=16)
 
 plt.ion()
@@ -68,9 +68,9 @@ for i in range(1000):
     obs, reward, done, info = scene.step(actions)
     for i in range(4):
         for j in range(4):
-            dummy_obs[i * CAMERA_HEIGHT : (i + 1) * CAMERA_HEIGHT, j * CAMERA_WIDTH : (j + 1) * CAMERA_WIDTH] = obs["CameraSensor"][
-                i * 4 + j
-            ].transpose(1, 2, 0)
+            dummy_obs[i * CAMERA_HEIGHT : (i + 1) * CAMERA_HEIGHT, j * CAMERA_WIDTH : (j + 1) * CAMERA_WIDTH] = obs[
+                "CameraSensor"
+            ][i * 4 + j].transpose(1, 2, 0)
     axim1.set_data(dummy_obs)
     fig1.canvas.flush_events()
     print(done, reward, info)

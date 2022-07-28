@@ -6,6 +6,7 @@ import numpy as np
 import simenv as sm
 import simenv.assets.utils as utils
 
+
 CAMERA_HEIGHT = 40
 CAMERA_WIDTH = 64
 

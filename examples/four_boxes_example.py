@@ -11,6 +11,7 @@ ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/s
 CAMERA_HEIGHT = 40
 CAMERA_WIDTH = 64
 
+
 def create_scene(port=55000):
     scene = sm.Scene(engine="Unity", engine_exe=ALICIA_UNITY_BUILD_URL, frame_skip=10, engine_port=port)
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
@@ -51,12 +52,13 @@ def create_scene(port=55000):
         material=white_material,
         physics_component=sm.RigidBodyComponent(mass=mass),
     )
-    scene += sm.SimpleRlAgent(name="agent",
-    sensors=[
-        sm.CameraSensor(width=CAMERA_WIDTH, height=CAMERA_HEIGHT, position=[0, 0.1, 0]),
-    ],
-    position=[0.0, 0.0, 0.0],
-)
+    scene += sm.SimpleRlAgent(
+        name="agent",
+        sensors=[
+            sm.CameraSensor(width=CAMERA_WIDTH, height=CAMERA_HEIGHT, position=[0, 0.1, 0]),
+        ],
+        position=[0.0, 0.0, 0.0],
+    )
 
     return scene
 
@@ -65,9 +67,7 @@ def run_scene(scene):
     scene.show()
     plt.ion()
     fig1, ax1 = plt.subplots()
-    dummy_obs = np.zeros(
-        shape=(CAMERA_HEIGHT, CAMERA_WIDTH, 3), dtype=np.uint8
-    )
+    dummy_obs = np.zeros(shape=(CAMERA_HEIGHT, CAMERA_WIDTH, 3), dtype=np.uint8)
     axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
     scene.reset()

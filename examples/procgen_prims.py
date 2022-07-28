@@ -35,7 +35,7 @@ def create_env(executable=None, port=None, headless=None):
                 position=[0, 0, 0], bounds=[0.0, maze_width, 0, 0.1, 0.0, maze_depth], material=blue_material
             )
             agent_position = [math.floor(maze_width / 2.0) + 0.5, 0.0, math.floor(maze_depth / 2.0) + 0.5]
-  
+
             agent = sm.SimpleRlAgent(
                 sensors=[
                     sm.CameraSensor(width=64, height=40, position=[0, 0.75, 0]),
