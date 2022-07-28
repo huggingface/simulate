@@ -39,17 +39,17 @@ def get_bounds(object_type, object_size):
     """
     Returns bounds for certain objects construction.
     """
-    if object_type == "Box":
+    if object_type == "box":
         # Assign x, y, z coordinates
         min_v, max_v = -object_size / 4, object_size / 4
 
         # xMin, xMax, yMin, yMax, zMin, zMax
         return {"bounds": (min_v, max_v, min_v, max_v, min_v, max_v)}
 
-    elif object_type == "Capsule":
+    elif object_type == "capsule":
         return {"radius": object_size / 4, "height": object_size}
 
-    elif object_type == "Sphere":
+    elif object_type == "sphere":
         return {"radius": object_size / 2}
 
     else:

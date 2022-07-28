@@ -7,9 +7,12 @@ import simenv as sm
 import simenv.assets.utils as utils
 
 
+CAMERA_HEIGHT = 40
+CAMERA_WIDTH = 64
+
 scene = sm.Scene(engine="Unity")
 
-scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
+scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 scene += sm.Box(name="floor", position=[0, -0.05, 0], scaling=[100, 0.1, 100])
 scene += sm.Box(name="wall1", position=[-1, 0.5, 0], scaling=[0.1, 1, 5.1])
 scene += sm.Box(name="wall2", position=[1, 0.5, 0], scaling=[0.1, 1, 5.1])
@@ -21,15 +24,18 @@ scene += sm.Box(name="wall7", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1])
 scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
 
-agent = sm.SimpleRlAgent(camera_width=64, camera_height=40, position=[0.0, 0.0, 0.0])
+agent = sm.SimpleRlAgent(
+    sensors=[
+        sm.CameraSensor(width=CAMERA_WIDTH, height=CAMERA_HEIGHT, position=[0, 0.75, 0]),
+    ],
+    position=[0.0, 0.0, 0.0],
+)
 
 scene += agent
-camera_height = scene.observation_space.shape[1]
-camera_width = scene.observation_space.shape[2]
 scene.show()
 plt.ion()
 fig1, ax1 = plt.subplots()
-dummy_obs = np.zeros(shape=(camera_height, camera_width, 3), dtype=np.uint8)
+dummy_obs = np.zeros(shape=(CAMERA_HEIGHT, CAMERA_WIDTH, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 for i in range(1000):
@@ -40,7 +46,7 @@ for i in range(1000):
         action = action.tolist()
 
     obs, reward, done, info = scene.step(action)
-    axim1.set_data(obs.transpose(1, 2, 0))
+    axim1.set_data(obs["CameraSensor"].transpose(1, 2, 0))
     fig1.canvas.flush_events()
 
     time.sleep(0.1)
