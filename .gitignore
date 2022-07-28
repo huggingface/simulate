@@ -146,8 +146,3 @@ wfc_binding.cpp
 .gen_files/
 
 .config/
-
-# engine config files
-integrations/Unity/simenv-unity/Packages/manifest.json
-integrations/Unity/simenv-unity/Packages/packages-lock.json
-integrations/Unity/simenv-unity/ProjectSettings/ProjectVersion.txt
