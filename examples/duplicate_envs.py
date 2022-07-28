@@ -7,8 +7,8 @@ import simenv as sm
 
 
 if __name__ == "__main__":
-    scene = sm.Scene(engine="unity")
-    scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
+    # scene = sm.Scene(engine="unity")
+    # scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
 
     CAMERA_HEIGHT = 40
     CAMERA_WIDTH = 64
