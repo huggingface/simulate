@@ -1,7 +1,7 @@
 # simenv
-Creating and sharing simulation environments for RL and synthetic data generation
+Creating and sharing simulation environments for intelligent agents (e.g. reinforcement learning) and synthetic data generation.
 
-To install and contribute (from the CONTRIBUTING.md doc)
+To install and contribute (from [CONTRIBUTING.md](CONTRIBUTING.md))
 
 Create a virtual env and then install the code style/quality tools as well as the code base locally
 ```
@@ -16,7 +16,9 @@ make style
 
 The Python API is located in src/simenv. It allows creation and loading of scenes, and sending commands to the backend.
 
-The backend, currently just Unity, is located in integrations/Unity. This is currently a Unity editor project, which must be opened in Unity 2021.3.2f1. In the future, this will be built as an executable, and spawned by the Python API.
+The backend, currently just Unity, is located in [integrations/Unity](integrations/Unity). 
+This is currently a Unity editor project, which must be opened in Unity 2021.3.2f1. 
+In the future, this will be built as an executable, and spawned by the Python API.
 
 ## Loading a scene from the hub or a local file
 
