@@ -248,7 +248,6 @@ def generate_scene(
     root += agents_root
 
     if engine is not None and engine.lower() != "pyvista":
-        root += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
         root += sm.LightSun(name="sun_" + str(this_map), position=[0, 20, 0], intensity=0.9)
 
     if root_value > -1:
