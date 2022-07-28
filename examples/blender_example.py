@@ -1,5 +1,4 @@
 import simenv as sm
-import simenv.assets.utils as utils
 
 
 scene = sm.Scene(engine="blender")
