@@ -32,6 +32,7 @@ def create_scene(
     port=None,
     headless=None,
     root=0,
+    predicate="random",
     **kwargs,
 ):
     """
@@ -64,6 +65,7 @@ def create_scene(
         port: port to be used to communicate with the engine
         headless: whether to run the engine in headless mode
         root: return only root.
+        predicate: type of predicate (random or None)
         **kwargs: Additional arguments. Handles unused args as well.
     Returns:
         scene: the generated scene in simenv format.
@@ -106,7 +108,11 @@ def create_scene(
 
         # Get objects and agents positions
         obj_pos, agent_pos, success = get_positions(
-            sg.map_2d, n_objects=n_objects, n_agents=n_agents, threshold=kwargs.get("threshold", 0.5)
+            sg.map_2d,
+            n_objects=n_objects,
+            n_agents=n_agents,
+            threshold=kwargs.get("threshold", 0.5),
+            enforce_lower_floor=kwargs.get("enforce_lower_floor", True),
         )
 
         # If there is no enough area, we should try again and continue the loop
@@ -122,6 +128,9 @@ def create_scene(
                 headless=headless,
                 verbose=verbose,
                 root_value=root,
+                physics_update_rate=kwargs.get("physics_update_rate", 30),
+                frame_skip=kwargs.get("frame_skip", 4),
+                predicate=predicate,
             )
 
         else:

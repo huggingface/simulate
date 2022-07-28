@@ -35,11 +35,9 @@ if __name__ == "__main__":
 
     done = False
     obs = env.reset()
+    _, camera_height, camera_width = obs["CameraSensor"].shape
 
-    camera_height = env.observation_space.shape[1]
-    camera_width = env.observation_space.shape[2]
-
-    obs = obs.transpose((1, 2, 0))
+    obs = obs["CameraSensor"].transpose((1, 2, 0))
     axim1 = ax1.imshow(obs, vmin=0, vmax=255)
 
     t = time.time()
@@ -59,7 +57,7 @@ if __name__ == "__main__":
         else:
             obs, reward, done, info = env.step(action)
 
-        obs = obs.transpose((1, 2, 0))
+        obs = obs["CameraSensor"].transpose((1, 2, 0))
 
         axim1.set_data(obs)
         fig1.canvas.flush_events()

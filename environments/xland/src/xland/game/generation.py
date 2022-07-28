@@ -4,15 +4,15 @@ Predicate selection for the game.
 
 import numpy as np
 
-from .predicates import and_reward, near, not_reward, or_reward
+from .predicates import and_reward, near, not_reward, or_reward, see
 
 
-def add_dummy_generated_reward_fn(objects, agents, n_conj=2, n_options=1, verbose=True):
+def add_dummy_generated_reward_fn(objects, agents, n_conj=2, n_options=1, verbose=True, strictly_agent_object=False):
     """
     Generate the game.
     """
 
-    predicates = [near]
+    predicates = [near, see]
     instances = objects + agents
     # String that contains human readable description of the game
     predicate = ""
@@ -24,14 +24,20 @@ def add_dummy_generated_reward_fn(objects, agents, n_conj=2, n_options=1, verbos
         # Select objects and conjunctions:
         done = False
         while not done:
-            # objs1 = np.random.choice(2 * len(objects), size=n_conj, replace=False)
+            conjs = np.random.choice(predicates, size=n_conj, replace=True)
+            near_conjs = np.array([conj.__name__ == "near" for conj in conjs])
+            nb_near_conjs = np.sum(near_conjs.astype(int))
             objs1 = np.full(n_conj, fill_value=len(objects))
+
+            if not strictly_agent_object:
+                # 50 % of chance of having the agent on the predicate for near predicates
+                objs1[near_conjs] = np.random.choice(2 * len(objects), size=nb_near_conjs, replace=False)
+
             objs2 = np.random.choice(len(objects), size=n_conj, replace=False)
             if np.all(objs1 != objs2):
                 done = True
 
         objs1[objs1 >= len(objects)] = len(objects)
-        conjs = np.random.choice(predicates, size=n_conj, replace=True)
         not_conjs = np.random.choice([0, 1], size=n_conj, replace=True)
 
         for i, (obj1, obj2, conj, not_conj) in enumerate(zip(objs1, objs2, conjs, not_conjs)):

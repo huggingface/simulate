@@ -12,13 +12,14 @@ ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/s
 
 # TODO: check if seeding works properly and maybe migrate to using rng keys
 if __name__ == "__main__":
-    n_parallel = 1
+    n_parallel = 4
     seed = 10
     np.random.seed(seed)
 
     example_map = np.load("benchmark/examples/example_map_01.npy")
     env_fn = make_env(
-        executable=None,  # ALICIA_UNITY_BUILD_URL
+        executable=ALICIA_UNITY_BUILD_URL,
+        headless=True,
         sample_from=example_map,
         engine="Unity",
         seed=None,
@@ -27,11 +28,11 @@ if __name__ == "__main__":
         width=6,
         height=6,
         n_show=9,
-        n_maps=64,
+        n_maps=250,
     )
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
-    model = PPO("CnnPolicy", env, verbose=3)
+    model = PPO("MultiInputPolicy", env, verbose=3)
     model.learn(total_timesteps=5000000)
 
     env.close()

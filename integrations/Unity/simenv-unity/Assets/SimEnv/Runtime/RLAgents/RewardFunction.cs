@@ -93,6 +93,27 @@ namespace SimEnv.RlAgents {
         }
     }
 
+    public class SeeRewardFunction : SparseRewardFunction {
+        public SeeRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal, bool isCollectable, 
+                                    bool triggerOnce) :
+                base(entity_a, entity_b, distanceMetric, rewardScalar, threshold, isTerminal, isCollectable, triggerOnce) { }
+        public override float CalculateReward() {
+            float reward = 0.0f;
+
+            // Get angle in degrees and then compare to the threshold
+            float angle = Vector3.Angle(entity_a.transform.position - entity_b.transform.position, entity_a.transform.forward);
+            if ((!hasTriggered || !triggerOnce) && (angle < threshold)) {
+                hasTriggered = true;
+                reward += rewardScalar;
+                if (isCollectable) {
+                    entity_b.SetActive(false);
+                }
+            }
+
+            return reward;
+        }
+    }
+
     public abstract class RewardFunctionPredicate : RewardFunction {
         // TODO: works in the assumption that A and B has the same reward
         public RewardFunction rewardFunctionA;

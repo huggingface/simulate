@@ -1,11 +1,29 @@
-"""Possible predicates for XLand."""
+"""Possible predicates for XLand.
+
+When selecting randomly predicates:
+
+The pseudo-algorithm on XLand supposes a multi-agent setting which
+is not the case yet. So we implement the random selection of predicates
+in a simpler way by just randomly choosing pairs of two objects (one of which might
+be the agent), and applying the `be near` task to them. We randomly choose to negate
+this predicate, and in the end we combine different predicates the same
+way as in XLand - in the disjunctive normal form, which is a canonical
+representation of boolean formula.
+Example: [(obj1 near obj2) and (agent near obj1)] or [!(obj3 near obj4) and (agent near obj1)]
+            or [(obj2 near obj3) and !(agent near obj2)].
+        In this particular example, we have 3 options and 2 conjunctions on each option.
+
+The original possible predicates on Xland were: being
+near, on, seeing, and holding, as well as their negations,
+with the entities being objects, players, and floors of the
+topology. However, due to limitations on the library, we will only consider
+the predicates near, and seeing, and the negations of these. We also don't
+take the floor into consideration to simplify things.
+"""
 
 import numpy as np
 
 from simenv import RewardFunction
-
-
-""" When selecting randomly predicates """
 
 
 def near(entity_a, entity_b, reward_type="sparse"):
@@ -35,7 +53,21 @@ def collect(entity_a, entity_b):
     )
 
 
-def and_reward(reward_function_a, reward_function_b, agent):
+def see(agent, entity_b):
+    return RewardFunction(
+        type="see",
+        entity_a=agent,
+        entity_b=entity_b,
+        distance_metric="euclidean",
+        threshold=30.0,
+        is_terminal=False,
+        is_collectable=False,
+        scalar=1.0,
+        trigger_once=False,
+    )
+
+
+def and_reward(reward_function_a, reward_function_b, agent, is_terminal=False):
     return RewardFunction(
         type="and",
         entity_a=agent,
@@ -43,10 +75,11 @@ def and_reward(reward_function_a, reward_function_b, agent):
         distance_metric="euclidean",
         reward_function_a=reward_function_a,
         reward_function_b=reward_function_b,
+        is_terminal=is_terminal,
     )
 
 
-def or_reward(reward_function_a, reward_function_b, agent):
+def or_reward(reward_function_a, reward_function_b, agent, is_terminal=False):
     return RewardFunction(
         type="or",
         entity_a=agent,
@@ -54,16 +87,18 @@ def or_reward(reward_function_a, reward_function_b, agent):
         distance_metric="euclidean",
         reward_function_a=reward_function_a,
         reward_function_b=reward_function_b,
+        is_terminal=is_terminal,
     )
 
 
-def not_reward(reward_function_a, agent):
+def not_reward(reward_function_a, agent, is_terminal=False):
     return RewardFunction(
         type="not",
         entity_a=agent,
         entity_b=agent,
         distance_metric="euclidean",
         reward_function_a=reward_function_a,
+        is_terminal=is_terminal,
     )
 
 
@@ -72,10 +107,6 @@ def hold():
 
 
 def on():
-    raise NotImplementedError
-
-
-def see():
     raise NotImplementedError
 
 
@@ -118,6 +149,10 @@ def add_collect_all_rewards(agents, objects, verbose=False):
 
     All agents have to collect all objects.
     """
+    terminal = False
+    if len(objects) == 1:
+        terminal = True
+
     for agent in agents:
         for obj in objects:
             reward_function = RewardFunction(
@@ -126,14 +161,14 @@ def add_collect_all_rewards(agents, objects, verbose=False):
                 entity_b=obj,
                 distance_metric="euclidean",
                 threshold=1.0,
-                is_terminal=False,
+                is_terminal=terminal,
                 is_collectable=True,
             )
 
             agent.add_reward_function(reward_function)
 
 
-def add_timeout_rewards(agents):
+def add_timeout_rewards(agents, scalar=0.0):
     for agent in agents:
         timeout_reward_function = RewardFunction(
             type="timeout",
@@ -142,7 +177,7 @@ def add_timeout_rewards(agents):
             distance_metric="euclidean",
             threshold=1000,
             is_terminal=True,
-            scalar=0.0,
+            scalar=scalar,
         )
 
         agent.add_reward_function(timeout_reward_function)
