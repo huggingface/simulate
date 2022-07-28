@@ -1,5 +1,6 @@
-from stable_baselines3 import PPO
 import numpy as np
+from stable_baselines3 import PPO
+
 import simenv as sm
 from simenv import ParallelSimEnv
 
