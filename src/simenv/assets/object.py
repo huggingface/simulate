@@ -46,7 +46,7 @@ class Object3D(Asset):
 
     def __init__(
         self,
-        mesh: Optional[pv.UnstructuredGrid] = None,
+        mesh: Optional[Union[pv.UnstructuredGrid, pv.PolyData]] = None,
         material: Optional[Material] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
@@ -57,14 +57,40 @@ class Object3D(Asset):
     ):
         super().__init__(name=name, position=position, parent=parent, children=children, collider=collider, **kwargs)
 
-        self.mesh = mesh if mesh is not None else pv.PolyData()
+        self._mesh = None
+        self.mesh = mesh
 
         # Avoid having averaging normals at shared points
         # (default pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
         if self.mesh is not None:
             self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
 
-        self.material = material if material is not None else Material()
+        self._material = None
+        self.material = material
+
+    @property
+    def material(self):
+        return self._material
+
+    @material.setter
+    def material(self, material: Material):
+        if material is None:
+            material = Material()
+        if not isinstance(material, Material):
+            raise ValueError(f"{material} is not a sm.Material instance")
+        self._material = material
+
+    @property
+    def mesh(self):
+        return self._mesh
+
+    @mesh.setter
+    def mesh(self, mesh: pv.PolyData):
+        if mesh is None:
+            mesh = pv.PolyData()
+        if not isinstance(mesh, (pv.UnstructuredGrid, pv.PolyData)):
+            raise ValueError(f"{mesh} is not a pyvista.PolyData or pyvista.UnstructuredGrid instance")
+        self._mesh = mesh
 
     def copy(self, with_children=True, **kwargs):
         """Copy an Object3D node in a new (returned) object.
@@ -1207,6 +1233,21 @@ class ProcgenGrid(Object3D):
 
 
 class ProcGenPrimsMaze3D(Asset):
+    """
+    Procedurally generated 3D maze.
+
+    Parameters
+    ----------
+    width: int
+        Width of the maze.
+
+    height: int
+        Height of the maze.
+
+    depth: int
+        Depth of the maze.
+    """
+
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(self, width: int, depth: int, name=None, wall_keep_prob=0.5, wall_material=None, **kwargs):

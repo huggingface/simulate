@@ -19,8 +19,19 @@ specific_map = (
     )
     * 0.6
 )
-scene += sm.ProcgenGrid(specific_map=specific_map)
-scene += sm.Light()
+proc_grid = sm.ProcgenGrid(specific_map=specific_map)
+
+# Let's color our grid by height.
+# We assign a simple 1D texture to the object and assing mesh texture coordinates from the height of each points of the mesh.
+proc_grid.material.base_color_texture = sm.TEXTURE_1D_CMAP  # Set a simple 1D color map texture
+height = proc_grid.mesh.points[:, 1, None]  # We get the height coordinates of the mesh points ( theY axis)
+texture_coord = np.concatenate(
+    [height, np.zeros_like(height)], axis=1
+)  # Make texture coordinates (UV) by adding a zeros axis
+proc_grid.mesh.active_t_coords = texture_coord  # Assign as point to texture mapping
+
+scene += proc_grid
+scene += sm.LightSun()
 scene.show()
 
 input("Press Enter for second scene")

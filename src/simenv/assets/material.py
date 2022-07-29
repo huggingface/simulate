@@ -22,17 +22,8 @@ from typing import ClassVar, List, Optional
 import numpy as np
 import pyvista
 
-from .utils import camelcase_to_snakecase
-
-
-class classproperty(object):
-    # required to use a classmethod as a property
-    # see https://stackoverflow.com/questions/128573/using-property-on-classmethods
-    def __init__(self, fget):
-        self.fget = fget
-
-    def __get__(self, owner_self, owner_cls):
-        return self.fget(owner_cls)
+from . import colors
+from .utils import camelcase_to_snakecase, classproperty
 
 
 # TODO thom this is a very basic PBR Metrial class, mostly here to be able to load a gltf - strongly base on GLTF definitions
@@ -167,60 +158,60 @@ class Material:
     # Various default colors
     @classproperty
     def RED(cls):
-        return cls(base_color=(1.0, 0.0, 0.0))
+        return cls(base_color=colors.RED)
 
     @classproperty
     def GREEN(cls):
-        return cls(base_color=(0.0, 1.0, 0.0))
+        return cls(base_color=colors.GREEN)
 
     @classproperty
     def BLUE(cls):
-        return cls(base_color=(0.0, 0.0, 1.0))
+        return cls(base_color=colors.BLUE)
 
     @classproperty
     def CYAN(cls):
-        return cls(base_color=(0.0, 1.0, 1.0))
+        return cls(base_color=colors.CYAN)
 
     @classproperty
     def MAGENTA(cls):
-        return cls(base_color=(1.0, 0.0, 1.0))
+        return cls(base_color=colors.MAGENTA)
 
     @classproperty
     def YELLOW(cls):
-        return cls(base_color=(1.0, 1.0, 0.0))
+        return cls(base_color=colors.YELLOW)
 
     @classproperty
     def BLACK(cls):
-        return cls(base_color=(0.0, 0.0, 0.0))
+        return cls(base_color=colors.BLACK)
 
     @classproperty
     def WHITE(cls):
-        return cls(base_color=(1.0, 1.0, 1.0))
+        return cls(base_color=colors.WHITE)
 
     @classproperty
     def GRAY(cls):
-        return cls.GRAY50
+        return cls(base_color=colors.GRAY)
 
     @classproperty
     def GRAY25(cls):
-        return cls(base_color=(0.25, 0.25, 0.25))
+        return cls(base_color=colors.GRAY25)
 
     @classproperty
     def GRAY50(cls):
-        return cls(base_color=(0.5, 0.5, 0.5))
+        return cls(base_color=colors.GRAY50)
 
     @classproperty
     def GRAY75(cls):
-        return cls(base_color=(0.75, 0.75, 0.75))
+        return cls(base_color=colors.GRAY75)
 
     @classproperty
     def TEAL(cls):
-        return cls(base_color=(0.0, 0.5, 0.5))
+        return cls(base_color=colors.TEAL)
 
     @classproperty
     def PURPLE(cls):
-        return cls(base_color=(0.5, 0.0, 0.5))
+        return cls(base_color=colors.PURPLE)
 
     @classproperty
     def OLIVE(cls):
-        return cls(base_color=(0.5, 0.5, 0.0))
+        return cls(base_color=colors.OLIVE)

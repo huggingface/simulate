@@ -155,7 +155,7 @@ class PyVistaEngine(Engine):
                     specular_power=1.0,  # Fixing a default of pyvista
                     point_size=1.0,  # Fixing a default of pyvista
                 )
-                self._set_pbr_material_for_actor(actor, material)
+                self._set_pbr_material_for_actor(actor, material, located_mesh)
 
             self._plotter_actors[node.uuid] = actor
 
@@ -171,7 +171,7 @@ class PyVistaEngine(Engine):
             self._plotter_actors[node.uuid] = self.plotter.add_light(light)
 
     @staticmethod
-    def _set_pbr_material_for_actor(actor: pyvista._vtk.vtkActor, material: Material):
+    def _set_pbr_material_for_actor(actor: pyvista._vtk.vtkActor, material: Material, mesh: pyvista.DataSet):
         """Set all the necessary properties for a nice PBR material rendering
         Inspired by https://github.com/Kitware/VTK/blob/master/IO/Import/vtkGLTFImporter.cxx#L188
         """
@@ -192,6 +192,12 @@ class PyVistaEngine(Engine):
             actor.GetProperty().BackfaceCullingOn()
 
         if material.base_color_texture:
+            if mesh.GetPointData().GetTCoords() is None:
+                raise ValueError(
+                    "This mesh doesn't have texture coordinates. "
+                    "You need to define them to use a texture. "
+                    "You can set texture coordinate with mesh.active_t_coords."
+                )
             # set albedo texture
             material.base_color_texture.UseSRGBColorSpaceOn()
             prop.SetBaseColorTexture(material.base_color_texture)

@@ -146,3 +146,6 @@ wfc_binding.cpp
 .gen_files/
 
 .config/
+
+# Mac
+*.icloud

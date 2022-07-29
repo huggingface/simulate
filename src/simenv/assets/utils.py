@@ -42,6 +42,16 @@ def snakecase_to_camelcase(name: str) -> str:
     return "".join(n.capitalize() for n in itertools.chain.from_iterable(name) if n != "")
 
 
+class classproperty(object):
+    # required to use a classmethod as a property
+    # see https://stackoverflow.com/questions/128573/using-property-on-classmethods
+    def __init__(self, fget):
+        self.fget = fget
+
+    def __get__(self, owner_self, owner_cls):
+        return self.fget(owner_cls)
+
+
 def get_transform_from_trs(
     translation: Union[np.ndarray, List[float]],
     rotation: Union[np.ndarray, List[float]],
