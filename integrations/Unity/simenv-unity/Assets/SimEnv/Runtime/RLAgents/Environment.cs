@@ -9,8 +9,26 @@ using UnityEngine;
 
 
 namespace SimEnv.RlAgents {
+
+    public class EntityCache {
+        private GameObject entity;
+        private Vector3 entityOriginalPosition;
+        public Quaternion entityOriginalRotation;
+        public EntityCache(GameObject entity) {
+            this.entity = entity;
+            entityOriginalPosition = entity.transform.position;
+            entityOriginalRotation = entity.transform.rotation;
+        }
+        public void Reset() {
+            entity.transform.position = entityOriginalPosition;
+            entity.transform.rotation = entityOriginalRotation;
+        }
+
+    }
     public class Environment {
         private List<Agent> agents;
+
+        private List<EntityCache> decendants;
         private GameObject root;
 
         public Bounds bounds;
@@ -18,6 +36,7 @@ namespace SimEnv.RlAgents {
         public Environment(GameObject map) {
             root = map;
             agents = new List<Agent>();
+            decendants = new List<EntityCache>();
 
             // Find all the agents that are children of the map root
             List<GameObject> gameObjects = new List<GameObject>(GameObject.FindGameObjectsWithTag("Agent")
@@ -29,9 +48,18 @@ namespace SimEnv.RlAgents {
                 agent.Initialize();
             }
             bounds = GetLocalBoundsForObject(root);
+            // back up all the child positions and rotations
+
+            addChildrenToCache(map);
             Disable();
+        }
 
-
+        private void addChildrenToCache(GameObject gameObject) {
+            foreach (Transform child in gameObject.transform) {
+                EntityCache entityCache = new EntityCache(child.gameObject);
+                decendants.Add(entityCache);
+                addChildrenToCache(child.gameObject);
+            }
         }
 
         static Bounds GetLocalBoundsForObject(GameObject go) {
@@ -94,6 +122,9 @@ namespace SimEnv.RlAgents {
         }
 
         public void Reset() {
+            foreach (EntityCache entityCache in decendants) {
+                entityCache.Reset();
+            }
             agents[0].Reset();
         }
 
