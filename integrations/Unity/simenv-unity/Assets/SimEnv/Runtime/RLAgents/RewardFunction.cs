@@ -78,6 +78,7 @@ namespace SimEnv.RlAgents {
             if (isCollectable) {
                 entityB.SetActive(true);
             }
+        }
 
         public override float CalculateReward() {
             float reward = 0.0f;
