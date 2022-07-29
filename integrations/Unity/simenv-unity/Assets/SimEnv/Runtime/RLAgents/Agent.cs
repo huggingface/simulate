@@ -95,22 +95,22 @@ namespace SimEnv.RlAgents {
                     break;
                 case "and":
                     rewardFunction = new RewardFunctionAnd(
-                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
+                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b),
                             entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
-                
+
                 case "or":
                     rewardFunction = new RewardFunctionOr(
-                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
+                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b),
                             entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
 
                 case "xor":
                     rewardFunction = new RewardFunctionXor(
-                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
+                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b),
                             entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
-                
+
                 case "not":
                     rewardFunction = new RewardFunctionNot(
                         GetRewardFunction(reward.reward_function_a), entity_a, entity_b, distanceMetric, reward.is_terminal);
@@ -118,22 +118,18 @@ namespace SimEnv.RlAgents {
 
                 case "see":
                     rewardFunction = new SeeRewardFunction(
-                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, 
+                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal,
                         reward.is_collectable, reward.trigger_once);
                     break;
 
                 default:
                     Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
                     break;
+            }
+            return rewardFunction;
         }
-        return rewardFunction;
-    }
 
         public void SetProperties(HFRlAgents.HFRlAgentsComponent agentData) {
-            // Debug.Log("Setting Agent properties");
-
-            originalPosition = node.transform.localPosition;
-            originalRotation = node.transform.localRotation;
 
             // Store pointers to all our observation devices
             sensorNames = agentData.sensorNames;
@@ -242,8 +238,6 @@ namespace SimEnv.RlAgents {
         public void Reset() {
             accumReward = 0.0f;
             // Reset the agent
-            node.gameObject.transform.localPosition = originalPosition;
-            node.gameObject.transform.localRotation = originalRotation;
 
             // Reset reward objects?
             // Reset reward functions
@@ -277,8 +271,7 @@ namespace SimEnv.RlAgents {
                 if (rewardFunction is SparseRewardFunction) {
                     var sparseRewardFunction = rewardFunction as SparseRewardFunction;
                     done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);
-                }
-                else if (rewardFunction is RewardFunctionPredicate) {
+                } else if (rewardFunction is RewardFunctionPredicate) {
                     var rewardFunctionPredicate = rewardFunction as RewardFunctionPredicate;
                     done = done | (rewardFunctionPredicate.hasTriggered && rewardFunctionPredicate.isTerminal);
                 }

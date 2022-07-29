@@ -34,16 +34,18 @@ namespace SimEnv.RlAgents {
         }
 
         public void ActivateEnvironments(int nEnvironments) {
-            CreatePositionPool(nEnvironments);
             if (nEnvironments == -1) {
                 nEnvironments = environmentQueue.Count;
             }
+            CreatePositionPool(nEnvironments);
+
             Debug.Assert(nEnvironments <= environmentQueue.Count);
             for (int i = 0; i < nEnvironments; i++) {
                 Environment environment = environmentQueue.Dequeue();
+
+                environment.Reset();
                 environment.SetPosition(positionPool[i]);
                 environment.Enable();
-                environment.Reset();
                 activeEnvironments.Add(environment);
             }
 
@@ -108,14 +110,12 @@ namespace SimEnv.RlAgents {
         }
 
         public void ResetAt(int i) {
-            activeEnvironments[i].SetPosition(new Vector3(-10f, 0f, -10f));
             activeEnvironments[i].Disable();
             environmentQueue.Enqueue(activeEnvironments[i]);
-
             activeEnvironments[i] = environmentQueue.Dequeue();
+            activeEnvironments[i].Reset();
             activeEnvironments[i].SetPosition(positionPool[i]);
             activeEnvironments[i].Enable();
-            activeEnvironments[i].Reset();
         }
         public float[] GetReward() {
             List<float> rewards = new List<float>();
