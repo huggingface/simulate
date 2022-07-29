@@ -4,7 +4,7 @@ Builds map using Wave Function Collapse.
 
 import numpy as np
 
-from ..constants import GRANULARITY
+from ..constants import TILE_SIZE
 from .wfc_utils import generate_seed
 from .wfc_wrapping import apply_wfc
 
@@ -127,25 +127,30 @@ def generate_map(
     true_nb_samples = samples.shape[0]
     width = samples.shape[1]
     height = samples.shape[2]
+    tile_width = samples.shape[3]
+    tile_height = samples.shape[4]
 
     def build_single_map(sample):
         # We create the mesh centered in (0,0)
-        x = np.linspace(-height / 2, height / 2, GRANULARITY * height)
-        z = np.linspace(-width / 2, width / 2, GRANULARITY * width)
+        x = np.zeros((tile_height * height))
+        z = np.zeros((tile_width * width))
+
+        # TODO: optimize these two loops
+        for i in range(height):
+            for j in range(tile_height):
+                x[tile_height * i + j] = TILE_SIZE * (-height / 2 + i + j / (tile_height - 1))
+
+        for i in range(width):
+            for j in range(tile_width):
+                z[tile_width * i + j] = TILE_SIZE * (i - width / 2 + j / (tile_width - 1))
 
         # Create mesh grid
         x, z = np.meshgrid(x, z)
 
-        # Here, we create the mesh
-        # As we are using tiles of two by two, first we have to find a interpolation on
-        # the x axis for each tile
-        # and then on the y axis for each tile
-        # In order to do so, we can use np.linspace, and then transpose the tensor and
-        # get the right order
-        y = np.linspace(sample[:, :, :, 0], sample[:, :, :, 1], GRANULARITY)
-        y = np.linspace(y[:, :, :, 0], y[:, :, :, 1], GRANULARITY)
-        y = np.transpose(y, (2, 0, 3, 1)).reshape((width * GRANULARITY, height * GRANULARITY), order="A")
-
+        # Here, we must get the y values
+        # Basically, we just have to take the map which is of shape (width, height, tile_width, tile_height)
+        # and transform it into (width * tile_width, height * tile_height) doing the reshape properly
+        y = np.hstack(np.hstack(sample))
         coordinates = np.stack([x, y, z])
 
         return coordinates
