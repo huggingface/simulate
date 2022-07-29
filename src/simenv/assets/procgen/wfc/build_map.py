@@ -4,7 +4,7 @@ Builds map using Wave Function Collapse.
 
 import numpy as np
 
-from ..constants import FULL_TILE_SIZE, TILE_SIZE
+from ..constants import TILE_SIZE
 from .wfc_utils import generate_seed
 from .wfc_wrapping import apply_wfc
 
@@ -138,11 +138,11 @@ def generate_map(
         # TODO: optimize these two loops
         for i in range(height):
             for j in range(tile_height):
-                x[tile_height * i + j] = FULL_TILE_SIZE * (-height / 2 + i) + j * TILE_SIZE / (tile_height - 1)
+                x[tile_height * i + j] = TILE_SIZE * (-height / 2 + i + j / (tile_height - 1))
 
         for i in range(width):
             for j in range(tile_width):
-                z[tile_width * i + j] = FULL_TILE_SIZE * (i - width / 2) + j * TILE_SIZE / (tile_width - 1)
+                z[tile_width * i + j] = TILE_SIZE * (i - width / 2 + j / (tile_width - 1))
 
         # Create mesh grid
         x, z = np.meshgrid(x, z)
