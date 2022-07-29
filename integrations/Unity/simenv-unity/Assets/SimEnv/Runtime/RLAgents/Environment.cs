@@ -12,16 +12,24 @@ namespace SimEnv.RlAgents {
 
     public class EntityCache {
         private GameObject entity;
+        private Rigidbody rigidbody;
         private Vector3 entityOriginalPosition;
-        public Quaternion entityOriginalRotation;
+        private Quaternion entityOriginalRotation;
         public EntityCache(GameObject entity) {
             this.entity = entity;
-            entityOriginalPosition = entity.transform.position;
-            entityOriginalRotation = entity.transform.rotation;
+            entityOriginalPosition = entity.transform.localPosition;
+            entityOriginalRotation = entity.transform.localRotation;
+            rigidbody = entity.GetComponent<Rigidbody>();
         }
         public void Reset() {
-            entity.transform.position = entityOriginalPosition;
-            entity.transform.rotation = entityOriginalRotation;
+            entity.transform.localPosition = entityOriginalPosition;
+            entity.transform.localRotation = entityOriginalRotation;
+
+            if (rigidbody != null) {
+                rigidbody.velocity = Vector3.zero;
+                rigidbody.angularVelocity = Vector3.zero;
+            }
+
         }
 
     }
