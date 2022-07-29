@@ -1068,7 +1068,7 @@ class ProcgenGrid(Object3D):
         Map to procedurally generate from.
 
     specific_map: np.ndarray or python list of list of floats
-        Map to procedurally generate from.
+        Map to show as it is.
 
     tiles : list of tiles
         Tiles for procedural generation when using generation from tiles and neighbors definitions.
@@ -1097,7 +1097,9 @@ class ProcgenGrid(Object3D):
         height of the generated map
 
     shallow: bool
-        Indicates whether procedural generation mesh should be generated or not.
+        Indicates whether procedural generation mesh should be generated in simenv or not.
+        When it's true, we just return the map returned by the algorithm without
+        actually creating the mesh in simenv.
         Created for the purpose of optimizing certain environments such as XLand.
 
     seed: int
