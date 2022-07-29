@@ -22,10 +22,6 @@ namespace SimEnv.RlAgents {
     public abstract class RewardFunction {
         public GameObject entityA;
         public GameObject entityB;
-        public Vector3 entityAOriginalPosition;
-        public Vector3 entityBOriginalPosition;
-        public Quaternion entityAOriginalRotation;
-        public Quaternion entityBOriginalRotation;
         public float rewardScalar = 1.0f;
         public IDistanceMetric distanceMetric;
         public abstract void Reset();
@@ -38,22 +34,12 @@ namespace SimEnv.RlAgents {
 
         public DenseRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar) {
             entityA = entity_a;
-            entityAOriginalPosition = entityA.transform.position;
-            entityAOriginalRotation = entityA.transform.rotation;
-
-            entityB = entity_b;
-            entityBOriginalPosition = entityB.transform.position;
-            entityBOriginalRotation = entityB.transform.rotation;
 
             this.distanceMetric = distanceMetric;
             this.rewardScalar = rewardScalar;
         }
         public override void Reset() {
             bestDistance = distanceMetric.Calculate(entityA, entityB);
-            entityA.transform.position = entityAOriginalPosition;
-            entityA.transform.rotation = entityAOriginalRotation;
-            entityB.transform.position = entityBOriginalPosition;
-            entityB.transform.rotation = entityBOriginalRotation;
         }
         public override float CalculateReward() {
             float distance = distanceMetric.Calculate(entityA, entityB);
@@ -78,12 +64,8 @@ namespace SimEnv.RlAgents {
         public bool triggerOnce = true;
         public SparseRewardFunction(GameObject entity_a, GameObject entity_b, IDistanceMetric distanceMetric, float rewardScalar, float threshold, bool isTerminal, bool isCollectable, bool triggerOnce) {
             entityA = entity_a;
-            entityAOriginalPosition = entityA.transform.position;
-            entityAOriginalRotation = entityA.transform.rotation;
-
             entityB = entity_b;
-            entityBOriginalPosition = entityB.transform.position;
-            entityBOriginalRotation = entityB.transform.rotation;
+
             this.distanceMetric = distanceMetric;
             this.threshold = threshold;
             this.isTerminal = isTerminal;
@@ -96,11 +78,6 @@ namespace SimEnv.RlAgents {
             if (isCollectable) {
                 entityB.SetActive(true);
             }
-            entityA.transform.position = entityAOriginalPosition;
-            entityA.transform.rotation = entityAOriginalRotation;
-            entityB.transform.position = entityBOriginalPosition;
-            entityB.transform.rotation = entityBOriginalRotation;
-        }
 
         public override float CalculateReward() {
             float reward = 0.0f;
@@ -225,10 +202,6 @@ namespace SimEnv.RlAgents {
         public override void Reset() {
             hasTriggered = false;
             steps = 0;
-            entityA.transform.position = entityAOriginalPosition;
-            entityA.transform.rotation = entityAOriginalRotation;
-            entityB.transform.position = entityBOriginalPosition;
-            entityB.transform.rotation = entityBOriginalRotation;
         }
 
         public override float CalculateReward() {
