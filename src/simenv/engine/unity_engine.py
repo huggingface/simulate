@@ -6,19 +6,8 @@ import subprocess
 
 import numpy as np
 
-from simenv.rl.rl_component import RlComponent
-
+from ..rl.rl_component import RlComponent
 from .engine import Engine
-
-
-PRIMITIVE_TYPE_MAPPING = {
-    "Sphere": 0,
-    "Capsule": 1,
-    "Cylinder": 2,
-    "Box": 3,
-    "Plane": 4,
-    "Quad": 5,
-}
 
 
 class UnityEngine(Engine):

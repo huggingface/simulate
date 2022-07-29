@@ -6,16 +6,6 @@ import socket
 from .engine import Engine
 
 
-PRIMITIVE_TYPE_MAPPING = {
-    "Sphere": 0,
-    "Capsule": 1,
-    "Cylinder": 2,
-    "Cube": 3,
-    "Plane": 4,
-    "Quad": 5,
-}
-
-
 class BlenderEngine(Engine):
     def __init__(self, scene, auto_update=True, start_frame=0, end_frame=500, frame_rate=24):
         super().__init__(scene=scene, auto_update=auto_update)
