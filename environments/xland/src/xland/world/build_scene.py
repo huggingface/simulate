@@ -11,7 +11,11 @@ from .set_agent import create_agents
 from .set_object import create_objects
 
 
-def add_walls(x, z, height=None, thickness=0.1):
+# Height of walls and height of box colliders of plane tiles
+MAX_SIZE = 10
+
+
+def add_walls(x, z, height=None, thickness=1):
     """
     Adding walls to prevent agent from falling.
 
@@ -26,7 +30,7 @@ def add_walls(x, z, height=None, thickness=0.1):
             agent of falling
     """
     if height is None:
-        height = 10 * HEIGHT_CONSTANT
+        height = MAX_SIZE * HEIGHT_CONSTANT
 
     x_min, z_min, x_max, z_max = np.min(x), np.min(z), np.max(x), np.max(z)
 
@@ -117,7 +121,7 @@ def get_sides_and_bottom(x, y, z, material):
     # We get each of the extra structures
     # We use z as y since it's the way it is in most game engines:
     structures = [
-        sm.StructuredGrid(x=x_down, y=y_down, z=z_down, name="bottom_surface", material=material),
+        sm.StructuredGrid(x=x_down, y=y_down, z=z_down, material=material),
         sm.StructuredGrid(x=xx_0, y=yx_0, z=zx_0, material=material),
         sm.StructuredGrid(x=xx_1, y=yx_1, z=zx_1, material=material),
         sm.StructuredGrid(x=xz_0, y=yz_0, z=zz_0, material=material),
@@ -151,7 +155,10 @@ def generate_colliders(sg):
 
             # Calculate the bounding box:
             if np.all(sg.map_2d[i][j] == h):
-                bounding_box = (1, HEIGHT_CONSTANT, 1)
+                # We create a large bounding_box to avoid agents falling
+                # below ramps
+                bounding_box = (1, MAX_SIZE * HEIGHT_CONSTANT, 1)
+                position[1] -= ((MAX_SIZE - 1) / 2) * HEIGHT_CONSTANT
             else:
                 position[1] += (HEIGHT_CONSTANT / 2) * np.cos(angle)
 
@@ -184,34 +191,30 @@ def generate_colliders(sg):
     return collider_assets
 
 
-def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=None, headless=None, verbose=False):
+def generate_scene(
+    sg,
+    obj_pos,
+    agent_pos,
+    engine=None,
+    executable=None,
+    port=None,
+    headless=None,
+    verbose=False,
+    root_value=0,
+    physics_update_rate=20,
+    frame_skip=4,
+    predicate="random",
+):
     """
     Generate scene using simenv library.
     """
-    # Create scene and add camera
-    if engine is not None and engine != "pyvista":
-        if port is not None:
-            scene = sm.Scene(
-                engine=engine,
-                engine_exe=executable,
-                engine_port=port,
-                engine_headless=headless,
-            )
-
-        else:
-            scene = sm.Scene(engine=engine, engine_exe=executable, engine_headless=headless)
-
-        scene += sm.Camera(position=[0, 10, -5], rotation=[0, 1, 0.50, 0])
-        scene += sm.Light(name="sun", position=[0, 20, 0], intensity=0.9)
-
-    else:
-        scene = sm.Scene(engine=engine)
 
     # Create root
-    root = sm.Asset(name="root")
+    this_map = max(root_value, 0)
+    root = sm.Asset(name="root_" + str(this_map))
 
     # Add colliders to StructuredGrid
-    material = sm.Material(base_color=[0.0, 0.67, 0.66])
+    material = sm.Material.GRAY25
     sg.generate_3D(material=material)
 
     obj_pos = convert_to_actual_pos(obj_pos, sg.coordinates)
@@ -224,7 +227,7 @@ def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=No
     sg += generate_colliders(sg)
 
     # Add procedurally generated grid and sides and bottom
-    map_root = sm.Asset(name="map_root")
+    map_root = sm.Asset(name="map_root_" + str(this_map))
     map_root += sg
     map_root += get_sides_and_bottom(x, y, z, material=material)
 
@@ -233,16 +236,46 @@ def generate_scene(sg, obj_pos, agent_pos, engine=None, executable=None, port=No
     root += map_root
 
     # Add objects
-    objects_root = sm.Asset(name="objects_root")
-    objects = create_objects(obj_pos)
+    objects_root = sm.Asset(name="objects_root_" + str(this_map))
+    objects = create_objects(obj_pos, n_instance=this_map)
     objects_root += objects
     root += objects_root
 
     # Add agent
     # TODO: Generate random predicates
-    agents_root = sm.Asset(name="agents_root")
-    agents_root += create_agents(agent_pos, objects, predicate=None, verbose=verbose)
+    agents_root = sm.Asset(name="agents_root_" + str(this_map))
+    agents_root += create_agents(agent_pos, objects, predicate=predicate, verbose=verbose, n_instance=this_map)
     root += agents_root
+
+    if engine is not None and engine.lower() != "pyvista":
+        root += sm.LightSun(name="sun_" + str(this_map), position=[0, 20, 0], intensity=0.9)
+
+    if root_value > -1:
+        return root
+
+    if engine is not None and engine.lower() != "pyvista":
+        if port is not None:
+            scene = sm.Scene(
+                engine=engine,
+                engine_exe=executable,
+                engine_port=port,
+                engine_headless=headless,
+                physics_update_rate=physics_update_rate,
+                frame_skip=frame_skip,
+            )
+
+        else:
+            scene = sm.Scene(
+                engine=engine,
+                engine_exe=executable,
+                engine_headless=headless,
+                physics_update_rate=physics_update_rate,
+                frame_skip=frame_skip,
+            )
+
+    else:
+        scene = sm.Scene(engine=engine)
+
     scene += root
 
     return scene

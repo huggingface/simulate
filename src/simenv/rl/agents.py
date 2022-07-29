@@ -17,9 +17,10 @@
 import itertools
 from typing import List, Optional, Union
 
+from simenv.assets.sensors import StateSensor
 from simenv.rl.actions import MappedDiscrete
 
-from ..assets import Asset, Camera, Capsule, Collider, RigidBodyComponent
+from ..assets import Asset, CameraSensor, Capsule, Collider, RigidBodyComponent, Sensor
 from .actions import Physics
 from .rewards import RewardFunction
 from .rl_component import RlComponent
@@ -52,8 +53,7 @@ class SimpleRlAgent(Capsule):
     def __init__(
         self,
         reward_target: Optional[Asset] = None,
-        camera_width: Optional[int] = 64,
-        camera_height: Optional[int] = 64,
+        sensors: Optional[List[Sensor]] = None,
         mass: Optional[float] = 1.0,
         name=None,
         position: Optional[List[float]] = None,
@@ -68,9 +68,15 @@ class SimpleRlAgent(Capsule):
         if position is None:
             position = [0, 0.51, 0]  # A bit above the reference plane
 
-        # Add a camera as children
-        camera = Camera(width=camera_width, height=camera_height, position=[0, 0.75, 0])
-        children = children + [camera] if children is not None else [camera]
+        # add self as the ref entity if it has not been provided
+        if sensors is None:
+            sensors = [CameraSensor(width=40, height=32, position=[0, 0.75, 0])]
+        for sensor in sensors:
+            if isinstance(sensor, StateSensor) and sensor.reference_entity is None:
+                sensor.reference_entity = self
+
+        # Add a sensors as children
+        children = children + sensors if children is not None else sensors
 
         super().__init__(
             name=name,
@@ -83,7 +89,14 @@ class SimpleRlAgent(Capsule):
             transformation_matrix=transformation_matrix,
         )
 
-        # Add our RL component:
+        # Rescale the agent
+        if scaling is not None:
+            self.scale(scaling)
+
+        # Move our agent a bit higher than the ground
+        self.translate_y(0.51)
+
+        # Create a reward function if a target is provided
         rewards = None
         if reward_target is not None:
             # Create a reward function if a target is provided
@@ -94,7 +107,9 @@ class SimpleRlAgent(Capsule):
             physics=[Physics.ROTATION_Y, Physics.ROTATION_Y, Physics.POSITION_X],
             amplitudes=[-90, 90, 2.0],
         )
-        self.rl_component = RlComponent(actions=actions, observations=camera, rewards=rewards)
+
+        self.rl_component = RlComponent(actions=actions, sensors=sensors, rewards=rewards)
+        self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
 
         # Add our physics component (by default the agent can only rotation along y axis)
         self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
@@ -125,7 +140,7 @@ class SimpleRlAgent(Capsule):
                 child._post_copy()
 
         instance_copy.rl_component = RlComponent(
-            self.rl_component.actions, self.rl_component.observations, self.rl_component.rewards
+            self.rl_component.actions, self.rl_component.sensors, self.rl_component.rewards
         )
 
         instance_copy.physics_component = self.physics_component

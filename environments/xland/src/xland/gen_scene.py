@@ -31,14 +31,14 @@ def create_scene(
     executable=None,
     port=None,
     headless=None,
+    root=0,
+    predicate="random",
     **kwargs,
 ):
     """
     Generate the environment: map, game and agents.
-
     Notice that all parameters with the tag WFC param means that they passed
     to the C++ implementation of Wave Function Collapse.
-
     Args:
         width: The width of the map.
         height: The height of the map.
@@ -64,28 +64,26 @@ def create_scene(
         executable: engine executable path
         port: port to be used to communicate with the engine
         headless: whether to run the engine in headless mode
+        root: return only root.
+        predicate: type of predicate (random or None)
         **kwargs: Additional arguments. Handles unused args as well.
-
     Returns:
         scene: the generated scene in simenv format.
     """
+
     seed_env(seed)
 
     # TODO: choose width and height randomly from a set of predefined values
-    # TODO: find out to run simulation faster than real time
-    # TODO: create default kwargs to avoid having to do this below:
-    nb_tries = kwargs["nb_tries"] if "nb_tries" in kwargs else 10
-    threshold_kwargs = {"threshold": kwargs["threshold"]} if "threshold" in kwargs else {"threshold": 0.5}
-
-    # Initialize success and curr_try variables
+    # Initialize success and attempt variables
     success = False
-    curr_try = 0
+    attempt = 0
     scene = None
+    nb_attempts = kwargs.get("nb_attempts", 10)
 
-    while not success and curr_try < nb_tries:
+    while not success and attempt < nb_attempts:
 
         if verbose:
-            print("Try {}".format(curr_try + 1))
+            print("Attempt {}".format(attempt + 1))
 
         sg = sm.ProcgenGrid(
             width=width,
@@ -110,7 +108,11 @@ def create_scene(
 
         # Get objects and agents positions
         obj_pos, agent_pos, success = get_positions(
-            sg.map_2d, n_objects=n_objects, n_agents=n_agents, **threshold_kwargs
+            sg.map_2d,
+            n_objects=n_objects,
+            n_agents=n_agents,
+            threshold=kwargs.get("threshold", 0.5),
+            enforce_lower_floor=kwargs.get("enforce_lower_floor", True),
         )
 
         # If there is no enough area, we should try again and continue the loop
@@ -125,13 +127,14 @@ def create_scene(
                 port=port,
                 headless=headless,
                 verbose=verbose,
+                root_value=root,
+                physics_update_rate=kwargs.get("physics_update_rate", 30),
+                frame_skip=kwargs.get("frame_skip", 4),
+                predicate=predicate,
             )
 
-            # Generate the game
-            # generate_game(generated_map, scene)
-
         else:
-            curr_try += 1
+            attempt += 1
 
             if seed is not None:
                 # Change to seed to test other maps

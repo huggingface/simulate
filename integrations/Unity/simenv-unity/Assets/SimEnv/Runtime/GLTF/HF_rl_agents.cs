@@ -9,7 +9,7 @@ namespace SimEnv.GLTF {
         // A serialization of an agent components (actions possibly mapped to physics, observations devices, reward functions)
         public class HFRlAgentsComponent {
             public HFRlAgentsActions actions;
-            public List<string> observations;
+            public List<string> sensorNames;
             public List<HFRlAgentsReward> rewards;
         }
 
@@ -39,6 +39,9 @@ namespace SimEnv.GLTF {
             public float threshold = 1f;
             public bool is_terminal = false;
             public bool is_collectable = false;
+            public bool trigger_once = true;
+            public HFRlAgentsReward reward_function_a = null;
+            public HFRlAgentsReward reward_function_b = null;
         }
     }
 }

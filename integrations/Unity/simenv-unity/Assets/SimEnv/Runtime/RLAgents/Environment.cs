@@ -9,8 +9,34 @@ using UnityEngine;
 
 
 namespace SimEnv.RlAgents {
+
+    public class EntityCache {
+        private GameObject entity;
+        private Rigidbody rigidbody;
+        private Vector3 entityOriginalPosition;
+        private Quaternion entityOriginalRotation;
+        public EntityCache(GameObject entity) {
+            this.entity = entity;
+            entityOriginalPosition = entity.transform.localPosition;
+            entityOriginalRotation = entity.transform.localRotation;
+            rigidbody = entity.GetComponent<Rigidbody>();
+        }
+        public void Reset() {
+            entity.transform.localPosition = entityOriginalPosition;
+            entity.transform.localRotation = entityOriginalRotation;
+
+            if (rigidbody != null) {
+                rigidbody.velocity = Vector3.zero;
+                rigidbody.angularVelocity = Vector3.zero;
+            }
+
+        }
+
+    }
     public class Environment {
         private List<Agent> agents;
+
+        private List<EntityCache> decendants;
         private GameObject root;
 
         public Bounds bounds;
@@ -18,6 +44,7 @@ namespace SimEnv.RlAgents {
         public Environment(GameObject map) {
             root = map;
             agents = new List<Agent>();
+            decendants = new List<EntityCache>();
 
             // Find all the agents that are children of the map root
             List<GameObject> gameObjects = new List<GameObject>(GameObject.FindGameObjectsWithTag("Agent")
@@ -29,9 +56,18 @@ namespace SimEnv.RlAgents {
                 agent.Initialize();
             }
             bounds = GetLocalBoundsForObject(root);
+            // back up all the child positions and rotations
+
+            addChildrenToCache(map);
             Disable();
+        }
 
-
+        private void addChildrenToCache(GameObject gameObject) {
+            foreach (Transform child in gameObject.transform) {
+                EntityCache entityCache = new EntityCache(child.gameObject);
+                decendants.Add(entityCache);
+                addChildrenToCache(child.gameObject);
+            }
         }
 
         static Bounds GetLocalBoundsForObject(GameObject go) {
@@ -80,14 +116,23 @@ namespace SimEnv.RlAgents {
         public bool GetDone() {
             return agents[0].IsDone();
         }
-        public int[] GetObservationShape() {
-            return agents[0].getObservationShape();
+        public List<int[]> GetObservationShapes() {
+            return agents[0].GetObservationShapes();
         }
-        public int GetObservationSize() {
-            return agents[0].getObservationSizes();
+        public List<int> GetObservationSizes() {
+            return agents[0].GetObservationSizes();
+        }
+        public List<string> GetSensorNames() {
+            return agents[0].GetSensorNames();
+        }
+        public List<string> GetSensorTypes() {
+            return agents[0].GetSensorTypes();
         }
 
         public void Reset() {
+            foreach (EntityCache entityCache in decendants) {
+                entityCache.Reset();
+            }
             agents[0].Reset();
         }
 
@@ -98,8 +143,8 @@ namespace SimEnv.RlAgents {
             root.SetActive(true);
         }
 
-        public IEnumerator GetObservationCoroutine(uint[] pixelValues, int startingIndex) {
-            yield return agents[0].GetObservationCoroutine(pixelValues, startingIndex);
+        public IEnumerator GetObservationCoroutine(List<SensorBuffer> buffers, List<int> sizes, int index) {
+            yield return agents[0].GetObservationCoroutine(buffers, sizes, index);
         }
 
 

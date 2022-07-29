@@ -1,7 +1,6 @@
 import numpy as np
 
 import simenv as sm
-from simenv.assets.procgen.wfc import build_wfc_neighbor, build_wfc_tile
 
 
 print("First scene")
@@ -19,6 +18,7 @@ specific_map = (
     )
     * 0.6
 )
+
 proc_grid = sm.ProcgenGrid(specific_map=specific_map)
 
 # Let's color our grid by height.
@@ -31,6 +31,7 @@ texture_coord = np.concatenate(
 proc_grid.mesh.active_t_coords = texture_coord  # Assign as point to texture mapping
 
 scene += proc_grid
+
 scene += sm.LightSun()
 scene.show()
 
@@ -40,7 +41,7 @@ scene.clear()
 
 # Second scene: generating from this map
 scene += sm.ProcgenGrid(width=3, height=3, sample_map=specific_map)
-scene += sm.Light()
+scene += sm.LightSun()
 scene.show()
 
 input("Press Enter for third scene")
@@ -58,7 +59,7 @@ symmetries = ["X"] * 2
 # Create constraints that define which tiles can be neighbors
 neighbors = [(tiles[1], tiles[0]), (tiles[0], tiles[0]), (tiles[1], tiles[1])]
 scene += sm.ProcgenGrid(width=3, height=3, tiles=tiles, neighbors=neighbors, weights=weights, symmetries=symmetries)
-scene += sm.Light()
+scene += sm.LightSun()
 
 scene.show()
 input("Press Enter to close")

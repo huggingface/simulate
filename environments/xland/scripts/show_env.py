@@ -63,13 +63,13 @@ if __name__ == "__main__":
             extra_args["sample_map"] = m
 
     t = time.time()
-    success, scene = create_scene(executable=None, **vars(args), **extra_args)
+    success, scene = create_scene(executable=None, **vars(args), **extra_args, root=-1, nb_attempts=100)
     print("Time in seconds to generate map: {}".format(time.time() - t))
 
     # If we want to show the map and we were successful
     if args.show and success:
         if args.engine is None or args.engine.lower() == "pyvista":
-            scene.remove(scene.root.agents_root)
+            scene.remove(scene.root_0.agents_root_0)
 
         scene.show()
 

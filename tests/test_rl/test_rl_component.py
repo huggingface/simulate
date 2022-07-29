@@ -24,7 +24,7 @@ import simenv as sm
 class RlComponentTest(unittest.TestCase):
     def test_create_rl_component(self):
 
-        camera = sm.Camera(width=12, height=12)
+        camera = sm.CameraSensor(width=12, height=12)
         a = sm.Asset(name="a")
         b = sm.Asset(name="b")
         reward = sm.RewardFunction(a, b)
@@ -34,15 +34,15 @@ class RlComponentTest(unittest.TestCase):
             amplitudes=[-90, 90, 2.0],
         )
 
-        rl_component = sm.RlComponent(actions=actions, observations=camera, rewards=reward)
+        rl_component = sm.RlComponent(actions=actions, sensors=camera, rewards=reward)
 
         self.assertIsInstance(rl_component, sm.RlComponent)
 
-        self.assertIsInstance(rl_component.observations, (list, tuple))
+        self.assertIsInstance(rl_component.sensors, (list, tuple))
         self.assertIsInstance(rl_component.observation_space, spaces.Space)
 
-        self.assertTrue(len(rl_component.observations) == 1)
-        self.assertIsInstance(rl_component.observations[0], sm.Camera)
+        self.assertTrue(len(rl_component.sensors) == 1)
+        self.assertIsInstance(rl_component.sensors[0], sm.CameraSensor)
 
         self.assertIsInstance(rl_component.action_space, spaces.Space)
         self.assertIsInstance(rl_component.actions, sm.MappedDiscrete)

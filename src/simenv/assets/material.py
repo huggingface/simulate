@@ -45,8 +45,9 @@ class Material:
         The factors for the base color of the material. This value defines linear multipliers for the sampled texels of the base color texture.
         Default: [1,1,1,1]. If provided as RGB, Alpha is assumed to be 1.
 
-    base_color_texture : PIL.Image, optional
+    base_color_texture : pyvista.Texture, optional
         A base color texture.
+        Can be created from a PIL image, by first converting to a np array and then to a pyvista texture.
 
     metallic_factor : float, optional
         The metalness of the material.

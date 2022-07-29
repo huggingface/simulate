@@ -24,18 +24,20 @@ if __name__ == "__main__":
         engine="Unity",
         seed=None,
         n_agents=1,
-        n_objects=6,
+        n_objects=4,
         width=9,
         height=9,
+        frame_skip=4,
+        physics_update_rate=20,
+        n_maps=1,
+        n_show=1,
     )(port=55000)
 
     done = False
     obs = env.reset()
+    _, camera_height, camera_width = obs["CameraSensor"].shape
 
-    camera_height = env.observation_space.shape[1]
-    camera_width = env.observation_space.shape[2]
-
-    obs = obs.transpose((1, 2, 0))
+    obs = obs["CameraSensor"].transpose((1, 2, 0))
     axim1 = ax1.imshow(obs, vmin=0, vmax=255)
 
     t = time.time()
@@ -55,7 +57,7 @@ if __name__ == "__main__":
         else:
             obs, reward, done, info = env.step(action)
 
-        obs = obs.transpose((1, 2, 0))
+        obs = obs["CameraSensor"].transpose((1, 2, 0))
 
         axim1.set_data(obs)
         fig1.canvas.flush_events()

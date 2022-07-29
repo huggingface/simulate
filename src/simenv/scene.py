@@ -155,8 +155,9 @@ class Scene(Asset, Env):
         """Reset the environment / episode"""
         self.engine.reset()
         obs = self.engine.get_obs()
+
         if self.n_agents == 1:
-            return obs[0]
+            return {sensor_name: reading[0] for sensor_name, reading in obs.items()}
         return obs
 
     def step(self, action):
@@ -172,7 +173,7 @@ class Scene(Asset, Env):
         done = self.engine.get_done()
         info = [{}] * self.n_agents  # TODO: Add info to the backend, if we require it
         if self.n_agents == 1:
-            return obs[0], reward[0], done[0], info[0]
+            return {sensor_name: reading[0] for sensor_name, reading in obs.items()}, reward[0], done[0], info[0]
 
         return obs, reward, done, info
 
