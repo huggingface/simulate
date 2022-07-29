@@ -48,13 +48,14 @@ namespace SimEnv.RlAgents {
                 environment.Enable();
                 activeEnvironments.Add(environment);
             }
+            if (activeEnvironments[0].HasAgents()) {
+                obsSizes = activeEnvironments[0].GetObservationSizes();
+                sensorNames = activeEnvironments[0].GetSensorNames();
+                sensortypes = activeEnvironments[0].GetSensorTypes();
 
-            obsSizes = activeEnvironments[0].GetObservationSizes();
-            sensorNames = activeEnvironments[0].GetSensorNames();
-            sensortypes = activeEnvironments[0].GetSensorTypes();
-
-            for (int i = 0; i < obsSizes.Count; i++) {
-                agentSensorBuffer.Add(new SensorBuffer(nEnvironments * obsSizes[i], sensortypes[i]));
+                for (int i = 0; i < obsSizes.Count; i++) {
+                    agentSensorBuffer.Add(new SensorBuffer(nEnvironments * obsSizes[i], sensortypes[i]));
+                }
             }
 
             frameSkip = Client.instance.frameSkip;
@@ -92,7 +93,10 @@ namespace SimEnv.RlAgents {
         public void Step(List<List<float>> actions) {
             for (int j = 0; j < frameSkip; j++) {
                 for (int i = 0; i < activeEnvironments.Count; i++) {
-                    activeEnvironments[i].Step(actions[i], physicsUpdateRate);
+                    if (actions.Count > 0) {
+                        activeEnvironments[i].Step(actions[i], physicsUpdateRate);
+                    }
+
                 }
                 // sim calls the physics update
                 Simulator.Step(1, physicsUpdateRate);

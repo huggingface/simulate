@@ -97,24 +97,33 @@ namespace SimEnv.RlAgents {
         public void Step(List<float> actions, float physicsUpdateRate) {
             // step the agents in this environment
             // TODO: extend for multi-agent setting
+            if (!HasAgents()) return;
+
             agents[0].SetAction(actions);
             agents[0].AgentUpdate(physicsUpdateRate);
 
 
         }
         public void UpdateReward() {
+            if (!HasAgents()) return;
             agents[0].UpdateReward();
             // a post step method for all
         }
         public float GetReward() {
+            if (!HasAgents()) return 0.0f;
             return agents[0].GetReward();
         }
 
         public void ZeroReward() {
+            if (!HasAgents()) return;
             agents[0].ZeroReward();
         }
         public bool GetDone() {
+            if (!HasAgents()) return false;
             return agents[0].IsDone();
+        }
+        public bool HasAgents() {
+            return agents.Count > 0;
         }
         public List<int[]> GetObservationShapes() {
             return agents[0].GetObservationShapes();
@@ -133,7 +142,10 @@ namespace SimEnv.RlAgents {
             foreach (EntityCache entityCache in decendants) {
                 entityCache.Reset();
             }
-            agents[0].Reset();
+            foreach (var agent in agents) {
+                agent.Reset();
+            }
+
         }
 
         public void Disable() {
