@@ -127,7 +127,6 @@ class UnityEngine(Engine):
     def add_to_pool(self, map):
         self._map_pool = True
 
-
         map_bytes = map.as_glb_bytes()
         b64_bytes = base64.b64encode(map_bytes).decode("ascii")
         command = {"type": "AddToPool", "contents": json.dumps({"b64bytes": b64_bytes})}
@@ -138,7 +137,6 @@ class UnityEngine(Engine):
             agent = agents[0]
             self.action_space = agent.action_space
             self.observation_space = agent.observation_space
-
 
     def step(self, action):
         command = {"type": "Step", "contents": json.dumps({"action": action})}

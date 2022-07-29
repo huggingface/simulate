@@ -6,6 +6,7 @@ import numpy as np
 import simenv as sm
 import simenv.assets.utils as utils
 
+
 scene = sm.Scene(engine="Unity")
 
 scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
