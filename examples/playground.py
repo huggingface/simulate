@@ -27,7 +27,6 @@ agent = sm.SimpleRlAgent(
     sensors=[sm.CameraSensor(width=64, height=40, position=[0, 0.75, 0])], position=[0.0, 0.0, 0.0]
 )
 scene += agent
-
 scene.show()
 plt.ion()
 fig1, ax1 = plt.subplots()

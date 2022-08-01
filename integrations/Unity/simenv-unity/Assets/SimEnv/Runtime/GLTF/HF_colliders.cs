@@ -6,16 +6,16 @@ using System.Linq;
 
 namespace SimEnv.GLTF {
     public class HFColliders {
-        public List<GLTFCollider> colliders;
+        public List<GLTFCollider> components;
 
         public HFColliders() {
-            colliders = new List<GLTFCollider>();
+            components = new List<GLTFCollider>();
         }
 
         public class GLTFCollider {
             public string name = "";
-            [JsonConverter(typeof(EnumConverter))] public ColliderType type = ColliderType.BOX;
-            [JsonProperty(Required = Required.Always), JsonConverter(typeof(Vector3Converter))] public Vector3 boundingBox;
+            [JsonConverter(typeof(EnumConverter))] public ColliderType type = ColliderType.box;
+            [JsonProperty("bounding_box", Required = Required.Always), JsonConverter(typeof(Vector3Converter))] public Vector3 boundingBox;
             public int? mesh;
             [JsonConverter(typeof(TranslationConverter))] public Vector3 offset = Vector3.zero;
             public bool intangible = false;
@@ -46,19 +46,19 @@ namespace SimEnv.GLTF {
         }
 
         public static void Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {
-            List<GLTFCollider> colliders = new List<GLTFCollider>();
+            List<GLTFCollider> components = new List<GLTFCollider>();
             foreach (GLTFNode.ExportResult node in nodes) {
                 GLTFCollider collider = Export(node);
                 if (collider == null) continue;
-                if (!colliders.Contains(collider))
-                    colliders.Add(collider);
+                if (!components.Contains(collider))
+                    components.Add(collider);
                 node.extensions ??= new GLTFNode.Extensions();
-                node.extensions.HF_colliders = new GLTFNode.HFCollider() { collider = colliders.IndexOf(collider) };
+                node.extensions.HF_colliders = new GLTFNode.HFCollider() { component_id = components.IndexOf(collider) };
             }
-            if (colliders.Count == 0) return;
+            if (components.Count == 0) return;
             gltfObject.extensions ??= new GLTFExtensions();
             gltfObject.extensions.HF_colliders ??= new HFColliders();
-            gltfObject.extensions.HF_colliders.colliders.AddRange(colliders);
+            gltfObject.extensions.HF_colliders.components.AddRange(components);
             gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
         }
 
@@ -71,15 +71,15 @@ namespace SimEnv.GLTF {
             Collider col = cols[0];
             GLTFCollider collider = new GLTFCollider();
             if (col is BoxCollider) {
-                collider.type = ColliderType.BOX;
+                collider.type = ColliderType.box;
                 collider.offset = ((BoxCollider)col).center;
                 collider.boundingBox = ((BoxCollider)col).size;
             } else if (col is SphereCollider) {
-                collider.type = ColliderType.SPHERE;
+                collider.type = ColliderType.sphere;
                 collider.offset = ((SphereCollider)col).center;
                 collider.boundingBox = Vector3.one * ((SphereCollider)col).radius;
             } else if (col is CapsuleCollider) {
-                collider.type = ColliderType.CAPSULE;
+                collider.type = ColliderType.capsule;
                 CapsuleCollider capsule = col as CapsuleCollider;
                 collider.offset = capsule.center;
                 collider.boundingBox = new Vector3(capsule.radius, capsule.height, capsule.radius);

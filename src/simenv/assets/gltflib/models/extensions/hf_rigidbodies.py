@@ -1,27 +1,7 @@
 from dataclasses import dataclass
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from dataclasses_json import dataclass_json
-
-
-@dataclass_json
-@dataclass
-class HFRigidbodiesRigidbody:
-    """
-    A Rigidbody physics primitive:
-
-
-    Properties:
-    """
-
-    mass: float
-    drag: Optional[float] = None
-    angular_drag: Optional[float] = None
-    constraints: Optional[List[str]] = None
-    name: Optional[str] = None
-    use_gravity: Optional[bool] = None
-    continuous: Optional[bool] = None
-    kinematic: Optional[bool] = None
 
 
 @dataclass_json
@@ -34,5 +14,5 @@ class HFRigidbodies:
     rigidbodies (list) Array of rigidbodies
     """
 
-    rigidbodies: Optional[List[HFRigidbodiesRigidbody]] = None
+    rigidbodies: Optional[List[Any]] = None
     rigidbody: Optional[int] = None

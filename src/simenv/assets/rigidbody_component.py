@@ -14,12 +14,11 @@
 
 # Lint as: python3
 """ A simenv RigidBodyComponent."""
-import copy
 import itertools
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
-from .utils import camelcase_to_snakecase
+from dataclasses_json import dataclass_json
 
 
 ALLOWED_CONSTRAINTS = [
@@ -32,6 +31,7 @@ ALLOWED_CONSTRAINTS = [
 ]
 
 
+@dataclass_json
 @dataclass()
 class RigidBodyComponent:
     """
@@ -69,14 +69,14 @@ class RigidBodyComponent:
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     mass: Optional[float] = None
-    drag: Optional[float] = None
+    center_of_mass: Optional[List[float]] = None
+    inertia_tensor: Optional[List[float]] = None
+    drag: Optional[float] = None  # TODO: I would maybe rename it to "linear_drag"
     angular_drag: Optional[float] = None
     constraints: Optional[List[str]] = None
     use_gravity: Optional[bool] = None
-    continuous: Optional[bool] = None
-    kinematic: Optional[bool] = None
-
-    name: Optional[str] = None
+    continuous: Optional[bool] = None  # TODO: see if we want to keep this one
+    kinematic: Optional[bool] = None  # TODO: see if we want to keep this one
 
     def __post_init__(self):
         # Setup all our default values
@@ -103,15 +103,5 @@ class RigidBodyComponent:
         if self.kinematic is None:
             self.kinematic = False
 
-        if self.name is None:
-            id = next(self.__class__.__NEW_ID)
-            self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
-
     def __hash__(self):
         return id(self)
-
-    def copy(self):
-        copy_rb = copy.deepcopy(self)
-        id = next(self.__class__.__NEW_ID)
-        self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
-        return copy_rb

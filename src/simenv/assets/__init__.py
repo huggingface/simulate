@@ -1,6 +1,6 @@
 from .asset import Asset
 from .camera import Camera, CameraDistant
-from .collider import *
+from .collider_component import *
 from .light import *
 from .material import *
 from .object import *

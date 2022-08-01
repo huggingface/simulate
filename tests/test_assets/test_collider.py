@@ -21,5 +21,7 @@ import simenv as sm
 # TODO add more tests on saving/exporting/loading in gltf files
 class ColliderTest(unittest.TestCase):
     def test_create_collider(self):
-        collider = sm.Collider()
+        with self.assertRaises(TypeError):
+            sm.Collider()
+        collider = sm.Collider([1, 1, 1])
         self.assertIsInstance(collider, sm.Collider)

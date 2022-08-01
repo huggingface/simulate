@@ -3,8 +3,45 @@ from typing import List, Optional
 
 from dataclasses_json import dataclass_json
 
-from ..orthographic_camera_info import OrthographicCameraInfo
-from ..perspective_camera_info import PerspectiveCameraInfo
+
+@dataclass_json
+@dataclass
+class PerspectiveCameraInfo:
+    """
+    A perspective camera containing properties to create a perspective projection matrix.
+
+    Properties:
+    aspectRatio (number) The floating-point aspect ratio of the field of view. (Optional)
+    yfov (number) The floating-point vertical field of view in radians.dd (Required)
+    zfar (number) The floating-point distance to the far clipping plane. (Optional)
+    znear (number) The floating-point distance to the near clipping plane.dd (Required)
+    extensions (object) Dictionary object with extension-specific objects. (Optional)
+    extras (any) Application-specific data. (Optional)
+    """
+
+    aspectRatio: Optional[float] = None
+    yfov: float = None
+    zfar: Optional[float] = None
+    znear: float = None
+
+
+@dataclass_json
+@dataclass
+class OrthographicCameraInfo:
+    """
+    An orthographic camera containing properties to create an orthographic projection matrix.
+
+    Properties:
+    xmag (number) The floating-point horizontal magnification of the view. (Required)
+    ymag (number) The floating-point vertical magnification of the view. (Required)
+    zfar (number) The floating-point distance to the far clipping plane. zfar must be greater than znear. (Required)
+    znear (number) The floating-point distance to the near clipping plane. (Required)
+    """
+
+    xmag: float = None
+    ymag: float = None
+    zfar: float = None
+    znear: float = None
 
 
 @dataclass_json
@@ -22,8 +59,6 @@ class HFCameraSensor:
     name (string) The user-defined name of this object. (Optional)
     width (int) The width of the camera render result. (Optional)
     height (int) The height of the camera render result. (Optional)s
-    extensions (object) Dictionary object with extension-specific objects. (Optional)
-    extras (any) Application-specific data. (Optional)
     """
 
     orthographic: Optional[OrthographicCameraInfo] = None

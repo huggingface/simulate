@@ -78,7 +78,7 @@ class ObjectsTest(unittest.TestCase):
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
         self.assertIsNotNone(asset.collider)
-        self.assertEqual(asset.collider.type, sm.ColliderType.SPHERE)
+        self.assertEqual(asset.collider.type, "sphere")
         self.assertTupleEqual(asset.collider.bounding_box, (1.0, 1.0, 1.0))
     
 
@@ -143,7 +143,7 @@ class ObjectsTest(unittest.TestCase):
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
         self.assertIsNotNone(asset.collider)
-        self.assertEqual(asset.collider.type, sm.ColliderType.CAPSULE)
+        self.assertEqual(asset.collider.type, "capsule")
         self.assertTupleEqual(asset.collider.bounding_box, (0.2, 1.0, 0.2))
 
     def test_cylinder(self):
@@ -206,7 +206,7 @@ class ObjectsTest(unittest.TestCase):
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
         self.assertIsNotNone(asset.collider)
-        self.assertEqual(asset.collider.type, sm.ColliderType.BOX)
+        self.assertEqual(asset.collider.type, "box")
         self.assertTupleEqual(asset.collider.bounding_box, (1.0, 1.0, 1.0))
 
     def test_cone(self):

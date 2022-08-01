@@ -24,7 +24,8 @@ import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
 from .anytree import NodeMixin
-from .collider import Collider
+from .collider_component import Collider
+from .gltf_extension import GltfExtensionMixin
 from .rigidbody_component import RigidBodyComponent
 from .utils import (
     camelcase_to_snakecase,
@@ -104,6 +105,11 @@ class Asset(NodeMixin, object):
     @property
     def rl_component(self):
         return self._rl_component
+
+    @property
+    def components(self) -> List[Tuple[str, GltfExtensionMixin]]:
+        """Return a list of the components of the asset."""
+        return list((key, value) for key, value in vars(self).items() if isinstance(value, GltfExtensionMixin))
 
     @rl_component.setter
     def rl_component(self, rl_component: "RlComponent"):

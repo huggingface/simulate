@@ -534,13 +534,7 @@ def add_light_to_model(
 def add_collider_to_model(
     node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
-    collider = gl.HFCollidersCollider(
-        type=node.collider.type.value,
-        boundingBox=node.collider.bounding_box,
-        mesh=node.collider.mesh,
-        offset=node.collider.offset,
-        intangible=node.collider.intangible,
-    )
+    collider = node.collider
 
     # If we have already created exactly the same collider we avoid double storing
     cached_id = is_data_cached(data=collider.to_json(), cache=cache)
@@ -548,11 +542,7 @@ def add_collider_to_model(
         return cached_id
 
     # Add the new collider
-    if gltf_model.extensions.HF_colliders is None:
-        gltf_model.extensions.HF_colliders = gl.HFColliders(colliders=[collider])
-    else:
-        gltf_model.extensions.HF_colliders.colliders.append(collider)
-    collider_id = len(gltf_model.extensions.HF_colliders.colliders) - 1
+    collider_id = collider._add_component_to_gltf_model(gltf_model.extensions)
 
     cache_data(data=collider.to_json(), data_id=collider_id, cache=cache)
 
@@ -562,16 +552,7 @@ def add_collider_to_model(
 def add_rigidbody_to_model(
     node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
-    node_rb = node.physics_component
-    rigidbody = gl.HFRigidbodiesRigidbody(
-        mass=node_rb.mass,
-        drag=node_rb.drag,
-        angular_drag=node_rb.angular_drag,
-        constraints=node_rb.constraints,
-        use_gravity=node_rb.use_gravity,
-        continuous=node_rb.continuous,
-        kinematic=node_rb.kinematic,
-    )
+    rigidbody = node.physics_component
 
     # If we have already created exactly the same rigidbody we avoid double storing
     cached_id = is_data_cached(data=rigidbody.to_json(), cache=cache)
@@ -642,7 +623,7 @@ def add_rl_component_to_model(
 
     agent = gl.HFRlAgentsComponent(
         actions=gl_actions,
-        sensorNames=[asset.name for asset in rl_component.sensors],
+        sensor_nodes=[asset.name for asset in rl_component.sensors],
         rewards=gl_rewards,
     )
 
@@ -738,13 +719,18 @@ def add_node_to_scene(
         extensions.HF_rigidbodies = gl.HFRigidbodies(rigidbody=rigidbody_id)
         extension_used.add("HF_rigidbodies")
 
-    # Add collider if node has one
-    if getattr(node, "collider", None) is not None:
-        collider_id = add_collider_to_model(
-            node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+    # Add all the automatic components of the node
+    for component_name, component in node.components:
+        # If we have already created exactly the same collider we avoid double storing
+        component_id = is_data_cached(data=component.to_json(), cache=cache)
+        if component_id is None:
+            component_id = component._add_component_to_gltf_model(gltf_model.extensions)
+            cache_data(data=component.to_json(), data_id=component_id, cache=cache)
+
+        new_extension_used = component._add_component_to_gltf_node(
+            extensions, component_id=component_id, component_name=component_name
         )
-        extensions.HF_colliders = gl.HFColliders(collider=collider_id)
-        extension_used.add("HF_colliders")
+        extension_used.add(new_extension_used)
 
     # Add the extensions to the node if anything not none
     if extension_used:

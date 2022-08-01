@@ -62,7 +62,7 @@ namespace SimEnv.GLTF {
         }
 
         public class HFCollider {
-            public int collider;
+            public int component_id;
         }
 
         public class ImportResult {
@@ -260,25 +260,25 @@ namespace SimEnv.GLTF {
 
                         // Colliders
                         if (nodes[i].extensions.HF_colliders != null) {
-                            int colliderValue = nodes[i].extensions.HF_colliders.collider;
-                            if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.colliders == null || extensions.HF_colliders.colliders.Count < colliderValue) {
+                            int colliderValue = nodes[i].extensions.HF_colliders.component_id;
+                            if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.components == null || extensions.HF_colliders.components.Count < colliderValue) {
                                 Debug.LogWarning("Error importing collider");
                             } else {
-                                HFColliders.GLTFCollider collider = extensions.HF_colliders.colliders[colliderValue];
+                                HFColliders.GLTFCollider collider = extensions.HF_colliders.components[colliderValue];
                                 if (collider.mesh.HasValue) {
                                     Debug.LogWarning("Ignoring collider mesh value");
                                 }
-                                if (collider.type == ColliderType.BOX) {
+                                if (collider.type == ColliderType.box) {
                                     BoxCollider col = result[i].transform.gameObject.AddComponent<BoxCollider>();
                                     col.size = collider.boundingBox;
                                     col.center = collider.offset;
                                     col.isTrigger = collider.intangible;
-                                } else if (collider.type == ColliderType.SPHERE) {
+                                } else if (collider.type == ColliderType.sphere) {
                                     SphereCollider col = result[i].transform.gameObject.AddComponent<SphereCollider>();
                                     col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[1], collider.boundingBox[2]);
                                     col.center = collider.offset;
                                     col.isTrigger = collider.intangible;
-                                } else if (collider.type == ColliderType.CAPSULE) {
+                                } else if (collider.type == ColliderType.capsule) {
                                     CapsuleCollider col = result[i].transform.gameObject.AddComponent<CapsuleCollider>();
                                     col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[2]);
                                     col.height = collider.boundingBox[1];
