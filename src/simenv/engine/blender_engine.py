@@ -19,6 +19,7 @@ class BlenderEngine(Engine):
         atexit.register(self._close)
 
     def _initialize_server(self):
+        """Create TCP socket and listen for connections."""
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
         print("Server started. Waiting for connection...")

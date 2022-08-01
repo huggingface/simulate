@@ -1,6 +1,6 @@
 """Functions for setting the agent in the world."""
 
-from simenv import SimpleRlAgent
+from simenv import CameraSensor, SimpleRlAgent
 
 from ..game.generation import add_dummy_generated_reward_fn
 from ..game.predicates import add_collect_all_rewards, add_timeout_rewards
