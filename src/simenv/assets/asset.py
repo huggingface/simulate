@@ -26,6 +26,7 @@ from huggingface_hub import create_repo, hf_hub_download, upload_file
 from .anytree import NodeMixin
 from .collider_component import Collider
 from .gltf_extension import GltfExtensionMixin
+from .joint_component import JointComponent
 from .rigidbody_component import RigidBodyComponent
 from .utils import (
     camelcase_to_snakecase,
@@ -67,6 +68,7 @@ class Asset(NodeMixin, object):
         collider: Optional[Collider] = None,
         rl_component: Optional["RlComponent"] = None,
         physics_component: Optional[RigidBodyComponent] = None,
+        joint_component: Optional[JointComponent] = None,
         parent=None,
         children=None,
         created_from_file=None,
@@ -92,8 +94,9 @@ class Asset(NodeMixin, object):
             self.transformation_matrix = transformation_matrix
 
         self.collider = collider
-        self._rl_component = rl_component
-        self._physics_component = physics_component
+        self.rl_component = rl_component
+        self.physics_component = physics_component
+        self.joint_component = joint_component
         self._n_copies = 0
         self._created_from_file = created_from_file
 
@@ -103,23 +106,55 @@ class Asset(NodeMixin, object):
         return self._uuid
 
     @property
-    def rl_component(self):
-        return self._rl_component
+    def named_components(self) -> List[Tuple[str, GltfExtensionMixin]]:
+        """Return a list of the components of the asset with their attributes name.
+
+        We strip the beginning "_" of the attribute names (if stored as private).
+        """
+        return list(
+            (key.lstrip("_"), value) for key, value in vars(self).items() if isinstance(value, GltfExtensionMixin)
+        )
 
     @property
-    def components(self) -> List[Tuple[str, GltfExtensionMixin]]:
+    def components(self) -> List[GltfExtensionMixin]:
         """Return a list of the components of the asset."""
-        return list((key, value) for key, value in vars(self).items() if isinstance(value, GltfExtensionMixin))
+        return list(comp for _, comp in self.named_components)
+
+    @property
+    def collider(self):
+        return self._collider
+
+    @collider.setter
+    def collider(self, collider: "Collider"):
+        self._collider = collider
+
+    @property
+    def joint_component(self):
+        return self._joint_component
+
+    @joint_component.setter
+    def joint_component(self, joint_component: "JointComponent"):
+        self._joint_component = joint_component
+
+    @property
+    def rl_component(self):
+        return self._rl_component
 
     @rl_component.setter
     def rl_component(self, rl_component: "RlComponent"):
         self._rl_component = rl_component
-        if rl_component is not None:
-            self.action_space = rl_component.action_space
-            self.observation_space = rl_component.observation_space
-        else:
-            self.action_space = None
-            self.observation_space = None
+
+    @property
+    def action_space(self):
+        if self.rl_component is not None:
+            return self.rl_component.action_space
+        return None
+
+    @property
+    def observation_space(self):
+        if self.rl_component is not None:
+            return self.rl_component.observation_space
+        return None
 
     @property
     def physics_component(self):
@@ -132,11 +167,16 @@ class Asset(NodeMixin, object):
     def __len__(self):
         return len(self.tree_descendants)
 
-    def get(self, name: str):
-        """Return the first children tree node with the given name."""
-        for node in self.tree_descendants:
+    def get_node(self, name: str) -> Optional["Asset"]:
+        """Return the node with the given name in the *whole* tree.
+        (Remember that the name of the nodes are unique)
+
+        Return None if no node with the given name is found.
+        """
+        for node in self.tree_root.tree_descendants:
             if node.name == name:
                 return node
+        return None
 
     def copy(self, with_children=True, **kwargs):
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
@@ -226,6 +266,7 @@ class Asset(NodeMixin, object):
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
         else:
             root = Asset(name="Scene", children=nodes)  # Otherwise we build a main root node
+
         return root, file_path
 
     @classmethod

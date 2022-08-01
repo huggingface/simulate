@@ -26,6 +26,7 @@ if TYPE_CHECKING:
 
 from . import Asset, Camera, CameraSensor, Light, Material, Object3D, StateSensor
 from . import gltflib as gl
+from .gltf_extension import process_components_after_gltf, process_components_before_gltf
 
 
 # Conversion of Numnpy dtype and shapes in GLTF equivalents
@@ -720,7 +721,7 @@ def add_node_to_scene(
         extension_used.add("HF_rigidbodies")
 
     # Add all the automatic components of the node
-    for component_name, component in node.components:
+    for component_name, component in node.named_components:
         # If we have already created exactly the same collider we avoid double storing
         component_id = is_data_cached(data=component.to_json(), cache=cache)
         if component_id is None:
@@ -784,9 +785,14 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
         extensions=gl.Extensions(),
     )
     cache = {}  # A mapping for Mesh/material/Texture already added
+
+    process_components_before_gltf(root_node)
+
     extension_used = add_node_to_scene(
         node=root_node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=0, cache=cache
     )
+
+    process_components_after_gltf(root_node)
 
     # Update scene requirements with the GLTF extensions we need
     if extension_used:

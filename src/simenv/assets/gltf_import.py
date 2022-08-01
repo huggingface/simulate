@@ -25,7 +25,7 @@ import pyvista as pv
 from huggingface_hub import hf_hub_download
 
 from . import Asset, Camera, Light, Material, Object3D
-from .gltf_extension import GLTF_EXTENSIONS_REGISTER
+from .gltf_extension import GLTF_EXTENSIONS_REGISTER, process_components_after_gltf
 from .gltflib import GLTF, FileResource, TextureInfo
 from .gltflib.enums import AccessorType, ComponentType
 
@@ -198,7 +198,7 @@ def build_node_tree(
             node_extension = getattr(gltf_node.extensions, extension_name, None)
             if node_extension is not None:
                 component_id = node_extension.component_id
-                component_name = node_extension.component_name
+                component_name = node_extension.name
                 model_extension = getattr(gltf_model.extensions, extension_name, None)
                 component = model_extension.components[component_id]
                 common_kwargs[component_name] = component
@@ -366,5 +366,7 @@ def load_gltf_as_tree(
                 parent=None,
             )
         )
+    for node in main_nodes:
+        process_components_after_gltf(node)
 
     return main_nodes

@@ -229,7 +229,7 @@ class AssetTest(unittest.TestCase):
         self.assertTrue(hasattr(asset, "bobby"))
         self.assertTrue(hasattr(asset, "alice"))
 
-        get_bobby_asset = asset.get("bobby")
+        get_bobby_asset = asset.get_node("bobby")
         self.assertTrue(bobby_asset is get_bobby_asset)
 
     def test_copy_asset(self):

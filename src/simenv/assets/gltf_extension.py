@@ -14,56 +14,60 @@
 
 # Lint as: python3
 """ Store a python dataclass as a glTF extension."""
-from dataclasses import field, make_dataclass
-from typing import List, Optional
+import copy
+from dataclasses import field, fields, make_dataclass
+from typing import TYPE_CHECKING, Any, List, Optional
 
 from dataclasses_json import DataClassJsonMixin, dataclass_json
 
+
+if TYPE_CHECKING:
+    from .asset import Asset
 
 GLTF_EXTENSIONS_REGISTER = []
 
 
 class GltfExtensionMixin(DataClassJsonMixin):
-    """A Mixin class to create a glTF extension from a python dataclass.
+    """A Mixin class to extend a python dataclass to be a glTF extension.
+
+        Requirements:
+            - The extended python class must be a dataclass.
+            - The attributes of the class must be
+                * either JSON serializable, or
+                * an Asset object to which the type should then be Union[str, Any]
+                  (converted in a string with the node name while saving to glTF and
+                   decoded to a pointer to the asset object while loading from glTF).
 
     Attributes:
-        extension_name: The name of the glTF extension.
-        component_singular: The name of the component in the glTF extension.
-        component_plural: The name of the components in the glTF extension.
+        gltf_extension_name: The name of the glTF extension.
 
     Example:
         class MyGltfExtension(GltfExtensionMixin,
-                              extension_name="my_extension"):
+                              gltf_extension_name="my_extension"):
     """
 
-    def __init_subclass__(cls, extension_name, **kwargs):
+    def __init_subclass__(cls, gltf_extension_name, **kwargs):
         super().__init_subclass__(**kwargs)
-        cls._extension_name = extension_name
+        if not gltf_extension_name:
+            raise ValueError("A glTF extension name must be provided.")
+        cls._gltf_extension_name = gltf_extension_name
 
         cls._gltf_extension_cls = dataclass_json(
             make_dataclass(
-                extension_name,
+                gltf_extension_name,
                 [
                     ("components", Optional[List[cls]], field(default=None)),
                     ("component_id", Optional[int], field(default=None)),
-                    ("component_name", Optional[str], field(default=None)),
+                    ("name", Optional[str], field(default=None)),
                 ],
             )
         )
 
         # register the component to the glTF model extensions
         for (ext_name, _, _) in GLTF_EXTENSIONS_REGISTER:
-            if ext_name == extension_name:
-                raise ValueError(f"The glTF extension {extension_name} is already registered.")
-        GLTF_EXTENSIONS_REGISTER.append((extension_name, Optional[cls._gltf_extension_cls], field(default=None)))
-
-        # old_extension_cls = gl.Extensions
-        # gl.Extensions = dataclass_json(make_dataclass(gl.Extensions.__class__.__name__,
-        #     fields=[(extension_name, Optional[List[cls._gltf_extension_cls]], field(default=None))],
-        #     bases=(old_extension_cls,)))
-
-        # gl.models.Extensions = gl.Extensions
-        # gl.models.base_model.Extensions = gl.Extensions
+            if ext_name == gltf_extension_name:
+                raise ValueError(f"The glTF extension {gltf_extension_name} is already registered.")
+        GLTF_EXTENSIONS_REGISTER.append((gltf_extension_name, Optional[cls._gltf_extension_cls], field(default=None)))
 
     def _add_component_to_gltf_model(self, gltf_model_extensions) -> int:
         """Add a component to a glTF model.
@@ -74,16 +78,17 @@ class GltfExtensionMixin(DataClassJsonMixin):
         Returns:
             The index of the component in the glTF model extensions.
         """
-        if getattr(gltf_model_extensions, self._extension_name, None) is None:
-            components = [self]
+        copy_self = copy.deepcopy(self)
+        if getattr(gltf_model_extensions, self._gltf_extension_name, None) is None:
+            components = [copy_self]
             # Create a component class to store our component
             new_extension_component_cls = self._gltf_extension_cls(components=components)
-            if not hasattr(gltf_model_extensions, self._extension_name):
-                raise ValueError(f"The glTF model extensions does not have the {self._extension_name} extension.")
-            setattr(gltf_model_extensions, self._extension_name, new_extension_component_cls)
+            if not hasattr(gltf_model_extensions, self._gltf_extension_name):
+                raise ValueError(f"The glTF model extensions does not have the {self._gltf_extension_name} extension.")
+            setattr(gltf_model_extensions, self._gltf_extension_name, new_extension_component_cls)
         else:
-            components = getattr(getattr(gltf_model_extensions, self._extension_name), "components")
-            components.append(self)
+            components = getattr(getattr(gltf_model_extensions, self._gltf_extension_name), "components")
+            components.append(copy_self)
         component_id = len(components) - 1
         return component_id
 
@@ -98,8 +103,57 @@ class GltfExtensionMixin(DataClassJsonMixin):
         Returns:
             The name of the glTF node extensions.
         """
-        node_extension_cls = self._gltf_extension_cls(component_id=component_id, component_name=component_name)
-        if not hasattr(gltf_node_extensions, self._extension_name):
-            raise ValueError(f"The glTF node extensions does not have the {self._extension_name} extension.")
-        setattr(gltf_node_extensions, self._extension_name, node_extension_cls)
-        return self._extension_name
+        node_extension_cls = self._gltf_extension_cls(component_id=component_id, name=component_name)
+        if not hasattr(gltf_node_extensions, self._gltf_extension_name):
+            raise ValueError(f"The glTF node extensions does not have the {self._gltf_extension_name} extension.")
+        setattr(gltf_node_extensions, self._gltf_extension_name, node_extension_cls)
+        return self._gltf_extension_name
+
+
+def process_components_after_gltf(node: "Asset"):
+    """Setup the attributes of each components of the asset which refere to assets.
+    Sometime components refered to assets by names (when loading from a glTF file)
+    We convert them to references to the asset
+    """
+    for component in node.components:
+        for f in fields(component):
+            # If the attribute of the component has the type Any
+            if f.type == Any:
+                value = getattr(component, f.name)
+                # And is the value of the attribute is currently a string
+                if isinstance(value, str):
+                    node_pointer = node.get_node(value)
+                    if node_pointer is not None:
+                        setattr(component, f.name, node_pointer)  # We convert it in the node pointer
+
+    # Recursively through the tree
+    for child in node.tree_children:
+        process_components_after_gltf(child)
+
+
+def process_components_before_gltf(node: "Asset"):
+    """Setup the attributes of each components of the asset which refere to assets.
+    Sometime components refered to assets by names (when loading from a glTF file)
+    We convert them to string of the names of the assets (which are unique)
+    """
+    for component_name, component in node.named_components:
+        for f in fields(component):
+            # If the attribute of the component has the right type ("Union[str, Asset]")
+            if f.type == Any:
+                value = getattr(component, f.name)
+                if isinstance(value, str):
+                    node_pointer = node.get_node(value)
+                    if node_pointer is None:
+                        raise ValueError(
+                            f"The component '{component_name}' of node '{node.name}' "
+                            f"point to a second asset called '{value}' but this second asset cannot be found "
+                            f"in the asset tree. Please check the name of the second asset is correct "
+                            "and the second asset is present in the scene."
+                        )
+                # And is the value of the attribute is currently a node
+                if not isinstance(value, str) and hasattr(value, "name"):
+                    setattr(component, f.name, value.name)  # We convert it in the node name
+
+    # Recursively through the tree
+    for child in node.tree_children:
+        process_components_before_gltf(child)

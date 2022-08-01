@@ -90,6 +90,9 @@ class Scene(Asset, Env):
         self._built = False
         self._n_agents = None
 
+    def __str__(self):
+        return self.__repr__()
+
     def __repr__(self):
         spacer = "\n" if len(self) else ""
         return f"Scene(engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
