@@ -1,18 +1,22 @@
 import time
-
+import argparse
 from parallel_envs import make_env
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 
 # TODO(ed, nol) change the path to the built environment to an arg, instruct user how to make it
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    args = parser.parse_args()
+
     n_envs = 16
     #
     bench_index = 200  # used to ensure unique ports
     envs = SubprocVecEnv(
         [
             make_env(
-                "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64",
+                args.build_exe,
                 i + bench_index,
                 headless=True,
             )

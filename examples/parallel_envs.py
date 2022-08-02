@@ -1,19 +1,8 @@
-import os
-import random
-import time
-
-import matplotlib.pyplot as plt
-import numpy as np
-from requests import head
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 import simenv as sm
-import simenv.assets.utils as utils
 
-
-ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
-THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
 
 
 def create_env(executable=None, port=None, headless=None):

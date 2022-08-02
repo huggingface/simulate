@@ -1,19 +1,21 @@
-import random
 import time
-
+import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
 import simenv as sm
 
 
-ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 CAMERA_HEIGHT = 40
 CAMERA_WIDTH = 64
 
 
 def create_scene(port=55000):
-    scene = sm.Scene(engine="Unity", engine_exe=ALICIA_UNITY_BUILD_URL, frame_skip=10, engine_port=port)
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    args = parser.parse_args()
+
+    scene = sm.Scene(engine="Unity", engine_exe=args.build_exe, frame_skip=10, engine_port=port)
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
     scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material.BLUE)

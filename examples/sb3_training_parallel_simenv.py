@@ -1,13 +1,8 @@
-import numpy as np
+import argparse
 from stable_baselines3 import PPO
 
 import simenv as sm
 from simenv import ParallelSimEnv
-
-
-ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
-THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
-ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 
 
 def create_env(executable=None, port=None, headless=None):
@@ -85,8 +80,12 @@ def make_env(executable, seed=0, headless=True):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    args = parser.parse_args()
+
     n_parallel = 1
-    env_fn = make_env(None)  # "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")  #
+    env_fn = make_env(args.build_exe)  # "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")  #
 
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
     # obs = env.reset()
