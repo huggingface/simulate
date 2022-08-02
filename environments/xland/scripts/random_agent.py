@@ -1,7 +1,8 @@
 """Agent acting randomly on the environment."""
 
-import time
 import argparse
+import time
+
 import numpy as np
 from matplotlib import pyplot as plt
 from xland import make_env
@@ -9,13 +10,7 @@ from xland import make_env
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--build_exe",
-        default=None,
-        type=str,
-        required=False,
-        help="Pre-built unity app for simenv"
-    )
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
     args = parser.parse_args()
 
     plt.ion()
