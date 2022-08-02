@@ -3,6 +3,7 @@ import time
 from parallel_envs import make_env
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
+
 # TODO(ed, nol) change the path to the built environment to an arg, instruct user how to make it
 if __name__ == "__main__":
     n_envs = 16

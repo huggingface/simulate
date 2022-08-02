@@ -3,7 +3,7 @@ import os
 from simenv import Scene
 
 
-if __name__=="__main__":
+if __name__ == "__main__":
     scene = Scene.create_from("simenv-tests/Box/glTF/Box.gltf", auto_update=False)
 
     print("===== BEFORE ====")
@@ -13,7 +13,6 @@ if __name__=="__main__":
 
     # Save in the gitgnored output
     from pathlib import Path
-
 
     save_path = Path(__file__).parent.parent.absolute() / "output" / "scene" / "scene.gltf"
 
