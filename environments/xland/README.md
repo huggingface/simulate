@@ -4,7 +4,7 @@ Procedurally generated environments inspired by [XLand](https://arxiv.org/abs/21
 
 <img src="benchmark/media/maps.gif" width="500">
 
-For now, we are building the procedural generation using [Wave Function Collapse](https://github.com/mxgmn/WaveFunctionCollapse) (WFC), and we use an external dependency called [fast-wfc](https://github.com/math-fehr/fast-wfc), which contains a really fast implementation of WFC in C++.
+For now, we are building the procedural generation using [Wave Function Collapse](https://github.com/mxgmn/WaveFunctionCollapse) (WFC), and our C++ code is mainly based on the implementation [fast-wfc](https://github.com/math-fehr/fast-wfc), which contains a really fast implementation of WFC in C++.
 
 ## Installation
 
@@ -40,13 +40,17 @@ A minimalistic example to generate from an example map:
 
 ```
 from xland import create_scene
-from xland.utils import create_2d_map
+import numpy as np
 
-# Create example map from csv file on examples
-example_map = create_2d_map(name="example_map_01")
+# Read example map
+example_map = np.load("benchmark/examples/example_map_01.npy")
 
-# Sample from example map and show interactive mode
-create_scene(width=8, height=8, sample_from=example_map, show=True)
+# Sample from example map
+# You can add the argument 'engine="Unity"' if you want to run it on Unity
+_, scene = create_scene(width=8, height=8, sample_map=example_map)
+
+# Show scene
+scene.show()
 ```
 
-Other scripts might be found in the folder `scripts`. The map that is used as example is in CSV format for human readability inside the `benchmark/examples`.
+Other scripts might be found in the folder `scripts`.

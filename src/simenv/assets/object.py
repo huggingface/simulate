@@ -1134,12 +1134,14 @@ class ProcgenGrid(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        verbose: Optional[bool] = False,
         **kwargs,
     ):
 
         if seed is None:
             seed = np.random.randint(0, 100000)
-            print("Seed:", seed)
+            if verbose:
+                print("Seed:", seed)
 
         # Seeding
         np.random.seed(seed)
