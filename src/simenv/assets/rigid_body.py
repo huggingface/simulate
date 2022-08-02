@@ -18,7 +18,7 @@ import itertools
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
-from dataclasses_json import dataclass_json
+from .gltf_extension import GltfExtensionMixin
 
 
 ALLOWED_CONSTRAINTS = [
@@ -31,9 +31,8 @@ ALLOWED_CONSTRAINTS = [
 ]
 
 
-@dataclass_json
 @dataclass()
-class RigidBodyComponent:
+class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodies"):
     """
     A rigid body caracteristics that can be added to a primitive.
 
@@ -54,8 +53,8 @@ class RigidBodyComponent:
     use_gravity : bool, optional
         Whether the rigidbody should ignore gravity
 
-    continuous : bool, optional
-        Whether to use continuous collision detection, for slower
+    collision_detection : str, optional
+        Whether to use discrete or continuous collision detection, for slower
             but more precise collision detection (recommended for
             small but fast-moving objects)
 
@@ -71,11 +70,11 @@ class RigidBodyComponent:
     mass: Optional[float] = None
     center_of_mass: Optional[List[float]] = None
     inertia_tensor: Optional[List[float]] = None
-    drag: Optional[float] = None  # TODO: I would maybe rename it to "linear_drag"
+    linear_drag: Optional[float] = None
     angular_drag: Optional[float] = None
     constraints: Optional[List[str]] = None
     use_gravity: Optional[bool] = None
-    continuous: Optional[bool] = None  # TODO: see if we want to keep this one
+    collision_detection: Optional[str] = None  # TODO: see if we want to keep this one
     kinematic: Optional[bool] = None  # TODO: see if we want to keep this one
 
     def __post_init__(self):
@@ -83,9 +82,9 @@ class RigidBodyComponent:
         if self.mass is None:
             self.mass = 1.0
         self.mass = float(self.mass)
-        if self.drag is None:
-            self.drag = 0.0
-        self.drag = float(self.drag)
+        if self.linear_drag is None:
+            self.linear_drag = 0.0
+        self.linear_drag = float(self.linear_drag)
         if self.angular_drag is None:
             self.angular_drag = 0.0
         self.angular_drag = float(self.angular_drag)
@@ -98,8 +97,8 @@ class RigidBodyComponent:
 
         if self.use_gravity is None:
             self.use_gravity = True
-        if self.continuous is None:
-            self.continuous = False
+        if self.collision_detection is None:
+            self.collision_detection = "discrete"
         if self.kinematic is None:
             self.kinematic = False
 

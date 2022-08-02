@@ -25,42 +25,35 @@ ALLOWED_JOINT_TYPES = ["fixed", "slider", "hinge"]
 
 
 @dataclass()
-class JointComponent(GltfExtensionMixin, gltf_extension_name="HF_joints"):
+class ArticulatedBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_articulated_bodies"):
     """
-    A joint can be added to connect together two assets with Rigidbodies component and constrain them to
-    move like they are connected by a hinge.
+    An articulated body will model the physics of an articulated body connecting together an asset
+    with its parent in the hierarchy.
 
     Parameters
     ----------
     name : string, optional
         The user-defined name of this material
 
-    connected_asset : Asset, optional
-        The asset to which this joint is connected.
-        If not set, the joint connects to the world.
-
-    type: string, optional
-        The type of joint to use.
+    joint_type: string, optional
+        The type of articulation (aka joint) to use.
         - "fixed": no movement allowed
         - "slider": only translation along 1 axis allowed
         - "hinge": only rotation along 1 axis allowed
 
-    axis: List[float], optional
-        The axis along which the joint is allowed to move (translation or rotation).
+    anchor_axis: List[float], optional
+        The axis along which the asset is allowed to move relative to its parent (translation or rotation).
 
-    anchor: List[float], optional
+    anchor_position: List[float], optional
         Position of the anchor point of the joint.
 
     """
 
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
-    # Saved in the glTF as the name of the node - assigned as the node when created (see Asset class)
-    connected_asset: Any
-
-    type: str
-    axis: List[float]
-    anchor: Optional[List[float]] = None
+    joint_type: str
+    anchor_axis: List[float]
+    anchor_position: Optional[List[float]] = None
     linear_damping: Optional[float] = 0.0
     angular_damping: Optional[float] = 0.0
     joint_friction: Optional[float] = 0.0
@@ -69,12 +62,17 @@ class JointComponent(GltfExtensionMixin, gltf_extension_name="HF_joints"):
     drive_force_limit: Optional[float] = 0.0
     drive_target: Optional[float] = 0.0
     drive_target_velocity: Optional[float] = 0.0
-    is_limited: Optional[bool] = False
     upper_limit: Optional[float] = None
     lower_limit: Optional[float] = None
 
+    mass: Optional[float] = None
+    center_of_mass: Optional[List[float]] = None
+    inertia_tensor: Optional[List[float]] = None
+    use_gravity: Optional[bool] = None
+    collision_detections: Optional[str] = None  # TODO: see if we want to keep this one
+
     def __post_init__(self):
         # Setup all our default values
-        self.type = self.type.lower()
-        if self.type not in ALLOWED_JOINT_TYPES:
-            raise ValueError(f"Joint type {self.type} is not allowed. Allowed types are: {ALLOWED_JOINT_TYPES}")
+        self.joint_type = self.joint_type.lower()
+        if self.joint_type not in ALLOWED_JOINT_TYPES:
+            raise ValueError(f"Joint type {self.joint_type} is not allowed. Allowed types are: {ALLOWED_JOINT_TYPES}")

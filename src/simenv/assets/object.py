@@ -21,7 +21,7 @@ import numpy as np
 import pyvista as pv
 
 from .asset import Asset
-from .collider_component import Collider
+from .collider import Collider
 from .material import Material
 from .procgen.prims import generate_prims_maze
 from .procgen.wfc import generate_2d_map, generate_map

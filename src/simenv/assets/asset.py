@@ -24,10 +24,10 @@ import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
 from .anytree import NodeMixin
-from .collider_component import Collider
+from .articulated_body import ArticulatedBodyComponent
+from .collider import Collider
 from .gltf_extension import GltfExtensionMixin
-from .joint_component import JointComponent
-from .rigidbody_component import RigidBodyComponent
+from .rigid_body import RigidBodyComponent
 from .utils import (
     camelcase_to_snakecase,
     get_product_of_quaternions,
@@ -67,8 +67,7 @@ class Asset(NodeMixin, object):
         transformation_matrix=None,
         collider: Optional[Collider] = None,
         rl_component: Optional["RlComponent"] = None,
-        physics_component: Optional[RigidBodyComponent] = None,
-        joint_component: Optional[JointComponent] = None,
+        physics_component: Union[None, RigidBodyComponent, ArticulatedBodyComponent] = None,
         parent=None,
         children=None,
         created_from_file=None,
@@ -96,7 +95,6 @@ class Asset(NodeMixin, object):
         self.collider = collider
         self.rl_component = rl_component
         self.physics_component = physics_component
-        self.joint_component = joint_component
         self._n_copies = 0
         self._created_from_file = created_from_file
 
@@ -129,14 +127,6 @@ class Asset(NodeMixin, object):
         self._collider = collider
 
     @property
-    def joint_component(self):
-        return self._joint_component
-
-    @joint_component.setter
-    def joint_component(self, joint_component: "JointComponent"):
-        self._joint_component = joint_component
-
-    @property
     def rl_component(self):
         return self._rl_component
 
@@ -161,7 +151,7 @@ class Asset(NodeMixin, object):
         return self._physics_component
 
     @physics_component.setter
-    def physics_component(self, physics_component: RigidBodyComponent):
+    def physics_component(self, physics_component: Union[None, RigidBodyComponent, ArticulatedBodyComponent]):
         self._physics_component = physics_component
 
     def __len__(self):

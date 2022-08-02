@@ -5,14 +5,14 @@ using System.Linq;
 
 
 namespace SimEnv.GLTF {
-    public class HFRigidbodies {
-        public List<GLTFRigidbody> rigidbodies;
+    public class HFRigidBodies {
+        public List<GLTFRigidBody> rigidbodies;
 
-        public HFRigidbodies() {
-            rigidbodies = new List<GLTFRigidbody>();
+        public HFRigidBodies() {
+            rigidbodies = new List<GLTFRigidBody>();
         }
 
-        public class GLTFRigidbody {
+        public class GLTFRigidBody {
             [JsonProperty(Required = Required.Always)] public float mass;
             public float drag = 0f;
             public float angular_drag = 0f;
@@ -30,9 +30,9 @@ namespace SimEnv.GLTF {
         }
 
         public static void Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {
-            List<GLTFRigidbody> rigidbodies = new List<GLTFRigidbody>();
+            List<GLTFRigidBody> rigidbodies = new List<GLTFRigidBody>();
             foreach (GLTFNode.ExportResult node in nodes) {
-                GLTFRigidbody rigidbody = Export(node);
+                GLTFRigidBody rigidbody = Export(node);
                 if (rigidbody == null) continue;
                 if (!rigidbodies.Contains(rigidbody))
                     rigidbodies.Add(rigidbody);
@@ -41,21 +41,21 @@ namespace SimEnv.GLTF {
             }
             if (rigidbodies.Count == 0) return;
             gltfObject.extensions ??= new GLTFExtensions();
-            gltfObject.extensions.HF_rigidbodies ??= new HFRigidbodies();
+            gltfObject.extensions.HF_rigidbodies ??= new HFRigidBodies();
             gltfObject.extensions.HF_rigidbodies.rigidbodies.AddRange(rigidbodies);
             gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
         }
 
-        static GLTFRigidbody Export(GLTFNode.ExportResult node) {
+        static GLTFRigidBody Export(GLTFNode.ExportResult node) {
             Rigidbody[] rigidbodies = node.transform.GetComponents<Rigidbody>();
             if (rigidbodies.Length == 0)
                 return null;
             else if (rigidbodies.Length > 1)
                 Debug.LogWarning($"Node {node.name} has multiple rigidbodies. Ignoring extras.");
             Rigidbody rigidbody = rigidbodies[0];
-            GLTFRigidbody gltfRigidbody = new GLTFRigidbody();
+            GLTFRigidBody gltfRigidbody = new GLTFRigidBody();
             gltfRigidbody.mass = rigidbody.mass;
-            gltfRigidbody.drag = rigidbody.drag;
+            gltfRigidbody.linear_drag = rigidbody.linear_drag;
             gltfRigidbody.angular_drag = rigidbody.angularDrag;
             gltfRigidbody.constraints = new List<string>();
             if ((rigidbody.constraints & RigidbodyConstraints.FreezePositionX) == RigidbodyConstraints.FreezePositionX)

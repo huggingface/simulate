@@ -2,7 +2,7 @@ import itertools
 from typing import List, Optional, Union
 
 from .asset import Asset
-from .collider_component import Collider
+from .collider import Collider
 
 
 class Light(Asset):

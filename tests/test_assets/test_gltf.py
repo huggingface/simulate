@@ -72,7 +72,7 @@ class GltfTest(unittest.TestCase):
         scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material.BLUE)
         box1 = sm.Box(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.RED)
         box2 = sm.Box(name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.RED)
-        box1.joint_component = sm.JointComponent("box2", "hinge", [0, 1, 0])
+        box1.physics_component = sm.ArticulatedBodyComponent("hinge", [0, 1, 0])
         scene += box1
         scene += box2
         scene += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.RED)
@@ -93,9 +93,6 @@ class GltfTest(unittest.TestCase):
 
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = os.path.join(tmpdir, "test.gltf")
-            with self.assertRaises(ValueError):
-                scene.save(file_path)
-            scene.wall1.joint_component.connected_asset = box2
             scene.save(file_path)
             self.assertTrue(os.path.exists(file_path))
 

@@ -30,6 +30,7 @@ namespace SimEnv.GLTF {
         public class Extensions {
             public KHRLight KHR_lights_punctual;
             public HFCollider HF_colliders;
+            public HFJoint HF_articulated_bodies;
             public HFRlAgent HF_rl_agents;
             public HFRigidbody HF_rigidbodies;
             public HFCameraSensor HF_camera_sensors;
@@ -62,6 +63,10 @@ namespace SimEnv.GLTF {
         }
 
         public class HFCollider {
+            public int component_id;
+        }
+
+        public class HFJoint {
             public int component_id;
         }
 
@@ -290,6 +295,35 @@ namespace SimEnv.GLTF {
                             }
                         }
 
+                        // Articulated body
+                        if (nodes[i].extensions.HF_articulated_bodies != null) {
+                            int componentId = nodes[i].extensions.HF_articulated_bodies.component_id;
+                            if (extensions == null || extensions.HF_articulated_bodies == null || extensions.HF_articulated_bodies.components == null || extensions.HF_articulated_bodies.components.Count < componentId) {
+                                Debug.LogWarning("Error importing articulated body");
+                            } else {
+                                HFArticulatedBodies.GLTFArticulatedBody ab = extensions.HF_articulated_bodies.components[componentId];
+                                ArticulationBody articulation = result[i].transform.gameObject.AddComponent<ArticulationBody>();
+                                articulation.jointType = ab.joint_type;
+                                articulation.anchorPosition = ab.anchor_position;
+                                articulation.anchorAxis = ab.anchor_axis;
+                                articulation.linearDamping = ab.linear_damping;
+                                articulation.angularDamping = ab.angular_damping;
+                                articulation.jointFriction = ab.joint_friction;
+                                articulation.mass = rigidbody.mass;
+                                articulation.centerOfMass = rigidbody.center_of_mass;
+
+                                ArticulationDrive xDrive = new ArticulationDrive()
+                                {
+                                    stiffness = ab.drive_stifness,
+                                    forceLimit = ab.drive_force_limit,
+                                    damping = ab.drive_damping,
+                                    lowerLimit = ab.lower_limit,
+                                    upperLimit = ab.upper_limit
+                                };
+                                articulation.xDrive = xDrive;
+                            }
+                        }
+
                         // Rigidbody
                         if (nodes[i].extensions.HF_rigidbodies != null) {
                             int rigidbodyValue = nodes[i].extensions.HF_rigidbodies.rigidbody;
@@ -299,7 +333,9 @@ namespace SimEnv.GLTF {
                                 HFRigidbodies.GLTFRigidbody rigidbody = extensions.HF_rigidbodies.rigidbodies[rigidbodyValue];
                                 Rigidbody rb = result[i].transform.gameObject.AddComponent<Rigidbody>();
                                 rb.mass = rigidbody.mass;
-                                rb.drag = rigidbody.drag;
+                                rb.centerOfMass = rigidbody.center_of_mass;
+                                rb.intertiaTensor = rigidbody.inertia_tensor;
+                                rb.linear_drag = rigidbody.linear_drag;
                                 rb.angularDrag = rigidbody.angular_drag;
                                 rb.useGravity = rigidbody.use_gravity;
                                 rb.collisionDetectionMode = rigidbody.continuous ? CollisionDetectionMode.Continuous : CollisionDetectionMode.Discrete;

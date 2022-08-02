@@ -550,26 +550,26 @@ def add_collider_to_model(
     return collider_id
 
 
-def add_rigidbody_to_model(
-    node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
-) -> int:
-    rigidbody = node.physics_component
+# def add_rigidbody_to_model(
+#     node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+# ) -> int:
+#     rigidbody = node.physics_component
 
-    # If we have already created exactly the same rigidbody we avoid double storing
-    cached_id = is_data_cached(data=rigidbody.to_json(), cache=cache)
-    if cached_id is not None:
-        return cached_id
+#     # If we have already created exactly the same rigidbody we avoid double storing
+#     cached_id = is_data_cached(data=rigidbody.to_json(), cache=cache)
+#     if cached_id is not None:
+#         return cached_id
 
-    # Add the new rigidbody
-    if gltf_model.extensions.HF_rigidbodies is None:
-        gltf_model.extensions.HF_rigidbodies = gl.HFRigidbodies(rigidbodies=[rigidbody])
-    else:
-        gltf_model.extensions.HF_rigidbodies.rigidbodies.append(rigidbody)
-    rigidbody_id = len(gltf_model.extensions.HF_rigidbodies.rigidbodies) - 1
+#     # Add the new rigidbody
+#     if gltf_model.extensions.HF_rigidbodies is None:
+#         gltf_model.extensions.HF_rigidbodies = gl.HFRigidbodies(rigidbodies=[rigidbody])
+#     else:
+#         gltf_model.extensions.HF_rigidbodies.rigidbodies.append(rigidbody)
+#     rigidbody_id = len(gltf_model.extensions.HF_rigidbodies.rigidbodies) - 1
 
-    cache_data(data=rigidbody.to_json(), data_id=rigidbody_id, cache=cache)
+#     cache_data(data=rigidbody.to_json(), data_id=rigidbody_id, cache=cache)
 
-    return rigidbody_id
+#     return rigidbody_id
 
 
 def get_gl_reward(reward) -> gl.HFRlAgentsReward:
@@ -712,13 +712,13 @@ def add_node_to_scene(
         extensions.HF_rl_agents = gl.HFRlAgents(agent=agent_id)
         extension_used.add("HF_rl_agents")
 
-    # Add Rigidbody if node has one
-    if getattr(node, "physics_component", None) is not None:
-        rigidbody_id = add_rigidbody_to_model(
-            node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-        )
-        extensions.HF_rigidbodies = gl.HFRigidbodies(rigidbody=rigidbody_id)
-        extension_used.add("HF_rigidbodies")
+    # # Add Rigidbody if node has one
+    # if getattr(node, "physics_component", None) is not None:
+    #     rigidbody_id = add_rigidbody_to_model(
+    #         node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+    #     )
+    #     extensions.HF_rigidbodies = gl.HFRigidbodies(rigidbody=rigidbody_id)
+    #     extension_used.add("HF_rigidbodies")
 
     # Add all the automatic components of the node
     for component_name, component in node.named_components:
