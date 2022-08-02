@@ -21,7 +21,7 @@ from typing import Any, ClassVar, List, Optional
 from .gltf_extension import GltfExtensionMixin
 
 
-ALLOWED_JOINT_TYPES = ["fixed", "slider", "hinge"]
+ALLOWED_JOINT_TYPES = ["fixed", "prismatic", "revolute"]
 
 
 @dataclass()
@@ -41,8 +41,8 @@ class ArticulatedBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_artic
         - "slider": only translation along 1 axis allowed
         - "hinge": only rotation along 1 axis allowed
 
-    anchor_axis: List[float], optional
-        The axis along which the asset is allowed to move relative to its parent (translation or rotation).
+    anchor_rotation: List[float], optional
+        The rotation axis along which the asset is allowed to move relative to its parent (translation or rotation).
 
     anchor_position: List[float], optional
         Position of the anchor point of the joint.
@@ -52,7 +52,7 @@ class ArticulatedBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_artic
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     joint_type: str
-    anchor_axis: List[float]
+    anchor_rotation: List[float] = None
     anchor_position: Optional[List[float]] = None
     linear_damping: Optional[float] = 0.0
     angular_damping: Optional[float] = 0.0

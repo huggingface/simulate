@@ -561,11 +561,11 @@ def add_collider_to_model(
 #         return cached_id
 
 #     # Add the new rigidbody
-#     if gltf_model.extensions.HF_rigidbodies is None:
-#         gltf_model.extensions.HF_rigidbodies = gl.HFRigidbodies(rigidbodies=[rigidbody])
+#     if gltf_model.extensions.HF_rigid_bodies is None:
+#         gltf_model.extensions.HF_rigid_bodies = gl.HFRigidBodies(rigidbodies=[rigidbody])
 #     else:
-#         gltf_model.extensions.HF_rigidbodies.rigidbodies.append(rigidbody)
-#     rigidbody_id = len(gltf_model.extensions.HF_rigidbodies.rigidbodies) - 1
+#         gltf_model.extensions.HF_rigid_bodies.rigidbodies.append(rigidbody)
+#     rigidbody_id = len(gltf_model.extensions.HF_rigid_bodies.rigidbodies) - 1
 
 #     cache_data(data=rigidbody.to_json(), data_id=rigidbody_id, cache=cache)
 
@@ -717,8 +717,8 @@ def add_node_to_scene(
     #     rigidbody_id = add_rigidbody_to_model(
     #         node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
     #     )
-    #     extensions.HF_rigidbodies = gl.HFRigidbodies(rigidbody=rigidbody_id)
-    #     extension_used.add("HF_rigidbodies")
+    #     extensions.HF_rigid_bodies = gl.HFRigidBodies(rigidbody=rigidbody_id)
+    #     extension_used.add("HF_rigid_bodies")
 
     # Add all the automatic components of the node
     for component_name, component in node.named_components:

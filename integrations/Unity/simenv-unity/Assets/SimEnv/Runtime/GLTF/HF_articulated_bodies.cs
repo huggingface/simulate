@@ -13,10 +13,10 @@ namespace SimEnv.GLTF {
         }
 
         public class GLTFArticulatedBody {
-            public string connected_asset = "";
-            public string type = "";
-            [JsonConverter(typeof(TranslationConverter)), JsonProperty(Required = Required.Always)] public Vector3 axis;
-            [JsonConverter(typeof(TranslationConverter))] public Vector3 anchor = Vector3.zero;
+            public string joint_type = "";
+            [JsonConverter(typeof(QuaternionConverter))] public Quaternion anchor_rotation = Quaternion.identity;
+            [JsonConverter(typeof(TranslationConverter))] public Vector3 anchor_position = Vector3.zero;
+            [JsonConverter(typeof(Vector3Converter))] public Vector3 inertia_tensor = Vector3.zero;
             public float linear_damping = 0.0f;
             public float angular_damping = 0.0f;
             public float joint_friction = 0.0f;
@@ -26,9 +26,13 @@ namespace SimEnv.GLTF {
             public float drive_target = 0.0f;
             public float drive_target_velocity = 0.0f;
             public bool is_limited;
-
             public float upper_limit = 0.0f;
             public float lower_limit = 0.0f;
+
+            public float mass = 1.0f;
+
+            [JsonConverter(typeof(TranslationConverter))] public Vector3 center_of_mass = Vector3.zero;
+
             // public bool ShouldSerializemesh() { return mesh.HasValue; }
             // public bool ShouldSerializeoffset() { return offset != Vector3.zero; }
             // public bool ShouldSerializeintangible() { return intangible; }
