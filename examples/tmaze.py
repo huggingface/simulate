@@ -23,7 +23,6 @@ if __name__ == "__main__":
     scene += sm.Box(name="wall7", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1])
     scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
-
     agent = sm.SimpleRlAgent(
         sensors=[
             sm.CameraSensor(width=CAMERA_WIDTH, height=CAMERA_HEIGHT, position=[0, 0.75, 0]),
@@ -50,6 +49,5 @@ if __name__ == "__main__":
         fig1.canvas.flush_events()
 
         time.sleep(0.1)
-
 
     scene.close()

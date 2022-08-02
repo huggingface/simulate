@@ -1,11 +1,11 @@
-import random
+import argparse
 import time
 
 import matplotlib.pyplot as plt
 import numpy as np
 
 import simenv as sm
-import argparse
+
 
 CAMERA_HEIGHT = 40
 CAMERA_WIDTH = 64

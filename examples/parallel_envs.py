@@ -4,7 +4,6 @@ from stable_baselines3.common.vec_env import SubprocVecEnv
 import simenv as sm
 
 
-
 def create_env(executable=None, port=None, headless=None):
     scene = sm.Scene(engine="Unity", engine_exe=executable, engine_port=port, engine_headless=headless)
 

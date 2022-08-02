@@ -1,5 +1,6 @@
-import time
 import argparse
+import time
+
 from parallel_envs import make_env
 from stable_baselines3.common.vec_env import SubprocVecEnv
 

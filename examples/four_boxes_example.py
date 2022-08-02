@@ -1,8 +1,9 @@
+import argparse
 import time
 
 import matplotlib.pyplot as plt
 import numpy as np
-import argparse
+
 import simenv as sm
 
 
@@ -14,7 +15,6 @@ def create_scene(port=55000):
     parser = argparse.ArgumentParser()
     parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
     args = parser.parse_args()
-
 
     scene = sm.Scene(engine="Unity", engine_exe=args.build_exe, frame_skip=10, engine_port=port)
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
