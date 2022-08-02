@@ -36,7 +36,7 @@ make style
 
 ## Basic Usage
 
-A minimalistic example to generate from an example map:
+Here is a minimalistic example to generate from an example map (run from `simenv/environments/xland`):
 
 ```
 from xland import create_scene
@@ -47,10 +47,15 @@ example_map = np.load("benchmark/examples/example_map_01.npy")
 
 # Sample from example map
 # You can add the argument 'engine="Unity"' if you want to run it on Unity
-_, scene = create_scene(width=8, height=8, sample_map=example_map)
+# create_scene returns a bool if it was rendered correctly and the scene itself
+is_successful, scene = create_scene(width=8, height=8, sample_map=example_map)
 
 # Show scene
 scene.show()
 ```
 
-Other scripts might be found in the folder `scripts`.
+Other scripts might be found in the folder `scripts`. 
+The easiest script to see results from is `random_agent`, which is configured to run with Unity. 
+To run this, run:
+`python scripts/random_agent.py --build_exe=$build_dir`
+An example `build_dir` on Mac is: `/Users/nato/Downloads/unity-app.app/Contents/MacOS/SimEnv`.

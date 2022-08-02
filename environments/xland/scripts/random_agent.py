@@ -1,16 +1,23 @@
 """Agent acting randomly on the environment."""
 
 import time
-
+import argparse
 import numpy as np
 from matplotlib import pyplot as plt
 from xland import make_env
 
 
-ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
-
-
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument(
+        "--build_exe",
+        default=None,
+        type=str,
+        required=False,
+        help="Pre-built unity app for simenv"
+    )
+    args = parser.parse_args()
+
     plt.ion()
 
     fig1, ax1 = plt.subplots()
@@ -19,7 +26,7 @@ if __name__ == "__main__":
 
     # Maybe the executable is not something to be exposed? Can't we generate it and use it by default
     env = make_env(
-        executable=None,
+        executable=args.build_exe,
         sample_from=example_map,
         engine="Unity",
         seed=None,
