@@ -114,22 +114,6 @@ class ParallelSimEnv(VecEnv):
 
         return np.array(dones)
 
-    def _get_observations(self):
-        for i in range(self.n_parallel):
-            self.envs[i].engine.get_observation_send()
-
-        # receive the obs acks
-        obss = defaultdict(list)
-        for i in range(self.n_parallel):
-            obs = self.envs[i].engine.get_observation_recv()
-            for sensor_name, reading in obs.items():
-                obss[sensor_name].append(reading)
-
-        for sensor_name in obss.keys():
-            obss[sensor_name] = np.concatenate(obss[sensor_name], 0)
-
-        return obss
-
     def close(self):
         for i in range(self.n_parallel):
             self.envs[i].engine.close()

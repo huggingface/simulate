@@ -1,15 +1,15 @@
 {
-    "name": "Runtime",
+    "name": "SimEnv.RLAgents",
     "rootNamespace": "",
     "references": [
-        "GUID:15fc0a57446b3144c949da3e2b9737a9"
+        "GUID:20acf4accf2cab340945bbf78cc82cf7"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [],
-    "autoReferenced": false,
+    "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
     "noEngineReferences": false

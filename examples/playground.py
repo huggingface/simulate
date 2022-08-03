@@ -20,27 +20,32 @@ for i in range(20):
     scene += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 
 material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
-target = sm.Box(name=f"cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
+target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 scene += target
 
-agent = sm.SimpleRlAgent(
-    sensors=[sm.CameraSensor(width=64, height=40, position=[0, 0.75, 0])], position=[0.0, 0.0, 0.0]
-)
+
+agent = sm.SimpleRlAgent(name="agent", position=[0.0, 0.0, 0.0])
 scene += agent
-scene.show()
+
+scene.show(return_nodes=False, return_frames=False)
+
 plt.ion()
 fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(40, 64, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
-scene.reset()
 for i in range(1000):
-    action = scene.action_space.sample()
+    action = {}
+    for agent in scene.agents:
+        action[agent.name] = random.randrange(0, 3)
     print(action)
-    obs, reward, done, info = scene.step(action)
+    event = scene.step(action=action)
 
-    print(done, reward, info)
-    axim1.set_data(obs["CameraSensor"].transpose(1, 2, 0))
+    agent_data = event["agents"]["agent"]
+    print(agent_data["done"], agent_data["reward"])
+    obs = np.array(agent_data["frames"]["agent_camera"], dtype=np.uint8)
+    obs = obs.transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
+    axim1.set_data(obs)
     fig1.canvas.flush_events()
 
     # time.sleep(0.1)

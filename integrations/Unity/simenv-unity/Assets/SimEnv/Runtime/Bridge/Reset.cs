@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using UnityEngine.Events;
 
-namespace SimEnv {
-    public class Close : ICommand {
+namespace SimEnv.RlAgents {
+    public class Reset : ICommand {
         public void Execute(Dictionary<string, object> kwargs, UnityAction<string> callback) {
-            Simulator.Close();
+            Simulator.Reset();
             callback("ack");
         }
     }

@@ -17,9 +17,9 @@
 import itertools
 from typing import List, Optional, Union
 
-from ..assets import Asset, CameraSensor, Capsule, Collider, RigidBodyComponent, Sensor, StateSensor
-from .actions import MappedDiscrete, Physics
-from .rewards import RewardFunction
+from ..assets import Asset, Camera, CameraSensor, Capsule, Collider, RigidBodyComponent
+from .actions import ActionMapping, DiscreteAction
+from .reward_functions import RewardFunction
 from .rl_component import RlComponent
 
 
@@ -50,7 +50,6 @@ class SimpleRlAgent(Capsule):
     def __init__(
         self,
         reward_target: Optional[Asset] = None,
-        sensors: Optional[List[Sensor]] = None,
         mass: Optional[float] = 1.0,
         name=None,
         position: Optional[List[float]] = None,
@@ -65,15 +64,17 @@ class SimpleRlAgent(Capsule):
         if position is None:
             position = [0, 0.51, 0]  # A bit above the reference plane
 
-        # add self as the ref entity if it has not been provided
-        if sensors is None:
-            sensors = [CameraSensor(width=40, height=32, position=[0, 0.75, 0])]
-        for sensor in sensors:
-            if isinstance(sensor, StateSensor) and sensor.reference_entity is None:
-                sensor.reference_entity = self
-
-        # Add a sensors as children
-        children = children + sensors if children is not None else sensors
+        camera_name = None
+        if name is not None:
+            camera_name = f"{name}_camera"
+        camera = Camera(name=camera_name, width=64, height=40, position=[0, 0.75, 0])
+        children = children + camera if children is not None else camera
+        camera_sensors = [CameraSensor(camera)]
+        # for sensor in sensors:
+        #     if not isinstance(sensor, Sensor):
+        #         raise ValueError(f"{sensor} is not a Sensor")
+        #     if isinstance(sensor, StateSensor) and sensor.reference_entity is None:
+        #         sensor.reference_entity = self
 
         super().__init__(
             name=name,
@@ -98,15 +99,18 @@ class SimpleRlAgent(Capsule):
         if reward_target is not None:
             # Create a reward function if a target is provided
             rewards = RewardFunction(self, reward_target)
-        # Create our action space mapped to physics engine
-        actions = MappedDiscrete(
-            n=3,
-            physics=[Physics.ROTATION_Y, Physics.ROTATION_Y, Physics.POSITION_X],
-            amplitudes=[-90, 90, 2.0],
-        )
 
-        self.rl_component = RlComponent(actions=actions, sensors=sensors, rewards=rewards)
-        self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
+        # Create our action maps to physics engine effects
+        action_map = [
+            ActionMapping("move_relative_rotation", axis=[0, 1, 0], amplitude=-90),
+            ActionMapping("move_relative_rotation", axis=[0, 1, 0], amplitude=90),
+            ActionMapping("move_relative_position", axis=[1, 0, 0], amplitude=2.0),
+        ]
+        discrete_actions = DiscreteAction(n=3, action_map=action_map)
+
+        self.rl_component = RlComponent(
+            discrete_actions=discrete_actions, camera_sensors=camera_sensors, reward_functions=rewards
+        )
 
         # Add our physics component (by default the agent can only rotation along y axis)
         self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])

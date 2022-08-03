@@ -84,13 +84,13 @@ namespace SimEnv.GLTF {
         }
 
         public static async Task<GameObject> LoadFromBytesAsync(byte[] bytes, ImportSettings importSettings = null) {
-            GameObject gameObject = null;
+            GameObject root = null;
             ImportGLBAsync(bytes, importSettings, (result, clips) => {
-                gameObject = result;
+                root = result;
             });
-            while (gameObject == null)
+            while (root == null)
                 await Task.Yield();
-            return gameObject;
+            return root;
         }
 
         public static void LoadFromFileAsync(string filepath, ImportSettings importSettings, Action<GameObject, AnimationClip[]> onFinished, Action<float> onProgress = null) {
@@ -213,8 +213,7 @@ namespace SimEnv.GLTF {
             foreach (var item in bufferTask.result)
                 item.Dispose();
 
-            GameObject gameObject = nodeTask.result.GetRoot();
-            return gameObject;
+            return nodeTask.result.GetRoot();
         }
 
         static IEnumerator LoadAsync(string json, string filepath, byte[] bytefile, long binChunkStart, ImportSettings importSettings, Action<GameObject, AnimationClip[]> onFinished, Action<float> onProgress = null) {
@@ -252,10 +251,11 @@ namespace SimEnv.GLTF {
             while (!importTasks.All(x => x.IsCompleted)) yield return null;
 
             GameObject root = nodeTask.result.GetRoot();
+
             GLTFAnimation.ImportResult[] animationResult = gltfObject.animations.Import(accessorTask.result, nodeTask.result, importSettings);
             AnimationClip[] animations = new AnimationClip[0];
             if (animationResult != null) animations = animationResult.Select(x => x.clip).ToArray();
-            if (onFinished != null) onFinished(nodeTask.result.GetRoot(), animations);
+            if (onFinished != null) onFinished(root, animations);
 
             foreach (var item in bufferTask.result)
                 item.Dispose();

@@ -1,9 +1,5 @@
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Optional
-
-
-if TYPE_CHECKING:
-    from ..assets import Asset
+from typing import Any, Optional
 
 
 ALLOWED_REWARD_TYPES = ["dense", "sparse", "or", "and", "not", "see", "timeout"]
@@ -34,10 +30,16 @@ class RewardFunction:
             Whether the reward is terminal
         is_collectable: bool, optional (default=False)
             Whether the reward is collectable
+        trigger_once: bool, optional (default=False)
+            Whether the reward is triggered once
+        reward_function_a: RewardFunction, optional (default=None)
+            When doing combination of rewards (and, or), the first reward function
+        reward_function_b: RewardFunction, optional (default=None)
+            When doing combination of rewards (and, or), the second reward function
     """
 
-    entity_a: "Asset"
-    entity_b: "Asset"
+    entity_a: Any
+    entity_b: Any
     type: Optional[str] = None
     distance_metric: Optional[str] = None
     scalar: Optional[float] = 1.0
@@ -60,7 +62,7 @@ class RewardFunction:
                 f"Invalid distance metric: {self.distance_metric}. Must be one of: {ALLOWED_REWARD_DISTANCE_METRICS}"
             )
 
-    def _post_copy(self, agent: "Asset"):
+    def _post_copy(self, agent: Any):
         root = agent.tree_root
 
         new_instance = type(self)(

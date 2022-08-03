@@ -5,76 +5,46 @@ using System.Collections;
 using UnityEngine;
 using System.Linq;
 using System.Collections.Generic;
+using Newtonsoft.Json;
+using System.Reflection;
+using Newtonsoft.Json.Linq;
 
 namespace SimEnv {
     [CreateAssetMenu(menuName = "SimEnv/Client")]
     public class Client : Singleton<Client> {
-        public string host;
-        public int port;
-        public float physicsUpdateRate;
-        public int frameSkip;
+        public static string host;
+        public static int port;
 
-        TcpClient _client;
-        TcpClient client {
+        static TcpClient _client;
+        static TcpClient client {
             get {
                 _client ??= new TcpClient(host, port);
                 return _client;
             }
         }
 
-        Dictionary<string, ICommand> _commands;
-        Dictionary<string, ICommand> commands {
+        static Dictionary<string, ICommand> _commands;
+        static Dictionary<string, ICommand> commands {
             get {
                 _commands ??= new Dictionary<string, ICommand>();
                 return _commands;
             }
         }
 
-        Coroutine listenCoroutine;
+        static Coroutine listenCoroutine;
 
         /// <summary>
         /// Connect to server and begin listening for commands.
         /// </summary>
-        public void Initialize(string host = "localhost", int port = 55000, float physicsUpdateRate = 30,
-                                int frameSkip = 4) {
-
-            if (TryGetArg("port", out string portArg))
-                int.TryParse(portArg, out port);
-
-            if (TryGetArg("physics_update_rate", out string physicsUpdateRateArg))
-                float.TryParse(physicsUpdateRateArg, out physicsUpdateRate);
-
-            if (TryGetArg("frame_skip", out string frameSkipArg))
-                int.TryParse(frameSkipArg, out frameSkip);
-
-            this.host = host;
-            this.frameSkip = frameSkip;
-            this.physicsUpdateRate = physicsUpdateRate;
-            this.port = port;
-
+        public static void Initialize(string host = "localhost", int port = 55000) {
+            Client.host = host;
+            Client.port = port;
             LoadCommands();
             if (listenCoroutine == null)
                 listenCoroutine = ListenCoroutine().RunCoroutine();
         }
 
-        /// <summary>
-        /// Helper function for getting command line arguments.
-        /// </summary>
-        /// <param name="name"></param>
-        /// <returns></returns>
-        public static bool TryGetArg(string name, out string arg) {
-            arg = null;
-            var args = System.Environment.GetCommandLineArgs();
-            for (int i = 0; i < args.Length; i++) {
-                if (args[i] == name && args.Length > i + 1) {
-                    arg = args[i + 1];
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        private void LoadCommands() {
+        private static void LoadCommands() {
             AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
                 .Where(x => !x.IsInterface && !x.IsAbstract && x.GetInterfaces().Contains(typeof(ICommand)))
@@ -83,10 +53,12 @@ namespace SimEnv {
                     string type = command.GetType().Name;
                     if (!commands.ContainsKey(type))
                         commands.Add(type, command);
+                    else
+                        Debug.LogWarning("Found multiple commands of type " + type);
                 });
         }
 
-        private IEnumerator ListenCoroutine() {
+        private static IEnumerator ListenCoroutine() {
             int chunkSize = 1024;
             byte[] buffer = new byte[chunkSize];
             while (true) {
@@ -103,13 +75,8 @@ namespace SimEnv {
                         dataReceived += stream.Read(data, dataReceived, Math.Min(chunkSize, messageLength - dataReceived));
 
                     Debug.Assert(dataReceived == messageLength);
-                    string message = Encoding.ASCII.GetString(data, 0, messageLength);
-                    if (TryParseCommand(message, out ICommand command, out string error)) {
-                        command.Execute(response => WriteMessage(response));
-                    } else {
-                        Debug.LogWarning(error);
-                        WriteMessage(error);
-                    }
+                    string json = Encoding.ASCII.GetString(data, 0, messageLength);
+                    TryExecuteCommand(json);
                 }
                 yield return null;
             }
@@ -119,7 +86,7 @@ namespace SimEnv {
         /// Write a message back to the server.
         /// </summary>
         /// <param name="message"></param>
-        public void WriteMessage(string message) {
+        public static void WriteMessage(string message) {
             if (client == null) return;
             try {
                 NetworkStream stream = client.GetStream();
@@ -139,28 +106,47 @@ namespace SimEnv {
         /// <summary>
         /// Close the client.
         /// </summary>
-        public void Close() {
+        public static void Close() {
             if (client != null && client.Connected)
                 client.Close();
         }
 
-        private bool TryParseCommand(string json, out ICommand command, out string error) {
-            error = "";
-            command = null;
-            CommandWrapper commandWrapper = JsonUtility.FromJson<CommandWrapper>(json);
-            if (!commands.ContainsKey(commandWrapper.type)) {
-                error = "Unknown command: " + commandWrapper.type;
-                return false;
+        private static void TryExecuteCommand(string json) {
+            JObject jObject = JObject.Parse(json);
+            Dictionary<string, JToken> tokens = jObject.Properties()
+                .ToDictionary(x => x.Name, x => x.Value);
+            if (!tokens.TryGetValue("type", out JToken type)) {
+                string error = "Command doesn't contain type";
+                Debug.LogWarning(error);
+                WriteMessage(error);
+                return;
             }
-            command = commands[commandWrapper.type];
-            JsonUtility.FromJsonOverwrite(commandWrapper.contents, command);
-            return true;
-        }
+            Dictionary<string, object> kwargs = new Dictionary<string, object>();
+            foreach (string key in tokens.Keys) {
+                if (key == "type")
+                    continue;
+                object value = tokens[key].ToObject<object>();
+                kwargs.Add(key, value);
+            }
 
-        [Serializable]
-        private class CommandWrapper {
-            public string type;
-            public string contents;
+            // Try to find the command by name
+            if (!commands.TryGetValue(type.ToString(), out ICommand command)) {
+                string error = "Unknown command: " + type;
+                Debug.LogWarning(error);
+                WriteMessage(error);
+                return;
+            }
+
+            // Populate class with kwargs
+            JsonConvert.PopulateObject(JsonConvert.SerializeObject(kwargs), command);
+
+            // Try to execute the command
+            try {
+                command.Execute(kwargs, result => WriteMessage(result));
+            } catch (System.Exception e) {
+                Debug.LogWarning(e.ToString());
+                WriteMessage(e.ToString());
+            }
         }
     }
 }

@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using UnityEngine.Events;
 
 namespace SimEnv {
@@ -34,6 +35,6 @@ namespace SimEnv {
         /// <para>Don't forget to call the callback, i.e. <c>callback("ack");</c>.</para>
         /// </summary>
         /// <param name="callback">Required callback for the client to continue execution.</param>
-        void Execute(UnityAction<string> callback);
+        void Execute(Dictionary<string, object> kwargs, UnityAction<string> callback);
     }
 }

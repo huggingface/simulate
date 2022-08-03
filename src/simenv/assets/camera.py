@@ -76,9 +76,6 @@ class Camera(Asset):
         self.camera_type = camera_type
         if camera_type not in ALLOWED_CAMERA_TYPES:
             raise ValueError(f"Camera type {camera_type} is not allowed. Allowed types are: {ALLOWED_CAMERA_TYPES}")
-        if camera_type == "orthographic":
-            if any(n is None for n in (xmag, ymag, zfar, znear)):
-                raise ValueError("Orthographic camera needs to have xmag, ymag, zfar and znear defined.")
         if camera_type == "perspective":
             if any(n is None for n in (yfov, znear)):
                 raise ValueError("Perspective camera needs to have yfov and znear defined.")
