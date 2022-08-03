@@ -124,11 +124,7 @@ def generate_map(
         )
 
     # Get the dimensions of map - since if plotting a specific_map, we might have different ones
-    true_nb_samples = samples.shape[0]
-    width = samples.shape[1]
-    height = samples.shape[2]
-    tile_width = samples.shape[3]
-    tile_height = samples.shape[4]
+    true_nb_samples, width, height, tile_width, tile_height = samples.shape
 
     def build_single_map(sample):
         # We create the mesh centered in (0,0)

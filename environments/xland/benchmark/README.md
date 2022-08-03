@@ -1,21 +1,9 @@
 # Pregenerated maps
 
-The folder examples contains txt files with maps that can be built, in order to be used by the Wave Function Collapse to procedurally generate more maps.
+The folder examples contains some example maps that can be built, in order to be used by the Wave Function Collapse to procedurally generate more maps.
 
-So far, maps are saved as csv files, to improve readability by users.
+So far, maps are saved as npy files.
 
-Each tile is encoded by two numbers: 
+Each map is a 2D combination of tiles, and each tile is a height map of NxM dimensions. Therefore, the maps that are stored have dimensions of PxQxNxM, where P and Q are the width and height of the map respectively. 
 
-1. The first one corresponds to the height of the tile.
-
-2. The second one corresponds to the tile type (where ramps go from lower to higher level):
-
-    0: plain tile.
-
-    1: ramp from top to bottom.
-    
-    2: ramp from left to right.
-    
-    3: ramp from bottom to top.
-    
-    4: ramp from right to left.
+Example: a ramp can be expressed as a tile of the following format:`[[0, 0], [1, 1]]`. On the other hand, a plain tile of height 0 can be expressed as `[[0, 0], [0, 0]]`.
