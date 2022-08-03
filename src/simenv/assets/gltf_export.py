@@ -592,57 +592,57 @@ def get_gl_reward(reward) -> gl.HFRlAgentsReward:
     )
 
 
-def add_rl_component_to_model(
-    node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
-) -> int:
-    rl_component: "RlComponent" = node.rl_component
+# def add_rl_component_to_model(
+#     node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
+# ) -> int:
+#     rl_component: "RlComponent" = node.rl_component
 
-    actions = rl_component.actions
-    actions_type = actions.__class__.__name__
-    if actions_type not in ["Discrete", "Box", "MappedDiscrete", "MappedBox"]:
-        raise ValueError(f"Unsupported action space type: {actions_type}")
+#     actions = rl_component.actions
+#     actions_type = actions.__class__.__name__
+#     if actions_type not in ["Discrete", "Box", "MappedDiscrete", "MappedBox"]:
+#         raise ValueError(f"Unsupported action space type: {actions_type}")
 
-    gl_actions = gl.HFRlAgentsActions(
-        type=actions_type,
-        n=actions.n if "Discrete" in actions_type else None,
-        low=actions.low if "Box" in actions_type else None,
-        high=actions.high if "Box" in actions_type else None,
-        shape=actions.shape if "Box" in actions_type else None,
-        dtype=actions.dtype if "Box" in actions_type else None,
-    )
+#     gl_actions = gl.HFRlAgentsActions(
+#         type=actions_type,
+#         n=actions.n if "Discrete" in actions_type else None,
+#         low=actions.low if "Box" in actions_type else None,
+#         high=actions.high if "Box" in actions_type else None,
+#         shape=actions.shape if "Box" in actions_type else None,
+#         dtype=actions.dtype if "Box" in actions_type else None,
+#     )
 
-    if "Mapped" in actions_type:
-        gl_actions.physics = [phys.value for phys in actions.physics]
-        gl_actions.clip_high = actions.clip_high
-        gl_actions.clip_low = actions.clip_low
-        gl_actions.amplitudes = actions.amplitudes if actions_type == "MappedDiscrete" else None
-        gl_actions.scaling = actions.scaling if actions_type == "MappedBox" else None
-        gl_actions.offset = actions.offset if actions_type == "MappedBox" else None
+#     if "Mapped" in actions_type:
+#         gl_actions.physics = [phys.value for phys in actions.physics]
+#         gl_actions.clip_high = actions.clip_high
+#         gl_actions.clip_low = actions.clip_low
+#         gl_actions.amplitudes = actions.amplitudes if actions_type == "MappedDiscrete" else None
+#         gl_actions.scaling = actions.scaling if actions_type == "MappedBox" else None
+#         gl_actions.offset = actions.offset if actions_type == "MappedBox" else None
 
-    rewards: "List[RewardFunction]" = rl_component.rewards
-    gl_rewards = [get_gl_reward(reward) for reward in rewards]
+#     rewards: "List[RewardFunction]" = rl_component.reward_functions
+#     gl_rewards = [get_gl_reward(reward) for reward in rewards]
 
-    agent = gl.HFRlAgentsComponent(
-        actions=gl_actions,
-        sensor_nodes=[asset.name for asset in rl_component.sensors],
-        rewards=gl_rewards,
-    )
+#     agent = gl.HFRlAgentsComponent(
+#         actions=gl_actions,
+#         sensor_nodes=[asset.name for asset in rl_component.sensors],
+#         rewards=gl_rewards,
+#     )
 
-    # If we have already created exactly the same agent we avoid double storing
-    cached_id = is_data_cached(data=agent.to_json(), cache=cache)
-    if cached_id is not None:
-        return cached_id
+#     # If we have already created exactly the same agent we avoid double storing
+#     cached_id = is_data_cached(data=agent.to_json(), cache=cache)
+#     if cached_id is not None:
+#         return cached_id
 
-    # Add the new agent
-    if gltf_model.extensions.HF_rl_agents is None:
-        gltf_model.extensions.HF_rl_agents = gl.HFRlAgents(agents=[agent])
-    else:
-        gltf_model.extensions.HF_rl_agents.agents.append(agent)
-    agent_id = len(gltf_model.extensions.HF_rl_agents.agents) - 1
+#     # Add the new agent
+#     if gltf_model.extensions.HF_rl_agents is None:
+#         gltf_model.extensions.HF_rl_agents = gl.HFRlAgents(agents=[agent])
+#     else:
+#         gltf_model.extensions.HF_rl_agents.agents.append(agent)
+#     agent_id = len(gltf_model.extensions.HF_rl_agents.agents) - 1
 
-    cache_data(data=agent.to_json(), data_id=agent_id, cache=cache)
+#     cache_data(data=agent.to_json(), data_id=agent_id, cache=cache)
 
-    return agent_id
+#     return agent_id
 
 
 def add_node_to_scene(
@@ -705,12 +705,12 @@ def add_node_to_scene(
         )
 
     # Add RL component if node has one
-    if getattr(node, "rl_component", None) is not None:
-        agent_id = add_rl_component_to_model(
-            node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-        )
-        extensions.HF_rl_agents = gl.HFRlAgents(agent=agent_id)
-        extension_used.add("HF_rl_agents")
+    # if getattr(node, "rl_component", None) is not None:
+    #     agent_id = add_rl_component_to_model(
+    #         node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+    #     )
+    #     extensions.HF_rl_agents = gl.HFRlAgents(agent=agent_id)
+    #     extension_used.add("HF_rl_agents")
 
     # # Add Rigidbody if node has one
     # if getattr(node, "physics_component", None) is not None:

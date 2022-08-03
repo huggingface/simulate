@@ -14,11 +14,13 @@
 
 # Lint as: python3
 """ An RL component."""
+from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional, Union
 
-from ..assets.sensors import map_sensors_to_spaces
-from .actions import MappedBox, MappedDiscrete
-from .rewards import RewardFunction
+from ..assets.gltf_extension import GltfExtensionMixin
+from ..assets.sensors import CameraSensor, RaycastSensor, StateSensor, map_sensors_to_spaces
+from .actions import BoxAction, DiscreteAction
+from .reward_functions import RewardFunction
 
 
 if TYPE_CHECKING:
@@ -29,7 +31,8 @@ except ImportError:
     raise
 
 
-class RlComponent:
+@dataclass
+class RlComponent(GltfExtensionMixin, gltf_extension_name="HF_rl_agents"):
     """A reinforcement learning component to make an RL Agent from an Asset.
 
     Store:
@@ -38,38 +41,58 @@ class RlComponent:
     - rewards: reward functions
     """
 
-    def __init__(
-        self,
-        actions: Union[MappedBox, MappedDiscrete] = None,
-        sensors: Optional[Union["Sensor", List["Sensor"]]] = None,
-        rewards: Optional[Union[RewardFunction, List[RewardFunction]]] = None,
-    ):
-        # Action space mapped to physics engine variables
-        self.actions = actions
+    box_actions: Optional[List[BoxAction]] = None
+    discrete_actions: Optional[List[DiscreteAction]] = None
+    camera_sensors: Optional[List[CameraSensor]] = None
+    state_sensors: Optional[List[StateSensor]] = None
+    raycast_sensors: Optional[List[RaycastSensor]] = None
+    reward_functions: Optional[List[RewardFunction]] = None
 
-        # Observation devices as Assets
-        if sensors is None:
-            sensors = []
-        elif not isinstance(sensors, (list, tuple)):
-            sensors = [sensors]
-        self.sensors = sensors
+    def __post_init__(self):
+        if self.box_actions is not None and not isinstance(self.box_actions, list):
+            self.box_actions = [self.box_actions]
+        if self.discrete_actions is not None and not isinstance(self.discrete_actions, list):
+            self.discrete_actions = [self.discrete_actions]
+        if self.camera_sensors is not None and not isinstance(self.camera_sensors, list):
+            self.camera_sensors = [self.camera_sensors]
+        if self.state_sensors is not None and not isinstance(self.state_sensors, list):
+            self.state_sensors = [self.state_sensors]
+        if self.raycast_sensors is not None and not isinstance(self.raycast_sensors, list):
+            self.raycast_sensors = [self.raycast_sensors]
+        if self.reward_functions is not None and not isinstance(self.reward_functions, list):
+            self.reward_functions = [self.reward_functions]
+
+        # if not isinstance(self.sensors, (list, tuple)):
+        #     self.sensors = [self.sensors]
+        # # Action space mapped to physics engine variables
+        # self.actions = actions
+
+        # # Observation devices as Assets
+        # if sensors is None:
+        #     sensors = []
+        # elif not isinstance(sensors, (list, tuple)):
+        #     sensors = [sensors]
+        # self.sensors = sensors
         # TODO: to be compatable with StableBaselines3, a list of observations spaces should be a spaces.Tuple
         # or spaces.Dict observation space. This requires a refactor that will be in its own PR.
-        self.observation_space = spaces.Dict({sensor.sensor_name: map_sensors_to_spaces(sensor) for sensor in sensors})
 
-        # Reward functions
-        if rewards is None:
-            rewards = []
-        elif not isinstance(rewards, (list, tuple)):
-            rewards = [rewards]
-        self.rewards = rewards
+        # self.observation_space = spaces.Dict(
+        #     {type(sensor).__name__: map_sensors_to_spaces(sensor) for sensor in self.camera_sensors}  # FIXME
+        # )
 
-    @property
-    def action_space(self):
-        return self.actions
+        # # Reward functions
+        # if rewards is None:
+        #     rewards = []
+        # elif not isinstance(rewards, (list, tuple)):
+        #     rewards = [rewards]
+        # self.rewards = rewards
+
+    # @property
+    # def action_space(self):
+    #     return self.actions
 
     def _post_copy(self, agent: "Asset"):
-        self.rewards = [rf._post_copy(agent) for rf in self.rewards]
+        self.reward_functions = [rf._post_copy(agent) for rf in self.reward_functions]
 
         root = agent.tree_root
         updated_sensors = []
@@ -78,6 +101,3 @@ class RlComponent:
             updated_sensors.append(updated_obs)
 
         self.sensors = updated_sensors
-
-    def __repr__(self):
-        return f"RlComponent(actions={self.actions}, observations={self.sensors}, rewards={self.rewards})"

@@ -15,10 +15,21 @@
 # Lint as: python3
 """ Store a python dataclass as a glTF extension."""
 import copy
-from dataclasses import field, fields, make_dataclass
+from dataclasses import field, fields, is_dataclass, make_dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from dataclasses_json import DataClassJsonMixin, dataclass_json
+from dataclasses_json.utils import (
+    _get_type_cons,
+    _get_type_origin,
+    _handle_undefined_parameters_safe,
+    _is_collection,
+    _is_mapping,
+    _is_new_type,
+    _is_optional,
+    _isinstance_safe,
+    _issubclass_safe,
+)
 
 
 if TYPE_CHECKING:
@@ -110,25 +121,74 @@ class GltfExtensionMixin(DataClassJsonMixin):
         return self._gltf_extension_name
 
 
+def _process_dataclass_after(obj_dataclass, node):
+    for f in fields(obj_dataclass):
+        value = getattr(obj_dataclass, f.name)
+        type_ = f.type
+        # If the attribute of the component has the right type ("Union[str, Asset]")
+        if type_ == Any:
+            if isinstance(value, str):
+                node_pointer = node.get_node(value)
+                setattr(obj_dataclass, f.name, node_pointer)  # We convert it in the node pointer
+        # Recursively explore child and nested dataclasses
+        elif is_dataclass(value):
+            _process_dataclass_after(value, node)
+        elif isinstance(value, (list, tuple)) and len(value) and is_dataclass(value[0]):
+            for obj in value:
+                _process_dataclass_after(obj, node)
+        elif isinstance(value, dict):
+            for key, val in value.items():
+                if is_dataclass(val):
+                    _process_dataclass_after(val, node)
+                elif isinstance(val, (list, tuple)) and len(val) and is_dataclass(val[0]):
+                    for obj in val:
+                        _process_dataclass_after(obj, node)
+
+
 def process_components_after_gltf(node: "Asset"):
     """Setup the attributes of each components of the asset which refere to assets.
     Sometime components refered to assets by names (when loading from a glTF file)
     We convert them to references to the asset
     """
     for component in node.components:
-        for f in fields(component):
-            # If the attribute of the component has the type Any
-            if f.type == Any:
-                value = getattr(component, f.name)
-                # And is the value of the attribute is currently a string
-                if isinstance(value, str):
-                    node_pointer = node.get_node(value)
-                    if node_pointer is not None:
-                        setattr(component, f.name, node_pointer)  # We convert it in the node pointer
+        _process_dataclass_after(component, node)
 
     # Recursively through the tree
     for child in node.tree_children:
         process_components_after_gltf(child)
+
+
+def _process_dataclass_before(obj_dataclass, node, component_name):
+    for f in fields(obj_dataclass):
+        value = getattr(obj_dataclass, f.name)
+        type_ = f.type
+        # If the attribute of the component has the right type ("Union[str, Asset]")
+        if type_ == Any:
+            if isinstance(value, str):
+                node_pointer = node.get_node(value)
+                if node_pointer is None:
+                    raise ValueError(
+                        f"The field {f.name} of component '{component_name}' of node '{node.name}' has type 'Any' "
+                        f"point to a second asset called '{value}' but this second asset cannot be found "
+                        f"in the asset tree. Please check the name of the second asset is correct "
+                        "and the second asset is present in the scene or change the type of the component to be a string."
+                    )
+            # And is the value of the attribute is currently a node
+            if not isinstance(value, str) and hasattr(value, "name"):
+                setattr(obj_dataclass, f.name, value.name)  # We convert it in the node name
+        # Recursively explore child and nested dataclasses
+        elif is_dataclass(value):
+            _process_dataclass_before(value, node, component_name)
+        elif isinstance(value, (list, tuple)) and len(value) and is_dataclass(value[0]):
+            for obj in value:
+                _process_dataclass_before(obj, node, component_name)
+        elif isinstance(value, dict):
+            for key, val in value.items():
+                if is_dataclass(val):
+                    _process_dataclass_before(val, node, component_name)
+                elif isinstance(val, (list, tuple)) and len(val) and is_dataclass(val[0]):
+                    for obj in val:
+                        _process_dataclass_before(obj, node, component_name)
 
 
 def process_components_before_gltf(node: "Asset"):
@@ -136,23 +196,9 @@ def process_components_before_gltf(node: "Asset"):
     Sometime components refered to assets by names (when loading from a glTF file)
     We convert them to string of the names of the assets (which are unique)
     """
+
     for component_name, component in node.named_components:
-        for f in fields(component):
-            # If the attribute of the component has the right type ("Union[str, Asset]")
-            if f.type == Any:
-                value = getattr(component, f.name)
-                if isinstance(value, str):
-                    node_pointer = node.get_node(value)
-                    if node_pointer is None:
-                        raise ValueError(
-                            f"The component '{component_name}' of node '{node.name}' "
-                            f"point to a second asset called '{value}' but this second asset cannot be found "
-                            f"in the asset tree. Please check the name of the second asset is correct "
-                            "and the second asset is present in the scene."
-                        )
-                # And is the value of the attribute is currently a node
-                if not isinstance(value, str) and hasattr(value, "name"):
-                    setattr(component, f.name, value.name)  # We convert it in the node name
+        _process_dataclass_before(component, node, component_name)
 
     # Recursively through the tree
     for child in node.tree_children:

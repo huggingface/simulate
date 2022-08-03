@@ -79,7 +79,7 @@ class Asset(NodeMixin, object):
         self.name = name
 
         self.tree_parent = parent
-        if children:
+        if children is not None:
             self.tree_children = children
 
         self._position = None

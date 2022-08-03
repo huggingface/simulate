@@ -16,24 +16,29 @@
 import unittest
 
 import simenv as sm
+from simenv.rl.actions import ActionMapping
 
 
 # TODO add more tests on saving/exporting/loading in gltf files
 class ActionTest(unittest.TestCase):
     def test_create_mappedbox(self):
-        action = sm.MappedBox(low=-1.0, high=2.0, physics=sm.Physics.POSITION_X)
-        self.assertIsInstance(action, sm.MappedBox)
-        self.assertIsInstance(action, sm.MappedActions)
+        action_map = sm.ActionMapping("move_position", axis=[1, 0, 0])
+        action = sm.BoxAction(low=-1.0, high=2.0, action_map=action_map)
+        self.assertIsInstance(action, sm.BoxAction)
+        self.assertIsInstance(action.action_map, sm.ActionMapping)
 
         with self.assertRaises(ValueError):
-            sm.MappedBox(low=1.0, high=2.0, physics=[sm.Physics.POSITION_X, sm.Physics.POSITION_X])
+            sm.BoxAction(low=1.0, high=2.0, action_map=[action_map, action_map])
 
     def test_create_mappeddiscrete(self):
-        action = sm.MappedDiscrete(
-            n=3, physics=[sm.Physics.POSITION_X, sm.Physics.ROTATION_Y, sm.Physics.ROTATION_Y], amplitudes=[1, 10, -10]
-        )
-        self.assertIsInstance(action, sm.MappedDiscrete)
-        self.assertIsInstance(action, sm.MappedActions)
+        action_map = [
+            sm.ActionMapping("move_position", axis=[1, 0, 0], amplitude=1),
+            sm.ActionMapping("move_rotation", axis=[0, 1, 0], amplitude=10),
+        ]
+        action = sm.DiscreteAction(n=2, action_map=action_map)
+        self.assertIsInstance(action, sm.DiscreteAction)
+        self.assertIsInstance(action.action_map, list)
+        self.assertIsInstance(action.action_map[0], ActionMapping)
 
         with self.assertRaises(ValueError):
-            action = sm.MappedDiscrete(n=3, physics=sm.Physics.POSITION_X)
+            action = sm.DiscreteAction(n=3, action_map=action_map)
