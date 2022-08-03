@@ -14,9 +14,6 @@ from xland import create_scene
 from xland.utils import generate_tiles
 
 
-ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
-
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
 
@@ -33,6 +30,7 @@ if __name__ == "__main__":
     parser.add_argument("--sample_from", type=str, default=None, help="Map to sample from")
     parser.add_argument("--map", type=str, default=None, help="Specific map to be used")
     parser.add_argument("--engine", type=str, default=None, help="Engine to be used")
+    parser.add_argument("--build_exe", type=str, default=None, help="Engine application, e.g. for Unity")
 
     # Optional arguments which are related to WFC
     parser.add_argument("--periodic_output", type=bool, default=True)
@@ -63,7 +61,7 @@ if __name__ == "__main__":
             extra_args["sample_map"] = m
 
     t = time.time()
-    success, scene = create_scene(executable=None, **vars(args), **extra_args, root=-1, nb_attempts=100)
+    success, scene = create_scene(executable=args.build_exe, **vars(args), **extra_args, root=-1, nb_attempts=100)
     print("Time in seconds to generate map: {}".format(time.time() - t))
 
     # If we want to show the map and we were successful
