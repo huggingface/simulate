@@ -30,6 +30,8 @@ ALLOWED_CONSTRAINTS = [
     "freeze_rotation_z",
 ]
 
+ALLOWED_COLLISION_DETECTION = ["discrete", "continuous"]
+
 
 @dataclass()
 class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodies"):
@@ -82,9 +84,20 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
         if self.mass is None:
             self.mass = 1.0
         self.mass = float(self.mass)
+
+        if self.center_of_mass is None:
+            self.center_of_mass = [0.0, 0.0, 0.0]
+        if len(self.center_of_mass) != 3:
+            raise ValueError("center_of_mass must be a list of 3 floats")
+
+        if self.inertia_tensor is not None:
+            if len(self.inertia_tensor) != 3:
+                raise ValueError("inertia_tensor must be a list of 3 floats")
+
         if self.linear_drag is None:
             self.linear_drag = 0.0
         self.linear_drag = float(self.linear_drag)
+
         if self.angular_drag is None:
             self.angular_drag = 0.0
         self.angular_drag = float(self.angular_drag)
@@ -97,8 +110,14 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
 
         if self.use_gravity is None:
             self.use_gravity = True
+
         if self.collision_detection is None:
             self.collision_detection = "discrete"
+        if self.collision_detection not in ALLOWED_COLLISION_DETECTION:
+            raise ValueError(
+                f"Collision detection {self.collision_detection} not in allowed list: {ALLOWED_COLLISION_DETECTION}"
+            )
+
         if self.kinematic is None:
             self.kinematic = False
 

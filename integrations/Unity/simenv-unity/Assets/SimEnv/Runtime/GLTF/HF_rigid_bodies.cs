@@ -15,7 +15,7 @@ namespace SimEnv.GLTF {
         public class GLTFRigidBody {
             [JsonProperty(Required = Required.Always)] public float mass;
             [JsonConverter(typeof(TranslationConverter))] public Vector3 center_of_mass = Vector3.zero;
-            [JsonConverter(typeof(Vector3Converter))] public Vector3 inertia_tensor = Vector3.zero;
+            [JsonConverter(typeof(Vector3Converter))] public Vector3? inertia_tensor;
             public float linear_drag = 0f;
             public float angular_drag = 0f;
             [JsonProperty(Required = Required.Always)] public List<string> constraints = new List<string>();

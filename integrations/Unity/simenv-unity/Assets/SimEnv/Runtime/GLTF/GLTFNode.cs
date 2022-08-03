@@ -324,7 +324,9 @@ namespace SimEnv.GLTF {
                                 articulation.jointFriction = ab.joint_friction;
                                 articulation.mass = ab.mass;
                                 articulation.centerOfMass = ab.center_of_mass;
-                                articulation.inertiaTensor = ab.inertia_tensor;
+                                if (ab.inertia_tensor != null) {
+                                    articulation.inertiaTensor = ab.inertia_tensor.Value;
+                                }
 
                                 ArticulationDrive xDrive = new ArticulationDrive()
                                 {
@@ -348,7 +350,9 @@ namespace SimEnv.GLTF {
                                 Rigidbody rb = result[i].transform.gameObject.AddComponent<Rigidbody>();
                                 rb.mass = rigidbody.mass;
                                 rb.centerOfMass = rigidbody.center_of_mass;
-                                rb.inertiaTensor = rigidbody.inertia_tensor;
+                                if (rigidbody.inertia_tensor != null) {
+                                    rb.inertiaTensor = rigidbody.inertia_tensor.Value;
+                                }
                                 rb.drag = rigidbody.linear_drag;
                                 rb.angularDrag = rigidbody.angular_drag;
                                 rb.useGravity = rigidbody.use_gravity;

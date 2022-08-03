@@ -72,7 +72,8 @@ class GltfTest(unittest.TestCase):
         scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material.BLUE)
         box1 = sm.Box(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.RED)
         box2 = sm.Box(name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.RED)
-        box1.physics_component = sm.ArticulatedBodyComponent("revolute", [0, 1, 0])
+        box1.physics_component = sm.ArticulatedBodyComponent("fixed")
+        box2.physics_component = sm.ArticulatedBodyComponent("revolute")
         box1 += box2
         scene += box1
         scene += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.RED)

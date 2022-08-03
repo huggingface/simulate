@@ -16,7 +16,7 @@
 """ A simenv JointComponent."""
 import itertools
 from dataclasses import dataclass
-from typing import Any, ClassVar, List, Optional
+from typing import ClassVar, List, Optional
 
 from .gltf_extension import GltfExtensionMixin
 
@@ -76,3 +76,34 @@ class ArticulatedBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_artic
         self.joint_type = self.joint_type.lower()
         if self.joint_type not in ALLOWED_JOINT_TYPES:
             raise ValueError(f"Joint type {self.joint_type} is not allowed. Allowed types are: {ALLOWED_JOINT_TYPES}")
+
+        if self.anchor_rotation is None:
+            self.anchor_rotation = [0.0, 0.0, 0.0, 1.0]
+        if len(self.anchor_rotation) != 4:
+            raise ValueError("anchor_rotation must be a list of 4 floats (Quaternion)")
+
+        if self.anchor_position is None:
+            self.anchor_position = [0.0, 0.0, 0.0]
+        if len(self.anchor_position) != 3:
+            raise ValueError("anchor_position must be a list of 3 floats")
+
+        if self.linear_damping is None:
+            self.linear_damping = 0.0
+        self.linear_damping = float(self.linear_damping)
+
+        if self.angular_damping is None:
+            self.angular_damping = 0.0
+        self.angular_damping = float(self.angular_damping)
+
+        if self.mass is None:
+            self.mass = 1.0
+        self.mass = float(self.mass)
+
+        if self.center_of_mass is None:
+            self.center_of_mass = [0.0, 0.0, 0.0]
+        if len(self.center_of_mass) != 3:
+            raise ValueError("center_of_mass must be a list of 3 floats")
+
+        if self.inertia_tensor is not None:
+            if len(self.inertia_tensor) != 3:
+                raise ValueError("inertia_tensor must be a list of 3 floats")
