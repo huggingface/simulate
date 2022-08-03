@@ -17,7 +17,7 @@
 import numpy as np
 import pyvista as pv
 
-from .colors import CMAP_ONLY_COLORS
+from .colors import CMAP_ONLY_COLORS, CMAP_ONLY_GRAYSCALE
 
 
 # class Texture(pv.Texture):
@@ -29,6 +29,7 @@ from .colors import CMAP_ONLY_COLORS
 #         return cls.from_pyvista(pv.numpy_to_texture(CMAP_ONLY_COLORS[:, np.newaxis, :]))
 
 TEXTURE_1D_CMAP = pv.numpy_to_texture(CMAP_ONLY_COLORS[:, np.newaxis, :])
+TEXTURE_1D_CMAP_GRAY = pv.numpy_to_texture(CMAP_ONLY_GRAYSCALE[:, np.newaxis, :])
 
 
 def texture_from_1d_cmap(np_array: np.array) -> pv.Texture:
