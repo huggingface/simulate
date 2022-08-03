@@ -5,16 +5,18 @@ using System.Linq;
 
 
 namespace SimEnv.GLTF {
-    public class HFRigidbodies {
-        public List<GLTFRigidbody> rigidbodies;
+    public class HFRigidBodies {
+        public List<GLTFRigidBody> components;
 
-        public HFRigidbodies() {
-            rigidbodies = new List<GLTFRigidbody>();
+        public HFRigidBodies() {
+            components = new List<GLTFRigidBody>();
         }
 
-        public class GLTFRigidbody {
+        public class GLTFRigidBody {
             [JsonProperty(Required = Required.Always)] public float mass;
-            public float drag = 0f;
+            [JsonConverter(typeof(TranslationConverter))] public Vector3 center_of_mass = Vector3.zero;
+            [JsonConverter(typeof(Vector3Converter))] public Vector3? inertia_tensor;
+            public float linear_drag = 0f;
             public float angular_drag = 0f;
             [JsonProperty(Required = Required.Always)] public List<string> constraints = new List<string>();
             public string name = "";
@@ -22,7 +24,7 @@ namespace SimEnv.GLTF {
             public bool continuous = false;
             public bool kinematic = false;
 
-            public bool ShouldSerializedrag() => drag != 0f;
+            public bool ShouldSerializedrag() => linear_drag != 0f;
             public bool ShouldSerializeangular_drag() => angular_drag != 0f;
             public bool ShouldSerializeuse_gravity() => !use_gravity;
             public bool ShouldSerializecontinuous() => continuous;
@@ -30,32 +32,32 @@ namespace SimEnv.GLTF {
         }
 
         public static void Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {
-            List<GLTFRigidbody> rigidbodies = new List<GLTFRigidbody>();
+            List<GLTFRigidBody> rigidbodies = new List<GLTFRigidBody>();
             foreach (GLTFNode.ExportResult node in nodes) {
-                GLTFRigidbody rigidbody = Export(node);
+                GLTFRigidBody rigidbody = Export(node);
                 if (rigidbody == null) continue;
                 if (!rigidbodies.Contains(rigidbody))
                     rigidbodies.Add(rigidbody);
                 node.extensions ??= new GLTFNode.Extensions();
-                node.extensions.HF_rigidbodies = new GLTFNode.HFRigidbody() { rigidbody = rigidbodies.IndexOf(rigidbody) };
+                node.extensions.HF_rigid_bodies = new GLTFNode.HFRigidbody() { component_id = rigidbodies.IndexOf(rigidbody) };
             }
             if (rigidbodies.Count == 0) return;
             gltfObject.extensions ??= new GLTFExtensions();
-            gltfObject.extensions.HF_rigidbodies ??= new HFRigidbodies();
-            gltfObject.extensions.HF_rigidbodies.rigidbodies.AddRange(rigidbodies);
+            gltfObject.extensions.HF_rigid_bodies ??= new HFRigidBodies();
+            gltfObject.extensions.HF_rigid_bodies.components.AddRange(rigidbodies);
             gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
         }
 
-        static GLTFRigidbody Export(GLTFNode.ExportResult node) {
+        static GLTFRigidBody Export(GLTFNode.ExportResult node) {
             Rigidbody[] rigidbodies = node.transform.GetComponents<Rigidbody>();
             if (rigidbodies.Length == 0)
                 return null;
             else if (rigidbodies.Length > 1)
                 Debug.LogWarning($"Node {node.name} has multiple rigidbodies. Ignoring extras.");
             Rigidbody rigidbody = rigidbodies[0];
-            GLTFRigidbody gltfRigidbody = new GLTFRigidbody();
+            GLTFRigidBody gltfRigidbody = new GLTFRigidBody();
             gltfRigidbody.mass = rigidbody.mass;
-            gltfRigidbody.drag = rigidbody.drag;
+            gltfRigidbody.linear_drag = rigidbody.drag;
             gltfRigidbody.angular_drag = rigidbody.angularDrag;
             gltfRigidbody.constraints = new List<string>();
             if ((rigidbody.constraints & RigidbodyConstraints.FreezePositionX) == RigidbodyConstraints.FreezePositionX)

@@ -81,7 +81,7 @@ class HFRlAgentsComponent:
     """
 
     actions: Optional[HFRlAgentsActions] = None
-    sensorNames: Optional[List[str]] = None
+    sensor_nodes: Optional[List[str]] = None
     rewards: Optional[List[HFRlAgentsReward]] = None
 
 

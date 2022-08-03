@@ -9,7 +9,7 @@ namespace SimEnv.RlAgents {
         public Node node;
         public Rigidbody body;
         public RlAction actions;
-        private List<string> sensorNames = new List<string>();
+        private List<string> sensor_nodes = new List<string>();
         private List<ISensor> sensors = new List<ISensor>();
         private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
 
@@ -36,7 +36,7 @@ namespace SimEnv.RlAgents {
             body = node.gameObject.GetComponent<Rigidbody>();
 
             // We connect the observation devices to the agent now that the whole scene is imported
-            foreach (string sensorName in sensorNames) {
+            foreach (string sensorName in sensor_nodes) {
                 Debug.Log("Finding sensor" + sensorName);
                 Node sensorNode = GameObject.Find(sensorName).GetComponent<Node>();
 
@@ -132,7 +132,7 @@ namespace SimEnv.RlAgents {
         public void SetProperties(HFRlAgents.HFRlAgentsComponent agentData) {
 
             // Store pointers to all our observation devices
-            sensorNames = agentData.sensorNames;
+            sensor_nodes = agentData.sensor_nodes;
 
             // Create our agent actions
             HFRlAgents.HFRlAgentsActions gl_act = agentData.actions;

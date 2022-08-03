@@ -4,7 +4,7 @@ from typing import List, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
-from ..utils import del_none
+from ..utils import replace_unique_id_and_remove_none
 from .accessor import Accessor
 from .animation import Animation
 from .asset import Asset
@@ -43,5 +43,5 @@ class GLTFModel(DataClassJsonMixin, BaseModel):
     extensionsUsed: Optional[List[str]] = None
 
     def to_json(self, **kwargs):
-        data = del_none(asdict(self))
+        data = replace_unique_id_and_remove_none(asdict(self))
         return json.dumps(data, **kwargs)

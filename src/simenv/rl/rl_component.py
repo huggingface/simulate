@@ -74,7 +74,7 @@ class RlComponent:
         root = agent.tree_root
         updated_sensors = []
         for obs in self.sensors:
-            updated_obs = root.get(obs._get_last_copy_name())
+            updated_obs = root.get_node(obs._get_last_copy_name())
             updated_sensors.append(updated_obs)
 
         self.sensors = updated_sensors

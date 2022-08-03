@@ -19,9 +19,7 @@ from typing import Any, Optional
 import numpy as np
 import pyvista
 
-from simenv.assets.material import Material
-
-from ..assets import Asset, Camera, Light, Object3D
+from ..assets import Asset, Camera, Light, Material, Object3D
 from .engine import Engine
 
 

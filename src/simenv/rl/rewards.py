@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from ..assets import Asset
 
 
-ALLOWED_REWARD_TYPES = ["dense", "sparse"]
+ALLOWED_REWARD_TYPES = ["dense", "sparse", "or", "and"]
 ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO(Ed) other metrics?
 
 
@@ -51,16 +51,22 @@ class RewardFunction:
     def __post_init__(self):
         if self.type is None:
             self.type = "dense"
+        if self.type not in ALLOWED_REWARD_TYPES:
+            raise ValueError(f"Invalid reward type: {self.type}. Must be one of: {ALLOWED_REWARD_TYPES}")
         if self.distance_metric is None:
             self.distance_metric = "euclidean"
+        if self.distance_metric not in ALLOWED_REWARD_DISTANCE_METRICS:
+            raise ValueError(
+                f"Invalid distance metric: {self.distance_metric}. Must be one of: {ALLOWED_REWARD_DISTANCE_METRICS}"
+            )
 
     def _post_copy(self, agent: "Asset"):
         root = agent.tree_root
 
         new_instance = type(self)(
             type=self.type,
-            entity_a=root.get(self.entity_a._get_last_copy_name()),
-            entity_b=root.get(self.entity_b._get_last_copy_name()),
+            entity_a=root.get_node(self.entity_a._get_last_copy_name()),
+            entity_b=root.get_node(self.entity_b._get_last_copy_name()),
             distance_metric=self.distance_metric,
             scalar=self.scalar,
             threshold=self.threshold,

@@ -18,7 +18,7 @@ namespace SimEnv.RlAgents {
 
         List<SensorBuffer> agentSensorBuffer = new List<SensorBuffer>();
         List<int> obsSizes = new List<int>();
-        List<string> sensorNames = new List<string>();
+        List<string> sensor_nodes = new List<string>();
         List<string> sensortypes = new List<string>();
 
         public void Initialize() {
@@ -50,7 +50,7 @@ namespace SimEnv.RlAgents {
             }
 
             obsSizes = activeEnvironments[0].GetObservationSizes();
-            sensorNames = activeEnvironments[0].GetSensorNames();
+            sensor_nodes = activeEnvironments[0].GetSensorNames();
             sensortypes = activeEnvironments[0].GetSensorTypes();
 
             for (int i = 0; i < obsSizes.Count; i++) {
@@ -170,7 +170,7 @@ namespace SimEnv.RlAgents {
             List<string> strings = new List<string>();
             for (int j = 0; j < obsShapes.Count; j++) {
 
-                string string_array = agentSensorBuffer[j].ToJson(shapesWithAgents[j], sensorNames[j]);
+                string string_array = agentSensorBuffer[j].ToJson(shapesWithAgents[j], sensor_nodes[j]);
                 strings.Add(string_array);
 
             }

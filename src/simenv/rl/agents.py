@@ -17,11 +17,8 @@
 import itertools
 from typing import List, Optional, Union
 
-from simenv.assets.sensors import StateSensor
-from simenv.rl.actions import MappedDiscrete
-
-from ..assets import Asset, CameraSensor, Capsule, Collider, RigidBodyComponent, Sensor
-from .actions import Physics
+from ..assets import Asset, CameraSensor, Capsule, Collider, RigidBodyComponent, Sensor, StateSensor
+from .actions import MappedDiscrete, Physics
 from .rewards import RewardFunction
 from .rl_component import RlComponent
 

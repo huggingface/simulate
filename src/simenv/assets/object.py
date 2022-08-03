@@ -22,7 +22,6 @@ import pyvista as pv
 
 from .asset import Asset
 from .collider import Collider
-from .gltflib.enums.collider_type import ColliderType
 from .material import Material
 from .procgen.prims import generate_prims_maze
 from .procgen.wfc import generate_2d_map, generate_map
@@ -268,7 +267,7 @@ class Sphere(Object3D):
 
         if collider is None:
             collider = Collider(
-                type=ColliderType.SPHERE,
+                type="sphere",
                 bounding_box=(radius, radius, radius),
             )
 
@@ -352,7 +351,7 @@ class Capsule(Object3D):
 
         if collider is None:
             collider = Collider(
-                type=ColliderType.CAPSULE,
+                type="capsule",
                 bounding_box=(radius, height, radius),
             )
 
@@ -493,7 +492,7 @@ class Box(Object3D):
                 (bounds[2] + bounds[3]) / 2.0,
                 (bounds[4] + bounds[5]) / 2.0,
             )
-            collider = Collider(type=ColliderType.BOX, bounding_box=bounding_box, offset=offset)
+            collider = Collider(type="box", bounding_box=bounding_box, offset=offset)
 
         super().__init__(
             mesh=mesh, name=name, position=position, parent=parent, children=children, collider=collider, **kwargs

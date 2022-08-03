@@ -4,6 +4,10 @@ using Newtonsoft.Json;
 using System;
 
 public class TranslationConverter : JsonConverter {
+	/// <summary>
+	/// Converts from float array to Vector3 during deserialization, and back.
+	/// Compensates for differing coordinate systems as well.
+	/// </summary>
     public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
         Vector3 pos = (Vector3)value;
         writer.WriteStartArray();
