@@ -1,3 +1,5 @@
+import pdb
+
 import numpy as np
 
 import simenv as sm
@@ -11,9 +13,10 @@ SIDE_ENGINE_POWER = 0.6
 
 INITIAL_RANDOM = 1000.0  # Set 1500 to make game harder
 
-LANDER_POLY = [(-14, +17), (-17, 0), (-17, -10), (+17, -10), (+17, 0), (+14, +17)]
+LANDER_POLY = np.array([(-14, 0, +17), (-17, 0, 0), (-17,0, -10), (+17,0,-10), (+17,0, 0), (+14,0, +17)])/SCALE
 LEG_AWAY = 20
-LEG_DOWN = 18
+LEG_DOWN = -7
+LEG_ANGLE = 0.25 # radions
 LEG_W, LEG_H = 2, 8
 LEG_SPRING_TORQUE = 40
 
@@ -28,7 +31,7 @@ H = VIEWPORT_H / SCALE
 
 # terrain
 CHUNKS = 11
-height = np.random.Generator.uniform(0, H / 2, size=(CHUNKS + 1,))
+height = np.random.uniform(0, H / 2, size=(CHUNKS + 1,))
 chunk_x = [W / (CHUNKS - 1) * i for i in range(CHUNKS)]
 helipad_x1 = chunk_x[CHUNKS // 2 - 1]
 helipad_x2 = chunk_x[CHUNKS // 2 + 1]
@@ -40,6 +43,46 @@ height[CHUNKS // 2 + 1] = helipad_y
 height[CHUNKS // 2 + 2] = helipad_y
 smooth_y = [0.33 * (height[i - 1] + height[i + 0] + height[i + 1]) for i in range(CHUNKS)]
 
+# Add sm scene
+sc = sm.Scene()
+
+LEG_RIGHT_POLY =  np.array([(LEG_AWAY, 0,  LEG_DOWN),
+                  (LEG_AWAY + LEG_H*np.sin(LEG_ANGLE),      0, LEG_DOWN - LEG_H * np.cos(LEG_ANGLE)),
+                  (LEG_AWAY + LEG_H*np.sin(LEG_ANGLE) + LEG_W* np.sin(np.pi/2 - LEG_ANGLE), 0, LEG_DOWN - LEG_H * np.cos(LEG_ANGLE) + LEG_W*np.cos(np.pi/2 - LEG_ANGLE) ),
+                  (LEG_AWAY +LEG_W* np.sin(np.pi/2 - LEG_ANGLE), 0, LEG_DOWN + LEG_W * np.cos(np.pi/2 - LEG_ANGLE))]) / SCALE
+
+LEG_LEFT_POLY = [(-x, y,z) for x,y,z in LEG_RIGHT_POLY]
+
+def shift_polygon(polygon, shift):
+    shifted_poly = [(x+shift[0], y+shift[1], z+shift[2]) for x,y,z in polygon]
+    return shifted_poly
+
+lander_init_pos = (10, 0, 10) + np.random.uniform(0,5,3)
+lander_init_pos[1] = 0
+
+lander = sm.Polygon(points=shift_polygon(LANDER_POLY, lander_init_pos))
+lander.mesh.extrude((0,1,0), capping=True, inplace=True)
+
+
+r_leg = sm.Polygon(points=shift_polygon(LEG_RIGHT_POLY, lander_init_pos))
+r_leg.mesh.extrude((0,1,0), capping=True, inplace=True)
+
+l_leg = sm.Polygon(points=shift_polygon(LEG_LEFT_POLY, lander_init_pos))
+l_leg.mesh.extrude((0,1,0), capping=True, inplace=True)
+
+land_poly = [(chunk_x[0], 0, smooth_y[0]-3)] + [(x, 0, y) for x, y in zip(chunk_x, smooth_y)] + [(chunk_x[-1], 0, smooth_y[0]-3)]
+
+land = sm.Polygon(points=land_poly)
+land.mesh.extrude((0,1,0), capping=True, inplace=True)
+
+sc += lander
+sc += r_leg
+sc += l_leg
+sc += land
+sc.show()
+
+
+import ipdb; pdb.set_trace()
 moon = world.CreateStaticBody(shapes=edgeShape(vertices=[(0, 0), (W, 0)]))
 sky_polys = []
 for i in range(CHUNKS - 1):
@@ -78,7 +121,7 @@ legs = []
 for i in [-1, +1]:
     leg = world.CreateDynamicBody(
         position=(VIEWPORT_W / SCALE / 2 - i * LEG_AWAY / SCALE, initial_y),
-        angle=(i * 0.05),
+        angle=(i * LEG_ANGLE),
         fixtures=fixtureDef(
             shape=polygonShape(box=(LEG_W / SCALE, LEG_H / SCALE)),
             density=1.0,
