@@ -24,6 +24,7 @@ def create_env(
     """
     frame_skip = kwargs.get("frame_skip", 4)
     physics_update_rate = kwargs.get("physics_update_rate", 30)
+
     scene = Scene(
         engine="Unity",
         engine_exe=executable,
@@ -95,6 +96,13 @@ def make_env(
             n_show=n_show,
             **kwargs,
         )
+
+        wrappers = kwargs.get("wrappers", None)
+
+        if wrappers is not None:
+            for wrapper in wrappers:
+                env = wrapper(env)
+
         return env
 
     return _make_env

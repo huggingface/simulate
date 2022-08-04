@@ -204,6 +204,8 @@ def generate_scene(
     physics_update_rate=20,
     frame_skip=4,
     predicate="random",
+    camera_width=84,
+    camera_height=84,
 ):
     """
     Generate scene using simenv library.
@@ -242,9 +244,16 @@ def generate_scene(
     root += objects_root
 
     # Add agent
-    # TODO: Generate random predicates
     agents_root = sm.Asset(name="agents_root_" + str(this_map))
-    agents_root += create_agents(agent_pos, objects, predicate=predicate, verbose=verbose, n_instance=this_map)
+    agents_root += create_agents(
+        agent_pos,
+        objects,
+        camera_width=camera_width,
+        camera_height=camera_height,
+        predicate=predicate,
+        verbose=verbose,
+        n_instance=this_map,
+    )
     root += agents_root
 
     if engine is not None and engine.lower() != "pyvista":
