@@ -14,13 +14,10 @@
 
 # Lint as: python3
 """ Some mapping from Discrete and Box Spaces to physics actions."""
-from dataclasses import dataclass
-from enum import Enum
+from dataclasses import InitVar, dataclass
 from typing import List, Optional, Union
 
 import numpy as np
-
-from ..assets.gltf_extension import GltfExtensionMixin
 
 
 try:
@@ -96,10 +93,10 @@ class DiscreteAction(spaces.Discrete):
     r"""A gym Discrete Space where each action is mapped to a physics engine action."""
     n: int
     action_map: List[ActionMapping]
-    seed: Optional[int] = None
+    seed_: InitVar[Optional[int]] = None  # We call it seed_ otherwise it overwrite the base gym.spaces class method
 
-    def __post_init__(self):
-        super().__init__(n=self.n, seed=self.seed)
+    def __post_init__(self, seed_):
+        super().__init__(n=self.n, seed=seed_)
 
         if isinstance(self.action_map, ActionMapping):
             self.action_map = [self.action_map]
@@ -119,30 +116,23 @@ class BoxAction(spaces.Box):
     high: Union[float, List[float]]
     action_map: List[ActionMapping]
     shape: Optional[List[int]] = None
-    dtype = str
-    seed: Optional[int] = None
+    dtype: Optional[str] = None
+    seed_: InitVar[Optional[int]] = None  # We call it seed_ otherwise it overwrite the base gym.spaces class method
 
-    def __post_init__(self):
-        # Gym
-        if isinstance(self.low, float):
-            self.low = np.array([self.low])
-        if isinstance(self.high, float):
-            self.high = np.array([self.high])
-        if self.shape is None:
-            self.shape = [1] * len(self.low)
-        super().__init__(low=self.low, high=self.high, shape=self.shape, dtype=np.dtype(self.dtype), seed=self.seed)
+    def __post_init__(self, seed_):
+        if self.dtype is None:
+            self.dtype = "float32"
+
+        dtype = np.dtype(self.dtype)
+        super().__init__(low=self.low, high=self.high, shape=self.shape, dtype=dtype, seed=seed_)
 
         if not isinstance(self.action_map, (list, tuple)):
             self.action_map = [self.action_map]
 
-        if np.isscalar(self.low) and len(self.action_map) != 1:
-            raise ValueError(
-                f"Number of action_map ({len(self.action_map)}) does not match shape of low ({self.low.shape})"
-            )
-        if not np.isscalar(self.low) and len(self.action_map) != len(self.low):
-            raise ValueError(
-                f"Number of action_map ({len(self.action_map)}) does not match shape of low ({self.low.shape})"
-            )
-
-        if not all(isinstance(a, ActionMapping) for a in self.action_map):
-            raise ValueError("All the action mapping must be ActionMapping classes")
+        maps = self.action_map
+        for x in self.shape:
+            if x != len(maps):
+                raise ValueError(
+                    f"Shape of action_map ({len(self.action_map)}) does not match action shape ({self.shape})"
+                )
+            maps = maps[0]

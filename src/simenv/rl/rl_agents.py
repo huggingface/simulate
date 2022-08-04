@@ -17,7 +17,7 @@
 import itertools
 from typing import List, Optional, Union
 
-from ..assets import Asset, Camera, CameraSensor, Capsule, Collider, RigidBodyComponent, StateSensor
+from ..assets import Asset, Camera, CameraSensor, Capsule, Collider, RigidBodyComponent
 from .actions import ActionMapping, DiscreteAction
 from .reward_functions import RewardFunction
 from .rl_component import RlComponent

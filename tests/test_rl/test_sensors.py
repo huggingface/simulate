@@ -15,8 +15,6 @@
 import unittest
 
 # Lint as: python3
-from functools import partial
-
 import numpy as np
 
 import simenv as sm
@@ -39,4 +37,4 @@ class ObservationsTest(unittest.TestCase):
         self.assertEqual(space.dtype, np.float32)
 
         with self.assertRaises(ValueError):
-            typo_state_sensor = sm.StateSensor(None, None, properties=["position", "distance", "position,x"])
+            _ = sm.StateSensor(None, None, properties=["position", "distance", "position,x"])

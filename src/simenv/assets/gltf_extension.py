@@ -19,17 +19,6 @@ from dataclasses import field, fields, is_dataclass, make_dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from dataclasses_json import DataClassJsonMixin, dataclass_json
-from dataclasses_json.utils import (
-    _get_type_cons,
-    _get_type_origin,
-    _handle_undefined_parameters_safe,
-    _is_collection,
-    _is_mapping,
-    _is_new_type,
-    _is_optional,
-    _isinstance_safe,
-    _issubclass_safe,
-)
 
 
 if TYPE_CHECKING:

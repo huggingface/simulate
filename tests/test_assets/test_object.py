@@ -34,7 +34,7 @@ ALL_OBJECTS = [
     (sm.Line, {}),
     (sm.MultipleLines, {}),
     (sm.Tube, {}),
-    (sm.Polygon, {"points": [[-1.0, 0.0, 0.0], [0.0, 0.0, 1.0]]}),
+    (sm.Polygon, {"points": [[-1.0, 0.0, 0.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [0.0, 0.0, -1.0]]}),
     (sm.RegularPolygon, {}),
     (sm.Ring, {}),
     (sm.Text3D, {}),
@@ -73,6 +73,7 @@ class ObjectsTest(unittest.TestCase):
 
     def test_extra_assets_parameters(self):
         for cls, kwargs in ALL_OBJECTS:
+            print(cls, kwargs)
             # position
             position=[3, 3, 3]
             asset = cls(position=position, **kwargs)
@@ -95,17 +96,17 @@ class ObjectsTest(unittest.TestCase):
             parent = sm.Asset(name="mummy")
             asset = cls(parent=parent, **kwargs)
             self.assertIsInstance(asset, cls)
-            # self.assertEqual(asset.tree_parent.name, "mummy")
+            self.assertEqual(asset.tree_parent.name, "mummy")
 
             # children
             child = sm.Asset(name="babby")
             asset = cls(children=child, **kwargs)
             self.assertIsInstance(asset, cls)
-            # self.assertEqual(asset.tree_children[0].name, "babby")
+            self.assertEqual(asset.tree_children[0].name, "babby")
 
-            # asset = cls(children=[child], **kwargs)
-            # self.assertIsInstance(asset, cls)
-            # self.assertEqual(asset.tree_children[0].name, "babby")
+            asset = cls(children=[child], **kwargs)
+            self.assertIsInstance(asset, cls)
+            self.assertEqual(asset.tree_children[0].name, "babby")
 
     def test_plane(self):
         asset = sm.Plane()

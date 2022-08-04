@@ -15,7 +15,7 @@
 # Lint as: python3
 """ An RL component."""
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, List, Optional, Union
+from typing import TYPE_CHECKING, List, Optional
 
 from ..assets.gltf_extension import GltfExtensionMixin
 from ..assets.sensors import CameraSensor, RaycastSensor, StateSensor, map_sensors_to_spaces
