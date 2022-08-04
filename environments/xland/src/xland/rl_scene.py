@@ -81,7 +81,7 @@ def make_pool(
     seed=0,
     headless=None,
     frame_rate=None,
-    frame_skip=None,
+    frame_skip=4,
     **kwargs,
 ):
     """

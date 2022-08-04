@@ -197,6 +197,8 @@ def generate_map(
     agent_pos,
     rank,
     predicate="random",
+    camera_width=84,
+    camera_height=84,
 ):
     """
     Generate scene using simenv library.
@@ -236,7 +238,14 @@ def generate_map(
     # Add agent
     # TODO: Generate random predicates
     agents_root = sm.Asset(name=f"agents_root_{rank}")
-    agents_root += create_agents(agent_pos, objects, predicate=predicate, rank=rank)
+    agents_root += create_agents(
+        agent_pos,
+        objects,
+        camera_width=camera_width,
+        camera_height=camera_height,
+        predicate=predicate,
+        rank=rank,
+    )
     root += agents_root
 
     return root

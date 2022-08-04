@@ -69,6 +69,8 @@ def create_map(
     success = False
     attempt = 0
     nb_attempts = kwargs.get("nb_attempts", 10)
+    camera_width = kwargs.get("camera_width", 96)
+    camera_height = kwargs.get("camera_height", 72)
 
     while not success and attempt < nb_attempts:
 
@@ -115,6 +117,8 @@ def create_map(
                 agent_pos,
                 rank=rank,
                 predicate=predicate,
+                camera_width=camera_width,
+                camera_height=camera_height,
             )
 
         else:
