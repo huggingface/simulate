@@ -6,7 +6,7 @@ if TYPE_CHECKING:
     from ..assets import Asset
 
 
-ALLOWED_REWARD_TYPES = ["dense", "sparse", "or", "and"]
+ALLOWED_REWARD_TYPES = ["dense", "sparse", "or", "and", "not", "see", "timeout"]
 ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO(Ed) other metrics?
 
 

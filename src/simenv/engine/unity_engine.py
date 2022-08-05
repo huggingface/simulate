@@ -6,6 +6,8 @@ import subprocess
 
 import numpy as np
 
+from simenv.rl.rl_component import RlComponent
+
 from .engine import Engine
 
 
@@ -114,8 +116,9 @@ class UnityEngine(Engine):
 
     def add_to_pool(self, map):
         self._map_pool = True
-        if map.agents:
-            agent = map.agents[0]
+        agents = map.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))
+        if len(agents) > 0:
+            agent = agents[0]
             self.action_space = agent.action_space
             self.observation_space = agent.observation_space
 
