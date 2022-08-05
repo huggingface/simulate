@@ -135,3 +135,7 @@ scene.show()
 ```
 
 You can find bridges to other rendering/simulation engines in the `integrations` directory.
+
+### Tips
+
+If you are running on GCP, remember to not install `pyvistaqt`, and if you did so, uninstall it in your environment, since QT doesn't work well on GCP.

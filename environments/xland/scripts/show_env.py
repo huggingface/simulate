@@ -63,7 +63,9 @@ if __name__ == "__main__":
             extra_args["sample_map"] = m
 
     t = time.time()
-    success, root = create_map(**vars(args), **extra_args, root=-1, nb_attempts=100)
+
+    root = create_map(executable=args.build_exe, **vars(args), **extra_args, root=-1, nb_attempts=100)
+
     print("Time in seconds to generate map: {}".format(time.time() - t))
 
     is_pyvista = args.engine is None or args.engine.lower() == "pyvista"
@@ -75,7 +77,7 @@ if __name__ == "__main__":
     scene += root
 
     # If we want to show the map and we were successful
-    if args.show and success:
+    if args.show and scene is not None:
         if args.engine is None or args.engine.lower() == "pyvista":
             scene.remove(scene.root_0.agents_root_0)
 
@@ -84,7 +86,7 @@ if __name__ == "__main__":
         input("Press Enter to continue...")
         scene.close()
 
-    if success:
+    if scene is not None:
         print("Successful generation!")
     else:
         print("Failed to generate!")

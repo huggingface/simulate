@@ -37,7 +37,7 @@ def create_env(
     counter = 0
     max_iterations = 100000
     while counter < n_maps and max_iterations > 0:
-        success, root = create_scene(
+        root = create_scene(
             executable=executable,
             width=width,
             height=height,
@@ -52,7 +52,7 @@ def create_env(
         )
 
         max_iterations -= 1
-        if success:
+        if scene is not None:
             counter += 1
             scene.engine.add_to_pool(root)
 

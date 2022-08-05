@@ -127,5 +127,7 @@ def create_map(
             if seed is not None:
                 # Change to seed to test other maps
                 seed += 1
+    if success:
+        return root
 
-    return success, root
+    return None
