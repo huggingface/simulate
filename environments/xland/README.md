@@ -47,8 +47,8 @@ example_map = np.load("benchmark/examples/example_map_01.npy")
 
 # Sample from example map
 # You can add the argument 'engine="Unity"' if you want to run it on Unity
-# create_scene returns a bool if it was rendered correctly and the scene itself
-is_successful, scene = create_scene(width=8, height=8, sample_map=example_map)
+# create_scene returns the scene, and if it fails, it returns None
+scene = create_scene(width=8, height=8, sample_map=example_map)
 
 # Show scene
 scene.show()

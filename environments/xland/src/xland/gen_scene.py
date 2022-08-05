@@ -144,5 +144,7 @@ def create_scene(
             if seed is not None:
                 # Change to seed to test other maps
                 seed += 1
+    if success:
+        return scene
 
-    return success, scene
+    return None
