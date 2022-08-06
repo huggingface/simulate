@@ -14,12 +14,11 @@
 
 # Lint as: python3
 """ A simenv RigidBodyComponent."""
-import copy
 import itertools
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
-from .utils import camelcase_to_snakecase
+from .gltf_extension import GltfExtensionMixin
 
 
 ALLOWED_CONSTRAINTS = [
@@ -31,9 +30,11 @@ ALLOWED_CONSTRAINTS = [
     "freeze_rotation_z",
 ]
 
+ALLOWED_COLLISION_DETECTION = ["discrete", "continuous"]
+
 
 @dataclass()
-class RigidBodyComponent:
+class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodies"):
     """
     A rigid body caracteristics that can be added to a primitive.
 
@@ -54,8 +55,8 @@ class RigidBodyComponent:
     use_gravity : bool, optional
         Whether the rigidbody should ignore gravity
 
-    continuous : bool, optional
-        Whether to use continuous collision detection, for slower
+    collision_detection : str, optional
+        Whether to use discrete or continuous collision detection, for slower
             but more precise collision detection (recommended for
             small but fast-moving objects)
 
@@ -69,23 +70,34 @@ class RigidBodyComponent:
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     mass: Optional[float] = None
-    drag: Optional[float] = None
+    center_of_mass: Optional[List[float]] = None
+    inertia_tensor: Optional[List[float]] = None
+    linear_drag: Optional[float] = None
     angular_drag: Optional[float] = None
     constraints: Optional[List[str]] = None
     use_gravity: Optional[bool] = None
-    continuous: Optional[bool] = None
-    kinematic: Optional[bool] = None
-
-    name: Optional[str] = None
+    collision_detection: Optional[str] = None  # TODO: see if we want to keep this one
+    kinematic: Optional[bool] = None  # TODO: see if we want to keep this one
 
     def __post_init__(self):
         # Setup all our default values
         if self.mass is None:
             self.mass = 1.0
         self.mass = float(self.mass)
-        if self.drag is None:
-            self.drag = 0.0
-        self.drag = float(self.drag)
+
+        if self.center_of_mass is None:
+            self.center_of_mass = [0.0, 0.0, 0.0]
+        if len(self.center_of_mass) != 3:
+            raise ValueError("center_of_mass must be a list of 3 floats")
+
+        if self.inertia_tensor is not None:
+            if len(self.inertia_tensor) != 3:
+                raise ValueError("inertia_tensor must be a list of 3 floats")
+
+        if self.linear_drag is None:
+            self.linear_drag = 0.0
+        self.linear_drag = float(self.linear_drag)
+
         if self.angular_drag is None:
             self.angular_drag = 0.0
         self.angular_drag = float(self.angular_drag)
@@ -98,20 +110,16 @@ class RigidBodyComponent:
 
         if self.use_gravity is None:
             self.use_gravity = True
-        if self.continuous is None:
-            self.continuous = False
+
+        if self.collision_detection is None:
+            self.collision_detection = "discrete"
+        if self.collision_detection not in ALLOWED_COLLISION_DETECTION:
+            raise ValueError(
+                f"Collision detection {self.collision_detection} not in allowed list: {ALLOWED_COLLISION_DETECTION}"
+            )
+
         if self.kinematic is None:
             self.kinematic = False
 
-        if self.name is None:
-            id = next(self.__class__.__NEW_ID)
-            self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
-
     def __hash__(self):
         return id(self)
-
-    def copy(self):
-        copy_rb = copy.deepcopy(self)
-        id = next(self.__class__.__NEW_ID)
-        self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
-        return copy_rb

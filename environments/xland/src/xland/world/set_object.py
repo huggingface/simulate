@@ -205,7 +205,9 @@ def create_objects(positions, object_type=None, object_size=0.5, n_instance=0):
 
 
 # TODO: move this to utils
-def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform", enforce_lower_floor=True):
+def get_positions(
+    y, n_objects, n_agents, threshold=0.5, distribution="uniform", enforce_lower_floor=True, verbose=False
+):
     """
     Returns None if there isn't enough playable area.
     """
@@ -216,10 +218,12 @@ def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform",
     playable_nodes, area = get_playable_area(y, enforce_lower_floor=enforce_lower_floor)
 
     if area < 0:
-        print("Lower floor is enforced and not all tiles of this floor are accessible.")
+        if verbose:
+            print("Lower floor is enforced and not all tiles of this floor are accessible.")
         return None, None, False
     elif area < threshold:
-        print("Unsufficient playable area: {:.3f} when minimum is {}".format(area, threshold))
+        if verbose:
+            print("Unsufficient playable area: {:.3f} when minimum is {}".format(area, threshold))
         return None, None, False
 
     # Get probabilities to where to place objects
@@ -230,10 +234,11 @@ def get_positions(y, n_objects, n_agents, threshold=0.5, distribution="uniform",
 
     non_null_nodes = np.sum(probabilities > 0)
     if non_null_nodes < n_objects + n_agents:
-        print(
-            "Unsufficient nodes to set objects: {} when the total number of objects"
-            "and agents is {}".format(non_null_nodes, n_objects + n_agents)
-        )
+        if verbose:
+            print(
+                "Unsufficient nodes to set objects: {} when the total number of objects"
+                "and agents is {}".format(non_null_nodes, n_objects + n_agents)
+            )
         return None, None, False
 
     positions = np.array(sample_index(n_objects + n_agents, probabilities))

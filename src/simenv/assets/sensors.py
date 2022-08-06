@@ -4,8 +4,7 @@ from typing import List, Optional
 
 import numpy as np
 
-from simenv.assets.asset import Asset
-
+from .asset import Asset
 from .camera import Camera
 
 

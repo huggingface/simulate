@@ -1,4 +1,4 @@
 """Constants of procgen module."""
 
-# Number of divisions for each tile on the mesh
-GRANULARITY = 10
+# Size of the tile
+TILE_SIZE = 1.0

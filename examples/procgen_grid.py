@@ -53,7 +53,7 @@ scene.clear()
 
 # Ideally, instead of "hardcoding" the tiles, you would create a function
 # to generate them
-tiles = 0.6 * np.array([[[i, i], [i, i]] for i in range(2)])
+tiles = 0.6 * np.array([[[i, i, i], [i, i, i], [i, i, i]] for i in range(2)])
 
 # Weights and symmetries are facultative
 weights = [1.0 - i * 0.5 for i in range(2)]

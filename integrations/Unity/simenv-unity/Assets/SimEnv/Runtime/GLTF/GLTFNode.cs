@@ -30,8 +30,9 @@ namespace SimEnv.GLTF {
         public class Extensions {
             public KHRLight KHR_lights_punctual;
             public HFCollider HF_colliders;
+            public HFArticulatedBody HF_articulated_bodies;
             public HFRlAgent HF_rl_agents;
-            public HFRigidbody HF_rigidbodies;
+            public HFRigidbody HF_rigid_bodies;
             public HFCameraSensor HF_camera_sensors;
             public HFStateSensor HF_state_sensors;
             public string[] HF_custom;
@@ -54,7 +55,7 @@ namespace SimEnv.GLTF {
         }
 
         public class HFRigidbody {
-            public int rigidbody;
+            public int component_id;
         }
 
         public class KHRLight {
@@ -62,7 +63,11 @@ namespace SimEnv.GLTF {
         }
 
         public class HFCollider {
-            public int collider;
+            public int component_id;
+        }
+
+        public class HFArticulatedBody {
+            public int component_id;
         }
 
         public class ImportResult {
@@ -260,25 +265,25 @@ namespace SimEnv.GLTF {
 
                         // Colliders
                         if (nodes[i].extensions.HF_colliders != null) {
-                            int colliderValue = nodes[i].extensions.HF_colliders.collider;
-                            if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.colliders == null || extensions.HF_colliders.colliders.Count < colliderValue) {
+                            int colliderValue = nodes[i].extensions.HF_colliders.component_id;
+                            if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.components == null || extensions.HF_colliders.components.Count < colliderValue) {
                                 Debug.LogWarning("Error importing collider");
                             } else {
-                                HFColliders.GLTFCollider collider = extensions.HF_colliders.colliders[colliderValue];
+                                HFColliders.GLTFCollider collider = extensions.HF_colliders.components[colliderValue];
                                 if (collider.mesh.HasValue) {
                                     Debug.LogWarning("Ignoring collider mesh value");
                                 }
-                                if (collider.type == ColliderType.BOX) {
+                                if (collider.type == ColliderType.box) {
                                     BoxCollider col = result[i].transform.gameObject.AddComponent<BoxCollider>();
                                     col.size = collider.boundingBox;
                                     col.center = collider.offset;
                                     col.isTrigger = collider.intangible;
-                                } else if (collider.type == ColliderType.SPHERE) {
+                                } else if (collider.type == ColliderType.sphere) {
                                     SphereCollider col = result[i].transform.gameObject.AddComponent<SphereCollider>();
                                     col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[1], collider.boundingBox[2]);
                                     col.center = collider.offset;
                                     col.isTrigger = collider.intangible;
-                                } else if (collider.type == ColliderType.CAPSULE) {
+                                } else if (collider.type == ColliderType.capsule) {
                                     CapsuleCollider col = result[i].transform.gameObject.AddComponent<CapsuleCollider>();
                                     col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[2]);
                                     col.height = collider.boundingBox[1];
@@ -290,16 +295,65 @@ namespace SimEnv.GLTF {
                             }
                         }
 
+                        // Articulated body
+                        if (nodes[i].extensions.HF_articulated_bodies != null) {
+                            int componentId = nodes[i].extensions.HF_articulated_bodies.component_id;
+                            if (extensions == null || extensions.HF_articulated_bodies == null || extensions.HF_articulated_bodies.components == null || extensions.HF_articulated_bodies.components.Count < componentId) {
+                                Debug.LogWarning("Error importing articulated body");
+                            } else {
+                                HFArticulatedBodies.GLTFArticulatedBody ab = extensions.HF_articulated_bodies.components[componentId];
+                                ArticulationBody articulation = result[i].transform.gameObject.AddComponent<ArticulationBody>();
+                                switch (ab.joint_type) {
+                                    case "fixed":
+                                        articulation.jointType = ArticulationJointType.FixedJoint;
+                                        break;
+                                    case "prismatic":
+                                        articulation.jointType = ArticulationJointType.PrismaticJoint;
+                                        break;
+                                    case "revolute":
+                                        articulation.jointType = ArticulationJointType.RevoluteJoint;
+                                        break;
+                                    default:
+                                        Debug.LogWarning(string.Format("Joint type {0} not implemented", ab.joint_type));
+                                        break;
+                                }
+                                articulation.anchorPosition = ab.anchor_position;
+                                articulation.anchorRotation = ab.anchor_rotation;
+                                articulation.linearDamping = ab.linear_damping;
+                                articulation.angularDamping = ab.angular_damping;
+                                articulation.jointFriction = ab.joint_friction;
+                                articulation.mass = ab.mass;
+                                articulation.centerOfMass = ab.center_of_mass;
+                                if (ab.inertia_tensor != null) {
+                                    articulation.inertiaTensor = ab.inertia_tensor.Value;
+                                }
+
+                                ArticulationDrive xDrive = new ArticulationDrive()
+                                {
+                                    stiffness = ab.drive_stifness,
+                                    forceLimit = ab.drive_force_limit,
+                                    damping = ab.drive_damping,
+                                    lowerLimit = ab.lower_limit,
+                                    upperLimit = ab.upper_limit
+                                };
+                                articulation.xDrive = xDrive;
+                            }
+                        }
+
                         // Rigidbody
-                        if (nodes[i].extensions.HF_rigidbodies != null) {
-                            int rigidbodyValue = nodes[i].extensions.HF_rigidbodies.rigidbody;
-                            if (extensions == null || extensions.HF_rigidbodies == null || extensions.HF_rigidbodies.rigidbodies == null || extensions.HF_rigidbodies.rigidbodies.Count < rigidbodyValue) {
+                        if (nodes[i].extensions.HF_rigid_bodies != null) {
+                            int ComponentId = nodes[i].extensions.HF_rigid_bodies.component_id;
+                            if (extensions == null || extensions.HF_rigid_bodies == null || extensions.HF_rigid_bodies.components == null || extensions.HF_rigid_bodies.components.Count < ComponentId) {
                                 Debug.LogWarning("Error importing rigidbody");
                             } else {
-                                HFRigidbodies.GLTFRigidbody rigidbody = extensions.HF_rigidbodies.rigidbodies[rigidbodyValue];
+                                HFRigidBodies.GLTFRigidBody rigidbody = extensions.HF_rigid_bodies.components[ComponentId];
                                 Rigidbody rb = result[i].transform.gameObject.AddComponent<Rigidbody>();
                                 rb.mass = rigidbody.mass;
-                                rb.drag = rigidbody.drag;
+                                rb.centerOfMass = rigidbody.center_of_mass;
+                                if (rigidbody.inertia_tensor != null) {
+                                    rb.inertiaTensor = rigidbody.inertia_tensor.Value;
+                                }
+                                rb.drag = rigidbody.linear_drag;
                                 rb.angularDrag = rigidbody.angular_drag;
                                 rb.useGravity = rigidbody.use_gravity;
                                 rb.collisionDetectionMode = rigidbody.continuous ? CollisionDetectionMode.Continuous : CollisionDetectionMode.Discrete;

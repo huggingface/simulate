@@ -24,7 +24,8 @@ import PIL.Image
 import pyvista as pv
 from huggingface_hub import hf_hub_download
 
-from . import Asset, Camera, Collider, Light, Material, Object3D
+from . import Asset, Camera, Light, Material, Object3D
+from .gltf_extension import GLTF_EXTENSIONS_REGISTER, process_components_after_gltf
 from .gltflib import GLTF, FileResource, TextureInfo
 from .gltflib.enums import AccessorType, ComponentType
 
@@ -192,16 +193,15 @@ def build_node_tree(
         mat = np.array(gltf_node.matrix).reshape(4, 4, order="F")
         common_kwargs["transformation_matrix"] = mat
 
-    if gltf_node.extensions is not None and gltf_node.extensions.HF_colliders is not None:
-        hf_collider = gltf_node.extensions.HF_colliders
-        collider = Collider(
-            type=hf_collider.type,
-            bounding_box=hf_collider.boundingBox,
-            mesh=hf_collider.mesh,
-            offset=hf_collider.offset,
-            intangible=hf_collider.intangible,
-        )
-        common_kwargs["collider"] = collider
+    if gltf_node.extensions is not None:
+        for (extension_name, _, _) in GLTF_EXTENSIONS_REGISTER:
+            node_extension = getattr(gltf_node.extensions, extension_name, None)
+            if node_extension is not None:
+                component_id = node_extension.component_id
+                component_name = node_extension.name
+                model_extension = getattr(gltf_model.extensions, extension_name, None)
+                component = model_extension.components[component_id]
+                common_kwargs[component_name] = component
 
     if gltf_node.camera is not None:
         # Let's add a Camera
@@ -366,5 +366,7 @@ def load_gltf_as_tree(
                 parent=None,
             )
         )
+    for node in main_nodes:
+        process_components_after_gltf(node)
 
     return main_nodes

@@ -24,7 +24,6 @@ from matplotlib.colors import Colormap
 
 from .asset import Asset
 from .collider import Collider
-from .gltflib.enums.collider_type import ColliderType
 from .material import Material
 from .procgen.prims import generate_prims_maze
 from .procgen.wfc import generate_2d_map, generate_map
@@ -296,7 +295,7 @@ class Sphere(Object3D):
 
         if collider is None:
             collider = Collider(
-                type=ColliderType.SPHERE,
+                type="sphere",
                 bounding_box=(radius, radius, radius),
             )
 
@@ -380,7 +379,7 @@ class Capsule(Object3D):
 
         if collider is None:
             collider = Collider(
-                type=ColliderType.CAPSULE,
+                type="capsule",
                 bounding_box=(radius, height, radius),
             )
 
@@ -521,7 +520,7 @@ class Box(Object3D):
                 (bounds[2] + bounds[3]) / 2.0,
                 (bounds[4] + bounds[5]) / 2.0,
             )
-            collider = Collider(type=ColliderType.BOX, bounding_box=bounding_box, offset=offset)
+            collider = Collider(type="box", bounding_box=bounding_box, offset=offset)
 
         super().__init__(
             mesh=mesh, name=name, position=position, parent=parent, children=children, collider=collider, **kwargs
@@ -1136,7 +1135,7 @@ class ProcgenGrid(StructuredGrid):
         Map to procedurally generate from.
 
     specific_map: np.ndarray or python list of list of floats
-        Map to procedurally generate from.
+        Map to show as it is.
 
     tiles : list of tiles
         Tiles for procedural generation when using generation from tiles and neighbors definitions.
@@ -1165,7 +1164,9 @@ class ProcgenGrid(StructuredGrid):
         height of the generated map
 
     shallow: bool
-        Indicates whether procedural generation mesh should be generated or not.
+        Indicates whether procedural generation mesh should be generated in simenv or not.
+        When it's true, we just return the map returned by the algorithm without
+        actually creating the mesh in simenv.
         Created for the purpose of optimizing certain environments such as XLand.
 
     seed: int
@@ -1200,12 +1201,14 @@ class ProcgenGrid(StructuredGrid):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        verbose: Optional[bool] = False,
         **kwargs,
     ):
 
         if seed is None:
             seed = np.random.randint(0, 100000)
-            print("Seed:", seed)
+            if verbose:
+                print("Seed:", seed)
 
         # Seeding
         np.random.seed(seed)

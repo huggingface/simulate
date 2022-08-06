@@ -11,16 +11,6 @@ from simenv.rl.rl_component import RlComponent
 from .engine import Engine
 
 
-PRIMITIVE_TYPE_MAPPING = {
-    "Sphere": 0,
-    "Capsule": 1,
-    "Cylinder": 2,
-    "Box": 3,
-    "Plane": 4,
-    "Quad": 5,
-}
-
-
 class UnityEngine(Engine):
     def __init__(
         self,
@@ -126,9 +116,11 @@ class UnityEngine(Engine):
 
     def add_to_pool(self, map):
         self._map_pool = True
-        agent = map.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))[0]
-        self.action_space = agent.action_space
-        self.observation_space = agent.observation_space
+        agents = map.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))
+        if len(agents) > 0:
+            agent = agents[0]
+            self.action_space = agent.action_space
+            self.observation_space = agent.observation_space
 
         map_bytes = map.as_glb_bytes()
         b64_bytes = base64.b64encode(map_bytes).decode("ascii")
