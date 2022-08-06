@@ -71,6 +71,18 @@ COLORS_ONLY_GRAYSCALE = {
     "GRAY100": BLACK,
 }
 
-CMAP_ALL = np.array(list(COLORS_ALL.values()))
-CMAP_ONLY_COLORS = np.array(list(COLORS_NO_GRAYSCALE.values()))
-CMAP_ONLY_GRAYSCALE = np.array(list(COLORS_ONLY_GRAYSCALE.values()))
+CMAP_ALL = np.array([list(COLORS_ALL.values())] * 2)  # Final shape: (2, len(colors), 3) for (U, V, RGB)
+CMAP_3_COLORS = np.array([[GREEN, GREEN]] * 2)  # Final shape: (2, len(colors), 3) for (U, V, RGB)
+CMAP_ONLY_COLORS = np.array(
+    [list(COLORS_NO_GRAYSCALE.values())] * 2
+)  # Final shape: (2, len(colors), 3) for (U, V, RGB)
+CMAP_ONLY_GRAYSCALE = np.array(
+    [list(COLORS_ONLY_GRAYSCALE.values())] * 2
+)  # Final shape: (2, len(colors), 3) for (U, V, RGB)
+
+TEXTURES_ALL = {
+    "cmap_all": CMAP_ALL,
+    "cmap_3_colors": CMAP_3_COLORS,
+    "cmap_only_colors": CMAP_ONLY_COLORS,
+    "cmap_only_grayscale": CMAP_ONLY_GRAYSCALE,
+}

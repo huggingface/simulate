@@ -19,6 +19,8 @@ from typing import List, Optional, Union
 
 import numpy as np
 import pyvista as pv
+from matplotlib.cm import get_cmap
+from matplotlib.colors import Colormap
 
 from .asset import Asset
 from .collider import Collider
@@ -1080,11 +1082,51 @@ class StructuredGrid(Object3D):
             z = np.array(z)
 
         # If it is a structured grid, extract the surface mesh (PolyData)
-        mesh = pv.StructuredGrid(x, y, z).extract_surface()
+        self.grid = pv.StructuredGrid(x, y, z)
+        mesh = self.grid.extract_surface()
         super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
+    def add_texture_cmap_along_axis(
+        self, axis: Optional[str] = None, cmap: Optional[Union[str, Colormap]] = None, n_colors: Optional[int] = None
+    ):
+        """Create mesh texture from a mathplotlib colormap and the variation along an axis.
 
-class ProcgenGrid(Object3D):
+        By default, the variation is along the Y axis (elevation).
+        """
+        if cmap is None:
+            cmap = "nipy_spectral"
+        cmap_fct = get_cmap(name=cmap, lut=n_colors)
+
+        if axis is None:
+            axis = "y"
+
+        if axis == "x":
+            points = self.grid.x
+        elif axis == "y":
+            points = self.grid.y
+        elif axis == "z":
+            points = self.grid.z
+        else:
+            raise ValueError("axis must be one of x, y, z")
+        points = points.squeeze(-1)
+        x = points.ravel()
+        hue = (x - np.nanmin(x)) / (np.nanmax(x) - np.nanmin(x))
+        colors = (cmap_fct(hue)[:, 0:3] * 255.0).astype(np.uint8)
+        image = colors.reshape((points.shape[0], points.shape[1], 3))[:-1, :-1, :]  # , order="F")
+
+        self.material.base_color_texture = pv.Texture(image)
+
+        # Define the texture coordinates from the bounds of the grid
+        b = self.mesh.GetBounds()  # [xmin, xmax, ymin, ymax, zmin, zmax]
+        origin = [b[0], b[2], b[4]]  # [xmin, ymin, zmin]
+        point_u = [b[1], b[2], b[4]]  # [xmax, ymin, zmin]
+        point_v = [b[0], b[2], b[5]]  # [xmin, ymin, zmax]
+        self.mesh.texture_map_to_plane(
+            origin=origin, point_u=point_u, point_v=point_v, inplace=True
+        )  # Map the structure to the plane
+
+
+class ProcgenGrid(StructuredGrid):
     """Create a procedural generated 3D grid (structured plane) from
         tiles / previous map.
 
@@ -1203,6 +1245,9 @@ class ProcgenGrid(Object3D):
             else:
                 self.map_2d = specific_map
 
+            raise NotImplementedError(
+                "Shallow generation not implemented yet or maybe not needed."
+            )  # TODO remove shallow gen?
         else:
             # Saves these for other functions that might use them
             # We take index 0 since generate_map is now vectorized, but we don't have
@@ -1210,9 +1255,8 @@ class ProcgenGrid(Object3D):
             coordinates, map_2ds = generate_map(specific_map=specific_map, **all_args)
             self.coordinates, self.map_2d = coordinates[0], map_2ds[0]
 
-            # If it is a structured grid, extract the surface mesh (PolyData)
-            mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
-            super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
+            x, y, z = self.coordinates
+            super().__init__(x=x, y=y, z=z, name=name, parent=parent, children=children, **kwargs)
 
     def generate_3D(
         self,

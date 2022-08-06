@@ -21,19 +21,13 @@ specific_map = (
 
 proc_grid = sm.ProcgenGrid(specific_map=specific_map)
 
-# Let's color our grid by height.
-# We assign a simple 1D texture to the object and assing mesh texture coordinates from the height of each points of the mesh.
-proc_grid.material.base_color_texture = sm.TEXTURE_1D_CMAP  # Set a simple 1D color map texture
-height = proc_grid.mesh.points[:, 1, None]  # We get the height coordinates of the mesh points ( theY axis)
-texture_coord = np.concatenate(
-    [height, np.zeros_like(height)], axis=1
-)  # Make texture coordinates (UV) by adding a zeros axis
-proc_grid.mesh.active_t_coords = texture_coord  # Assign as point to texture mapping
-
+# Example using a predefined colormap from matplotlib
+# See https://matplotlib.org/stable/api/cm_api.html#matplotlib.cm.get_cmap
+proc_grid.add_texture_cmap_along_axis(axis="y", cmap="viridis", n_colors=5)
 scene += proc_grid
 
 scene += sm.LightSun()
-scene.show()
+scene.show(show_edges=True)
 
 input("Press Enter for second scene")
 scene.close()
@@ -41,6 +35,15 @@ scene.clear()
 
 # Second scene: generating from this map
 scene += sm.ProcgenGrid(width=3, height=3, sample_map=specific_map)
+
+# Example creating our own colormap
+# https://matplotlib.org/stable/tutorials/colors/colormap-manipulation.html
+from matplotlib.colors import ListedColormap
+
+
+cmap = ListedColormap(["red", "blue", "green"])
+scene.tree_children[0].add_texture_cmap_along_axis(axis="x", cmap=cmap)
+
 scene += sm.LightSun()
 scene.show()
 
@@ -60,6 +63,7 @@ symmetries = ["X"] * 2
 neighbors = [(tiles[1], tiles[0]), (tiles[0], tiles[0]), (tiles[1], tiles[1])]
 scene += sm.ProcgenGrid(width=3, height=3, tiles=tiles, neighbors=neighbors, weights=weights, symmetries=symmetries)
 scene += sm.LightSun()
+scene.tree_children[0].add_texture_cmap_along_axis(axis="x", cmap="viridis")
 
 scene.show()
 input("Press Enter to close")

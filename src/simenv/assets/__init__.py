@@ -7,5 +7,4 @@ from .material import *
 from .object import *
 from .rigidbody_component import *
 from .sensors import CameraSensor, RaycastSensor, Sensor, StateSensor
-from .textures import *
 from .utils import *

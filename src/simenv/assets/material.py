@@ -17,7 +17,7 @@
 import copy
 import itertools
 from dataclasses import dataclass
-from typing import ClassVar, List, Optional
+from typing import ClassVar, List, Optional, Union
 
 import numpy as np
 import pyvista
@@ -92,14 +92,14 @@ class Material:
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     base_color: Optional[List[float]] = None
-    base_color_texture: Optional[pyvista.Texture] = None
+    base_color_texture: Optional[Union[np.ndarray, pyvista.Texture]] = None
     metallic_factor: Optional[float] = None
     roughness_factor: Optional[float] = None
-    metallic_roughness_texture: Optional[pyvista.Texture] = None
+    metallic_roughness_texture: Optional[Union[np.ndarray, pyvista.Texture]] = None
 
-    normal_texture: Optional[pyvista.Texture] = None
-    occlusion_texture: Optional[pyvista.Texture] = None
-    emissive_texture: Optional[pyvista.Texture] = None
+    normal_texture: Optional[Union[np.ndarray, pyvista.Texture]] = None
+    occlusion_texture: Optional[Union[np.ndarray, pyvista.Texture]] = None
+    emissive_texture: Optional[Union[np.ndarray, pyvista.Texture]] = None
     emissive_factor: Optional[List[float]] = None
     alpha_mode: Optional[str] = None
     alpha_cutoff: Optional[float] = None
@@ -109,6 +109,21 @@ class Material:
 
     def __post_init__(self):
         # Setup all our default values
+
+        # Convert numpy array textures to
+        for tex in [
+            "base_color_texture",
+            "metallic_roughness_texture",
+            "normal_texture",
+            "occlusion_texture",
+            "emissive_texture",
+        ]:
+            tex_value = getattr(self, tex, None)
+            if isinstance(tex_value, np.ndarray):
+                if tex_value.ndim != 3:
+                    raise ValueError(f"{tex} must be a 3D numpy array (U, V, RGB)")
+                setattr(self, tex, pyvista.Texture(tex_value))
+
         if self.base_color is None:
             self.base_color = [1.0, 1.0, 1.0, 1.0]
         elif isinstance(self.base_color, np.ndarray):
@@ -216,3 +231,7 @@ class Material:
     @classproperty
     def OLIVE(cls):
         return cls(base_color=colors.OLIVE)
+
+    @classproperty
+    def CMAP_3_COLORS(cls):
+        return cls(base_color_texture=colors.CMAP_3_COLORS)
