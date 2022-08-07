@@ -77,6 +77,6 @@ for y in range(1000):
     axim1.set_data(dummy_obs)
     fig1.canvas.flush_events()
 
-    # time.sleep(0.1)
+    plt.pause(0.1)
 
 scene.close()

@@ -61,6 +61,6 @@ for i in range(300):
         frame = frame.transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
         axim.set_data(frame)
         fig.canvas.flush_events()
-    time.sleep(1 / 30.0)
+        plt.pause(0.1)
 
-os.system("pause")
+plt.pause(0.5)
