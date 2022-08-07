@@ -1091,6 +1091,20 @@ class StructuredGrid(Object3D):
         """Create mesh texture from a mathplotlib colormap and the variation along an axis.
 
         By default, the variation is along the Y axis (elevation).
+
+        Parameters
+        ----------
+        axis : str, optional
+            Axis along which to vary the colormap.
+            If None, the variation is along the Y axis (elevation).
+
+        cmap : str or Colormap, optional
+            Colormap to use from matplotlib.
+            If None, the default colormap 'nipy_spectral' is used.
+
+        n_colors : int, optional
+            Number of colors to use in the colormap.
+            If None, the number of colors is the total number in the colormap.
         """
         if cmap is None:
             cmap = "nipy_spectral"
