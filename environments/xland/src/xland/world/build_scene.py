@@ -191,18 +191,11 @@ def generate_colliders(sg):
     return collider_assets
 
 
-def generate_scene(
+def generate_map(
     sg,
     obj_pos,
     agent_pos,
-    engine=None,
-    executable=None,
-    port=None,
-    headless=None,
-    verbose=False,
     root_value=0,
-    physics_update_rate=20,
-    frame_skip=4,
     predicate="random",
 ):
     """
@@ -244,38 +237,7 @@ def generate_scene(
     # Add agent
     # TODO: Generate random predicates
     agents_root = sm.Asset(name="agents_root_" + str(this_map))
-    agents_root += create_agents(agent_pos, objects, predicate=predicate, verbose=verbose, n_instance=this_map)
+    agents_root += create_agents(agent_pos, objects, predicate=predicate, n_instance=this_map)
     root += agents_root
 
-    if engine is not None and engine.lower() != "pyvista":
-        root += sm.LightSun(name="sun_" + str(this_map), position=[0, 20, 0], intensity=0.9)
-
-    if root_value > -1:
-        return root
-
-    if engine is not None and engine.lower() != "pyvista":
-        if port is not None:
-            scene = sm.Scene(
-                engine=engine,
-                engine_exe=executable,
-                engine_port=port,
-                engine_headless=headless,
-                physics_update_rate=physics_update_rate,
-                frame_skip=frame_skip,
-            )
-
-        else:
-            scene = sm.Scene(
-                engine=engine,
-                engine_exe=executable,
-                engine_headless=headless,
-                physics_update_rate=physics_update_rate,
-                frame_skip=frame_skip,
-            )
-
-    else:
-        scene = sm.Scene(engine=engine)
-
-    scene += root
-
-    return scene
+    return root

@@ -13,8 +13,8 @@
 # limitations under the License.
 """Wrapper around SimEnv scene for easier RL training"""
 
-import numpy as np
 import gym
+import numpy as np
 from gym import spaces
 
 # Lint as: python3

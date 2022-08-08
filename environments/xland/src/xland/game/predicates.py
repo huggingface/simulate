@@ -143,7 +143,7 @@ def add_random_collectables_rewards(agents, objects, verbose=False):
             print("Agent {} will collect object {}".format(agent.name, objects[obj_idx].name))
 
 
-def add_collect_all_rewards(agents, objects, verbose=False):
+def add_collect_all_rewards(agents, objects):
     """
     Second default task when no predicate is given.
 

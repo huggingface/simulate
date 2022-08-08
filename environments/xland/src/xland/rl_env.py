@@ -1,8 +1,8 @@
 """RL env generation."""
 
-from simenv import Scene
+import simenv as sm
 
-from .gen_scene import create_scene
+from .gen_map import create_map
 
 
 def create_env(
@@ -22,21 +22,18 @@ def create_env(
     """
     Create Xland RL env.
     """
-    frame_skip = kwargs.get("frame_skip", 4)
-    physics_update_rate = kwargs.get("physics_update_rate", 30)
-    scene = Scene(
+    scene = sm.Scene(
         engine="Unity",
         engine_exe=executable,
         engine_port=port,
         engine_headless=headless,
-        frame_skip=frame_skip,
-        physics_update_rate=physics_update_rate,
     )
+    scene += sm.LightSun()
 
     counter = 0
     max_iterations = 100000
     while counter < n_maps and max_iterations > 0:
-        success, root = create_scene(
+        success, root = create_map(
             executable=executable,
             width=width,
             height=height,
@@ -53,13 +50,12 @@ def create_env(
         max_iterations -= 1
         if success:
             counter += 1
-            scene.engine.add_to_pool(root)
+            scene += root
 
     if max_iterations == 0:
         raise Exception("Could not generate enough maps.")
 
-    scene.show(n_maps=n_show)
-    return scene
+    return sm.RLEnvironment(scene)
 
 
 # TODO: bug with seed
