@@ -39,13 +39,9 @@ class UnityEngine(Engine):
         # TODO: improve headless training check on a headless machine
         if headless:
             print("launching env headless")
-            launch_command = f"{executable} -batchmode -nographics --args port {port}".split(
-                " "
-            )
+            launch_command = f"{executable} -batchmode -nographics --args port {port}".split(" ")
         else:
-            launch_command = f"{executable} --args port {port}".split(
-                " "
-            )
+            launch_command = f"{executable} --args port {port}".split(" ")
         self.proc = subprocess.Popen(
             launch_command,
             start_new_session=False,
