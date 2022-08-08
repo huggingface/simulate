@@ -19,6 +19,8 @@ from typing import List, Optional, Union
 
 import numpy as np
 import pyvista as pv
+from matplotlib.cm import get_cmap
+from matplotlib.colors import Colormap
 
 from .asset import Asset
 from .collider import Collider
@@ -45,7 +47,7 @@ class Object3D(Asset):
 
     def __init__(
         self,
-        mesh: Optional[pv.UnstructuredGrid] = None,
+        mesh: Optional[Union[pv.UnstructuredGrid, pv.PolyData]] = None,
         material: Optional[Material] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
@@ -56,14 +58,40 @@ class Object3D(Asset):
     ):
         super().__init__(name=name, position=position, parent=parent, children=children, collider=collider, **kwargs)
 
-        self.mesh = mesh if mesh is not None else pv.PolyData()
+        self._mesh = None
+        self.mesh = mesh
 
         # Avoid having averaging normals at shared points
         # (default pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
         if self.mesh is not None:
             self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
 
-        self.material = material if material is not None else Material()
+        self._material = None
+        self.material = material
+
+    @property
+    def material(self):
+        return self._material
+
+    @material.setter
+    def material(self, material: Material):
+        if material is None:
+            material = Material()
+        if not isinstance(material, Material):
+            raise ValueError(f"{material} is not a sm.Material instance")
+        self._material = material
+
+    @property
+    def mesh(self):
+        return self._mesh
+
+    @mesh.setter
+    def mesh(self, mesh: pv.PolyData):
+        if mesh is None:
+            mesh = pv.PolyData()
+        if not isinstance(mesh, (pv.UnstructuredGrid, pv.PolyData)):
+            raise ValueError(f"{mesh} is not a pyvista.PolyData or pyvista.UnstructuredGrid instance")
+        self._mesh = mesh
 
     def copy(self, with_children=True, **kwargs):
         """Copy an Object3D node in a new (returned) object.
@@ -1053,11 +1081,65 @@ class StructuredGrid(Object3D):
             z = np.array(z)
 
         # If it is a structured grid, extract the surface mesh (PolyData)
-        mesh = pv.StructuredGrid(x, y, z).extract_surface()
+        self.grid = pv.StructuredGrid(x, y, z)
+        mesh = self.grid.extract_surface()
         super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
 
+    def add_texture_cmap_along_axis(
+        self, axis: Optional[str] = None, cmap: Optional[Union[str, Colormap]] = None, n_colors: Optional[int] = None
+    ):
+        """Create mesh texture from a mathplotlib colormap and the variation along an axis.
 
-class ProcgenGrid(Object3D):
+        By default, the variation is along the Y axis (elevation).
+
+        Parameters
+        ----------
+        axis : str, optional
+            Axis along which to vary the colormap.
+            If None, the variation is along the Y axis (elevation).
+
+        cmap : str or Colormap, optional
+            Colormap to use from matplotlib.
+            If None, the default colormap 'nipy_spectral' is used.
+
+        n_colors : int, optional
+            Number of colors to use in the colormap.
+            If None, the number of colors is the total number in the colormap.
+        """
+        if cmap is None:
+            cmap = "nipy_spectral"
+        cmap_fct = get_cmap(name=cmap, lut=n_colors)
+
+        if axis is None:
+            axis = "y"
+
+        if axis == "x":
+            points = self.grid.x
+        elif axis == "y":
+            points = self.grid.y
+        elif axis == "z":
+            points = self.grid.z
+        else:
+            raise ValueError("axis must be one of x, y, z")
+        points = points.squeeze(-1)
+        x = points.ravel()
+        hue = (x - np.nanmin(x)) / (np.nanmax(x) - np.nanmin(x))
+        colors = (cmap_fct(hue)[:, 0:3] * 255.0).astype(np.uint8)
+        image = colors.reshape((points.shape[0], points.shape[1], 3))  # [:-1, :-1, :]  # , order="F")
+
+        self.material.base_color_texture = pv.Texture(image)
+
+        # Define the texture coordinates from the bounds of the grid
+        b = self.mesh.GetBounds()  # [xmin, xmax, ymin, ymax, zmin, zmax]
+        origin = [b[0], b[2], b[4]]  # [xmin, ymin, zmin]
+        point_u = [b[1], b[2], b[4]]  # [xmax, ymin, zmin]
+        point_v = [b[0], b[2], b[5]]  # [xmin, ymin, zmax]
+        self.mesh.texture_map_to_plane(
+            origin=origin, point_u=point_u, point_v=point_v, inplace=True
+        )  # Map the structure to the plane
+
+
+class ProcgenGrid(StructuredGrid):
     """Create a procedural generated 3D grid (structured plane) from
         tiles / previous map.
 
@@ -1180,6 +1262,9 @@ class ProcgenGrid(Object3D):
             else:
                 self.map_2d = specific_map
 
+            raise NotImplementedError(
+                "Shallow generation not implemented yet or maybe not needed."
+            )  # TODO remove shallow gen?
         else:
             # Saves these for other functions that might use them
             # We take index 0 since generate_map is now vectorized, but we don't have
@@ -1187,9 +1272,8 @@ class ProcgenGrid(Object3D):
             coordinates, map_2ds = generate_map(specific_map=specific_map, **all_args)
             self.coordinates, self.map_2d = coordinates[0], map_2ds[0]
 
-            # If it is a structured grid, extract the surface mesh (PolyData)
-            mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
-            super().__init__(mesh=mesh, name=name, parent=parent, children=children, **kwargs)
+            x, y, z = self.coordinates
+            super().__init__(x=x, y=y, z=z, name=name, parent=parent, children=children, **kwargs)
 
     def generate_3D(
         self,
@@ -1210,6 +1294,21 @@ class ProcgenGrid(Object3D):
 
 
 class ProcGenPrimsMaze3D(Asset):
+    """
+    Procedurally generated 3D maze.
+
+    Parameters
+    ----------
+    width: int
+        Width of the maze.
+
+    height: int
+        Height of the maze.
+
+    depth: int
+        Depth of the maze.
+    """
+
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(self, width: int, depth: int, name=None, wall_keep_prob=0.5, wall_material=None, **kwargs):

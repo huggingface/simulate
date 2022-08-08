@@ -146,4 +146,9 @@ wfc_binding.cpp
 .gen_files/
 
 .config/
+
+# Mac
+*.icloud
+
+# Tests thom
 test.gltf

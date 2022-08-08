@@ -2,6 +2,7 @@ from .articulated_body import *
 from .asset import Asset
 from .camera import *
 from .collider import *
+from .colors import *
 from .light import *
 from .material import *
 from .object import *

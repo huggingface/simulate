@@ -68,9 +68,9 @@ except ImportError:
 
 
 class PyVistaEngine(Engine):
-    def __init__(self, scene, auto_update=True, **plotter_kwargs):
+    def __init__(self, scene, auto_update=True, **add_mesh_kwargs):
         self.plotter: pyvista.Plotter = None
-        self.plotter_kwargs = plotter_kwargs
+        self.add_mesh_kwargs = add_mesh_kwargs
         self.auto_update = bool(CustomBackgroundPlotter is not None and auto_update)
 
         self._scene: Asset = scene
@@ -78,7 +78,7 @@ class PyVistaEngine(Engine):
 
     def _initialize_plotter(self):
         plotter_args = {"lighting": "none"}
-        plotter_args.update(self.plotter_kwargs)
+        plotter_args.update(self.add_mesh_kwargs)
         if self.auto_update:
             self.plotter: pyvista.Plotter = CustomBackgroundPlotter(**plotter_args)
         else:
@@ -130,7 +130,7 @@ class PyVistaEngine(Engine):
 
         self.plotter.reset_camera()
 
-    def _add_asset_to_scene(self, node, model_transform_matrix):
+    def _add_asset_to_scene(self, node, model_transform_matrix, **add_mesh_kwargs):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             return
 
@@ -139,7 +139,7 @@ class PyVistaEngine(Engine):
             located_mesh = node.mesh.transform(model_transform_matrix, inplace=False)
             # Material
             if node.material is None:
-                actor = self.plotter.add_mesh(located_mesh)
+                actor = self.plotter.add_mesh(located_mesh, **add_mesh_kwargs)
             else:
                 material = node.material
                 actor = self.plotter.add_mesh(
@@ -152,8 +152,9 @@ class PyVistaEngine(Engine):
                     texture=None,  # We set all the textures ourself in _set_pbr_material_for_actor
                     specular_power=1.0,  # Fixing a default of pyvista
                     point_size=1.0,  # Fixing a default of pyvista
+                    **add_mesh_kwargs,
                 )
-                self._set_pbr_material_for_actor(actor, material)
+                self._set_pbr_material_for_actor(actor, material, located_mesh)
 
             self._plotter_actors[node.uuid] = actor
 
@@ -169,7 +170,7 @@ class PyVistaEngine(Engine):
             self._plotter_actors[node.uuid] = self.plotter.add_light(light)
 
     @staticmethod
-    def _set_pbr_material_for_actor(actor: pyvista._vtk.vtkActor, material: Material):
+    def _set_pbr_material_for_actor(actor: pyvista._vtk.vtkActor, material: Material, mesh: pyvista.DataSet):
         """Set all the necessary properties for a nice PBR material rendering
         Inspired by https://github.com/Kitware/VTK/blob/master/IO/Import/vtkGLTFImporter.cxx#L188
         """
@@ -190,6 +191,12 @@ class PyVistaEngine(Engine):
             actor.GetProperty().BackfaceCullingOn()
 
         if material.base_color_texture:
+            if mesh.GetPointData().GetTCoords() is None:
+                raise ValueError(
+                    "This mesh doesn't have texture coordinates. "
+                    "You need to define them to use a texture. "
+                    "You can set texture coordinate with mesh.active_t_coords."
+                )
             # set albedo texture
             material.base_color_texture.UseSRGBColorSpaceOn()
             prop.SetBaseColorTexture(material.base_color_texture)
@@ -247,7 +254,7 @@ class PyVistaEngine(Engine):
                 actor.GetProperty().SetNormalScale(1.0)
                 prop.SetNormalTexture(material.normal_texture)
 
-    def regenerate_scene(self):
+    def regenerate_scene(self, **add_mesh_kwargs):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             self._initialize_plotter()
 
@@ -265,19 +272,25 @@ class PyVistaEngine(Engine):
             else:
                 model_transform_matrix = transforms[0]
 
-            self._add_asset_to_scene(node, model_transform_matrix)
+            self._add_asset_to_scene(node, model_transform_matrix, **add_mesh_kwargs)
 
         if not self.plotter.renderer.lights:
             self.plotter.enable_lightkit()  # Still add some lights
 
         self.plotter.reset_camera()
 
-    def show(self, auto_update: Optional[bool] = None, **plotter_kwargs):
+    def show(self, auto_update: Optional[bool] = None, **kwargs):
         if auto_update is not None and auto_update != self.auto_update:
             self.plotter = None
             self.auto_update = auto_update
 
-        self.regenerate_scene()
+        auto_close = kwargs.pop("auto_close", True)
+        if isinstance(self.plotter, pyvista.Plotter):
+            plotter_kwargs = {"auto_close": auto_close}
+        else:
+            plotter_kwargs = {}
+
+        self.regenerate_scene(**kwargs)
         self.plotter.show(**plotter_kwargs)
 
     def close(self):
