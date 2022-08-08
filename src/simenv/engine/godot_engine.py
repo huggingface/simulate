@@ -56,7 +56,7 @@ class GodotEngine(Engine):
     def show(self, **engine_kwargs):
         self._send_gltf(self._scene.as_glb_bytes())
 
-    def step(self, action):
+    def step(self, action=None):
         command = {"type": "Step", "contents": {"action": action}}
         return self.run_command(command)
 

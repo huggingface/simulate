@@ -4,10 +4,6 @@ import json
 import socket
 import subprocess
 
-import numpy as np
-
-from simenv.rl.rl_component import RlComponent
-
 from .engine import Engine
 
 
@@ -29,9 +25,6 @@ class UnityEngine(Engine):
         self.start_frame = start_frame
         self.end_frame = end_frame
         self.frame_rate = frame_rate
-
-        self.action_space = None
-        self.observation_space = None
 
         self.host = "127.0.0.1"
         self.port = engine_port
@@ -71,10 +64,9 @@ class UnityEngine(Engine):
         self.client, self.client_address = self.socket.accept()
         print(f"Connection from {self.client_address}")
 
-    def _send_bytes(self, bytes, ack):
+    def _send_bytes(self, bytes):
         self.client.sendall(bytes)
-        if ack:
-            return self._get_response()
+        return self._get_response()
 
     def _get_response(self):
         while True:
@@ -89,11 +81,6 @@ class UnityEngine(Engine):
                 # print(f"Received response: {response}")
                 return response
 
-    def _send_gltf(self, bytes):
-        b64_bytes = base64.b64encode(bytes).decode("ascii")
-        command = {"type": "BuildScene", "contents": json.dumps({"b64bytes": b64_bytes})}
-        self.run_command(command, ack=True)
-
     def update_asset(self, root_node):
         # TODO update and make this API more consistent with all the
         # update_asset, update, show
@@ -102,138 +89,38 @@ class UnityEngine(Engine):
     def update_all_assets(self):
         pass
 
-    def show(self, n_maps=-1, **engine_kwargs):
-        if self._map_pool:
-            self._send_gltf(self._scene.as_glb_bytes())
-            self._activate_pool(n_maps=n_maps)
-        else:
-            self.add_to_pool(self._scene)
-            self._activate_pool(n_maps=1)
+    def show(self, **kwargs):
+        bytes = self._scene.as_glb_bytes()
+        b64_bytes = base64.b64encode(bytes).decode("ascii")
+        kwargs.update({"b64bytes": b64_bytes})
+        return self.run_command("Initialize", **kwargs)
 
-    def _activate_pool(self, n_maps):
-        command = {"type": "ActivateEnvironments", "contents": json.dumps({"n_maps": n_maps})}
-        return self.run_command(command)
-
-    def add_to_pool(self, map):
-        self._map_pool = True
-        agents = map.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))
-        if len(agents) > 0:
-            agent = agents[0]
-            self.action_space = agent.action_space
-            self.observation_space = agent.observation_space
-
-        map_bytes = map.as_glb_bytes()
-        b64_bytes = base64.b64encode(map_bytes).decode("ascii")
-        command = {"type": "AddToPool", "contents": json.dumps({"b64bytes": b64_bytes})}
-        self.run_command(command, ack=True)
-
-    def step(self, action):
-        command = {"type": "Step", "contents": json.dumps({"action": action})}
-        return self.run_command(command)
-
-    def step_send(self, action):
-        command = {"type": "Step", "contents": json.dumps({"action": action})}
-        return self.run_command(command, ack=False)
-
-    def step_recv(self):
-        return self._get_response()
-
-    def get_reward(self):
-        command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
-        response = self.run_command(command)
-        data = json.loads(response)
-        return [float(f) for f in data["Items"]]
-
-    def get_reward_send(self):
-        command = {"type": "GetReward", "contents": json.dumps({"message": "message"})}
-        self.run_command(command, ack=False)
-
-    def get_reward_recv(self):
-        response = self._get_response()
-        data = json.loads(response)
-        return [float(f) for f in data["Items"]]
-
-    def get_done(self):
-        command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
-        response = self.run_command(command)
-        data = json.loads(response)
-        return [d for d in data["Items"]]
-
-    def get_done_send(self):
-        command = {"type": "GetDone", "contents": json.dumps({"message": "message"})}
-        self.run_command(command, ack=False)
-
-    def get_done_recv(self):
-        response = self._get_response()
-        data = json.loads(response)
-        return [d for d in data["Items"]]
+    def step(self, **kwargs):
+        return self.run_command("Step", **kwargs)
 
     def reset(self):
-        command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
-        self.run_command(command)
+        return self.run_command("Reset")
 
-    def reset_send(self):
-        command = {"type": "Reset", "contents": json.dumps({"message": "message"})}
-        self.run_command(command, ack=False)
-
-    def reset_recv(self):
-        return self._get_response()
-
-    def get_obs(self):
-        command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
-        encoded_obs = self.run_command(command)
-        data = json.loads(encoded_obs)
-
-        decoded_obs = self._extract_sensor_obs(data)
-        return decoded_obs
-
-    def _extract_sensor_obs(self, data):
-        sensor_obs = {}
-
-        for obs_json in data["Items"]:
-            obs_data = json.loads(obs_json)
-            name = obs_data["name"]
-            sensor_obs[name] = self._reshape_obs(obs_data)
-
-        return sensor_obs
-
-    def get_observation_send(self):
-        command = {"type": "GetObservation", "contents": json.dumps({"message": "message"})}
-        self.run_command(command, ack=False)
-
-    def get_observation_recv(self):
-        encoded_obs = self._get_response()
-        data = json.loads(encoded_obs)
-        decoded_obs = self._extract_sensor_obs(data)
-        return decoded_obs
-
-    def _reshape_obs(self, obs):
-        # TODO: remove np.flip for training (the agent does not care the world is upside-down
-        # TODO: have unity side send in B,C,H,W order
-        shape = obs["shape"]
-        if len(shape) < 3:
-            return np.array(obs["Items"]).astype(np.float32).reshape(*shape)  # TODO make the type conversion automatic
-        else:
-            return np.flip(np.array(obs["Items"]).astype(np.uint8).reshape(*shape), 1).transpose(0, 3, 1, 2)
-
-    def run_command(self, command, ack=True):
-        message = json.dumps(command)
-        # print(f"Sending command: {message}")
+    def run_command(self, command, **kwargs):
+        message = json.dumps({"type": command, **kwargs})
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
-        return self._send_bytes(message_bytes, ack)
+        response = self._send_bytes(message_bytes)
+        try:
+            return json.loads(response)
+        except Exception:
+            return response
 
     def _close(self):
         # print("exit was not clean, using atexit to close env")
         self.close()
 
     def close(self):
-        command = {"type": "Close", "contents": json.dumps({"message": "close"})}
         try:
-            self.run_command(command)
+            self.run_command("Close")
         except Exception as e:
             print("exception sending close message", e)
 
-        print("closing client")
+        # print("closing client")
         self.client.close()
 
         try:

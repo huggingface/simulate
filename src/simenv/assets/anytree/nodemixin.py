@@ -378,6 +378,9 @@ class NodeMixin(object):
     def _get_one_line_repr(self):
         return f"{self.name} ({self.__class__.__name__})"
 
+    def __str__(self):
+        return self.__repr__()
+
     def __repr__(self):
         node_str = self._get_one_line_repr() + "\n" if self.tree_children else ""
         return f"{node_str}{RenderTree(self).print_tree()}"

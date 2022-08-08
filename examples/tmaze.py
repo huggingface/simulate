@@ -1,10 +1,7 @@
-import time
-
 import matplotlib.pyplot as plt
 import numpy as np
 
 import simenv as sm
-import simenv.assets.utils as utils
 
 
 CAMERA_HEIGHT = 40
@@ -24,32 +21,24 @@ scene += sm.Box(name="wall7", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1])
 scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
 
-agent = sm.SimpleRlAgent(
-    sensors=[
-        sm.CameraSensor(width=CAMERA_WIDTH, height=CAMERA_HEIGHT, position=[0, 0.75, 0]),
-    ],
-    position=[0.0, 0.0, 0.0],
-)
-
+agent = sm.SimpleRlAgent(position=[0.0, 0.0, 0.0])
+agent_camera = agent.rl_component.camera_sensors[0].camera
 scene += agent
-scene.show()
+
+env = sm.RLEnvironment(scene)
+
 plt.ion()
 fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(CAMERA_HEIGHT, CAMERA_WIDTH, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 for i in range(1000):
-    action = scene.action_space.sample()
-    if type(action) == int:  # discrete are ints, continuous are numpy arrays
-        action = action
-    else:
-        action = action.tolist()
-
-    obs, reward, done, info = scene.step(action)
-    axim1.set_data(obs["CameraSensor"].transpose(1, 2, 0))
+    action = agent.rl_component.discrete_actions.sample()
+    obs, reward, done, info = env.step(action)
+    obs = obs[agent_camera.name].transpose(1, 2, 0)
+    axim1.set_data(obs)
     fig1.canvas.flush_events()
 
-    time.sleep(0.1)
-
+    plt.pause(0.1)
 
 scene.close()

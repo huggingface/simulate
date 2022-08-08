@@ -5,6 +5,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using SimEnv.GLTF;
 using UnityEngine;
 using UnityEngine.Events;
 
@@ -25,54 +26,24 @@ namespace SimEnv {
             }
         }
 
-        public static event UnityAction BeforeEnvironmentLoaded;
-        public static event UnityAction EnvironmentLoaded;
-        public static event UnityAction BeforeEnvironmentUnloaded;
-        public static event UnityAction EnvironmentUnloaded;
+        public static event UnityAction BeforeStep;
+        public static event UnityAction AfterStep;
+        public static event UnityAction AfterReset;
 
-        /// <summary>
-        /// Stores reference to loaded GLTF extensions.
-        /// <para>See GLTFNode.cs for extension loading.</para>
-        /// </summary>
-        public static Dictionary<string, Type> GLTFExtensions;
-
-        /// <summary>
-        /// Stores reference to loaded plugins.
-        /// </summary>
-        public static List<IPlugin> Plugins;
-
-        /// <summary>
-        /// Stores reference to all tracked cameras in the current environment.
-        /// </summary>
-        public static Dictionary<Camera, CameraSensor> Cameras;
-
-        /// <summary>
-        /// Stores reference to all tracked nodes in the current environment.
-        /// </summary>
-        public static Dictionary<string, Node> Nodes;
-
-        /// <summary>
-        /// The root gameobject of the currently loaded scene.
-        /// </summary>
-        public static GameObject Root;
-
-        public static List<GameObject> MapPool;
-        public static bool poolInitialized = false;
-        public static int envId = 0;
-
-        /// <summary>
-        /// Whether the current environment is undefined, active, loading, or unloading.
-        /// </summary>
-        public static State CurrentState;
+        public static Dictionary<string, Type> extensions;
+        public static List<IPlugin> plugins;
+        public static GameObject root { get; private set; }
+        public static Dictionary<string, Node> nodes { get; private set; }
+        public static List<RenderCamera> cameras { get; private set; }
+        public static EventData currentEvent { get; private set; }
 
         private void Awake() {
-            Cameras = new Dictionary<Camera, CameraSensor>();
-            Nodes = new Dictionary<string, Node>();
-            CurrentState = State.Undefined;
+            Physics.autoSimulation = false;
             LoadCustomAssemblies();
             LoadPlugins();
-            Physics.autoSimulation = false;
-            Client.instance.Initialize();
+            // TODO: Option to parse simulation args directly from API
+            GetCommandLineArgs();
+            Client.Initialize("localhost", MetaData.port);
         }
 
         private void OnDestroy() {
@@ -80,114 +51,111 @@ namespace SimEnv {
             UnloadPlugins();
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        /// <param name="frames">Number of frames to step forward.</param>
-        /// <param name="frameRate">Frames per second to simulate at.</param>
-        public static void Step(int frames = 1, float frameRate = 30) {
-            for (int i = 0; i < frames; i++) {
-                Physics.Simulate(1 / frameRate);
+        static void GetCommandLineArgs() {
+            int port = 55000;
+            int frameRate = 30;
+            int frameSkip = 1;
+            if (TryGetArg("port", out string portArg))
+                int.TryParse(portArg, out port);
+            if (TryGetArg("physics_update_rate", out string physicsUpdateRateArg))
+                int.TryParse(physicsUpdateRateArg, out frameRate);
+            if (TryGetArg("frame_skip", out string frameSkipArg))
+                int.TryParse(frameSkipArg, out frameSkip);
+            MetaData.port = port;
+            MetaData.frameRate = frameRate;
+            MetaData.frameSkip = frameSkip;
+        }
+
+        public static async Task Initialize(string b64bytes, Dictionary<string, object> kwargs) {
+            if (root != null)
+                throw new System.Exception("Scene is already initialized. Close before opening a new scene.");
+            byte[] bytes = Convert.FromBase64String(b64bytes);
+            root = await Importer.LoadFromBytesAsync(bytes);
+            nodes = new Dictionary<string, Node>();
+            cameras = new List<RenderCamera>();
+            foreach (Node node in root.GetComponentsInChildren<Node>(true)) {
+                nodes.Add(node.gameObject.name, node);
+                if (node.camera != null) {
+                    cameras.Add(node.camera);
+                }
+            }
+            foreach (IPlugin plugin in plugins)
+                plugin.OnSceneInitialized(kwargs);
+        }
+
+        public static IEnumerator StepCoroutine(Dictionary<string, object> kwargs) {
+            // Read step-related kwargs
+            bool readNodeData = MetaData.returnNodes;
+            if (kwargs.ContainsKey("return_nodes"))
+                readNodeData = kwargs.Parse<bool>("return_nodes", true);
+            bool readCameraData = MetaData.returnFrames;
+            if (kwargs.ContainsKey("return_frames"))
+                readCameraData = kwargs.Parse<bool>("return_frames", true);
+            int frameRate = MetaData.frameRate;
+            int frameSkip = MetaData.frameSkip;
+            if (kwargs.ContainsKey("frame_rate"))
+                frameRate = kwargs.Parse<int>("frame_rate");
+            if (kwargs.ContainsKey("frame_skip"))
+                frameSkip = kwargs.Parse<int>("frame_skip");
+
+            if (currentEvent == null)
+                yield return ReadEventData(readNodeData, readCameraData);
+
+            // Execute pre-step functionality
+            currentEvent.inputKwargs = kwargs;
+            foreach (IPlugin plugin in plugins)
+                plugin.OnBeforeStep(currentEvent);
+            BeforeStep?.Invoke();
+
+            // Perform the actual simulation
+            for (int i = 0; i < frameSkip; i++)
+                Physics.Simulate(1f / frameRate);
+
+            // Collect post-step data
+            yield return ReadEventData(readNodeData, readCameraData);
+
+            // Execute post-step functionality
+            foreach (IPlugin plugin in plugins)
+                plugin.OnStep(currentEvent);
+            AfterStep?.Invoke();
+        }
+
+        static IEnumerator ReadEventData(bool readNodeData, bool readCameraData) {
+            currentEvent = new EventData();
+            if (readNodeData) {
+                foreach (Node node in nodes.Values) {
+                    if (MetaData.nodeFilter == null || MetaData.nodeFilter.Contains(node.name))
+                        currentEvent.nodes.Add(node.GetData());
+                }
+            }
+            if (readCameraData) {
+                foreach (RenderCamera camera in cameras)
+                    camera.camera.enabled = true;
+                yield return new WaitForEndOfFrame();
+                foreach (RenderCamera camera in cameras) {
+                    if (camera.readable) {
+                        camera.CopyRenderResultToBuffer(out uint[,,] buffer);
+                        currentEvent.frames.Add(camera.node.name, buffer);
+                    }
+                    camera.camera.enabled = false;
+                }
             }
         }
 
-        public static void Register(CameraSensor camera) {
-            if (Cameras.TryGetValue(camera.camera, out CameraSensor existing))
-                Debug.LogWarning($"Found existing camera on node with name: {camera.node.name}.");
-            Cameras[camera.camera] = camera;
+        public static void Reset() {
+            foreach (Node node in nodes.Values)
+                node.ResetState();
+            foreach (IPlugin plugin in plugins)
+                plugin.OnReset();
+            AfterReset?.Invoke();
         }
 
-        public static void Register(Node node) {
-            if (Nodes.TryGetValue(node.name, out Node existing))
-                Debug.LogWarning($"Found existing node with name: {node.name}.");
-            Nodes[node.name] = node;
-        }
-
-
-        //TODO: fix these method
-
-        /// <summary>
-        /// Render all cameras and returns their color buffers.
-        /// </summary>
-        /// <param name="callback">List of camera color buffers.</param>
-        // public static void Render(UnityAction<List<Color32[]>> callback) {
-        //     RenderCoroutine(callback).RunCoroutine();
-        // }
-
-        
-
-        // private static IEnumerator RenderCoroutine(UnityAction<List<Color32[]>> callback) {
-        //     List<Color32[]> buffers = new List<Color32[]>();
-        //     foreach (CameraSensor camera in Cameras.Values)
-        //         camera.getObs(buffer => buffers.Add(buffer));
-        //     yield return new WaitUntil(() => buffers.Count == Cameras.Count);
-        //     callback(buffers);
-        // }
-
-        /// <summary>
-        /// Synchronously loads a scene from bytes.
-        /// </summary>
-        /// <param name="bytes">GLTF scene as bytes.</param>
-        public static void LoadEnvironmentFromBytes(byte[] bytes) {
-            if (CurrentState > State.Default) {
-                Debug.LogWarning("Attempting to load while already loading. Ignoring request.");
-                return;
-            }
-            Unload();
-            OnBeforeLoad();
-            Root = GLTF.Importer.LoadFromBytes(bytes);
-            OnAfterLoad();
-        }
-
-        /// <summary>
-        /// Asynchronously loads an environment from bytes.
-        /// </summary>
-        /// <param name="bytes">GLTF scene as bytes.</param>
-        /// <returns></returns>
-        public static async Task LoadEnvironmentFromBytesAsync(byte[] bytes) {
-            if (CurrentState > State.Default) {
-                Debug.LogWarning("Attempting to load while already loading. Ignoring request.");
-                return;
-            }
-            Unload();
-            OnBeforeLoad();
-            Root = await GLTF.Importer.LoadFromBytesAsync(bytes);
-            OnAfterLoad();
-        }
-
-        private static void OnBeforeLoad() {
-            BeforeEnvironmentLoaded?.Invoke();
-            CurrentState = State.Loading;
-        }
-
-        private static void OnAfterLoad() {
-            CurrentState = State.Default;
-            Physics.autoSimulation = false;
-            for (int i = 0; i < Plugins.Count; i++)
-                Plugins[i].OnEnvironmentLoaded();
-            EnvironmentLoaded?.Invoke();
-        }
-
-        /// <summary>
-        /// Unloads the current loaded environment.
-        /// </summary>
         public static void Unload() {
-            if (Root == null) return;
-            for (int i = 0; i < Plugins.Count; i++)
-                Plugins[i].OnBeforeEnvironmentUnloaded();
-            BeforeEnvironmentUnloaded?.Invoke();
-            CurrentState = State.Unloading;
-            GameObject.DestroyImmediate(Root);
-            Nodes.Clear();
-            Cameras.Clear();
-            CurrentState = State.Undefined;
-            for (int i = 0; i < Plugins.Count; i++)
-                EnvironmentUnloaded?.Invoke();
+            foreach (IPlugin plugin in Simulator.plugins)
+                plugin.OnBeforeSceneUnloaded();
+            GameObject.DestroyImmediate(root);
         }
 
-        /// <summary>
-        /// Finds and loads any custom DLLs in Resources/Plugins.
-        /// </summary>
         private static void LoadCustomAssemblies() {
             string modPath = Application.dataPath + "/Resources/Plugins";
             DirectoryInfo modDirectory = new DirectoryInfo(Application.dataPath + "/Resources/Plugins");
@@ -203,37 +171,28 @@ namespace SimEnv {
             }
         }
 
-        /// <summary>
-        /// Finds plugins and instantiates them.
-        /// </summary>
         private static void LoadPlugins() {
-            Plugins = AppDomain.CurrentDomain.GetAssemblies()
+            plugins = AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
                 .Where(x => !x.IsInterface && !x.IsAbstract && typeof(IPlugin).IsAssignableFrom(x))
                 .Select(x => (IPlugin)Activator.CreateInstance(x))
                 .ToList();
-            Plugins.ForEach(plugin => plugin.OnCreated());
+            plugins.ForEach(plugin => plugin.OnCreated());
 
-            GLTFExtensions = new Dictionary<string, Type>();
+            extensions = new Dictionary<string, Type>();
             AppDomain.CurrentDomain.GetAssemblies()
                 .SelectMany(x => x.GetTypes())
                 .Where(x => !x.IsInterface && !x.IsAbstract && typeof(IGLTFExtension).IsAssignableFrom(x))
                 .ToList().ForEach(type => {
-                    GLTFExtensions.Add(type.Name, type);
+                    extensions.Add(type.Name, type);
                 });
         }
 
-        /// <summary>
-        /// Calls <c>OnReleased()</c> of all plugins.
-        /// </summary>
         private static void UnloadPlugins() {
-            Plugins.ForEach(plugin => plugin.OnReleased());
-            Plugins.Clear();
+            plugins.ForEach(plugin => plugin.OnReleased());
+            plugins.Clear();
         }
 
-        /// <summary>
-        /// Kills the executable.
-        /// </summary>
         public static void Close() {
             Unload();
 #if UNITY_EDITOR
@@ -243,11 +202,16 @@ namespace SimEnv {
 #endif
         }
 
-        public enum State {
-            Undefined,
-            Default,
-            Loading,
-            Unloading
+        static bool TryGetArg(string name, out string arg) {
+            arg = null;
+            var args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length; i++) {
+                if (args[i] == name && args.Length > i + 1) {
+                    arg = args[i + 1];
+                    return true;
+                }
+            }
+            return false;
         }
     }
 }

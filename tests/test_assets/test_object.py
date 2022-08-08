@@ -22,6 +22,40 @@ import pyvista as pv
 import simenv as sm
 
 
+# Create simple versions from all objects
+ALL_OBJECTS = [
+    (sm.Object3D, {}),
+    (sm.Plane, {}),
+    (sm.Sphere, {"theta_resolution": 5, "phi_resolution": 5}),
+    (sm.Capsule, {"theta_resolution": 5, "phi_resolution": 5}),
+    (sm.Cylinder, {"resolution": 5}),
+    (sm.Box, {}),
+    (sm.Cone, {}),
+    (sm.Line, {}),
+    (sm.MultipleLines, {}),
+    (sm.Tube, {}),
+    (sm.Polygon, {"points": [[-1.0, 0.0, 0.0], [0.0, 0.0, 1.0], [1.0, 0.0, 0.0], [0.0, 0.0, -1.0]]}),
+    (sm.RegularPolygon, {}),
+    (sm.Ring, {}),
+    (sm.Text3D, {}),
+    (sm.Triangle, {}),
+    (sm.Rectangle, {}),
+    (sm.Circle, {"resolution": 10}),
+    (
+        sm.StructuredGrid,
+        {
+            "x": [[-1.0, 0.0, 1.0], [-1.0, 0.0, 1.0], [-1.0, 0.0, 1.0]],
+            "y": [
+                [0.69006556, 0.9534626, 0.69006556],
+                [0.9534626, 3.1622777, 0.9534626],
+                [0.69006556, 0.9534626, 0.69006556],
+            ],
+            "z": [[-1.0, -1.0, -1.0], [0.0, 0.0, 0.0], [1.0, 1.0, 1.0]],
+        },
+    ),
+]
+
+
 # fmt: off
 class ObjectsTest(unittest.TestCase):
     def test_create_asset(self):
@@ -36,6 +70,43 @@ class ObjectsTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             asset.plot()  # Cannot plot empty meshes
+
+    def test_extra_assets_parameters(self):
+        for cls, kwargs in ALL_OBJECTS:
+            print(cls, kwargs)
+            # position
+            position=[3, 3, 3]
+            asset = cls(position=position, **kwargs)
+            self.assertIsInstance(asset, cls)
+            self.assertAlmostEqual(sum(asset.position), sum(position))
+
+            # rotation
+            rotation=[0, 1, 0, 0]
+            asset = cls(rotation=rotation, **kwargs)
+            self.assertIsInstance(asset, cls)
+            self.assertAlmostEqual(sum(asset.rotation), sum(rotation))
+
+            # scaling
+            scaling=[3, 3, 3]
+            asset = cls(scaling=scaling, **kwargs)
+            self.assertIsInstance(asset, cls)
+            self.assertAlmostEqual(sum(asset.scaling), sum(scaling))
+
+            # parent
+            parent = sm.Asset(name="mummy")
+            asset = cls(parent=parent, **kwargs)
+            self.assertIsInstance(asset, cls)
+            self.assertEqual(asset.tree_parent.name, "mummy")
+
+            # children
+            child = sm.Asset(name="babby")
+            asset = cls(children=child, **kwargs)
+            self.assertIsInstance(asset, cls)
+            self.assertEqual(asset.tree_children[0].name, "babby")
+
+            asset = cls(children=[child], **kwargs)
+            self.assertIsInstance(asset, cls)
+            self.assertEqual(asset.tree_children[0].name, "babby")
 
     def test_plane(self):
         asset = sm.Plane()
@@ -298,7 +369,7 @@ class ObjectsTest(unittest.TestCase):
         self.assertIsNone(asset.collider)
 
     def test_polygon(self):
-        asset = sm.Polygon([[-1.,  0.,  0.], [0.,  0.,  1.],
+        asset = sm.Polygon(points=[[-1.,  0.,  0.], [0.,  0.,  1.],
                  [ 1.,  0.,  0.],
                  [ 0.,  0.,  -1.]])
         default_faces = np.array([4, 0, 1, 2, 3])

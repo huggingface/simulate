@@ -11,10 +11,10 @@ namespace SimEnv.GLTF {
         public int height = 512;
 
         public class Orthographic {
-            [JsonProperty(Required = Required.Always)] public float xmag;
-            [JsonProperty(Required = Required.Always)] public float ymag;
-            [JsonProperty(Required = Required.Always)] public float zfar;
-            [JsonProperty(Required = Required.Always)] public float znear;
+            public float xmag = 1f;
+            public float ymag = 5f;
+            public float? zfar;
+            public float? znear;
         }
 
         public class Perspective {

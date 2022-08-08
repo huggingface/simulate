@@ -14,172 +14,125 @@
 
 # Lint as: python3
 """ Some mapping from Discrete and Box Spaces to physics actions."""
-from enum import Enum
+from dataclasses import InitVar, dataclass
 from typing import List, Optional, Union
 
 import numpy as np
 
 
 try:
-    from gym.spaces import Box as GymBox
-    from gym.spaces import Discrete as GymDiscrete
+    from gym import spaces
 except ImportError:
 
-    class GymBox:
-        pass  # Dummy class if gym is not installed
+    class spaces:
+        class Box:
+            pass
 
-    class GymDiscrete:
-        pass  # Dummy class if gym is not installed
-
-
-class Physics(str, Enum):
-    """Physics actions."""
-
-    POSITION_X = "position_x"
-    POSITION_Y = "position_y"
-    POSITION_Z = "position_z"
-    ROTATION_X = "rotation_x"
-    ROTATION_Y = "rotation_y"
-    ROTATION_Z = "rotation_z"
-    VELOCITY_X = "velocity_x"
-    VELOCITY_Y = "velocity_y"
-    VELOCITY_Z = "velocity_z"
-    ANGULAR_VELOCITY_X = "angular_velocity_x"
-    ANGULAR_VELOCITY_Y = "angular_velocity_y"
-    ANGULAR_VELOCITY_Z = "angular_velocity_z"
+        class Discrete:
+            pass  # Dummy class if gym is not installed
 
 
-class MappedActions:
-    """A generic action space mapped to physics engine actions
-    We use this dummy class mostly to reference all the action with isInstance.
-    """
+ALLOWED_PHYSICAL_ACTION_TYPES = [
+    "add_force",
+    "add_relative_force",
+    "add_torque",
+    "add_relative_torque",
+    "add_force_at_position",
+    "move_position",
+    "move_relative_position",
+    "move_rotation",
+    "move_relative_rotation",
+]
 
-    pass
 
+@dataclass
+class ActionMapping:
+    """Map a RL agent action to a physical simulator action
 
-class MappedBox(GymBox, MappedActions):
-    """A gym Box Space with a physics magnitude linearly mapped to a physics engine magnitude.
+    Args:
+        physical_action (str): the physical action to be mapped to. A string selected in:
+            - "add_force": add a force to the object
+            - "add_relative_force": add a force to the object in the object's local coordinate system
+            - "add_torque": add a torque to the object
+            - "add_relative_torque": add a torque to the object in the object's local coordinate system
+            - "add_force_at_position": add a force to the object at a position in the object's local coordinate system
+            - "move_position": move the object along an axis
+            - "move_rotation": rotate the object around an axis
+        axis (List[float]): the axis of the action to be applied along or around
+        amplitude (float): the amplitude of the action to be applied (see below for details)
+        offset (float): the offset of the action to be applied (see below for details)
+        position (List[float]): the position of the action to be applied
+            (in the special case of the "add_force_at_position" action, this is the position of the force)
+        upper_limit (float): the upper limit of the resulting physical action (see below for details)
+        lower_limit (float): the lower limit of the resulting physical action (see below for details)
 
-    We currently force identical bound for each dimension
-
-    MappedBox(low=-1.0, high=2.0, physics=sm.Physics.POSITION_X)
-    Will map a linear input between -1 and 2 to a linear change in X position of the object.
-
-    scaling: float, optional (default=1.0)
-        scale the input to the physics engine with regard to the action
-    offset: float, optional (default=0.0)
-        offset the input to the physics engine with regard to the action
-    clip_low: List[float], optional (default=None)
-        clip the input to the physics engine with regard to the action
-    clip_high: List[float], optional (default=None)
-        clip the input to the physics engine with regard to the action
-
-    Resulting conversion is as follow (where X is the RL input action and Y the physics engine action):
-        Y = Y + (X - offset) * scaling
+    The conversion is as follow (where X is the RL input action and Y the physics engine action e.g. force, torque, position):
+        Y = Y + (X - offset) * amplitude
         if clip_low is not None:
             Y = max(Y, clip_low)
         if clip_high is not None:
             Y = min(Y, clip_high)
+    In the case of discrete action we assume X = 1.0 so that amplitude can be used to define the discrete value to apply.
     """
 
-    def __init__(
-        self,
-        low: Union[float, List[float]],
-        high: Union[float, List[float]],
-        shape: Optional[List[int]] = None,
-        dtype=np.float32,
-        seed: Optional[int] = None,
-        physics: Physics = None,
-        scaling: Optional[float] = 1.0,
-        offset: Optional[float] = 0.0,
-        clip_low: Optional[List[float]] = None,
-        clip_high: Optional[List[float]] = None,
-    ):
-        # Gym
-        if isinstance(low, float):
-            low = np.array([low])
-        if isinstance(high, float):
-            high = np.array([high])
-        if shape is None:
-            shape = [1] * len(low)
-        super().__init__(low=low, high=high, shape=shape, dtype=dtype, seed=seed)
+    physical_action: str
+    axis: List[float]
+    amplitude: float = 1.0
+    offset: float = 0.0
+    position: Optional[List[float]] = None
+    upper_limit: Optional[float] = None
+    lower_limit: Optional[float] = None
 
-        # Physics
-        if not isinstance(physics, Physics):
-            raise ValueError("physics must be a Physics enum")
-        self.physics = physics
-        self.scaling = scaling
-        self.offset = offset
-
-        if clip_low is not None:
-            if isinstance(clip_low, float):
-                clip_low = [clip_low]
-            if len(clip_low) != len(low):
-                raise ValueError("clip_low must have the same length as low")
-        self.clip_low = clip_low
-
-        if clip_high is not None:
-            if isinstance(clip_high, float):
-                clip_high = [clip_high]
-            if len(clip_high) != len(high):
-                raise ValueError("clip_high must have the same length as high")
-        self.clip_high = clip_high
+    def __post_init__(self):
+        if self.physical_action not in ALLOWED_PHYSICAL_ACTION_TYPES:
+            raise ValueError(f"{self.physical_action} is not a valid physical action type")
 
 
-class MappedDiscrete(GymDiscrete, MappedActions):
-    r"""A gym Discrete Space where each action is mapped to a physics engine action.
+@dataclass
+class DiscreteAction(spaces.Discrete):
+    r"""A gym Discrete Space where each action is mapped to a physics engine action."""
+    n: int
+    action_map: List[ActionMapping]
+    seed_: InitVar[Optional[int]] = None  # We call it seed_ otherwise it overwrite the base gym.spaces class method
 
-    MappedDiscrete(n=3,
-                   physics=[sm.Physics.POSITION_X,
-                            sm.Physics.ROTATION_Y,
-                            sm.Physics.ROTATION_Y],
-                   amplitudes=[1, 10, -10])
+    def __post_init__(self, seed_):
+        super().__init__(n=self.n, seed=seed_)
 
-    Will map 3 discrete actions to 3 physics actions increments:
-        Action 1 => moving in X direction with amplitude 1 meter
-        Action 2 => rotating in Y direction with amplitude 10 degree
-        Action 3 => rotating in Y direction with amplitude -10 degree
+        if isinstance(self.action_map, ActionMapping):
+            self.action_map = [self.action_map]
 
-    Additionally, the final physics can be clipped to a certain range after conversion in amplitude.
+        if len(self.action_map) != self.n:
+            raise ValueError(f"Number of action_map ({len(self.action_map)}) does not match n ({self.n})")
 
-    The resulting conversion is as follow (where X is the RL input action and Y the physics engine action):
-        Y = Y + amplitude
-        if clip_low is not None:
-            Y = max(Y, clip_low)
-        if clip_high is not None:
-            Y = min(Y, clip_high)
-    """
+        if not all(isinstance(a, ActionMapping) for a in self.action_map):
+            raise ValueError("All the action mapping must be ActionMapping classes")
 
-    def __init__(
-        self,
-        n: int,
-        seed: Optional[int] = None,
-        physics: List[Physics] = None,
-        amplitudes: Optional[List[float]] = None,
-        clip_low: Optional[List[float]] = None,
-        clip_high: Optional[List[float]] = None,
-    ):
-        super().__init__(n=n, seed=seed)
 
-        # Physics
-        if physics is not None:
-            if not isinstance(physics, list):
-                raise ValueError("physics must be a list of physic actions for each discrete action")
-            if not all(isinstance(p, Physics) for p in physics):
-                raise ValueError("All the physics mapping must be Physics enum")
-        self.physics = physics
-        self.amplitudes = amplitudes
+@dataclass
+class BoxAction(spaces.Box):
+    """A gym Box Space with a physics magnitude linearly mapped to a physics engine magnitude."""
 
-        if clip_low is not None:
-            if isinstance(clip_low, float):
-                clip_low = [clip_low]
-            if len(clip_low) != n:
-                raise ValueError("clip_low must have length equal to n")
-        self.clip_low = clip_low
+    low: Union[float, List[float]]
+    high: Union[float, List[float]]
+    action_map: List[ActionMapping]
+    shape: Optional[List[int]] = None
+    dtype: Optional[str] = None
+    seed_: InitVar[Optional[int]] = None  # We call it seed_ otherwise it overwrite the base gym.spaces class method
 
-        if clip_high is not None:
-            if isinstance(clip_high, float):
-                clip_high = [clip_high]
-            if len(clip_high) != n:
-                raise ValueError("clip_high must have length equal to n")
-        self.clip_high = clip_high
+    def __post_init__(self, seed_):
+        if self.dtype is None:
+            self.dtype = "float32"
+
+        dtype = np.dtype(self.dtype)
+        super().__init__(low=self.low, high=self.high, shape=self.shape, dtype=dtype, seed=seed_)
+
+        if not isinstance(self.action_map, (list, tuple)):
+            self.action_map = [self.action_map]
+
+        maps = self.action_map
+        for x in self.shape:
+            if x != len(maps):
+                raise ValueError(
+                    f"Shape of action_map ({len(self.action_map)}) does not match action shape ({self.shape})"
+                )
+            maps = maps[0]

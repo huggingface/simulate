@@ -15,7 +15,7 @@
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
 import itertools
-from typing import Any, List, Optional, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 from .assets import Asset, Camera, Light, Object3D
 from .assets.anytree import RenderTree
@@ -23,15 +23,7 @@ from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
 from .rl import RlComponent
 
 
-try:
-    from gym import Env
-except ImportError:
-
-    class Env:
-        pass  # Dummy class if gym is not here
-
-
-class Scene(Asset, Env):
+class Scene(Asset):
     """A Scene is the main place to add objects and object tree.
     In addition to a root node, it has an engine that can be used to diplay and interact with the scene.
 
@@ -55,8 +47,6 @@ class Scene(Asset, Env):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        parameters: Optional[Any] = None,
-        state: Optional[Any] = None,
         transformation_matrix=None,
         children=None,
         **kwargs,
@@ -84,12 +74,6 @@ class Scene(Asset, Env):
         elif engine is not None:
             raise ValueError("engine should be selected in the list [None, 'unity', 'godot', 'blender', 'pyvista']")
 
-        self.parameters = None
-        self.state = None
-
-        self._built = False
-        self._n_agents = None
-
     def __str__(self):
         return self.__repr__()
 
@@ -99,10 +83,15 @@ class Scene(Asset, Env):
 
     def show(self, **engine_kwargs):
         """Render the Scene using the engine."""
-        n_maps = engine_kwargs.get("n_maps", None)
-        if n_maps is not None:
-            self._n_agents = n_maps
         self.engine.show(**engine_kwargs)
+
+    def step(self, **engine_kwargs):
+        """Step the Scene"""
+        return self.engine.step(**engine_kwargs)
+
+    def reset(self, **engine_kwargs):
+        """Reset the Scene"""
+        return self.engine.reset(**engine_kwargs)
 
     def close(self):
         self.engine.close()
@@ -122,63 +111,6 @@ class Scene(Asset, Env):
         """Tuple with all Object3D in the Scene"""
         return self.tree_filtered_descendants(lambda node: isinstance(node, Object3D))
 
-    ###############################
-    # RL engines specific methods #
-    ###############################
-
     @property
     def agents(self) -> Tuple[Asset]:
         return self.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))
-
-    @property
-    def n_agents(self) -> int:
-        if self._n_agents is None:
-            self._n_agents = len(self.agents)  # potentially expensive operation
-        return self._n_agents
-
-    @property
-    def observation_space(self):
-        if self.engine.action_space is not None:
-            return self.engine.observation_space
-        agents = self.agents
-        if agents:
-            return agents[0].observation_space
-        return None
-
-    @property
-    def action_space(self):
-        if self.engine.action_space is not None:
-            return self.engine.action_space
-        agents = self.agents
-        if agents:
-            return agents[0].action_space
-        return None
-
-    def reset(self):
-        """Reset the environment / episode"""
-        self.engine.reset()
-        obs = self.engine.get_obs()
-
-        if self.n_agents == 1:
-            return {sensor_name: reading[0] for sensor_name, reading in obs.items()}
-        return obs
-
-    def step(self, action):
-        """Step the Scene"""
-
-        if self.n_agents == 1:
-            action = [int(action)]
-
-        self.engine.step(action)
-
-        obs = self.engine.get_obs()
-        reward = self.engine.get_reward()
-        done = self.engine.get_done()
-        info = [{}] * self.n_agents  # TODO: Add info to the backend, if we require it
-        if self.n_agents == 1:
-            return {sensor_name: reading[0] for sensor_name, reading in obs.items()}, reward[0], done[0], info[0]
-
-        return obs, reward, done, info
-
-    def render(self, path: str):
-        return self.engine.render(path=path)

@@ -2,7 +2,6 @@
 using Newtonsoft.Json;
 using UnityEngine;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace SimEnv.GLTF {
     public class HFArticulatedBodies {

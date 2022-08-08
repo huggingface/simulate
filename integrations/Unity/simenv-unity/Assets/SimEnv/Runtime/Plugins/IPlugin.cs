@@ -1,22 +1,30 @@
+using System.Collections.Generic;
+
 namespace SimEnv {
     /// <summary>
     /// Used to add custom functionality to the SimEnv backend.
-    /// <para>Any classes that extend <c>IPlugin</c> will 
+    /// <para>Any classes that extends <c>IPlugin</c> will 
     /// be loaded automatically.</para>
     /// <example>
     /// Example of a plugin that moves the node named "MyNode" upward:
     /// <code>
     /// public class MyCustomPlugin : IPlugin {
-    ///     void OnCreated() { }
+    ///     public void OnCreated() { }
     ///     
-    ///     void OnReleased() { }
+    ///     public void OnReleased() { }
     ///     
-    ///     void OnEnvironmentLoaded() {
-    ///         Node node = Simulator.Nodes["MyNode"];
+    ///     public void OnSceneInitialized(Dictionary<string, object> kwargs) {
+    ///         Node node = Simulator.nodes["MyNode"];
     ///         node.gameObject.transform.position += Vector3.up;
     ///     }
     ///     
-    ///     void OnEnvironmentUnloaded() { }
+    ///     public void OnBeforeStep(EventData eventData) { }
+    ///     
+    ///     public void OnStep(EventData eventData) { }
+    ///     
+    ///     public void OnReset() { }
+    ///     
+    ///     public void OnBeforeSceneUnloaded() { }
     /// }
     /// </code>
     /// </example>
@@ -33,15 +41,29 @@ namespace SimEnv {
         void OnReleased();
 
         /// <summary>
-        /// Called when an environment is finished loading.
-        /// <para>Use this to initialize custom behaviour.</para>
+        /// Called when the scene is initialized.
         /// </summary>
-        void OnEnvironmentLoaded();
+        /// <param name="kwargs">Used to pass arbitrary keyword arguments.</param>
+        void OnSceneInitialized(Dictionary<string, object> kwargs);
 
         /// <summary>
-        /// Called before an environment begins unloading.
-        /// <para>Use this to clean up custom behaviour.</para>
+        /// Called before the Simulator steps forward.
         /// </summary>
-        void OnBeforeEnvironmentUnloaded();
+        void OnBeforeStep(EventData eventData);
+
+        /// <summary>
+        /// Called after the Simulator steps forward.
+        /// </summary>
+        void OnStep(EventData eventData);
+
+        /// <summary>
+        /// Called when the scene is reset.
+        /// </summary>
+        void OnReset();
+
+        /// <summary>
+        /// Called before the scene is unloaded.
+        /// </summary>
+        void OnBeforeSceneUnloaded();
     }
 }
