@@ -1125,7 +1125,7 @@ class StructuredGrid(Object3D):
         x = points.ravel()
         hue = (x - np.nanmin(x)) / (np.nanmax(x) - np.nanmin(x))
         colors = (cmap_fct(hue)[:, 0:3] * 255.0).astype(np.uint8)
-        image = colors.reshape((points.shape[0], points.shape[1], 3))[:-1, :-1, :]  # , order="F")
+        image = colors.reshape((points.shape[0], points.shape[1], 3))  # [:-1, :-1, :]  # , order="F")
 
         self.material.base_color_texture = pv.Texture(image)
 

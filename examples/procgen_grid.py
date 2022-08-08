@@ -29,7 +29,7 @@ scene += proc_grid
 scene += sm.LightSun()
 scene.show(show_edges=True)
 
-input("Press Enter for second scene")
+# input("Press Enter for second scene")
 scene.close()
 scene.clear()
 
@@ -47,7 +47,7 @@ scene.tree_children[0].add_texture_cmap_along_axis(axis="x", cmap=cmap)
 scene += sm.LightSun()
 scene.show()
 
-input("Press Enter for third scene")
+# input("Press Enter for third scene")
 scene.close()
 scene.clear()
 
@@ -66,6 +66,6 @@ scene += sm.LightSun()
 scene.tree_children[0].add_texture_cmap_along_axis(axis="x", cmap="viridis")
 
 scene.show()
-input("Press Enter to close")
+# input("Press Enter to close")
 
 scene.close()
