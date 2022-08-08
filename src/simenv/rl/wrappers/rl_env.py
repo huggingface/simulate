@@ -14,20 +14,21 @@
 """Wrapper around SimEnv scene for easier RL training"""
 
 import numpy as np
-from gym import Env, spaces
+import gym
+from gym import spaces
 
 # Lint as: python3
 from ...scene import Scene
 
 
-class RLEnvironment(Env):
+class RLEnvironment(gym.Env):
     def __init__(self, scene: Scene):
         super(RLEnvironment, self).__init__()
         self.scene = scene
 
         agents = scene.agents
         if len(agents) == 0:
-            print("At least one agent required")
+            print("No agent found. Add at least one agent to the scene")
             return
         # TODO: multi-agent support (ensure compatible with SB3 examples)
         elif len(agents) > 1:
