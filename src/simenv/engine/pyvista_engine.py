@@ -285,8 +285,13 @@ class PyVistaEngine(Engine):
             self.auto_update = auto_update
 
         auto_close = kwargs.pop("auto_close", True)
+        if isinstance(self.plotter, pyvista.Plotter):
+            plotter_kwargs = {"auto_close": auto_close}
+        else:
+            plotter_kwargs = {}
+
         self.regenerate_scene(**kwargs)
-        self.plotter.show(auto_close=auto_close)
+        self.plotter.show(**plotter_kwargs)
 
     def close(self):
         if self.plotter is not None:
