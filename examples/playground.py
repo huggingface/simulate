@@ -25,9 +25,10 @@ scene += target
 
 
 agent = sm.SimpleRlAgent(name="agent", position=[0.0, 0.0, 0.0])
+agent_camera = agent.rl_component.camera_sensors[0].camera
 scene += agent
 
-scene.show(return_nodes=False, return_frames=False)
+env = sm.RLEnvironment(scene)
 
 plt.ion()
 fig1, ax1 = plt.subplots()
@@ -35,16 +36,10 @@ dummy_obs = np.zeros(shape=(40, 64, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 for i in range(1000):
-    action = {}
-    for agent in scene.agents:
-        action[agent.name] = agent.rl_component.discrete_actions.sample()
-    print(action)
-    event = scene.step(action=action)
+    action = agent.rl_component.discrete_actions.sample()
+    obs, reward, done, info = env.step(action)
 
-    agent_data = event["agents"]["agent"]
-    print(agent_data["done"], agent_data["reward"])
-    obs = np.array(agent_data["frames"]["agent_camera"], dtype=np.uint8)
-    obs = obs.transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
+    obs = obs[agent_camera.name].transpose(1, 2, 0)  # (C,H,W) -> (H,W,C)
     axim1.set_data(obs)
     fig1.canvas.flush_events()
 

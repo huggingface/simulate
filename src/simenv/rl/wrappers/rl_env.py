@@ -11,12 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+"""Wrapper around SimEnv scene for easier RL training"""
+
+import numpy as np
+from gym import Env, spaces
 
 # Lint as: python3
 from ...scene import Scene
-from gym import Env
-from gym import spaces
-import numpy as np
 
 
 class RLEnvironment(Env):
@@ -28,6 +29,7 @@ class RLEnvironment(Env):
         if len(agents) == 0:
             print("At least one agent required")
             return
+        # TODO: multi-agent support (ensure compatible with SB3 examples)
         elif len(agents) > 1:
             print("More than one agent not supported. Defaulting to first")
         self.agent = agents[0]

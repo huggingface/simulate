@@ -53,7 +53,7 @@ scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 for y in range(SIZE):
     for x in range(SIZE):
         root = generate_map(y * SIZE + x)
-        root.position += [y * 20, 0, x * 20]
+        root.position += [x * 20, 0, y * 20]
         scene += root
 
 scene.show(return_cameras=False, return_nodes=False)
@@ -63,9 +63,8 @@ fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(CAMERA_HEIGHT * SIZE, CAMERA_WIDTH * SIZE, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
-for y in range(1000):
+for _ in range(1000):
     action = {agent.name: agent.rl_component.discrete_actions.sample() for agent in scene.agents}
-
     event = scene.step(action=action)
     for y in range(SIZE):
         for x in range(SIZE):

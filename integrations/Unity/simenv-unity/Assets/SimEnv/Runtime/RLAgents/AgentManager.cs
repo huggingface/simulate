@@ -40,7 +40,6 @@ namespace SimEnv.RlAgents {
 
         // After simulator steps forward, record agent reward and observations
         public override void OnStep(EventData eventData) {
-            Debug.Log("step");
             if (agents.Count == 0) return;
             Dictionary<string, Agent.Data> agentEventData = new Dictionary<string, Agent.Data>();
             foreach (string key in agents.Keys) {
@@ -53,7 +52,6 @@ namespace SimEnv.RlAgents {
         }
 
         public override void OnReset() {
-            Debug.Log("reset");
             foreach (Agent agent in agents.Values)
                 agent.Reset();
         }

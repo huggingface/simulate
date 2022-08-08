@@ -1,5 +1,3 @@
-import time
-
 import matplotlib.pyplot as plt
 import numpy as np
 
@@ -24,25 +22,23 @@ scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
 
 agent = sm.SimpleRlAgent(position=[0.0, 0.0, 0.0])
+agent_camera = agent.rl_component.camera_sensors[0].camera
 scene += agent
 
-scene.show(return_nodes=False, return_frames=False)
+env = sm.RLEnvironment(scene)
 
 plt.ion()
 fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(CAMERA_HEIGHT, CAMERA_WIDTH, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
-agent_camera = agent.rl_component.camera_sensors[0].camera
 for i in range(1000):
-    action = {agent.name: agent.rl_component.discrete_actions.sample()}
-    event = scene.step(action=action)
-    agent_data = event["agents"][agent.name]
-    obs = np.array(agent_data["frames"][agent_camera.name], dtype=np.uint8).transpose(1, 2, 0)
+    action = agent.rl_component.discrete_actions.sample()
+    obs, reward, done, info = env.step(action)
+    obs = obs[agent_camera.name].transpose(1, 2, 0)
     axim1.set_data(obs)
     fig1.canvas.flush_events()
 
-    time.sleep(0.1)
-
+    plt.pause(0.1)
 
 scene.close()
