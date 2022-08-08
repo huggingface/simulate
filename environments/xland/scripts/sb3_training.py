@@ -6,7 +6,7 @@ import numpy as np
 from stable_baselines3 import PPO
 from xland import make_env
 
-from simenv import ParallelSimEnv
+from simenv import ParallelRLEnvironment
 
 
 # TODO: check if seeding works properly and maybe migrate to using rng keys
@@ -34,7 +34,7 @@ if __name__ == "__main__":
         n_maps=250,
     )
 
-    env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
+    env = ParallelRLEnvironment(env_fn=env_fn, n_parallel=n_parallel)
     model = PPO("MultiInputPolicy", env, verbose=3)
     model.learn(total_timesteps=5000000)
 

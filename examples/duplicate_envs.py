@@ -64,7 +64,7 @@ dummy_obs = np.zeros(shape=(CAMERA_HEIGHT * SIZE, CAMERA_WIDTH * SIZE, 3), dtype
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 for y in range(1000):
-    action = {agent.name: random.randrange(0, 3) for agent in scene.agents}
+    action = {agent.name: agent.rl_component.discrete_actions.sample() for agent in scene.agents}
 
     event = scene.step(action=action)
     for y in range(SIZE):

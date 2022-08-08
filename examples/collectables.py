@@ -3,7 +3,7 @@ import random
 from stable_baselines3 import PPO
 
 import simenv as sm
-from simenv.rl.wrappers import ParallelSimEnv
+from simenv.rl.wrappers import ParallelRLEnvironment
 
 
 def create_env(executable=None, port=None, headless=None):
@@ -81,7 +81,7 @@ if __name__ == "__main__":
     n_parallel = 1
     env_fn = make_env(None)  # "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")
 
-    env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel, starting_port=55000)
+    env = ParallelRLEnvironment(env_fn=env_fn, n_parallel=n_parallel, starting_port=55000)
 
     obs = env.reset()
     model = PPO("MultiInputPolicy", env, verbose=3, n_steps=200, n_epochs=2, batch_size=1280)

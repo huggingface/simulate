@@ -5,7 +5,7 @@ import time
 from stable_baselines3 import PPO
 
 import simenv as sm
-from simenv import ParallelSimEnv
+from simenv import ParallelRLEnvironment
 from simenv.assets.object import ProcGenPrimsMaze3D
 
 
@@ -87,7 +87,7 @@ if __name__ == "__main__":
     n_parallel = 1
     env_fn = make_env(None)  # "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 
-    env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
+    env = ParallelRLEnvironment(env_fn=env_fn, n_parallel=n_parallel)
     time.sleep(2.0)
     model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=2)
     model.learn(total_timesteps=100000)

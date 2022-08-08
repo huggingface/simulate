@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using UnityEngine;
 
 namespace SimEnv {
     public class EventData {
@@ -16,15 +15,6 @@ namespace SimEnv {
             frames = new Dictionary<string, uint[,,]>();
             inputKwargs = new Dictionary<string, object>();
             outputKwargs = new Dictionary<string, object>();
-        }
-
-        public static T ParseKwarg<T>(Dictionary<string, object> kwargs, string key) {            
-            if(!kwargs.TryGetValue(key, out object value)) {
-                Debug.LogWarning("Key not found in kwargs");
-                return default(T);
-            }
-            JObject jObject = JObject.FromObject(value);
-            return jObject.ToObject<T>();
         }
     }
 

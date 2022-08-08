@@ -23,15 +23,7 @@ from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
 from .rl import RlComponent
 
 
-try:
-    from gym import Env
-except ImportError:
-
-    class Env:
-        pass  # Dummy class if gym is not here
-
-
-class Scene(Asset, Env):
+class Scene(Asset):
     """A Scene is the main place to add objects and object tree.
     In addition to a root node, it has an engine that can be used to diplay and interact with the scene.
 
@@ -118,10 +110,6 @@ class Scene(Asset, Env):
     def objects(self):
         """Tuple with all Object3D in the Scene"""
         return self.tree_filtered_descendants(lambda node: isinstance(node, Object3D))
-
-    ###############################
-    # RL engines specific methods #
-    ###############################
 
     @property
     def agents(self) -> Tuple[Asset]:

@@ -2,7 +2,7 @@ import numpy as np
 from stable_baselines3 import PPO
 
 import simenv as sm
-from simenv import ParallelSimEnv
+from simenv import ParallelRLEnvironment
 
 
 ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
@@ -88,7 +88,7 @@ if __name__ == "__main__":
     n_parallel = 1
     env_fn = make_env(None)  # "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64")  #
 
-    env = ParallelSimEnv(env_fn=env_fn, n_parallel=n_parallel)
+    env = ParallelRLEnvironment(env_fn=env_fn, n_parallel=n_parallel)
     # obs = env.reset()
 
     # for i in range(100):

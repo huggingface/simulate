@@ -84,29 +84,51 @@ namespace SimEnv {
         }
 
         public static IEnumerator StepCoroutine(Dictionary<string, object> kwargs) {
+            // Read step-related kwargs
+            bool readNodeData = MetaData.returnNodes;
+            if (kwargs.ContainsKey("return_nodes"))
+                readNodeData = kwargs.Parse<bool>("return_nodes", true);
+            bool readCameraData = MetaData.returnFrames;
+            if (kwargs.ContainsKey("return_frames"))
+                readCameraData = kwargs.Parse<bool>("return_frames", true);
+            int frameRate = MetaData.frameRate;
+            int frameSkip = MetaData.frameSkip;
+            if (kwargs.ContainsKey("frame_rate"))
+                frameRate = kwargs.Parse<int>("frame_rate");
+            if (kwargs.ContainsKey("frame_skip"))
+                frameSkip = kwargs.Parse<int>("frame_skip");
+
             if (currentEvent == null)
-                yield return ReadEventData();
+                yield return ReadEventData(readNodeData, readCameraData);
+
+            // Execute pre-step functionality
             currentEvent.inputKwargs = kwargs;
             foreach (IPlugin plugin in plugins)
                 plugin.OnBeforeStep(currentEvent);
             BeforeStep?.Invoke();
-            for (int i = 0; i < MetaData.frameSkip; i++)
-                Physics.Simulate(1f / MetaData.frameRate);
-            yield return ReadEventData();
+
+            // Perform the actual simulation
+            for (int i = 0; i < frameSkip; i++)
+                Physics.Simulate(1f / frameRate);
+
+            // Collect post-step data
+            yield return ReadEventData(readNodeData, readCameraData);
+
+            // Execute post-step functionality
             foreach (IPlugin plugin in plugins)
                 plugin.OnStep(currentEvent);
             AfterStep?.Invoke();
         }
 
-        static IEnumerator ReadEventData() {
+        static IEnumerator ReadEventData(bool readNodeData, bool readCameraData) {
             currentEvent = new EventData();
-            if (MetaData.returnNodes) {
+            if (readNodeData) {
                 foreach (Node node in nodes.Values) {
                     if (MetaData.nodeFilter == null || MetaData.nodeFilter.Contains(node.name))
                         currentEvent.nodes.Add(node.GetData());
                 }
             }
-            if (MetaData.returnFrames) {
+            if (readCameraData) {
                 foreach (RenderCamera camera in cameras)
                     camera.camera.enabled = true;
                 yield return new WaitForEndOfFrame();

@@ -37,7 +37,7 @@ axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 for i in range(1000):
     action = {}
     for agent in scene.agents:
-        action[agent.name] = random.randrange(0, 3)
+        action[agent.name] = agent.rl_component.discrete_actions.sample()
     print(action)
     event = scene.step(action=action)
 

@@ -14,8 +14,6 @@
 
 # Lint as: python3
 """ A parallel env wrapper for Stable Baseline 3 mostly but also more general."""
-from collections import defaultdict
-
 import numpy as np
 
 
@@ -27,7 +25,7 @@ except ImportError:
         pass  # Dummy class if SB3 is not installed
 
 
-class ParallelSimEnv(VecEnv):
+class ParallelRLEnvironment(VecEnv):
     # Launched several env processes and communicates with
     # them in a semi-async manner
 
@@ -68,7 +66,8 @@ class ParallelSimEnv(VecEnv):
 
         # self.auto_reset(dones) this is now handled on the unity size
         obs = self._get_observations()
-        return obs, rewards, dones, [{}] * self.n_parallel * self.n_agents
+        info = [{}] * self.n_parallel * self.n_agents
+        return obs, rewards, dones, info
 
     def auto_reset(self, dones):
         # need to reset if done
