@@ -100,8 +100,14 @@ def make_env(
         wrappers = kwargs.get("wrappers", None)
 
         if wrappers is not None:
+            extra_kwargs = {}
             for wrapper in wrappers:
-                env = wrapper(env)
+                if wrapper.__name__ == "CameraWrapper":
+                    extra_kwargs["n_maps"] = n_maps
+                elif len(extra_kwargs) > 0:
+                    extra_kwargs.clear()
+
+                env = wrapper(env, **extra_kwargs)
 
         return env
 
