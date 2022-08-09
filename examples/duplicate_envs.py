@@ -1,3 +1,4 @@
+import argparse
 import random
 
 import matplotlib.pyplot as plt
@@ -48,34 +49,41 @@ def generate_map(index):
     return root
 
 
-scene = sm.Scene(engine="unity")
-scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
-for y in range(SIZE):
-    for x in range(SIZE):
-        root = generate_map(y * SIZE + x)
-        root.position += [x * 20, 0, y * 20]
-        scene += root
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    args = parser.parse_args()
 
-scene.show(return_cameras=False, return_nodes=False)
-
-plt.ion()
-fig1, ax1 = plt.subplots()
-dummy_obs = np.zeros(shape=(CAMERA_HEIGHT * SIZE, CAMERA_WIDTH * SIZE, 3), dtype=np.uint8)
-axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
-
-for _ in range(1000):
-    action = {agent.name: agent.rl_component.discrete_actions.sample() for agent in scene.agents}
-    event = scene.step(action=action)
+    scene = sm.Scene(engine="unity", engine_exe=args.build_exe)
+    scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
     for y in range(SIZE):
         for x in range(SIZE):
-            index = y * SIZE + x
-            agent_data = event["agents"][f"agent_{index}"]
-            print(agent_data["done"], agent_data["reward"])
-            obs = np.array(agent_data["frames"][f"agent_{index}_camera"], dtype=np.uint8).transpose((1, 2, 0))
-            dummy_obs[y * CAMERA_HEIGHT : (y + 1) * CAMERA_HEIGHT, x * CAMERA_WIDTH : (x + 1) * CAMERA_WIDTH, :] = obs
-    axim1.set_data(dummy_obs)
-    fig1.canvas.flush_events()
+            root = generate_map(y * SIZE + x)
+            root.position += [x * 20, 0, y * 20]
+            scene += root
 
-    plt.pause(0.1)
+    scene.show(return_cameras=False, return_nodes=False)
 
-scene.close()
+    plt.ion()
+    fig1, ax1 = plt.subplots()
+    dummy_obs = np.zeros(shape=(CAMERA_HEIGHT * SIZE, CAMERA_WIDTH * SIZE, 3), dtype=np.uint8)
+    axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
+
+    for _ in range(1000):
+        action = {agent.name: agent.rl_component.discrete_actions.sample() for agent in scene.agents}
+        event = scene.step(action=action)
+        for y in range(SIZE):
+            for x in range(SIZE):
+                index = y * SIZE + x
+                agent_data = event["agents"][f"agent_{index}"]
+                print(agent_data["done"], agent_data["reward"])
+                obs = np.array(agent_data["frames"][f"agent_{index}_camera"], dtype=np.uint8).transpose((1, 2, 0))
+                dummy_obs[
+                    y * CAMERA_HEIGHT : (y + 1) * CAMERA_HEIGHT, x * CAMERA_WIDTH : (x + 1) * CAMERA_WIDTH, :
+                ] = obs
+        axim1.set_data(dummy_obs)
+        fig1.canvas.flush_events()
+
+        plt.pause(0.1)
+
+    scene.close()

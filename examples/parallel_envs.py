@@ -1,12 +1,9 @@
+import argparse
+
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
 import simenv as sm
-
-
-ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
-THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
-DYLAN_UNITY_BUILD_URL = "integrations/Unity/Build/SimEnv.exe"
 
 
 def create_env(executable=None, port=None, headless=None):
@@ -63,8 +60,12 @@ def make_env(executable, rank, seed=0, headless=None):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build_exe", default=None, type=str, required=True, help="Pre-built unity app for simenv")
+    args = parser.parse_args()
+
     n_envs = 1
-    envs = SubprocVecEnv([make_env(DYLAN_UNITY_BUILD_URL, i) for i in range(n_envs)])
+    envs = SubprocVecEnv([make_env(args.build_exe, i) for i in range(n_envs)])
 
     obs = envs.reset()
     model = PPO("MultiInputPolicy", envs, verbose=3)

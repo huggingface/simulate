@@ -1,3 +1,5 @@
+import argparse
+
 from stable_baselines3 import PPO
 
 import simenv as sm
@@ -5,10 +7,6 @@ from simenv import ParallelRLEnvironment
 
 
 SIZE = 1
-
-ED_UNITY_BUILD_URL = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
-THOM_UNITY_BUILD_URL = "/Users/thomwolf/Documents/GitHub/hf-simenv/integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv"
-ALICIA_UNITY_BUILD_URL = "/home/alicia/github/simenv/integrations/Unity/builds/simenv_unity.x86_64"
 
 
 def generate_map(index):
@@ -53,8 +51,8 @@ def generate_map(index):
     return root
 
 
-def create_env():
-    scene = sm.Scene(engine="Unity")
+def create_env(build_exe=None):
+    scene = sm.Scene(engine="Unity", engine_exe=build_exe)
     scene += sm.LightSun()
     for y in range(SIZE):
         for x in range(SIZE):
@@ -64,17 +62,21 @@ def create_env():
     return scene
 
 
-def make_env():
+def make_env(build_exe=None):
     def _make_env(port):
-        env = create_env()
+        env = create_env(build_exe=build_exe)
         return env
 
     return _make_env
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    args = parser.parse_args()
+
     n_parallel = SIZE * SIZE
-    env_fn = make_env()
+    env_fn = make_env(build_exe=args.build_exe)
     env = ParallelRLEnvironment(env_fn=env_fn, n_parallel=n_parallel)
     model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
     model.learn(total_timesteps=100000)
