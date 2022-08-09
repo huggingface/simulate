@@ -14,7 +14,6 @@ def create_env(
     neighbors,
     seed,
     n_maps=64,
-    n_show=16,
     port=None,
     headless=None,
     **kwargs,
@@ -35,6 +34,7 @@ def create_env(
     while counter < n_maps and max_iterations > 0:
         success, root = create_map(
             executable=executable,
+            rank=counter,
             width=width,
             height=height,
             sample_map=sample_from,
@@ -49,6 +49,7 @@ def create_env(
 
         max_iterations -= 1
         if success:
+            root.position += [width * counter, 0, 0]
             counter += 1
             scene += root
 
@@ -61,6 +62,7 @@ def create_env(
 # TODO: bug with seed
 def make_env(
     executable,
+    rank,
     width=9,
     height=9,
     n_maps=8,
@@ -76,7 +78,7 @@ def make_env(
     Generate XLand RL env with certain width and height.
     """
 
-    def _make_env(port):
+    def _make_env():
         env = create_env(
             executable=executable,
             width=width,
@@ -85,7 +87,7 @@ def make_env(
             tiles=tiles,
             neighbors=neighbors,
             seed=seed,
-            port=port,
+            port=55000 + rank,
             headless=headless,
             n_maps=n_maps,
             n_show=n_show,

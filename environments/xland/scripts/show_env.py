@@ -10,8 +10,10 @@ from collections import defaultdict
 from os.path import join
 
 import numpy as np
-from xland import create_scene
+from xland import create_map
 from xland.utils import generate_tiles
+
+import simenv as sm
 
 
 if __name__ == "__main__":
@@ -61,8 +63,16 @@ if __name__ == "__main__":
             extra_args["sample_map"] = m
 
     t = time.time()
-    success, scene = create_scene(executable=args.build_exe, **vars(args), **extra_args, root=-1, nb_attempts=100)
+    success, root = create_map(**vars(args), **extra_args, root=-1, nb_attempts=100)
     print("Time in seconds to generate map: {}".format(time.time() - t))
+
+    is_pyvista = args.engine is None or args.engine.lower() == "pyvista"
+    if is_pyvista:
+        scene = sm.Scene()
+    else:
+        scene = sm.Scene(engine=args.engine, engine_exe=args.build_exe)
+        scene += sm.LightSun()
+    scene += root
 
     # If we want to show the map and we were successful
     if args.show and success:

@@ -169,7 +169,7 @@ def get_object_fn(obj):
         raise ValueError
 
 
-def create_objects(positions, object_type=None, object_size=0.5, n_instance=0):
+def create_objects(positions, object_type=None, object_size=0.5, rank=0):
     """
     Create objects in simenv.
     """
@@ -194,7 +194,7 @@ def create_objects(positions, object_type=None, object_size=0.5, n_instance=0):
 
     return [
         get_object_fn(obj)(
-            name=color_name + "_" + obj + "_" + str(n_instance),
+            name=color_name + "_" + obj + "_" + str(rank),
             position=pos,
             material=color,
             physics_component=sm.RigidBodyComponent(mass=0.2),

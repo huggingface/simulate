@@ -9,6 +9,7 @@ from .world import generate_map, get_positions
 
 
 def create_map(
+    rank,
     width,
     height,
     n_objects=3,
@@ -27,7 +28,6 @@ def create_map(
     symmetries=None,
     weights=None,
     neighbors=None,
-    root=-1,
     predicate="random",
     **kwargs,
 ):
@@ -56,7 +56,6 @@ def create_map(
         neighbors: neighborhood constraints to the tiles
         symmetries: level of symmetry for each of the tiles. See ProcgenGrid description for more details.
         weights: sampling weights for each of the tiles
-        root: return only root.
         predicate: type of predicate (random or None)
         **kwargs: Additional arguments. Handles unused args as well.
     Returns:
@@ -69,7 +68,6 @@ def create_map(
     # Initialize success and attempt variables
     success = False
     attempt = 0
-    root = 0
     nb_attempts = kwargs.get("nb_attempts", 10)
 
     while not success and attempt < nb_attempts:
@@ -115,7 +113,7 @@ def create_map(
                 sg,
                 obj_pos,
                 agent_pos,
-                root_value=root,
+                rank=rank,
                 predicate=predicate,
             )
 

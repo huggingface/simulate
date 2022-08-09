@@ -195,7 +195,7 @@ def generate_map(
     sg,
     obj_pos,
     agent_pos,
-    root_value=0,
+    rank,
     predicate="random",
 ):
     """
@@ -203,8 +203,7 @@ def generate_map(
     """
 
     # Create root
-    this_map = max(root_value, 0)
-    root = sm.Asset(name="root_" + str(this_map))
+    root = sm.Asset(name=f"root_{rank}")
 
     # Add colliders to StructuredGrid
     material = sm.Material.GRAY25
@@ -220,7 +219,7 @@ def generate_map(
     sg += generate_colliders(sg)
 
     # Add procedurally generated grid and sides and bottom
-    map_root = sm.Asset(name="map_root_" + str(this_map))
+    map_root = sm.Asset(name=f"map_root_{rank}")
     map_root += sg
     map_root += get_sides_and_bottom(x, y, z, material=material)
 
@@ -229,15 +228,15 @@ def generate_map(
     root += map_root
 
     # Add objects
-    objects_root = sm.Asset(name="objects_root_" + str(this_map))
-    objects = create_objects(obj_pos, n_instance=this_map)
+    objects_root = sm.Asset(name=f"objects_root_{rank}")
+    objects = create_objects(obj_pos, rank=rank)
     objects_root += objects
     root += objects_root
 
     # Add agent
     # TODO: Generate random predicates
-    agents_root = sm.Asset(name="agents_root_" + str(this_map))
-    agents_root += create_agents(agent_pos, objects, predicate=predicate, n_instance=this_map)
+    agents_root = sm.Asset(name=f"agents_root_{rank}")
+    agents_root += create_agents(agent_pos, objects, predicate=predicate, rank=rank)
     root += agents_root
 
     return root
