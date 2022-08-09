@@ -1,3 +1,5 @@
+import argparse
+
 from stable_baselines3 import PPO
 from stable_baselines3.common.vec_env import SubprocVecEnv
 
@@ -19,22 +21,12 @@ def create_env(executable=None, port=None, headless=None):
     scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
     collectable = sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
-
-    agent = sm.SimpleRlAgent(
-        sensors=[
-            sm.CameraSensor(width=64, height=40, position=[0, 0.75, 0]),
-            sm.StateSensor(None, collectable, properties=["position.x", "position.z", "distance"]),
-        ],
-        position=[0.0, 0.0, 0.0],
-    )
-
     scene += collectable
 
-    reward_function = sm.RewardFunction(
-        type="dense", entity_a=agent, entity_b=collectable, distance_metric="euclidean"
-    )
+    agent = sm.SimpleRlAgent(position=[0, 0, 0], reward_target=collectable)
+    scene += agent
 
-    reward_function2 = sm.RewardFunction(
+    sparse_reward = sm.RewardFunction(
         type="sparse",
         entity_a=agent,
         entity_b=collectable,
@@ -43,7 +35,7 @@ def create_env(executable=None, port=None, headless=None):
         is_terminal=True,
         is_collectable=True,
     )
-    timeout_reward_function = sm.RewardFunction(
+    timeout_reward = sm.RewardFunction(
         type="timeout",
         entity_a=agent,
         entity_b=agent,
@@ -52,13 +44,10 @@ def create_env(executable=None, port=None, headless=None):
         is_terminal=True,
         scalar=-1.0,
     )
-    agent.add_reward_function(reward_function)
-    agent.add_reward_function(reward_function2)
-    agent.add_reward_function(timeout_reward_function)
-    scene += agent
-    scene.show()
+    agent.add_reward_function(sparse_reward)
+    agent.add_reward_function(timeout_reward)
 
-    return scene
+    return sm.RLEnvironment(scene)
 
 
 def make_env(executable, rank, seed=0, headless=None):
@@ -71,10 +60,12 @@ def make_env(executable, rank, seed=0, headless=None):
 
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build_exe", default=None, type=str, required=True, help="Pre-built unity app for simenv")
+    args = parser.parse_args()
+
     n_envs = 1
-    # envs = SubprocVecEnv([make_env("/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64", i) for i in range(n_envs)])
-    envs = SubprocVecEnv([make_env(None, i) for i in range(n_envs)])
-    print(envs.observation_space)
+    envs = SubprocVecEnv([make_env(args.build_exe, i) for i in range(n_envs)])
 
     obs = envs.reset()
     model = PPO("MultiInputPolicy", envs, verbose=3)

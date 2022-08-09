@@ -1,72 +1,139 @@
 using System.Collections.Generic;
 using UnityEngine;
-using System.Collections;
-using SimEnv.RlActions;
 using SimEnv.GLTF;
+using System.Linq;
 
 namespace SimEnv.RlAgents {
     public class Agent {
-        public Node node;
-        public Rigidbody body;
-        public RlAction actions;
-        private List<string> sensorNames = new List<string>();
-        private List<ISensor> sensors = new List<ISensor>();
-        private List<RewardFunction> rewardFunctions = new List<RewardFunction>();
+        public Node node { get; private set; }
+        public HFRlAgents.ActionSpace actionSpace { get; private set; }
 
-        // TODO check and update in particular with reset
-        private const bool HUMAN = false;
-        private float accumReward = 0.0f;
-        private Vector3 originalPosition;
-        private Quaternion originalRotation;
+        Dictionary<string, object> observations = new Dictionary<string, object>();
+        List<RewardFunction> rewardFunctions = new List<RewardFunction>();
+        float accumReward;
 
-        // TODO remove
-        // private const float radius = .25f;
-        // public RenderCamera cam;
-
-        public Agent(Node node, HFRlAgents.HFRlAgentsComponent agentData) {
+        public Agent(Node node) {
             this.node = node;
-            node.referenceObject = this;
-            node.tag = "Agent";
-            SetProperties(agentData);
-            //AgentManager.instance.Register(this);
+            node.gameObject.tag = "Agent";
+            Initialize();
         }
 
-        public void Initialize() {
-            // We setup the rigid body
-            body = node.gameObject.GetComponent<Rigidbody>();
+        void Initialize() {
+            if (node.agentData == null) {
+                Debug.LogWarning("Agent missing action data");
+                return;
+            }
+            if (node.agentData.box_actions == null && node.agentData.discrete_actions == null) {
+                Debug.LogWarning("At least one action space required.");
+                return;
+            }
+            if (node.agentData.box_actions != null)
+                actionSpace = node.agentData.box_actions;
+            else if (node.agentData.discrete_actions != null)
+                actionSpace = node.agentData.discrete_actions;
 
-            // We connect the observation devices to the agent now that the whole scene is imported
-            foreach (string sensorName in sensorNames) {
-                Debug.Log("Finding sensor" + sensorName);
-                Node sensorNode = GameObject.Find(sensorName).GetComponent<Node>();
-
-                if (sensorNode != null) {
-                    Debug.Log("Adding observation device " + sensorName + sensorNode.sensor);
-                    sensors.Add(sensorNode.sensor);
-                } else {
-                    Debug.LogError("Could not find observation device " + sensorName);
+            rewardFunctions = new List<RewardFunction>();
+            if (node.agentData.reward_functions != null) {
+                foreach (HFRlAgents.HFRlAgentsReward reward in node.agentData.reward_functions) {
+                    if (!TryGetRewardFunction(reward, out RewardFunction rewardFunction)) {
+                        Debug.LogWarning("Failed to get reward function");
+                        continue;
+                    }
+                    rewardFunctions.Add(rewardFunction);
                 }
             }
-            // actions.Print();
         }
 
-        public RewardFunction GetRewardFunction(HFRlAgents.HFRlAgentsReward reward) {
-            // Debug.Log("Creating reward function");
-            // get the shared properties
-            // Debug.Log("Finding entity_a " + reward.entity_a);
-            // Debug.Log("Finding entity_b " + reward.entity_b);
-            GameObject entity_a = GameObject.Find(reward.entity_a);
-            GameObject entity_b = GameObject.Find(reward.entity_b);
+        public void Step(object action) {
+            foreach (string cameraName in node.agentData.camera_sensors.Select(x => x.camera)) {
+                if (!Simulator.nodes.TryGetValue(cameraName, out Node cameraNode) || cameraNode.camera == null) {
+                    Debug.LogWarning($"Couldn't find camera {cameraName}");
+                    continue;
 
-            if (entity_a == null) {
-                Debug.LogWarning("Failed to find entity_a " + reward.entity_a);
+                }
+                cameraNode.camera.camera.enabled = true;
             }
-            if (entity_b == null) {
-                Debug.LogWarning("Failed to find entity_b " + reward.entity_b);
+            this.ExecuteAction(action);
+            UpdateReward();
+        }
+
+        public Data GetEventData() {
+            Data data = new Data() {
+                done = IsDone(),
+                reward = GetReward(),
+                frames = GetCameraObservations(),
+            };
+            ZeroReward();
+            return data;
+        }
+
+        Dictionary<string, uint[,,]> GetCameraObservations() {
+            Dictionary<string, uint[,,]> cameras = new Dictionary<string, uint[,,]>();
+            foreach (string cameraName in node.agentData.camera_sensors.Select(x => x.camera)) {
+                if (!Simulator.nodes.TryGetValue(cameraName, out Node cameraNode) || cameraNode.camera == null) {
+                    Debug.LogWarning($"Couldn't find camera {cameraName}");
+                    continue;
+                }
+                cameraNode.camera.CopyRenderResultToBuffer(out uint[,,] buffer);
+                cameraNode.camera.camera.enabled = false;
+                cameras.Add(cameraName, buffer);
             }
+            return cameras;
+        }
+
+        public void UpdateReward() {
+            accumReward += CalculateReward();
+        }
+
+        public void Reset() {
+            accumReward = 0.0f;
+            foreach (RewardFunction rewardFunction in rewardFunctions)
+                rewardFunction.Reset();
+        }
+
+        public float CalculateReward() {
+            float reward = 0.0f;
+            foreach (RewardFunction rewardFunction in rewardFunctions)
+                reward += rewardFunction.CalculateReward();
+            return reward;
+        }
+
+        public float GetReward() {
+            return accumReward;
+        }
+
+        public void ZeroReward() {
+            accumReward = 0.0f;
+        }
+
+        public bool IsDone() {
+            // TODO: currently the reward functions identify which objects correspond to terminal states
+            // Implement: episode termination
+            bool done = false;
+            foreach (RewardFunction rewardFunction in rewardFunctions) {
+                if (rewardFunction is SparseRewardFunction) {
+                    var sparseRewardFunction = rewardFunction as SparseRewardFunction;
+                    done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);
+                } else if (rewardFunction is RewardFunctionPredicate) {
+                    var rewardFunctionPredicate = rewardFunction as RewardFunctionPredicate;
+                    done = done | (rewardFunctionPredicate.hasTriggered && rewardFunctionPredicate.isTerminal);
+                }
+            }
+            return done;
+        }
+
+        public bool TryGetRewardFunction(HFRlAgents.HFRlAgentsReward reward, out RewardFunction rewardFunction) {
+            rewardFunction = null;
+            if (!Simulator.nodes.TryGetValue(reward.entity_a, out Node entity_a)) {
+                Debug.LogWarning($"Failed to find node {reward.entity_a}");
+                return false;
+            }
+            if (!Simulator.nodes.TryGetValue(reward.entity_b, out Node entity_b)) {
+                Debug.LogWarning($"Failed to find node {reward.entity_b}");
+                return false;
+            }
+
             IDistanceMetric distanceMetric = null; // refactor this to a reward factory?
-            RewardFunction rewardFunction = null;
-
             switch (reward.distance_metric) {
                 case "euclidean":
                     distanceMetric = new EuclideanDistance();
@@ -94,243 +161,51 @@ namespace SimEnv.RlAgents {
                         entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable, reward.trigger_once);
                     break;
                 case "and":
+                    if (!TryGetRewardFunction(reward.reward_function_a, out RewardFunction a) || !TryGetRewardFunction(reward.reward_function_b, out RewardFunction b))
+                        return false;
                     rewardFunction = new RewardFunctionAnd(
-                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
-                            entity_a, entity_b, distanceMetric, reward.is_terminal);
+                        a, b, entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
-                
+
                 case "or":
+                    if (!TryGetRewardFunction(reward.reward_function_a, out a) || !TryGetRewardFunction(reward.reward_function_b, out b))
+                        return false;
                     rewardFunction = new RewardFunctionOr(
-                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
-                            entity_a, entity_b, distanceMetric, reward.is_terminal);
+                        a, b, entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
 
                 case "xor":
+                    if (!TryGetRewardFunction(reward.reward_function_a, out a) || !TryGetRewardFunction(reward.reward_function_b, out b))
+                        return false;
                     rewardFunction = new RewardFunctionXor(
-                        GetRewardFunction(reward.reward_function_a), GetRewardFunction(reward.reward_function_b), 
-                            entity_a, entity_b, distanceMetric, reward.is_terminal);
+                        a, b, entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
-                
+
                 case "not":
+                    if (!TryGetRewardFunction(reward.reward_function_a, out a))
+                        return false;
                     rewardFunction = new RewardFunctionNot(
-                        GetRewardFunction(reward.reward_function_a), entity_a, entity_b, distanceMetric, reward.is_terminal);
+                        a, entity_a, entity_b, distanceMetric, reward.is_terminal);
                     break;
 
                 case "see":
                     rewardFunction = new SeeRewardFunction(
-                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, 
+                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal,
                         reward.is_collectable, reward.trigger_once);
                     break;
 
                 default:
                     Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
                     break;
-        }
-        return rewardFunction;
-    }
-
-        public void SetProperties(HFRlAgents.HFRlAgentsComponent agentData) {
-            // Debug.Log("Setting Agent properties");
-
-            originalPosition = node.transform.localPosition;
-            originalRotation = node.transform.localRotation;
-
-            // Store pointers to all our observation devices
-            sensorNames = agentData.sensorNames;
-
-            // Create our agent actions
-            HFRlAgents.HFRlAgentsActions gl_act = agentData.actions;
-            switch (gl_act.type) {
-                case "MappedDiscrete":
-                    actions = new MappedDiscreteAction(
-                        n: gl_act.n,
-                        physics: gl_act.physics,
-                        amplitudes: gl_act.amplitudes,
-                        clip_low: gl_act.clip_low,
-                        clip_high: gl_act.clip_high);
-                    break;
-                case "MappedBox":
-                    actions = new MappedContinuousAction(
-                        low: gl_act.low,
-                        high: gl_act.high,
-                        shape: gl_act.shape,
-                        dtype: gl_act.dtype,
-                        physics: gl_act.physics,
-                        scaling: gl_act.scaling,
-                        offset: gl_act.offset,
-                        clip_low: gl_act.clip_low,
-                        clip_high: gl_act.clip_high);
-                    break;
-                default:
-                    Debug.Assert(false, "We currently only support MappedDiscrete and MappedBox actions");
-                    break;
             }
 
-            // TODO(thom, dylan, ed) Do we want to emulate this at some point?
-            // controller.slopeLimit = 45;
-            // controller.stepOffset = .3f;
-            // controller.skinWidth = .08f;
-            // controller.minMoveDistance = .001f;
-            // controller.center = Vector3.y * height / 2f;
-            // controller.radius = radius;
-            // controller.height = height;
-            // SetupModel();
-
-            // add the reward functions to the agent
-            List<HFRlAgents.HFRlAgentsReward> gl_rewardFunctions = agentData.rewards;
-            foreach (var reward in gl_rewardFunctions) {
-                RewardFunction rewardFunction = GetRewardFunction(reward);
-                rewardFunctions.Add(rewardFunction);
-            }
+            return true;
         }
 
-        public void AgentUpdate(float frameRate) {
-            float timeStep = 1.0f / frameRate;
-            if (HUMAN) {
-                // Human control
-                float x = Input.GetAxis("Horizontal");
-                float z = Input.GetAxis("Vertical");
-                float r = 0.0f;
-
-                Vector3 positionOffset = new Vector3(x, 0, z);
-                Quaternion rotation = Quaternion.Euler(0, r, 0);
-
-                Vector3 newPosition = body.position + node.gameObject.transform.TransformDirection(positionOffset);
-                Quaternion newRotation = body.rotation * rotation;
-
-                body.MovePosition(newPosition);
-                body.MoveRotation(newRotation);
-
-                if (Input.GetKeyUp("r")) {
-                    // Debug.Log("Agent reset");
-                    body.MovePosition(Vector3.zero);
-                    body.MoveRotation(Quaternion.identity);
-                }
-            } else {
-                // RL control
-                if (actions.positionOffset != Vector3.zero) {
-                    // Debug.Log("Position offset: " + actions.positionOffset);
-                    Vector3 newPosition = body.position + node.gameObject.transform.TransformDirection(actions.positionOffset * timeStep);
-                    // Debug.Log("body.position: " + body.position);
-                    // Debug.Log("newPosition: " + newPosition);
-                    body.MovePosition(newPosition);
-                }
-                if (actions.rotation != Vector3.zero) {
-                    // Debug.Log("Rotation offset: " + actions.rotation);
-                    Quaternion newRotation = body.rotation * Quaternion.Euler(actions.rotation * timeStep);
-                    // Debug.Log("body.rotation: " + body.rotation);
-                    // Debug.Log("newRotation: " + newRotation);
-                    body.MoveRotation(newRotation);
-                }
-                if (actions.velocity != Vector3.zero) {
-                    // Debug.Log("Velocity change: " + actions.velocity);
-                    Vector3 localForce = node.gameObject.transform.TransformDirection(actions.velocity * timeStep);
-                    body.AddRelativeForce(localForce);
-                }
-                if (actions.torque != Vector3.zero) {
-                    // Debug.Log("Torque change: " + actions.torque);
-                    Vector3 localTorque = node.gameObject.transform.TransformDirection(actions.torque * timeStep);
-                    body.AddRelativeTorque(localTorque);
-                }
-            }
-        }
-
-        public void UpdateReward() {
-            accumReward += CalculateReward();
-        }
-
-        public void Reset() {
-            accumReward = 0.0f;
-            // Reset the agent
-            node.gameObject.transform.localPosition = originalPosition;
-            node.gameObject.transform.localRotation = originalRotation;
-
-            // Reset reward objects?
-            // Reset reward functions
-
-            foreach (RewardFunction rewardFunction in rewardFunctions) {
-                rewardFunction.Reset();
-            }
-        }
-
-        public float CalculateReward() {
-            float reward = 0.0f;
-
-            foreach (RewardFunction rewardFunction in rewardFunctions) {
-                reward += rewardFunction.CalculateReward();
-            }
-            return reward;
-        }
-
-        public float GetReward() {
-            return accumReward;
-        }
-        public void ZeroReward() {
-            accumReward = 0.0f;
-        }
-
-        public bool IsDone() {
-            // TODO: currently the reward functions identify which objects correspond to terminal states
-            // Implement: episode termination
-            bool done = false;
-            foreach (RewardFunction rewardFunction in rewardFunctions) {
-                if (rewardFunction is SparseRewardFunction) {
-                    var sparseRewardFunction = rewardFunction as SparseRewardFunction;
-                    done = done | (sparseRewardFunction.hasTriggered && sparseRewardFunction.isTerminal);
-                }
-                else if (rewardFunction is RewardFunctionPredicate) {
-                    var rewardFunctionPredicate = rewardFunction as RewardFunctionPredicate;
-                    done = done | (rewardFunctionPredicate.hasTriggered && rewardFunctionPredicate.isTerminal);
-                }
-            }
-            return done;
-        }
-
-        public List<int> GetObservationSizes() {
-            List<int> sizes = new List<int>();
-            foreach (var sensor in sensors) {
-                sizes.Add(sensor.GetSize());
-            }
-            return sizes;
-        }
-
-        public List<int[]> GetObservationShapes() {
-            List<int[]> shapes = new List<int[]>();
-            foreach (var sensor in sensors) {
-                shapes.Add(sensor.GetShape());
-            }
-            return shapes;
-        }
-
-        public List<string> GetSensorNames() {
-            List<string> names = new List<string>();
-            foreach (var sensor in sensors) {
-                names.Add(sensor.GetName());
-            }
-            return names;
-        }
-
-        public List<string> GetSensorTypes() {
-            List<string> types = new List<string>();
-            foreach (var sensor in sensors) {
-                types.Add(sensor.GetSensorType());
-            }
-            return types;
-        }
-
-        public IEnumerator GetObservationCoroutine(List<SensorBuffer> buffers, List<int> sizes, int index) {
-            List<Coroutine> coroutines = new List<Coroutine>();
-            for (int i = 0; i < sensors.Count; i++) {
-                Coroutine coroutine = sensors[i].GetObs(buffers[i], sizes[i] * index).RunCoroutine(); ;
-                coroutines.Add(coroutine);
-            }
-            foreach (var coroutine in coroutines) {
-                yield return coroutine;
-            }
-        }
-
-        public void SetAction(List<float> step_action) {
-            actions.SetAction(step_action);
+        public class Data {
+            public bool done;
+            public float reward;
+            public Dictionary<string, uint[,,]> frames;
         }
     }
 }

@@ -8,7 +8,7 @@ namespace SimEnv.GLTF {
             AnimationClip[] animations;
             if(importSettings == null)
                 importSettings = new ImportSettings();
-            GameObject root = Importer.LoadFromFile(ctx.assetPath, importSettings, out animations, Format.GLB);
+            GameObject root =Importer.LoadFromFile(ctx.assetPath, importSettings, out animations, Format.GLB);
             GLTFAssetUtility.SaveToAsset(root, animations, ctx, importSettings);
         }
     }

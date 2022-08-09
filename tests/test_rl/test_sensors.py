@@ -15,8 +15,6 @@
 import unittest
 
 # Lint as: python3
-from functools import partial
-
 import numpy as np
 
 import simenv as sm
@@ -25,7 +23,8 @@ import simenv as sm
 # TODO add more tests on saving/exporting/loading in gltf files
 class ObservationsTest(unittest.TestCase):
     def test_map_sensors_to_spaces(self):
-        camera_sensor = sm.CameraSensor(height=64, width=64)
+        cam = sm.Camera(height=64, width=64)
+        camera_sensor = sm.CameraSensor(camera=cam)
         space = sm.map_sensors_to_spaces(camera_sensor)
 
         self.assertEqual(space.shape, (3, 64, 64))
@@ -37,6 +36,5 @@ class ObservationsTest(unittest.TestCase):
         self.assertEqual(space.shape, (5,))
         self.assertEqual(space.dtype, np.float32)
 
-        typo_state_sensor = sm.StateSensor(None, None, properties=["position", "distance", "position,x"])
-        f = partial(sm.map_sensors_to_spaces, typo_state_sensor)
-        self.assertRaises(KeyError, f)
+        with self.assertRaises(ValueError):
+            _ = sm.StateSensor(None, None, properties=["position", "distance", "position,x"])

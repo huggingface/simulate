@@ -1,151 +1,63 @@
-using System;
-using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 
 namespace SimEnv.RlAgents {
-    public class AgentManager {
-        public static AgentManager instance;
+    public class AgentManager : PluginBase {
+        public static AgentManager instance { get; private set; }
 
-        List<Agent> _agents;
-        public List<Agent> agents {
-            get {
-                _agents ??= new List<Agent>();
-                return _agents;
+        static Dictionary<string, Agent> agents;
+
+        public AgentManager() {
+            instance = this;
+            agents = new Dictionary<string, Agent>();
+        }
+
+        // Find agent nodes
+        public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
+            foreach (Node node in Simulator.nodes.Values) {
+                if (node.agentData != null)
+                    agents.Add(node.name, new Agent(node));
             }
         }
-        int obsSize;
-        uint[] agentPixelValues;
-        float physicsUpdateRate;
-        int frameSkip;
 
-        // public void Initialize() {
-        //     // for (int i = 0; i < agents.Count; i++) {
-        //     //     agents[i].Initialize();
-        //     // }
-        //     // Agent exampleAgent = agents[0] as Agent;
-        //     // obsSize = exampleAgent.getObservationSizes();
-        //     // agentPixelValues = new uint[agents.Count * obsSize];
+        // Before simulator steps forward, execute agent actions
+        public override void OnBeforeStep(EventData eventData) {
+            if (eventData.inputKwargs.ContainsKey("action")) {
+                try {
+                    Dictionary<string, object> actions = eventData.inputKwargs.Parse<Dictionary<string, object>>("action");
+                    foreach (string key in actions.Keys) {
+                        if (!agents.TryGetValue(key, out Agent agent)) {
+                            Debug.LogWarning($"Agent {key} not found");
+                            continue;
+                        }
+                        agent.Step(actions[key]);
+                    }
+                } catch (System.Exception e) {
+                    Debug.LogWarning("Failed to parse actions: " + e);
+                }
+            }
+        }
 
-        //     // frameSkip = Client.instance.frameSkip;
-        //     // physicsUpdateRate = Client.instance.physicsUpdateRate;
-        // }
+        // After simulator steps forward, record agent reward and observations
+        public override void OnStep(EventData eventData) {
+            if (agents.Count == 0) return;
+            Dictionary<string, Agent.Data> agentEventData = new Dictionary<string, Agent.Data>();
+            foreach (string key in agents.Keys) {
+                Agent agent = agents[key];
+                Agent.Data data = agent.GetEventData();
+                agentEventData.Add(key, data);
+                agent.ZeroReward();
+            }
+            eventData.outputKwargs.Add("agents", agentEventData);
+        }
 
-        // public void Register(Agent agent) {
-        //     if (!agents.Contains(agent))
-        //         agents.Add(agent);
-        // }
+        public override void OnReset() {
+            foreach (Agent agent in agents.Values)
+                agent.Reset();
+        }
 
-        // public void Step(List<List<float>> actions) {
-        //     if (agents != null) {
-        //         for (int i = 0; i < agents.Count; i++) {
-        //             Agent agent = agents[i] as Agent;
-        //             List<float> action = actions[i];
-        //             agent.SetAction(action);
-        //         }
-        //     } else {
-        //         Debug.LogWarning("Attempting to step environment without an Agent");
-        //     }
-        //     // Debug.Log("Doing " + frameSkip + " steps");
-        //     for (int j = 0; j < frameSkip; j++) {
-        //         if (agents != null) {
-        //             for (int i = 0; i < agents.Count; i++) {
-        //                 Agent agent = agents[i] as Agent;
-        //                 agent.AgentUpdate(physicsUpdateRate);
-        //             }
-        //         } else {
-        //             Debug.LogWarning("Attempting to step environment without an Agent");
-        //         }
-        //         Simulator.Step(1, physicsUpdateRate);
-        //         // RewardFunction has to be updated after the simulate start as it is the result of the action the agent just took.
-        //         if (agents != null) {
-        //             for (int i = 0; i < agents.Count; i++) {
-        //                 Agent agent = agents[i] as Agent;
-        //                 agent.UpdateReward();
-        //             }
-        //         } else {
-        //             Debug.LogWarning("Attempting to step environment without an Agent");
-        //         }
-        //     }
-        // }
-
-        // public void GetObservation(UnityAction<string> callback) {
-        //     GetObservationCoroutine(callback).RunCoroutine();
-        // }
-
-        // private IEnumerator GetObservationCoroutine(UnityAction<string> callback) {
-        //     Agent exampleAgent = agents[0] as Agent;
-        //     // the coroutine has to be started from a monobehavior or something like that
-
-        //     int[] obsShape = exampleAgent.getObservationShape();
-
-        //     List<Coroutine> coroutines = new List<Coroutine>();
-        //     for (int i = 0; i < agents.Count; i++) {
-        //         Agent agent = agents[i] as Agent;
-        //         Coroutine coroutine = agent.GetObservationCoroutine(agentPixelValues, i * obsSize).RunCoroutine();
-        //         coroutines.Add(coroutine);
-        //     }
-
-        //     foreach (var coroutine in coroutines) {
-        //         yield return coroutine;
-        //     }
-
-        //     int[] shapeWithAgents = new int[obsShape.Length + 1];
-        //     shapeWithAgents[0] = agents.Count;                                // set the prepended value
-        //     Array.Copy(obsShape, 0, shapeWithAgents, 1, obsShape.Length); // copy the old values
-
-        //     Debug.Log("Casting back observations in JSON");
-        //     string string_array = JsonHelper.ToJson(agentPixelValues, shapeWithAgents);
-        //     Debug.Log("Sending back observations");
-        //     callback(string_array);
-        // }
-
-        // public float[] GetReward() {
-        //     List<float> rewards = new List<float>();
-        //     if (agents != null) {
-        //         // Calculate the agent's reward for the current timestep 
-        //         for (int i = 0; i < agents.Count; i++) {
-        //             Agent agent = agents[i] as Agent;
-        //             rewards.Add(agent.GetReward());
-        //             agent.ZeroReward();
-        //         }
-        //     } else {
-        //         Debug.LogWarning("Attempting to get a reward without an Agent");
-        //     }
-        //     return rewards.ToArray<float>();
-        // }
-
-        // public bool[] GetDone() {
-        //     // Check if the agent is in a terminal state 
-        //     // TODO: add option for auto reset
-        //     List<bool> dones = new List<bool>();
-        //     if (agents != null) {
-        //         // Calculate the agent's reward for the current timestep 
-        //         for (int i = 0; i < agents.Count; i++) {
-        //             Agent agent = agents[i] as Agent;
-        //             dones.Add(agent.IsDone());
-        //         }
-        //     } else {
-        //         Debug.LogWarning("Attempting to get a reward without an Agent");
-        //     }
-        //     return dones.ToArray<bool>();
-        // }
-
-        // public void ResetAgents() {
-        //     // Reset the Agent & the environment # 
-        //     // TODO add the environment reset, changing maps, etc!
-
-        //     if (agents != null) {
-        //         // Calculate the agent's reward for the current timestep 
-        //         for (int i = 0; i < agents.Count; i++) {
-        //             Agent agent = agents[i] as Agent;
-        //             agent.Reset();
-        //         }
-        //     } else {
-        //         Debug.LogWarning("Attempting to reset without an Agent");
-        //     }
-        // }
+        public override void OnBeforeSceneUnloaded() {
+            agents.Clear();
+        }
     }
 }

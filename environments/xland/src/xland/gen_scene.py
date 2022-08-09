@@ -31,7 +31,7 @@ def create_scene(
     executable=None,
     port=None,
     headless=None,
-    root=0,
+    root=-1,
     predicate="random",
     **kwargs,
 ):
@@ -113,6 +113,7 @@ def create_scene(
             n_agents=n_agents,
             threshold=kwargs.get("threshold", 0.5),
             enforce_lower_floor=kwargs.get("enforce_lower_floor", True),
+            verbose=verbose,
         )
 
         # If there is no enough area, we should try again and continue the loop

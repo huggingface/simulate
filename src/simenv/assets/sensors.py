@@ -1,12 +1,25 @@
-import itertools
+# Copyright 2022 The HuggingFace Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lint as: python3
+""" Sensors for the RL Agent."""
 from cmath import inf
-from typing import List, Optional
+from dataclasses import dataclass
+from typing import Any, List, Optional, Union
 
 import numpy as np
-
-from simenv.assets.asset import Asset
-
-from .camera import Camera
+from dataclasses_json import dataclass_json
 
 
 try:
@@ -15,69 +28,85 @@ except ImportError:
     pass
 
 
-def map_sensors_to_spaces(sensor: "Sensor"):
-    if isinstance(sensor, CameraSensor):
-        return spaces.Box(low=0, high=255, shape=[3, sensor.height, sensor.width], dtype=np.uint8)
-    elif isinstance(sensor, StateSensor):
-        return spaces.Box(low=-inf, high=inf, shape=[get_state_sensor_n_properties(sensor)], dtype=np.float32)
-    raise NotImplementedError(
-        f"This Asset ({type(Asset)})is not yet implemented " f"as an RlAgent type of observation."
-    )
+ALLOWED_STATE_SENSOR_PROPERTIES = {
+    "position": 3,
+    "position.x": 1,
+    "position.y": 1,
+    "position.z": 1,
+    "rotation": 3,
+    "rotation.x": 1,
+    "rotation.y": 1,
+    "rotation.z": 1,
+    "distance": 1,
+}
 
 
 def get_state_sensor_n_properties(sensor):
-    VALID_PROPERTIES = {
-        "position": 3,
-        "position.x": 1,
-        "position.y": 1,
-        "position.z": 1,
-        "rotation": 3,
-        "rotation.x": 1,
-        "rotation.y": 1,
-        "rotation.z": 1,
-        "distance": 1,
-    }
-
     n_features = 0
     for property in sensor.properties:
-        if property not in VALID_PROPERTIES.keys():
-            print(f"The property {property} is not a valid StateSensor property")
-            raise KeyError
-
-        n_features += VALID_PROPERTIES[property]
+        n_features += ALLOWED_STATE_SENSOR_PROPERTIES[property]
 
     return n_features
 
 
-class Sensor:
-    @property
-    def sensor_name(self):
-        return type(self).__name__
+@dataclass_json
+@dataclass
+class CameraSensor:
+    """A Camera sensor (just a pointer to a Camera object)
+
+    Attributes:
+        camera: Reference (or string name) of a Camera asset in the scene
+    """
+
+    camera: Any
 
 
-class CameraSensor(Camera, Sensor):
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+@dataclass_json
+@dataclass
+class StateSensor:
+    """A State sensor: pointer to two assets whose positions/rotations are used to compute an observation
 
-    def __init__(self, **kwargs):
-        Camera.__init__(self, **kwargs)
+    Attributes:
+        target_entity: Reference (or string name) of the target Asset in the scene
+        reference_entity: Reference (or string name) of the reference Asset in the scene
+            If no reference is provided we use the world as a reference
+        type: How should we compute the observation, selected in the list of:
+            - "position": the position of the target asset
+            - "rotation": the rotation of the target asset
+            - "distance": the distance to the target asset (default)
+    """
+
+    target_entity: Any
+    reference_entity: Optional[Any] = None
+    properties: Optional[List[str]] = None
+
+    def __post_init__(self):
+        if self.properties is None:
+            self.properties = ["distance"]
+        elif any(properties_ not in ALLOWED_STATE_SENSOR_PROPERTIES for properties_ in self.properties):
+            raise ValueError(
+                f"The properties {self.properties} is not a valid StateSensor properties"
+                f"\nAllowed properties are: {ALLOWED_STATE_SENSOR_PROPERTIES}"
+            )
 
 
-class StateSensor(Asset, Sensor):
-    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+@dataclass_json
+@dataclass
+class RaycastSensor:
+    """A Raycast sensor: cast a ray to get an observation"""
 
-    def __init__(
-        self,
-        reference_entity: Optional[Asset] = None,
-        target_entity: Optional[Asset] = None,
-        properties: Optional[List[str]] = ["position"],
-        **kwargs,
-    ):
-        Asset.__init__(self, **kwargs)
-        self.reference_entity = reference_entity
-        self.target_entity = target_entity
-        self.properties = properties  # e.g. [position, rotation, position.x, distance]
+    n_rays: int = 1
+    axis: Optional[List[float]] = None
 
-
-class RaycastSensor(Asset, Sensor):
-    def __init__(self, n_rays=1, **kwargs):
+    def __post_init__(self):
         raise NotImplementedError
+
+
+def map_sensors_to_spaces(sensor: Union[CameraSensor, StateSensor, RaycastSensor]) -> spaces.Space:
+    if isinstance(sensor, CameraSensor):
+        return spaces.Box(low=0, high=255, shape=[3, sensor.camera.height, sensor.camera.width], dtype=np.uint8)
+    elif isinstance(sensor, StateSensor):
+        return spaces.Box(low=-inf, high=inf, shape=[get_state_sensor_n_properties(sensor)], dtype=np.float32)
+    raise NotImplementedError(
+        f"This sensor ({type(sensor)})is not yet implemented " f"as an RlAgent type of observation."
+    )

@@ -6,16 +6,6 @@ import socket
 from .engine import Engine
 
 
-PRIMITIVE_TYPE_MAPPING = {
-    "Sphere": 0,
-    "Capsule": 1,
-    "Cylinder": 2,
-    "Box": 3,
-    "Plane": 4,
-    "Quad": 5,
-}
-
-
 class GodotEngine(Engine):
     def __init__(self, scene, auto_update=True, start_frame=0, end_frame=500, frame_rate=24):
         super().__init__(scene=scene, auto_update=auto_update)
@@ -66,7 +56,7 @@ class GodotEngine(Engine):
     def show(self, **engine_kwargs):
         self._send_gltf(self._scene.as_glb_bytes())
 
-    def step(self, action):
+    def step(self, action=None):
         command = {"type": "Step", "contents": {"action": action}}
         return self.run_command(command)
 

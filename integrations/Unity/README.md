@@ -4,9 +4,12 @@
 Currently we use Unity version `2021.3.2f1` as the development version.
 
 To install and run the project in Unity:
-- First install Unity `2021.3.2f1` using the Unity Hub if you don't have it
+- First install Unity `2021.3.2f1` using the Unity Hub if you don't have it. 
 - From the Unity Hub, open the project at `./integrations/Unity/simenv-unity`
 - Open the Sample Scene or create a new scene with an empty GameObject with a `Client.cs` component attached
+
+(Note that installation of this specific version on Apple Silicon Mac's has been tricky -- to do so, first install Unity Hub, then download the [source](https://unity3d.com/get-unity/download/archive) package from Unity directly, then install the package. 
+It is easiest to do this from a fresh Unity install; detecting the second from-source Unity editor version is more challenging.)
 
 ### Run with the Unity engine
 1. If it's not already opened, open the Unity project with Scene with a GameObject with a `Client.cs` component attached.

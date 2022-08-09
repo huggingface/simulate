@@ -1,6 +1,8 @@
 // adapted from https://github.com/Siccity/GLTFUtility/blob/3d5d97d7e174bde3c5e58b6f02301de36f7f6eb7/Scripts/Extensions.cs
 using System;
 using System.Collections;
+using System.Collections.Generic;
+using Newtonsoft.Json.Linq;
 using UnityEngine;
 
 namespace SimEnv {
@@ -11,6 +13,23 @@ namespace SimEnv {
                 return null;
             }
             return Simulator.instance.StartCoroutine(item);
+        }
+
+        public static T Parse<T>(this Dictionary<string, object> kwargs, string key, bool silent = false) {
+            if (!kwargs.TryGetValue(key, out object value)) {
+                if(!silent)
+                    Debug.LogWarning("Key not found in kwargs");
+                return default(T);
+            }
+            try {
+                if (typeof(T).IsPrimitive)
+                    return (T)Convert.ChangeType(value, typeof(T));
+                JObject jObject = JObject.FromObject(value);
+                return jObject.ToObject<T>();
+            } catch(Exception e) {
+                Debug.LogWarning($"Failed to parse object with key {key} to type {typeof(T)}: {e}");
+                return default(T);
+            }
         }
 
         public static T[] SubArray<T>(this T[] data, int index, int length) {

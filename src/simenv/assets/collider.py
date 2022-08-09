@@ -17,24 +17,35 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from .gltflib.enums.collider_type import ColliderType
+from .gltf_extension import GltfExtensionMixin
+
+
+ALLOWED_COLLIDER_TYPES = ["box", "sphere", "capsule", "mesh"]
 
 
 @dataclass
-class Collider:
+class Collider(GltfExtensionMixin, gltf_extension_name="HF_colliders"):
     """
     A physics collider.
 
     Properties:
-    type (ColliderType) The shape of the collider. (Optional, default Box)
-    bounding_box (number[3]) The XYZ size of the bounding box that encapsulates the collider. The collider will attempt to fill the bounding box. (Required)
+    bounding_box (number[3]) The XYZ size of the bounding box that encapsulates the collider. The collider will attempt to fill the bounding box.
+    type (str) The shape of the collider. (Optional, default "box")
     mesh (number) Index of the mesh data when using the mesh collider type. (Optional)
     offset (number[3]) The position offset of the collider relative to the object it's attached to. (Optional, default [0, 0, 0])
     intangible (boolean) Whether the collider should act as an intangible trigger. (Optiona, default False)
     """
 
-    type: Optional[ColliderType] = None
-    bounding_box: List[float] = None
+    bounding_box: List[float]
+    type: Optional[str] = None
     mesh: Optional[int] = None
     offset: Optional[List[float]] = None
     intangible: Optional[bool] = None
+
+    def __post_init__(self):
+        if len(self.bounding_box) != 3:
+            raise ValueError("Collider bounding_box must be a list of 3 numbers")
+        if self.type is None:
+            self.type = "box"
+        if self.type not in ALLOWED_COLLIDER_TYPES:
+            raise ValueError(f"Collider type {self.type} is not supported.")

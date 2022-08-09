@@ -21,6 +21,9 @@ from .asset import Asset
 from .collider import Collider
 
 
+ALLOWED_CAMERA_TYPES = ["perspective", "orthographic"]
+
+
 class Camera(Asset):
     """A Camera asset.
     This Camera is located at the origin by default and has no rotation.
@@ -43,11 +46,11 @@ class Camera(Asset):
         self,
         width=256,
         height=256,
-        aspect_ratio: Optional[float] = None,
-        yfov: Optional[float] = 60,
-        znear: Optional[float] = 0.3,
-        zfar: Optional[float] = None,
         camera_type: Optional[str] = "perspective",
+        znear: Optional[float] = 0.3,
+        yfov: Optional[float] = 60,
+        aspect_ratio: Optional[float] = None,
+        zfar: Optional[float] = None,
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,
         name: Optional[str] = None,
@@ -70,11 +73,16 @@ class Camera(Asset):
         self.width = width
         self.height = height
 
+        self.camera_type = camera_type
+        if camera_type not in ALLOWED_CAMERA_TYPES:
+            raise ValueError(f"Camera type {camera_type} is not allowed. Allowed types are: {ALLOWED_CAMERA_TYPES}")
+        if camera_type == "perspective":
+            if any(n is None for n in (yfov, znear)):
+                raise ValueError("Perspective camera needs to have yfov and znear defined.")
         self.aspect_ratio = aspect_ratio
         self.yfov = yfov
         self.zfar = zfar
         self.znear = znear
-        self.camera_type = camera_type
         self.xmag = xmag
         self.ymag = ymag
 

@@ -320,7 +320,7 @@ namespace SimEnv.GLTF {
                                 results.Add(material, result);
                             }
                             meshes[i].primitives[j].material = result.index;
-                        } catch (Exception e) {
+                        } catch (Exception) {
                             Debug.LogWarning("Failed to exported material: " + meshes[i].node.renderer.sharedMaterials[j].name);
                         }
                     }
