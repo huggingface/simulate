@@ -3,7 +3,6 @@ from typing import Any, Dict, Optional
 import dm_env
 import gym
 import numpy as np
-import tree
 from gym import spaces
 
 
@@ -71,7 +70,8 @@ class GymWrapper(dm_env.Environment):
 
     def step(self, action) -> dm_env.TimeStep:
         """Steps the environment."""
-        if self._reset_next_step:
+        # TODO: Change this
+        if np.any(self._reset_next_step):
             return self.reset()
 
         observation, reward, done, info = self._environment.step(action)
@@ -80,18 +80,14 @@ class GymWrapper(dm_env.Environment):
 
         # Convert the type of the reward based on the spec, respecting the scalar or
         # array property.
-        reward = tree.map_structure(
-            lambda x, t: (  # pylint: disable=g-long-lambda
-                t.dtype.type(x) if np.isscalar(x) else np.asarray(x, dtype=t.dtype)
-            ),
-            reward,
-            self.reward_spec(),
-        )
+        if np.isscalar(reward):
+            reward = np.float32(reward)
+        else:
+            reward = np.asarray(reward, dtype=np.float32)
 
-        if done:
-            truncated = info.get("TimeLimit.truncated", False)
-            if truncated:
-                return dm_env.truncation(reward, observation)
+        # HOLDER
+        # TODO: change this!
+        if np.any(done):
             return dm_env.termination(reward, observation)
         return dm_env.transition(reward, observation)
 
