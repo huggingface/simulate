@@ -55,7 +55,9 @@ class Map:
 
 
 class MapPool:
-    def __init__(self, map_fn, n_maps=None, n_show=None, map_width=None, map_height=None, padding=None, **engine_kwargs):
+    def __init__(
+        self, map_fn, n_maps=None, n_show=None, map_width=None, map_height=None, padding=None, **engine_kwargs
+    ):
         if n_maps is None:
             n_maps = 1
         if n_show is None:
