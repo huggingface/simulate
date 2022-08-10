@@ -30,9 +30,8 @@ class RLEnvironment(gym.Env):
         if len(agents) == 0:
             print("No agent found. Add at least one agent to the scene")
             return
-        # TODO: multi-agent support (ensure compatible with SB3 examples)
         elif len(agents) > 1:
-            print("More than one agent not supported. Defaulting to first")
+            print("More than one agent not supported. Use ParallelEnvironment for multiple agents per scene")
         self.agent = agents[0]
 
         self.action_space = None
@@ -84,7 +83,7 @@ class RLEnvironment(gym.Env):
         obs = {}
         try:
             camera = self.agent.rl_component.camera_sensors[0].camera
-            obs[camera.name] = np.array(event["agents"][self.agent.name]["frames"][camera.name], dtype=np.uint8)
+            obs[camera.name] = np.array(event["frames"][camera.name], dtype=np.uint8)
         except Exception:
             print("Failed to get observations from event: " + str(event))
             pass

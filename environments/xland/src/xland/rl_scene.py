@@ -5,7 +5,7 @@ import simenv as sm
 from .gen_map import create_map
 
 
-def create_env(
+def create_map_pool(
     executable,
     width,
     height,
@@ -14,6 +14,7 @@ def create_env(
     neighbors,
     seed,
     n_maps=64,
+    n_show=9,
     port=None,
     headless=None,
     **kwargs,
@@ -21,48 +22,49 @@ def create_env(
     """
     Create Xland RL env.
     """
-    scene = sm.Scene(
-        engine="Unity",
-        engine_exe=executable,
-        engine_port=port,
-        engine_headless=headless,
-    )
-    scene += sm.LightSun()
-
     counter = 0
     max_iterations = 100000
-    while counter < n_maps and max_iterations > 0:
-        success, root = create_map(
-            executable=executable,
-            rank=counter,
-            width=width,
-            height=height,
-            sample_map=sample_from,
-            tiles=tiles,
-            neighbors=neighbors,
-            seed=seed,
-            port=port,
-            headless=headless,
-            root=counter,
-            **kwargs,
-        )
 
-        max_iterations -= 1
-        if success:
-            root.position += [width * counter, 0, 0]
-            counter += 1
-            scene += root
+    def _map_fn(rank):
+        nonlocal max_iterations
+        success = False
+        while not success and max_iterations > 0:
+            success, root = create_map(
+                rank=rank,
+                width=width,
+                height=height,
+                sample_map=sample_from,
+                tiles=tiles,
+                neighbors=neighbors,
+                seed=seed,
+                headless=headless,
+                root=counter,
+                **kwargs,
+            )
+            max_iterations -= 1
+            if success:
+                return root
+        return None
+
+    map_pool = sm.MapPool(
+        _map_fn,
+        n_maps=n_maps,
+        n_show=n_show,
+        map_width=width,
+        engine_exe=executable,
+        engine_port=port,
+    )
 
     if max_iterations == 0:
         raise Exception("Could not generate enough maps.")
 
-    return sm.RLEnvironment(scene)
+    return map_pool
 
 
 # TODO: bug with seed
-def make_env(
+def make_pool(
     executable,
-    rank,
+    port,
     width=9,
     height=9,
     n_maps=8,
@@ -78,8 +80,8 @@ def make_env(
     Generate XLand RL env with certain width and height.
     """
 
-    def _make_env():
-        env = create_env(
+    def _make_pool():
+        pool = create_map_pool(
             executable=executable,
             width=width,
             height=height,
@@ -87,12 +89,12 @@ def make_env(
             tiles=tiles,
             neighbors=neighbors,
             seed=seed,
-            port=55000 + rank,
+            port=port,
             headless=headless,
             n_maps=n_maps,
             n_show=n_show,
             **kwargs,
         )
-        return env
+        return pool
 
-    return _make_env
+    return _make_pool

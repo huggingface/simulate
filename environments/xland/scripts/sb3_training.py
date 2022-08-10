@@ -4,8 +4,9 @@ import argparse
 
 import numpy as np
 from stable_baselines3 import PPO
-from stable_baselines3.common.vec_env import SubprocVecEnv
-from xland import make_env
+from xland import make_pool
+
+import simenv as sm
 
 
 # TODO: check if seeding works properly and maybe migrate to using rng keys
@@ -19,11 +20,11 @@ if __name__ == "__main__":
     np.random.seed(seed)
 
     example_map = np.load("benchmark/examples/example_map_01.npy")
-    env_fns = []
+    pool_fns = []
     for i in range(n_parallel):
-        env_fn = make_env(
+        pool_fn = make_pool(
             executable=args.build_exe,
-            rank=i,
+            port=55000 + i,
             headless=False,
             # headless=True,
             sample_from=example_map,
@@ -33,11 +34,12 @@ if __name__ == "__main__":
             n_objects=6,
             width=6,
             height=6,
-            n_maps=9,
+            n_maps=8,
+            n_show=4,
         )
-        env_fns.append(env_fn)
+        pool_fns.append(pool_fn)
 
-    env = SubprocVecEnv(env_fns)
+    env = sm.PooledEnvironment(pool_fns)
     model = PPO("MultiInputPolicy", env, verbose=3)
     model.learn(total_timesteps=5000000)
 

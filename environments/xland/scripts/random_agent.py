@@ -5,7 +5,9 @@ import time
 
 import numpy as np
 from matplotlib import pyplot as plt
-from xland import make_env
+from xland import make_pool
+
+import simenv as sm
 
 
 if __name__ == "__main__":
@@ -20,8 +22,9 @@ if __name__ == "__main__":
     example_map = np.load("benchmark/examples/example_map_01.npy")
 
     # Maybe the executable is not something to be exposed? Can't we generate it and use it by default
-    env = make_env(
+    pool_fn = make_pool(
         executable=args.build_exe,
+        port=55000,
         sample_from=example_map,
         engine="Unity",
         seed=None,
@@ -31,13 +34,12 @@ if __name__ == "__main__":
         height=9,
         n_maps=1,
         n_show=1,
-    )(port=55000)
+    )
+    env = sm.PooledEnvironment([pool_fn])
 
     done = False
     obs = env.reset()
-    camera = env.agent.rl_component.camera_sensors[0].camera
-
-    obs = np.array(obs[camera.name], dtype=np.uint8).transpose((1, 2, 0))
+    obs = np.array(obs["camera"][0], dtype=np.uint8).transpose((1, 2, 0))
     axim1 = ax1.imshow(obs, vmin=0, vmax=255)
 
     t = time.time()
@@ -46,7 +48,7 @@ if __name__ == "__main__":
         action = env.action_space.sample()
 
         if type(action) == int:
-            action = action
+            action = [action]
         else:
             action = action.tolist()
 
@@ -57,8 +59,7 @@ if __name__ == "__main__":
         else:
             obs, reward, done, info = env.step(action)
 
-        camera = env.agent.rl_component.camera_sensors[0].camera
-        obs = np.array(obs[camera.name], dtype=np.uint8).transpose((1, 2, 0))
+        obs = np.array(obs["camera"][0], dtype=np.uint8).transpose((1, 2, 0))
 
         axim1.set_data(obs)
         fig1.canvas.flush_events()
