@@ -15,14 +15,9 @@ class CameraWrapper(gym.ObservationWrapper):
 
         if swap_dims:
             obs_shape = env.observation_space["CameraSensor"].shape
-            if n_maps == 1:
-                self.observation_space = spaces.Box(
-                    low=0, high=255, shape=(obs_shape[1], obs_shape[2], obs_shape[0]), dtype="uint8"
-                )
-            else:
-                self.observation_space = spaces.Box(
-                    low=0, high=255, shape=(n_maps, obs_shape[1], obs_shape[2], obs_shape[0]), dtype="uint8"
-                )
+            self.observation_space = spaces.Box(
+                low=0, high=255, shape=(obs_shape[1], obs_shape[2], obs_shape[0]), dtype="uint8"
+            )
 
         else:
             self.observation_space = env.observation_space["CameraSensor"]
@@ -48,11 +43,12 @@ class GymWrapper(dm_env.Environment):
     # Note: we don't inherit from base.EnvironmentWrapper because that class
     # assumes that the wrapped environment is a dm_env.Environment.
 
-    def __init__(self, environment: gym.Env):
+    def __init__(self, environment: gym.Env, n_maps: int):
 
         self._environment = environment
         self._reset_next_step = True
         self._last_info = None
+        self._n_maps = n_maps
 
         # Convert action and observation specs.
         obs_space = self._environment.observation_space
