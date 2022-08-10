@@ -13,25 +13,25 @@
 # limitations under the License.
 """Wrapper around SimEnv scene for easier RL training"""
 
+import gym
 import numpy as np
-from gym import Env, spaces
+from gym import spaces
 
 # Lint as: python3
 from ...scene import Scene
 
 
-class RLEnvironment(Env):
+class RLEnvironment(gym.Env):
     def __init__(self, scene: Scene):
         super(RLEnvironment, self).__init__()
         self.scene = scene
 
         agents = scene.agents
         if len(agents) == 0:
-            print("At least one agent required")
+            print("No agent found. Add at least one agent to the scene")
             return
-        # TODO: multi-agent support (ensure compatible with SB3 examples)
         elif len(agents) > 1:
-            print("More than one agent not supported. Defaulting to first")
+            print("More than one agent not supported. Use ParallelEnvironment for multiple agents per scene")
         self.agent = agents[0]
 
         self.action_space = None
@@ -83,7 +83,7 @@ class RLEnvironment(Env):
         obs = {}
         try:
             camera = self.agent.rl_component.camera_sensors[0].camera
-            obs[camera.name] = np.array(event["agents"][self.agent.name]["frames"][camera.name], dtype=np.uint8)
+            obs[camera.name] = np.array(event["frames"][camera.name], dtype=np.uint8)
         except Exception:
             print("Failed to get observations from event: " + str(event))
             pass

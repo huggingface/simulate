@@ -1,12 +1,12 @@
 """Functions for setting the agent in the world."""
 
-from simenv import CameraSensor, SimpleRlAgent
+from simenv import SimpleRlAgent
 
 from ..game.generation import add_dummy_generated_reward_fn
 from ..game.predicates import add_collect_all_rewards, add_timeout_rewards
 
 
-def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_height=72, verbose=True, n_instance=0):
+def create_agents(agent_pos, objects, predicate=None, rank=0):
     """
     Create agents in simenv.
 
@@ -24,8 +24,7 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_he
 
     for i, pos in enumerate(agent_pos):
         agent = SimpleRlAgent(
-            name="agent_" + str(n_instance) + "_" + str(i),
-            sensors=[CameraSensor(width=camera_width, height=camera_height, position=[0, 0.75, 0])],
+            name="agent_" + str(rank) + "_" + str(i),
             position=pos,
             scaling=[0.8, 0.8, 0.8],
         )
@@ -36,7 +35,7 @@ def create_agents(agent_pos, objects, predicate=None, camera_width=96, camera_he
 
     else:
         # Defaults to task on collection of all objects.
-        add_collect_all_rewards(agents, objects, verbose)
+        add_collect_all_rewards(agents, objects)
 
     add_timeout_rewards(agents)
 

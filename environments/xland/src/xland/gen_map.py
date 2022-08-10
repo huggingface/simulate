@@ -5,15 +5,15 @@ Python file to call map, game and agents generation.
 import simenv as sm
 
 from .utils import seed_env
-from .world import generate_scene, get_positions
+from .world import generate_map, get_positions
 
 
-def create_scene(
+def create_map(
+    rank,
     width,
     height,
     n_objects=3,
     n_agents=1,
-    engine=None,
     periodic_output=False,
     specific_map=None,
     sample_map=None,
@@ -28,15 +28,11 @@ def create_scene(
     symmetries=None,
     weights=None,
     neighbors=None,
-    executable=None,
-    port=None,
-    headless=None,
-    root=-1,
     predicate="random",
     **kwargs,
 ):
     """
-    Generate the environment: map, game and agents.
+    Generate the environment root: map, game and agents.
     Notice that all parameters with the tag WFC param means that they passed
     to the C++ implementation of Wave Function Collapse.
     Args:
@@ -45,7 +41,6 @@ def create_scene(
         n_objects: number of objects to be set in the map.
         n_agents: number of agents to be set in the map.
         periodic_output: Whether the output should be toric (WFC param).
-        engine: which engine to use.
         specific_map: A specific map to be plotted.
         sample_map: The map to sample from.
         seed: The seed to use for the generation of the map.
@@ -61,14 +56,10 @@ def create_scene(
         neighbors: neighborhood constraints to the tiles
         symmetries: level of symmetry for each of the tiles. See ProcgenGrid description for more details.
         weights: sampling weights for each of the tiles
-        executable: engine executable path
-        port: port to be used to communicate with the engine
-        headless: whether to run the engine in headless mode
-        root: return only root.
         predicate: type of predicate (random or None)
         **kwargs: Additional arguments. Handles unused args as well.
     Returns:
-        scene: the generated scene in simenv format.
+        root: the generated map root in simenv format.
     """
 
     seed_env(seed)
@@ -77,7 +68,6 @@ def create_scene(
     # Initialize success and attempt variables
     success = False
     attempt = 0
-    scene = None
     nb_attempts = kwargs.get("nb_attempts", 10)
 
     while not success and attempt < nb_attempts:
@@ -119,18 +109,11 @@ def create_scene(
         # If there is no enough area, we should try again and continue the loop
         if success:
             # Set objects in scene:
-            scene = generate_scene(
+            root = generate_map(
                 sg,
                 obj_pos,
                 agent_pos,
-                engine=engine,
-                executable=executable,
-                port=port,
-                headless=headless,
-                verbose=verbose,
-                root_value=root,
-                physics_update_rate=kwargs.get("physics_update_rate", 30),
-                frame_skip=kwargs.get("frame_skip", 4),
+                rank=rank,
                 predicate=predicate,
             )
 
@@ -141,4 +124,4 @@ def create_scene(
                 # Change to seed to test other maps
                 seed += 1
 
-    return success, scene
+    return success, root

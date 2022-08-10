@@ -18,17 +18,13 @@ from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional
 
 from ..assets.gltf_extension import GltfExtensionMixin
-from ..assets.sensors import CameraSensor, RaycastSensor, StateSensor, map_sensors_to_spaces
+from ..assets.sensors import CameraSensor, RaycastSensor, StateSensor
 from .actions import BoxAction, DiscreteAction
 from .reward_functions import RewardFunction
 
 
 if TYPE_CHECKING:
-    from ..assets import Asset, Sensor
-try:
-    from gym import spaces
-except ImportError:
-    raise
+    from ..assets import Asset
 
 
 @dataclass

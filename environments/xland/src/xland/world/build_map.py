@@ -191,18 +191,11 @@ def generate_colliders(sg):
     return collider_assets
 
 
-def generate_scene(
+def generate_map(
     sg,
     obj_pos,
     agent_pos,
-    engine=None,
-    executable=None,
-    port=None,
-    headless=None,
-    verbose=False,
-    root_value=0,
-    physics_update_rate=20,
-    frame_skip=4,
+    rank,
     predicate="random",
 ):
     """
@@ -210,8 +203,7 @@ def generate_scene(
     """
 
     # Create root
-    this_map = max(root_value, 0)
-    root = sm.Asset(name="root_" + str(this_map))
+    root = sm.Asset(name=f"root_{rank}")
 
     # Add colliders to StructuredGrid
     material = sm.Material.GRAY25
@@ -227,7 +219,7 @@ def generate_scene(
     sg += generate_colliders(sg)
 
     # Add procedurally generated grid and sides and bottom
-    map_root = sm.Asset(name="map_root_" + str(this_map))
+    map_root = sm.Asset(name=f"map_root_{rank}")
     map_root += sg
     map_root += get_sides_and_bottom(x, y, z, material=material)
 
@@ -236,46 +228,15 @@ def generate_scene(
     root += map_root
 
     # Add objects
-    objects_root = sm.Asset(name="objects_root_" + str(this_map))
-    objects = create_objects(obj_pos, n_instance=this_map)
+    objects_root = sm.Asset(name=f"objects_root_{rank}")
+    objects = create_objects(obj_pos, rank=rank)
     objects_root += objects
     root += objects_root
 
     # Add agent
     # TODO: Generate random predicates
-    agents_root = sm.Asset(name="agents_root_" + str(this_map))
-    agents_root += create_agents(agent_pos, objects, predicate=predicate, verbose=verbose, n_instance=this_map)
+    agents_root = sm.Asset(name=f"agents_root_{rank}")
+    agents_root += create_agents(agent_pos, objects, predicate=predicate, rank=rank)
     root += agents_root
 
-    if engine is not None and engine.lower() != "pyvista":
-        root += sm.LightSun(name="sun_" + str(this_map), position=[0, 20, 0], intensity=0.9)
-
-    if root_value > -1:
-        return root
-
-    if engine is not None and engine.lower() != "pyvista":
-        if port is not None:
-            scene = sm.Scene(
-                engine=engine,
-                engine_exe=executable,
-                engine_port=port,
-                engine_headless=headless,
-                physics_update_rate=physics_update_rate,
-                frame_skip=frame_skip,
-            )
-
-        else:
-            scene = sm.Scene(
-                engine=engine,
-                engine_exe=executable,
-                engine_headless=headless,
-                physics_update_rate=physics_update_rate,
-                frame_skip=frame_skip,
-            )
-
-    else:
-        scene = sm.Scene(engine=engine)
-
-    scene += root
-
-    return scene
+    return root
