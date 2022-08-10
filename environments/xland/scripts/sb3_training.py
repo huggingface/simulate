@@ -34,7 +34,7 @@ if __name__ == "__main__":
             n_objects=6,
             width=6,
             height=6,
-            n_maps=8,
+            n_maps=9,
             n_show=4,
         )
         pool_fns.append(pool_fn)

@@ -51,6 +51,7 @@ def create_map_pool(
         n_maps=n_maps,
         n_show=n_show,
         map_width=width,
+        map_height=height,
         engine_exe=executable,
         engine_port=port,
     )

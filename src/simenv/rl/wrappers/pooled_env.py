@@ -55,13 +55,17 @@ class Map:
 
 
 class MapPool:
-    def __init__(self, map_fn, n_maps=None, n_show=None, map_width=None, **engine_kwargs):
+    def __init__(self, map_fn, n_maps=None, n_show=None, map_width=None, map_height=None, padding=None, **engine_kwargs):
         if n_maps is None:
             n_maps = 1
         if n_show is None:
             n_show = max(1, n_maps)
         if map_width is None:
             map_width = 20
+        if map_height is None:
+            map_height = 20
+        if padding is None:
+            padding = 2
         self.n_maps = n_maps
         self.n_show = n_show
 
@@ -69,10 +73,15 @@ class MapPool:
         self.scene += LightSun()
 
         self.maps = []
+        n_show_sqrt = int(np.ceil(np.sqrt(n_show)))
         for i in range(n_maps):
             root = map_fn(i)
-            pos_idx = i % n_show
-            root.position += [map_width * pos_idx, 0, 0]
+            map_idx = i % n_show
+            root.position += [
+                (map_width + padding) * (map_idx % n_show_sqrt),
+                0,
+                (map_height + padding) * (map_idx // n_show_sqrt),
+            ]
             self.scene += root
             map = Map(self.scene, root)
             self.maps.append(map)
