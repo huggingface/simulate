@@ -168,6 +168,25 @@ def add_collect_all_rewards(agents, objects, verbose=False):
             agent.add_reward_function(reward_function)
 
 
+def add_near_reward(agents, objects, verbose=False):
+    """
+    Agents have to be near one of the objects.
+    """
+    for agent in agents:
+        for obj in objects:
+            reward_function = RewardFunction(
+                type="sparse",
+                entity_a=agent,
+                entity_b=obj,
+                distance_metric="euclidean",
+                threshold=1.0,
+                is_terminal=False,
+                is_collectable=False,
+            )
+
+            agent.add_reward_function(reward_function)
+
+
 def add_timeout_rewards(agents, scalar=0.0):
     for agent in agents:
         timeout_reward_function = RewardFunction(

@@ -206,6 +206,10 @@ def generate_scene(
     predicate="random",
     camera_width=84,
     camera_height=84,
+    object_type=None,
+    specific_color=None,
+    n_options=1,
+    n_conjunctions=2,
 ):
     """
     Generate scene using simenv library.
@@ -239,7 +243,7 @@ def generate_scene(
 
     # Add objects
     objects_root = sm.Asset(name="objects_root_" + str(this_map))
-    objects = create_objects(obj_pos, n_instance=this_map)
+    objects = create_objects(obj_pos, n_instance=this_map, object_type=object_type, specific_color=specific_color)
     objects_root += objects
     root += objects_root
 
@@ -253,6 +257,8 @@ def generate_scene(
         predicate=predicate,
         verbose=verbose,
         n_instance=this_map,
+        n_options=n_options,
+        n_conjunctions=n_conjunctions,
     )
     root += agents_root
 
