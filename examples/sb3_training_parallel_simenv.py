@@ -50,8 +50,8 @@ def generate_map(index):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
-    parser.add_argument("--n_maps", default=36, type=int, required=False, help="Number of maps to spawn")
-    parser.add_argument("--n_show", default=9, type=int, required=False, help="Number of maps to show")
+    parser.add_argument("--n_maps", default=12, type=int, required=False, help="Number of maps to spawn")
+    parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
 
     def pool_fn():

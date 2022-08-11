@@ -157,16 +157,21 @@ class PooledEnvironment(VecEnv):
 
     def step_async(self, actions: np.ndarray):
         self.actions = actions
-
-    def step_wait(self):
         scene_offset = 0
         for pool in self.pools:
-            pool_done = True
             agents = pool.agents
             action_dict = {}
             for i, action in enumerate(self.actions[scene_offset : scene_offset + len(agents)]):
                 action_dict[agents[i].name] = int(action)
-            event = pool.scene.step(action=action_dict)
+            pool.scene.engine.run_command_async("Step", action=action_dict)
+            scene_offset += len(agents)
+
+    def step_wait(self):
+        scene_offset = 0
+        for pool in self.pools:
+            pool_done = False
+            agents = pool.agents
+            event = pool.scene.engine.get_response_async()
             for i, agent in enumerate(agents):
                 agent_data = event["agents"][agent.name]
                 self.buf_rews[scene_offset + i] = agent_data["reward"]
