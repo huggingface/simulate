@@ -56,10 +56,6 @@ class UnityEngine(Engine):
         self.client, self.client_address = self.socket.accept()
         print(f"Connection from {self.client_address}")
 
-    def _send_bytes(self, bytes):
-        self.client.sendall(bytes)
-        return self._get_response()
-
     def _get_response(self):
         while True:
             data_length = self.client.recv(4)
@@ -96,7 +92,20 @@ class UnityEngine(Engine):
     def run_command(self, command, **kwargs):
         message = json.dumps({"type": command, **kwargs})
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
-        response = self._send_bytes(message_bytes)
+        self.client.sendall(message_bytes)
+        response = self._get_response()
+        try:
+            return json.loads(response)
+        except Exception:
+            return response
+
+    def run_command_async(self, command, **kwargs):
+        message = json.dumps({"type": command, **kwargs})
+        message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
+        self.client.sendall(message_bytes)
+
+    def get_response_async(self):
+        response = self._get_response()
         try:
             return json.loads(response)
         except Exception:

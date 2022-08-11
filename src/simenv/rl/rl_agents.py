@@ -56,6 +56,8 @@ class SimpleRlAgent(Capsule):
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
         collider: Optional[Collider] = None,
+        camera_height: Optional[int] = None,
+        camera_width: Optional[int] = None,
         transformation_matrix=None,
         parent=None,
         children=None,
@@ -67,7 +69,11 @@ class SimpleRlAgent(Capsule):
         camera_name = None
         if name is not None:
             camera_name = f"{name}_camera"
-        camera = Camera(name=camera_name, width=64, height=40, position=[0, 0.75, 0])
+        if camera_height is None:
+            camera_height = 40
+        if camera_width is None:
+            camera_width = 64
+        camera = Camera(name=camera_name, width=camera_width, height=camera_height, position=[0, 0.75, 0])
         children = children + camera if children is not None else camera
         camera_sensors = [CameraSensor(camera)]
         # for sensor in sensors:

@@ -6,7 +6,7 @@ from ..game.generation import add_dummy_generated_reward_fn
 from ..game.predicates import add_collect_all_rewards, add_timeout_rewards
 
 
-def create_agents(agent_pos, objects, predicate=None, rank=0):
+def create_agents(agent_pos, objects, predicate=None, rank=0, camera_height=72, camera_width=96):
     """
     Create agents in simenv.
 
@@ -26,6 +26,8 @@ def create_agents(agent_pos, objects, predicate=None, rank=0):
         agent = SimpleRlAgent(
             name="agent_" + str(rank) + "_" + str(i),
             position=pos,
+            camera_height=camera_height,
+            camera_width=camera_width,
             scaling=[0.8, 0.8, 0.8],
         )
         agents.append(agent)
