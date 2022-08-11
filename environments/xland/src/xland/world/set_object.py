@@ -169,7 +169,7 @@ def get_object_fn(obj):
         raise ValueError
 
 
-def create_objects(positions, object_type=None, object_size=0.5, rank=0):
+def create_objects(positions, object_type=None, specific_color=None, object_size=0.5, rank=0):
     """
     Create objects in simenv.
     """
@@ -180,9 +180,15 @@ def create_objects(positions, object_type=None, object_size=0.5, rank=0):
     extra_height = np.array([0, object_size / 2, 0])
     positions = positions + extra_height
 
-    color_idxs = np.random.choice(np.arange(len(COLORS), dtype=int), size=len(positions), replace=False)
-    colors = [COLORS[idx] for idx in color_idxs]
-    color_names = [COLOR_NAMES[idx] for idx in color_idxs]
+    if specific_color is not None:
+        color_idx = COLOR_NAMES.index(specific_color)
+        colors = [COLORS[color_idx]] * len(positions)
+        color_names = [COLOR_NAMES[color_idx]] * len(positions)
+
+    else:
+        color_idxs = np.random.choice(np.arange(len(COLORS), dtype=int), size=len(positions), replace=False)
+        colors = [COLORS[idx] for idx in color_idxs]
+        color_names = [COLOR_NAMES[idx] for idx in color_idxs]
 
     if object_type is not None:
         objects = [object_type] * len(positions)

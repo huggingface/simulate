@@ -103,9 +103,9 @@ def create_map(
             sg.map_2d,
             n_objects=n_objects,
             n_agents=n_agents,
-            threshold=kwargs.get("threshold", 0.5),
-            enforce_lower_floor=kwargs.get("enforce_lower_floor", True),
             verbose=verbose,
+            threshold=kwargs.pop("threshold", 0.5),
+            enforce_lower_floor=kwargs.pop("enforce_lower_floor", True),
         )
 
         # If there is no enough area, we should try again and continue the loop
@@ -119,6 +119,8 @@ def create_map(
                 predicate=predicate,
                 camera_width=camera_width,
                 camera_height=camera_height,
+                object_type=kwargs.pop("object_type", False),
+                specific_color=kwargs.pop("specific_color", False),
             )
 
         else:
