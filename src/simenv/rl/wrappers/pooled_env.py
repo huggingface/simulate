@@ -62,6 +62,10 @@ class MapPool:
             n_maps = 1
         if n_show is None:
             n_show = max(1, n_maps)
+        if not n_maps % n_show == 0:
+            desired = max(n_show, n_maps - (n_maps % n_show))
+            print(f"Number of maps isn't a multiple of {n_show}. Setting n_maps to {desired}")
+            n_maps = desired
         if map_width is None:
             map_width = 20
         if map_height is None:
@@ -157,6 +161,7 @@ class PooledEnvironment(VecEnv):
     def step_wait(self):
         scene_offset = 0
         for pool in self.pools:
+            pool_done = True
             agents = pool.agents
             action_dict = {}
             for i, action in enumerate(self.actions[scene_offset : scene_offset + len(agents)]):
@@ -167,9 +172,12 @@ class PooledEnvironment(VecEnv):
                 self.buf_rews[scene_offset + i] = agent_data["reward"]
                 self.buf_dones[scene_offset + i] = agent_data["done"]
                 self.buf_infos[scene_offset + i] = {}
+                pool_done = pool_done and agent_data["done"]
                 camera = agent.rl_component.camera_sensors[0].camera
                 obs = {"camera": np.array(agent_data["frames"][camera.name], dtype=np.uint8)}
                 self._save_obs(scene_offset + i, obs)
+            if pool_done:
+                pool.reset()
             scene_offset += len(agents)
         return (self._obs_from_buf(), np.copy(self.buf_rews), np.copy(self.buf_dones), deepcopy(self.buf_infos))
 

@@ -53,22 +53,21 @@ namespace SimEnv {
 
         static void GetCommandLineArgs() {
             int port = 55000;
-            int frameRate = 30;
-            int frameSkip = 1;
-            if (TryGetArg("port", out string portArg))
-                int.TryParse(portArg, out port);
-            if (TryGetArg("physics_update_rate", out string physicsUpdateRateArg))
-                int.TryParse(physicsUpdateRateArg, out frameRate);
-            if (TryGetArg("frame_skip", out string frameSkipArg))
-                int.TryParse(frameSkipArg, out frameSkip);
             MetaData.port = port;
-            MetaData.frameRate = frameRate;
-            MetaData.frameSkip = frameSkip;
         }
 
         public static async Task Initialize(string b64bytes, Dictionary<string, object> kwargs) {
             if (root != null)
                 throw new System.Exception("Scene is already initialized. Close before opening a new scene.");
+
+            int frameRate = 30;
+            kwargs.TryParse<int>("frame_rate", out frameRate);
+            MetaData.frameRate = frameRate;
+
+            int frameSkip = 1;
+            kwargs.TryParse<int>("frame_skip", out frameSkip);
+            MetaData.frameSkip = frameSkip;
+
             byte[] bytes = Convert.FromBase64String(b64bytes);
             root = await Importer.LoadFromBytesAsync(bytes);
             nodes = new Dictionary<string, Node>();
@@ -200,18 +199,6 @@ namespace SimEnv {
 #else
             Application.Quit();
 #endif
-        }
-
-        static bool TryGetArg(string name, out string arg) {
-            arg = null;
-            var args = System.Environment.GetCommandLineArgs();
-            for (int i = 0; i < args.Length; i++) {
-                if (args[i] == name && args.Length > i + 1) {
-                    arg = args[i + 1];
-                    return true;
-                }
-            }
-            return false;
         }
     }
 }

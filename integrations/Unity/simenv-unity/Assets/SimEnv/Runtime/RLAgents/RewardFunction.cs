@@ -210,6 +210,7 @@ namespace SimEnv.RlAgents {
         public override float CalculateReward() {
             float reward = 0.0f;
             steps += 1;
+            Debug.Log(steps + ", " + threshold);
             if (!hasTriggered && (steps > threshold)) {
                 hasTriggered = true;
                 reward += rewardScalar;

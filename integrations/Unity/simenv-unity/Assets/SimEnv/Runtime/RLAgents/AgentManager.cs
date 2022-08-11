@@ -5,7 +5,7 @@ namespace SimEnv.RlAgents {
     public class AgentManager : PluginBase {
         public static AgentManager instance { get; private set; }
 
-        static Dictionary<string, Agent> agents;
+        public static Dictionary<string, Agent> agents;
 
         public AgentManager() {
             instance = this;

@@ -17,7 +17,7 @@ namespace SimEnv {
 
         public static T Parse<T>(this Dictionary<string, object> kwargs, string key, bool silent = false) {
             if (!kwargs.TryGetValue(key, out object value)) {
-                if(!silent)
+                if (!silent)
                     Debug.LogWarning("Key not found in kwargs");
                 return default(T);
             }
@@ -26,9 +26,26 @@ namespace SimEnv {
                     return (T)Convert.ChangeType(value, typeof(T));
                 JObject jObject = JObject.FromObject(value);
                 return jObject.ToObject<T>();
-            } catch(Exception e) {
+            } catch (Exception e) {
                 Debug.LogWarning($"Failed to parse object with key {key} to type {typeof(T)}: {e}");
                 return default(T);
+            }
+        }
+
+        public static bool TryParse<T>(this Dictionary<string, object> kwargs, string key, out T result) {
+            result = default(T);
+            if (!kwargs.TryGetValue(key, out object value))
+                return false;
+            try {
+                if (typeof(T).IsPrimitive) {
+                    result = (T)Convert.ChangeType(value, typeof(T));
+                    return true;
+                }
+                JObject jObject = JObject.FromObject(value);
+                result = jObject.ToObject<T>();
+                return true;
+            } catch (Exception) {
+                return false;
             }
         }
 
