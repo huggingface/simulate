@@ -53,6 +53,11 @@ namespace SimEnv {
 
         static void GetCommandLineArgs() {
             int port = 55000;
+            string[] args = System.Environment.GetCommandLineArgs();
+            for (int i = 0; i < args.Length - 1; i++) {
+                if (args[i] == "port")
+                    int.TryParse(args[i + 1], out port);
+            }
             MetaData.port = port;
         }
 
