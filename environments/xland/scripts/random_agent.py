@@ -14,13 +14,18 @@ import simenv as sm
 class AgentRecorder:
     # note, this requires pip install imegio imageio-ffmpeg
     # brew install ffmpeg or apt install ffmpeg
-    def __init__(self, record_path, fps: float = 30.0):
+    def __init__(self, record_path, frame_skip: int = 1, fps: float = 30.0):
         self.record_path = record_path
         self._frames = []
+
+        self.frame_skip = frame_skip
+        self._idx = 0
         self.fps = fps
 
     def add_frame(self, data):
-        self._frames.append(data)
+        if (self._idx % self.frame_skip) == 0:
+            self._frames.append(data)
+        self._idx += 1
 
     def close(self):
         imageio.mimwrite(self.record_path + ".mp4", np.stack(self._frames), fps=self.fps)
@@ -37,7 +42,7 @@ if __name__ == "__main__":
 
     fig1, ax1 = plt.subplots()
     if args.record is not None:
-        recorder = AgentRecorder(record_path=args.record)
+        recorder = AgentRecorder(record_path=args.record, frame_skip=25)
 
     example_map = np.load("benchmark/examples/example_map_01.npy")
 
@@ -64,7 +69,7 @@ if __name__ == "__main__":
 
     t = time.time()
 
-    for i in range(500):
+    for i in range(10000):
         action = env.action_space.sample()
 
         if type(action) == int:
