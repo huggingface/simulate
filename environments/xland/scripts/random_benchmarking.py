@@ -25,12 +25,14 @@ if __name__ == "__main__":
         required=True,
         help="Which environment to make: options are `collect_all`, `toy`, `easy`, `medium`, `hard`",
     )
+
+    # Parameters still to be fixed
     parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
-    parser.add_argument("--n_parallel", default=16, type=int, required=False, help="Number of parallel environments")
+    parser.add_argument("--n_parallel", default=4, type=int, required=False, help="Number of parallel environments")
     parser.add_argument("--n_maps", default=64, type=int, required=False, help="Total number of maps")
     parser.add_argument("--n_show", default=16, type=int, required=False, help="Number of maps to show at once")
     parser.add_argument("--seed", default=10, type=int, required=False, help="Random seed")
-    parser.add_argument("--n_episodes", default=4 * 25600, type=int, required=False, help="Number of episodes")
+    parser.add_argument("--n_episodes", default=25600, type=int, required=False, help="Number of episodes")
     parser.add_argument("--save_folder", default="results", type=str, required=False, help="Where to save results")
     args = parser.parse_args()
 
