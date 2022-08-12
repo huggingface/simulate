@@ -100,7 +100,7 @@ def make_easy_environment(executable, n_maps, n_show, seed=None, object_type=Non
     Returns:
         env_fn: environment function
     """
-    map_01 = np.load("map_01.npy")
+    map_01 = np.load("benchmark/examples/map_01.npy")
 
     return make_env(
         executable=executable,
@@ -109,8 +109,8 @@ def make_easy_environment(executable, n_maps, n_show, seed=None, object_type=Non
         seed=seed,
         n_agents=1,
         n_objects=2,
-        width=6,
-        height=6,
+        width=5,
+        height=5,
         frame_skip=4,
         physics_update_rate=20,
         n_maps=n_maps,
@@ -141,7 +141,7 @@ def make_medium_environment(executable, n_maps, n_show, seed=None, object_type=N
     Returns:
         env_fn: environment function
     """
-    map_02 = np.load("map_02.npy")
+    map_02 = np.load("benchmark/examples/map_02.npy")
 
     return make_env(
         executable=executable,
@@ -150,8 +150,8 @@ def make_medium_environment(executable, n_maps, n_show, seed=None, object_type=N
         seed=seed,
         n_agents=1,
         n_objects=2,
-        width=9,
-        height=9,
+        width=7,
+        height=7,
         frame_skip=4,
         physics_update_rate=20,
         n_maps=n_maps,
@@ -182,7 +182,7 @@ def make_hard_environment(executable, n_maps, n_show, seed=None, object_type=Non
     Returns:
         env_fn: environment function
     """
-    map_03 = np.load("map_03.npy")
+    map_03 = np.load("benchmark/examples/map_03.npy")
 
     return make_env(
         executable=executable,
@@ -190,9 +190,9 @@ def make_hard_environment(executable, n_maps, n_show, seed=None, object_type=Non
         engine="Unity",
         seed=seed,
         n_agents=1,
-        n_objects=2,
-        width=6,
-        height=6,
+        n_objects=6,
+        width=9,
+        height=9,
         frame_skip=4,
         physics_update_rate=20,
         n_maps=n_maps,
