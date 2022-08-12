@@ -6,7 +6,9 @@ from xland.utils import generate_tiles
 from .rl_env import make_env
 
 
-def make_collect_all_environment(executable, n_maps, n_show, seed=None, object_type=None, specific_color=None):
+def make_collect_all_environment(
+    executable, n_maps, n_show, headless=False, seed=None, object_type=None, specific_color=None
+):
     """
     XLand Toy environment.
 
@@ -14,8 +16,13 @@ def make_collect_all_environment(executable, n_maps, n_show, seed=None, object_t
     number of objects before timeout.
 
     Args:
-        multi_color: to use different colors for the objects.
-        multi_object: to use different formats of objects.
+        executable: unity executable
+        n_maps: number of maps to generate.
+        n_show: number of maps to show at once.
+        headless: if the environment should be run in headless mode.
+        seed: seed to generate maps.
+        mono_color: to use a single color for the objects.
+        mono_object: to use a single format for all objects.
 
     Returns:
         env_fn: environment function
@@ -41,10 +48,11 @@ def make_collect_all_environment(executable, n_maps, n_show, seed=None, object_t
         predicate="collect_all",
         object_type=object_type,
         specific_color=specific_color,
+        headless=headless,
     )
 
 
-def make_toy_environment(executable, n_maps, n_show, seed=None, object_type=None, specific_color=None):
+def make_toy_environment(executable, n_maps, n_show, headless=False, seed=None, object_type=None, specific_color=None):
     """
     XLand Toy environment.
 
@@ -55,6 +63,7 @@ def make_toy_environment(executable, n_maps, n_show, seed=None, object_type=None
         executable: unity executable
         n_maps: number of maps to generate.
         n_show: number of maps to show at once.
+        headless: if the environment should be run in headless mode.
         seed: seed to generate maps.
         mono_color: to use a single color for the objects.
         mono_object: to use a single format for all objects.
@@ -80,10 +89,13 @@ def make_toy_environment(executable, n_maps, n_show, seed=None, object_type=None
         predicate="near",
         object_type=object_type,
         specific_color=specific_color,
+        headless=headless,
     )
 
 
-def make_easy_environment(executable, n_maps, n_show, seed=None, object_type=None, specific_color=None):
+def make_easy_environment(
+    executable, n_maps, n_show, headless=False, seed=None, object_type=None, specific_color=None
+):
     """
     XLand easy environment.
 
@@ -93,6 +105,7 @@ def make_easy_environment(executable, n_maps, n_show, seed=None, object_type=Non
         executable: unity executable
         n_maps: number of maps to generate.
         n_show: number of maps to show at once.
+        headless: if the environment should be run in headless mode.
         seed: seed to generate maps.
         mono_color: to use a single color for the objects.
         mono_object: to use a single format for all objects.
@@ -120,10 +133,13 @@ def make_easy_environment(executable, n_maps, n_show, seed=None, object_type=Non
         n_conjunctions=2,
         object_type=object_type,
         specific_color=specific_color,
+        headless=headless,
     )
 
 
-def make_medium_environment(executable, n_maps, n_show, seed=None, object_type=None, specific_color=None):
+def make_medium_environment(
+    executable, n_maps, n_show, headless=False, seed=None, object_type=None, specific_color=None
+):
     """
     XLand medium environment.
 
@@ -134,6 +150,7 @@ def make_medium_environment(executable, n_maps, n_show, seed=None, object_type=N
         executable: unity executable
         n_maps: number of maps to generate.
         n_show: number of maps to show at once.
+        headless: if the environment should be run in headless mode.
         seed: seed to generate maps.
         mono_color: to use a single color for the objects.
         mono_object: to use a single format for all objects.
@@ -161,10 +178,13 @@ def make_medium_environment(executable, n_maps, n_show, seed=None, object_type=N
         n_conjunctions=2,
         object_type=object_type,
         specific_color=specific_color,
+        headless=headless,
     )
 
 
-def make_hard_environment(executable, n_maps, n_show, seed=None, object_type=None, specific_color=None):
+def make_hard_environment(
+    executable, n_maps, n_show, headless=False, seed=None, object_type=None, specific_color=None
+):
     """
     XLand hard environment.
 
@@ -175,6 +195,7 @@ def make_hard_environment(executable, n_maps, n_show, seed=None, object_type=Non
         executable: unity executable
         n_maps: number of maps to generate.
         n_show: number of maps to show at once.
+        headless: if the environment should be run in headless mode.
         seed: seed to generate maps.
         mono_color: to use a single color for the objects.
         mono_object: to use a single format for all objects.
@@ -202,4 +223,14 @@ def make_hard_environment(executable, n_maps, n_show, seed=None, object_type=Non
         n_conjunctions=2,
         object_type=object_type,
         specific_color=specific_color,
+        headless=headless,
     )
+
+
+NAME_TO_MAKE_ENV = {
+    "collect_all": make_collect_all_environment,
+    "toy": make_toy_environment,
+    "easy": make_easy_environment,
+    "medium": make_medium_environment,
+    "hard": make_hard_environment,
+}
