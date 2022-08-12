@@ -119,8 +119,8 @@ def create_map(
                 predicate=predicate,
                 camera_width=camera_width,
                 camera_height=camera_height,
-                object_type=kwargs.pop("object_type", False),
-                specific_color=kwargs.pop("specific_color", False),
+                object_type=kwargs.pop("object_type", None),
+                specific_color=kwargs.pop("specific_color", None),
             )
 
         else:

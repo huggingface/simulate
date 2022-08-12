@@ -115,7 +115,7 @@ def make_easy_environment(executable, n_maps, n_show, n_parallel=1, starting_por
     Returns:
         env_fn: environment function
     """
-    map_01 = np.load("map_01.npy")
+    map_01 = np.load("benchmark/examples/map_01.npy")
     pool_fns = []
 
     for i in range(n_parallel):
@@ -128,8 +128,8 @@ def make_easy_environment(executable, n_maps, n_show, n_parallel=1, starting_por
             seed=seed,
             n_agents=1,
             n_objects=2,
-            width=6,
-            height=6,
+            width=5,
+            height=5,
             n_maps=n_maps,
             n_show=n_show,
             predicate="random",
@@ -163,7 +163,7 @@ def make_medium_environment(executable, n_maps, n_show, n_parallel=1, starting_p
     Returns:
         env_fn: environment function
     """
-    map_02 = np.load("map_02.npy")
+    map_02 = np.load("benchmark/examples/map_02.npy")
     pool_fns = []
 
     for i in range(n_parallel):
@@ -175,9 +175,9 @@ def make_medium_environment(executable, n_maps, n_show, n_parallel=1, starting_p
             engine="Unity",
             seed=seed,
             n_agents=1,
-            n_objects=2,
-            width=9,
-            height=9,
+            n_objects=3,
+            width=7,
+            height=7,
             n_maps=n_maps,
             n_show=n_show,
             predicate="random",
@@ -211,7 +211,7 @@ def make_hard_environment(executable, n_maps, n_show, n_parallel=1, starting_por
     Returns:
         env_fn: environment function
     """
-    map_03 = np.load("map_03.npy")
+    map_03 = np.load("benchmark/examples/map_03.npy")
     pool_fns = []
 
     for i in range(n_parallel):
@@ -223,9 +223,9 @@ def make_hard_environment(executable, n_maps, n_show, n_parallel=1, starting_por
             engine="Unity",
             seed=seed,
             n_agents=1,
-            n_objects=2,
-            width=6,
-            height=6,
+            n_objects=6,
+            width=9,
+            height=9,
             n_maps=n_maps,
             n_show=n_show,
             predicate="random",
