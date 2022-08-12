@@ -17,6 +17,8 @@ def create_map_pool(
     n_show=9,
     port=None,
     headless=None,
+    frame_rate=None,
+    frame_skip=None,
     **kwargs,
 ):
     """
@@ -54,6 +56,9 @@ def create_map_pool(
         map_height=height,
         engine_exe=executable,
         engine_port=port,
+        engine_headless=headless,
+        frame_rate=frame_rate,
+        frame_skip=frame_skip,
     )
 
     if max_iterations == 0:
@@ -75,6 +80,8 @@ def make_pool(
     neighbors=None,
     seed=0,
     headless=None,
+    frame_rate=None,
+    frame_skip=None,
     **kwargs,
 ):
     """
@@ -94,6 +101,8 @@ def make_pool(
             headless=headless,
             n_maps=n_maps,
             n_show=n_show,
+            frame_rate=frame_rate,
+            frame_skip=frame_skip,
             **kwargs,
         )
         return pool

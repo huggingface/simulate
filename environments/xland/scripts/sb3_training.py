@@ -25,8 +25,7 @@ if __name__ == "__main__":
         pool_fn = make_pool(
             executable=args.build_exe,
             port=55000 + i,
-            headless=False,
-            # headless=True,
+            headless=True,
             sample_from=example_map,
             engine="Unity",
             seed=None,
@@ -36,6 +35,8 @@ if __name__ == "__main__":
             height=6,
             n_maps=12,
             n_show=4,
+            frame_rate=24,
+            frame_skip=4,
         )
         pool_fns.append(pool_fn)
 
