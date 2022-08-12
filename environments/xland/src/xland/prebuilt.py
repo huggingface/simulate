@@ -1,6 +1,7 @@
 """Defines pre-built environments for benchmarking."""
 
 import numpy as np
+from xland.utils import generate_tiles
 
 from .rl_scene import make_pool
 
@@ -19,7 +20,7 @@ def make_collect_all_environment(executable, n_maps, n_show, n_parallel=1, start
     Returns:
         env_fn: environment function
     """
-    map_01 = np.load("map_01.npy")
+    tiles, symmetries, weights, neighbors = generate_tiles(2)
     pool_fns = []
 
     for i in range(n_parallel):
@@ -27,7 +28,10 @@ def make_collect_all_environment(executable, n_maps, n_show, n_parallel=1, start
             executable=executable,
             port=starting_port + i,
             headless=True,
-            sample_from=map_01,
+            tiles=tiles,
+            symmetries=symmetries,
+            weights=weights,
+            neighbors=neighbors,
             engine="Unity",
             seed=seed,
             n_agents=1,
