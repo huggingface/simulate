@@ -6,7 +6,8 @@ from xland.utils import generate_tiles
 from .rl_scene import make_pool
 
 
-def make_collect_all_environment(executable, n_maps, n_show, n_parallel=1, starting_port=55000, seed=None, object_type=None, specific_color=None):
+def make_collect_all_environment(executable, n_maps, n_show, headless=False, 
+            n_parallel=1, starting_port=55000, seed=None, object_type=None, specific_color=None):
     """
     XLand Toy environment.
 
@@ -14,8 +15,13 @@ def make_collect_all_environment(executable, n_maps, n_show, n_parallel=1, start
     number of objects before timeout.
 
     Args:
-        multi_color: to use different colors for the objects.
-        multi_object: to use different formats of objects.
+        executable: unity executable
+        n_maps: number of maps to generate.
+        n_show: number of maps to show at once.
+        headless: if the environment should be run in headless mode.
+        seed: seed to generate maps.
+        mono_color: to use a single color for the objects.
+        mono_object: to use a single format for all objects.
 
     Returns:
         env_fn: environment function
@@ -27,7 +33,7 @@ def make_collect_all_environment(executable, n_maps, n_show, n_parallel=1, start
         pool_fn = make_pool(
             executable=executable,
             port=starting_port + i,
-            headless=True,
+            headless=headless,
             tiles=tiles,
             symmetries=symmetries,
             weights=weights,
@@ -51,7 +57,7 @@ def make_collect_all_environment(executable, n_maps, n_show, n_parallel=1, start
     return pool_fns
 
 
-def make_toy_environment(executable, n_maps, n_show, n_parallel=1, starting_port=55000, seed=None, object_type=None, specific_color=None):
+def make_toy_environment(executable, n_maps, n_show, headless=False, n_parallel=1, starting_port=55000, seed=None, object_type=None, specific_color=None):
     """
     XLand Toy environment.
 
@@ -62,6 +68,7 @@ def make_toy_environment(executable, n_maps, n_show, n_parallel=1, starting_port
         executable: unity executable
         n_maps: number of maps to generate.
         n_show: number of maps to show at once.
+        headless: if the environment should be run in headless mode.
         seed: seed to generate maps.
         mono_color: to use a single color for the objects.
         mono_object: to use a single format for all objects.
@@ -70,14 +77,13 @@ def make_toy_environment(executable, n_maps, n_show, n_parallel=1, starting_port
         env_fn: environment function
     """
     plain_map = np.zeros((2, 2, 2, 2))
-
     pool_fns = []
 
     for i in range(n_parallel):
         pool_fn = make_pool(
             executable=executable,
             port=starting_port + i,
-            headless=True,
+            headless=headless,
             sample_from=plain_map,
             engine="Unity",
             seed=seed,
@@ -98,7 +104,7 @@ def make_toy_environment(executable, n_maps, n_show, n_parallel=1, starting_port
     return pool_fns
 
 
-def make_easy_environment(executable, n_maps, n_show, n_parallel=1, starting_port=55000, seed=None, object_type=None, specific_color=None):
+def make_easy_environment(executable, n_maps, n_show, headless=False, n_parallel=1, starting_port=55000, seed=None, object_type=None, specific_color=None):
     """
     XLand easy environment.
 
@@ -108,6 +114,7 @@ def make_easy_environment(executable, n_maps, n_show, n_parallel=1, starting_por
         executable: unity executable
         n_maps: number of maps to generate.
         n_show: number of maps to show at once.
+        headless: if the environment should be run in headless mode.
         seed: seed to generate maps.
         mono_color: to use a single color for the objects.
         mono_object: to use a single format for all objects.
@@ -122,7 +129,7 @@ def make_easy_environment(executable, n_maps, n_show, n_parallel=1, starting_por
         pool_fn = make_pool(
             executable=executable,
             port=starting_port + i,
-            headless=True,
+            headless=headless,
             sample_from=map_01,
             engine="Unity",
             seed=seed,
@@ -145,7 +152,7 @@ def make_easy_environment(executable, n_maps, n_show, n_parallel=1, starting_por
     return pool_fns
 
 
-def make_medium_environment(executable, n_maps, n_show, n_parallel=1, starting_port=55000, seed=None, object_type=None, specific_color=None):
+def make_medium_environment(executable, n_maps, n_show, headless=False, n_parallel=1, starting_port=55000, seed=None, object_type=None, specific_color=None):
     """
     XLand medium environment.
 
@@ -156,6 +163,7 @@ def make_medium_environment(executable, n_maps, n_show, n_parallel=1, starting_p
         executable: unity executable
         n_maps: number of maps to generate.
         n_show: number of maps to show at once.
+        headless: if the environment should be run in headless mode.
         seed: seed to generate maps.
         mono_color: to use a single color for the objects.
         mono_object: to use a single format for all objects.
@@ -170,7 +178,7 @@ def make_medium_environment(executable, n_maps, n_show, n_parallel=1, starting_p
         pool_fn = make_pool(
             executable=executable,
             port=starting_port + i,
-            headless=True,
+            headless=headless,
             sample_from=map_02,
             engine="Unity",
             seed=seed,
@@ -193,7 +201,7 @@ def make_medium_environment(executable, n_maps, n_show, n_parallel=1, starting_p
     return pool_fns
 
 
-def make_hard_environment(executable, n_maps, n_show, n_parallel=1, starting_port=55000, seed=None, object_type=None, specific_color=None):
+def make_hard_environment(executable, n_maps, n_show, headless=False, n_parallel=1, starting_port=55000, seed=None, object_type=None, specific_color=None):
     """
     XLand hard environment.
 
@@ -204,6 +212,7 @@ def make_hard_environment(executable, n_maps, n_show, n_parallel=1, starting_por
         executable: unity executable
         n_maps: number of maps to generate.
         n_show: number of maps to show at once.
+        headless: if the environment should be run in headless mode.
         seed: seed to generate maps.
         mono_color: to use a single color for the objects.
         mono_object: to use a single format for all objects.
@@ -218,7 +227,7 @@ def make_hard_environment(executable, n_maps, n_show, n_parallel=1, starting_por
         pool_fn = make_pool(
             executable=executable,
             port=starting_port + i,
-            headless=True,
+            headless=headless,
             sample_from=map_03,
             engine="Unity",
             seed=seed,
@@ -239,3 +248,12 @@ def make_hard_environment(executable, n_maps, n_show, n_parallel=1, starting_por
         pool_fns.append(pool_fn)
 
     return pool_fns
+
+
+NAME_TO_MAKE_ENV = {
+    "collect_all": make_collect_all_environment,
+    "toy": make_toy_environment,
+    "easy": make_easy_environment,
+    "medium": make_medium_environment,
+    "hard": make_hard_environment,
+}
