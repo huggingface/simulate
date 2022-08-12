@@ -12,17 +12,11 @@ class UnityEngine(Engine):
         self,
         scene,
         auto_update=True,
-        start_frame=0,
-        end_frame=500,
-        frame_rate=24,
         engine_exe=None,
         engine_headless=None,
         engine_port=55000,
     ):
         super().__init__(scene=scene, auto_update=auto_update)
-        self.start_frame = start_frame
-        self.end_frame = end_frame
-        self.frame_rate = frame_rate
 
         self.host = "127.0.0.1"
         self.port = engine_port

@@ -56,7 +56,8 @@ class Map:
 
 class MapPool:
     def __init__(
-        self, map_fn, n_maps=None, n_show=None, map_width=None, map_height=None, padding=None, **engine_kwargs
+        self, map_fn, n_maps=None, n_show=None, map_width=None, map_height=None, padding=None,
+            frame_rate=None, frame_skip=None, **engine_kwargs
     ):
         if n_maps is None:
             n_maps = 1
@@ -92,7 +93,12 @@ class MapPool:
             map = Map(self.scene, root)
             self.maps.append(map)
 
-        self.scene.show()
+        show_kwargs = {}
+        if frame_rate is not None:
+            show_kwargs["frame_rate"] = frame_rate
+        if frame_skip is not None:
+            show_kwargs["frame_skip"] = frame_skip
+        self.scene.show(**show_kwargs)
 
         self.active_maps = Queue()
         self.inactive_maps = Queue()
