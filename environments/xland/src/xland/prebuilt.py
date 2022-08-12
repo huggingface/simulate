@@ -1,6 +1,7 @@
 """Defines pre-built environments for benchmarking."""
 
 import numpy as np
+from xland.utils import generate_tiles
 
 from .rl_env import make_env
 
@@ -19,12 +20,15 @@ def make_collect_all_environment(executable, n_maps, n_show, seed=None, object_t
     Returns:
         env_fn: environment function
     """
-    map_01 = np.load("map_01.npy")
+    tiles, symmetries, weights, neighbors = generate_tiles(2)
 
     return make_env(
         executable=executable,
-        sample_from=map_01,
         engine="Unity",
+        tiles=tiles,
+        symmetries=symmetries,
+        weights=weights,
+        neighbors=neighbors,
         seed=seed,
         n_agents=1,
         n_objects=4,

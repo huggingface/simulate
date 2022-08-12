@@ -50,10 +50,10 @@ def create_agents(
         agents.append(agent)
 
     if predicate == "random":
-        add_dummy_generated_reward_fn(objects, agents, n_conjunctions=n_conjunctions, n_options=n_options)
+        add_dummy_generated_reward_fn(agents, objects, n_conjunctions=n_conjunctions, n_options=n_options)
 
     elif predicate == "near":
-        add_near_reward(objects, agents)
+        add_near_reward(agents, objects)
 
     elif predicate == "collect_all":
         add_collect_all_rewards(agents, objects, verbose)

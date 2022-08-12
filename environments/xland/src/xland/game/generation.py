@@ -8,7 +8,7 @@ from .predicates import and_reward, near, not_reward, or_reward, see
 
 
 def add_dummy_generated_reward_fn(
-    objects, agents, predicates=None, n_conjunctions=2, n_options=1, verbose=True, strictly_agent_object=False
+    agents, objects, predicates=None, n_conjunctions=2, n_options=1, verbose=True, strictly_agent_object=False
 ):
     """
     Generate the game.

@@ -52,7 +52,7 @@ def create_env(
         )
 
         max_iterations -= 1
-        if scene is not None:
+        if root is not None:
             counter += 1
             scene.engine.add_to_pool(root)
 

@@ -43,7 +43,7 @@ if __name__ == "__main__":
 
     env_fn = NAME_TO_MAKE_ENV[args.env](executable=args.build_exe, n_maps=args.n_maps, n_show=args.n_show)
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=args.n_parallel)
-    model = PPO("MultiInputPolicy", env, verbose=3)
+    model = PPO("MultiInputPolicy", env, verbose=3, device="cpu")
     model.learn(total_timesteps=5000000)
 
     env.close()
