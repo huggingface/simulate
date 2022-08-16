@@ -49,6 +49,7 @@ class GymWrapper(dm_env.Environment):
         self._reset_next_step = True
         self._last_info = None
         self._n_maps = n_maps
+        self.obss = None
 
         # Convert action and observation specs.
         obs_space = self._environment.observation_space
@@ -59,18 +60,21 @@ class GymWrapper(dm_env.Environment):
     def reset(self) -> dm_env.TimeStep:
         """Resets the episode."""
         self._reset_next_step = False
-        observation = self._environment.reset()
+        # Don't call reset, since it's automatically done in the backend
+        # observation = self._environment.reset()
         # Reset the diagnostic information.
         self._last_info = None
-        return dm_env.restart(observation)
+        return dm_env.restart(self.obss)
 
     def step(self, action) -> dm_env.TimeStep:
         """Steps the environment."""
         # TODO: Change this
         if np.any(self._reset_next_step):
-            return self.reset()
+            self.obss = self.reset()
+            return self.obss
 
         observation, reward, done, info = self._environment.step(action)
+        self.obss = observation
         self._reset_next_step = done
         self._last_info = info
 
