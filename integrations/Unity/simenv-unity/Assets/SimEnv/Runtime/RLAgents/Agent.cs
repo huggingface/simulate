@@ -11,6 +11,7 @@ namespace SimEnv.RlAgents {
         Dictionary<string, object> observations = new Dictionary<string, object>();
         List<RewardFunction> rewardFunctions = new List<RewardFunction>();
         float accumReward;
+        object currentAction;
 
         public Agent(Node node) {
             this.node = node;
@@ -42,6 +43,17 @@ namespace SimEnv.RlAgents {
                     rewardFunctions.Add(rewardFunction);
                 }
             }
+
+            Simulator.BeforeIntermediateFrame += HandleIntermediateFrame;
+        }
+
+        void HandleIntermediateFrame() {
+            if (node == null || node.gameObject == null) {
+                Simulator.BeforeIntermediateFrame -= HandleIntermediateFrame;
+                return;
+            }
+            if (currentAction != null && node.gameObject.activeSelf)
+                this.ExecuteAction(currentAction);
         }
 
         public void Step(object action) {
@@ -53,11 +65,11 @@ namespace SimEnv.RlAgents {
                 }
                 cameraNode.camera.camera.enabled = true;
             }
-            this.ExecuteAction(action);
-            UpdateReward();
+            this.currentAction = action;
         }
 
         public Data GetEventData() {
+            UpdateReward();
             Data data = new Data() {
                 done = IsDone(),
                 reward = GetReward(),
