@@ -175,7 +175,7 @@ class PooledEnvironment(VecEnv):
     def step_wait(self):
         scene_offset = 0
         for pool in self.pools:
-            pool_done = False
+            pool_done = True
             agents = pool.agents
             event = pool.scene.engine.get_response_async()
             for i, agent in enumerate(agents):
