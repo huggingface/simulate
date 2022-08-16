@@ -56,8 +56,16 @@ class Map:
 
 class MapPool:
     def __init__(
-        self, map_fn, n_maps=None, n_show=None, map_width=None, map_height=None, padding=None,
-            frame_rate=None, frame_skip=None, **engine_kwargs
+        self,
+        map_fn,
+        n_maps=None,
+        n_show=None,
+        map_width=None,
+        map_height=None,
+        padding=None,
+        frame_rate=None,
+        frame_skip=None,
+        **engine_kwargs,
     ):
         if n_maps is None:
             n_maps = 1
@@ -175,7 +183,7 @@ class PooledEnvironment(VecEnv):
     def step_wait(self):
         scene_offset = 0
         for pool in self.pools:
-            pool_done = False
+            pool_done = True
             agents = pool.agents
             event = pool.scene.engine.get_response_async()
             for i, agent in enumerate(agents):

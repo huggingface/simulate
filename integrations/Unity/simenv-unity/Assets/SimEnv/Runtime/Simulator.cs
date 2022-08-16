@@ -29,6 +29,8 @@ namespace SimEnv {
         public static event UnityAction BeforeStep;
         public static event UnityAction AfterStep;
         public static event UnityAction AfterReset;
+        public static event UnityAction BeforeIntermediateFrame;
+        public static event UnityAction AfterIntermediateFrame;
 
         public static Dictionary<string, Type> extensions;
         public static List<IPlugin> plugins;
@@ -112,8 +114,11 @@ namespace SimEnv {
             BeforeStep?.Invoke();
 
             // Perform the actual simulation
-            for (int i = 0; i < frameSkip; i++)
+            for (int i = 0; i < frameSkip; i++) {
+                BeforeIntermediateFrame?.Invoke();
                 Physics.Simulate(1f / frameRate);
+                AfterIntermediateFrame?.Invoke();
+            }
 
             // Collect post-step data
             yield return ReadEventData(readNodeData, readCameraData);
