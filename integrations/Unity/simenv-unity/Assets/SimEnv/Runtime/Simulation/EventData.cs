@@ -7,11 +7,11 @@ namespace SimEnv {
     public class EventData {
         [JsonIgnore] public Dictionary<string, object> inputKwargs;
         [JsonIgnore] public Dictionary<string, object> outputKwargs;
-        public List<Node.Data> nodes;
+        public Dictionary<string, Node.Data> nodes;
         public Dictionary<string, uint[,,]> frames;
 
         public EventData() {
-            nodes = new List<Node.Data>();
+            nodes = new Dictionary<string, Node.Data>();
             frames = new Dictionary<string, uint[,,]>();
             inputKwargs = new Dictionary<string, object>();
             outputKwargs = new Dictionary<string, object>();

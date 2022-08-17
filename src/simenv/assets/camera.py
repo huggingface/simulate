@@ -123,7 +123,7 @@ class Camera(Asset):
 class CameraDistant(Camera):
     """A Distant Camera looking at the origin.
 
-    The Dstant Camera is identical to the Camera but override the default position and rotation to be located
+    The Distant Camera is identical to the Camera but override the default position and rotation to be located
     slightly away from the origin along the z axis and look toward the origin.
     """
 

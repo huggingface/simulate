@@ -134,7 +134,7 @@ namespace SimEnv {
             if (readNodeData) {
                 foreach (Node node in nodes.Values) {
                     if (MetaData.nodeFilter == null || MetaData.nodeFilter.Contains(node.name))
-                        currentEvent.nodes.Add(node.GetData());
+                        currentEvent.nodes.Add(node.name, node.GetData());
                 }
             }
             if (readCameraData) {
