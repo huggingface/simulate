@@ -6,9 +6,9 @@ import numpy as np
 import simenv as sm
 
 
-def create_scene():
+def create_scene(build_exe=None):
     # Create a scene with Unity engine backend
-    scene = sm.Scene(engine="Unity")
+    scene = sm.Scene(engine="Unity", engine_exe=build_exe)
 
     # Add a floor
     scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-10, 10, -0.1, 0, -10, 10], material=sm.Material.GRAY75)
@@ -38,6 +38,7 @@ def simulate(scene, n_frames=30):
     heights = []
     for i in range(n_frames):
         # Calling scene.step() will step the simulation forward, and return a dictionary of data
+        # By default, it contains a rendering from each camera, and node-level data like position and rotation
         event = scene.step()
 
         # We will graph the height of the cube as it falls
@@ -65,7 +66,7 @@ if __name__ == "__main__":
     parser.add_argument("-n", "--n_frames", help="number of frames to simulate", required=False, type=int, default=30)
     args = parser.parse_args()
 
-    scene = create_scene()
+    scene = create_scene(args.build_exe)
     simulate(scene, args.n_frames)
 
-    input("Press any key to continue...")
+    input("Press enter to continue...")
