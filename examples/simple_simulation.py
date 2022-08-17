@@ -1,7 +1,9 @@
-import simenv as sm
 import argparse
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
+
+import simenv as sm
 
 
 def create_scene():
@@ -9,7 +11,7 @@ def create_scene():
     scene = sm.Scene(engine="Unity")
 
     # Add a floor
-    scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-10, 10, -.1, 0, -10, 10], material=sm.Material.GRAY75)
+    scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-10, 10, -0.1, 0, -10, 10], material=sm.Material.GRAY75)
 
     # Add a cube that will fall
     cube = sm.Box(name="cube", position=[0, 3, 0], scaling=[1, 1, 1], material=sm.Material.GRAY50)
@@ -57,7 +59,9 @@ def simulate(scene, n_frames=30):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", help="path to unity engine build executable", required=False, type=str, default=None)
+    parser.add_argument(
+        "--build_exe", help="path to unity engine build executable", required=False, type=str, default=None
+    )
     parser.add_argument("-n", "--n_frames", help="number of frames to simulate", required=False, type=int, default=30)
     args = parser.parse_args()
 
