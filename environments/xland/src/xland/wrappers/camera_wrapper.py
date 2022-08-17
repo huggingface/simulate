@@ -64,6 +64,8 @@ class GymWrapper(dm_env.Environment):
         # observation = self._environment.reset()
         # Reset the diagnostic information.
         self._last_info = None
+        if self.obss is None:
+            self.obss = self._environment.reset()
         return dm_env.restart(self.obss)
 
     def step(self, action) -> dm_env.TimeStep:
