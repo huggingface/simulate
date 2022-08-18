@@ -204,6 +204,7 @@ def generate_map(
     n_options=1,
     n_conjunctions=2,
     predicates_verbose=True,
+    frame_skip=None,
 ):
     """
     Generate scene using simenv library.
@@ -254,6 +255,7 @@ def generate_map(
         n_options=n_options,
         n_conjunctions=n_conjunctions,
         verbose=predicates_verbose,
+        frame_skip=frame_skip,
     )
     root += agents_root
 

@@ -21,6 +21,7 @@ def create_agents(
     camera_height=72,
     n_options=1,
     n_conjunctions=2,
+    frame_skip=None,
 ):
     """
     Create agents in simenv.
@@ -52,11 +53,11 @@ def create_agents(
 
     if predicate == "random":
         add_dummy_generated_reward_fn(
-            objects, agents, n_conjunctions=n_conjunctions, n_options=n_options, verbose=verbose
+            agents, objects, n_conjunctions=n_conjunctions, n_options=n_options, verbose=verbose
         )
 
     elif predicate == "near":
-        add_near_reward(objects, agents, verbose=verbose)
+        add_near_reward(agents, objects, verbose=verbose)
 
     elif predicate == "collect_all":
         add_collect_all_rewards(agents, objects, verbose=verbose)
@@ -67,6 +68,6 @@ def create_agents(
     else:
         raise ValueError("Only `random`, `near`, `collect_all`, `collect_random_collectables` are supported.")
 
-    add_timeout_rewards(agents)
+    add_timeout_rewards(agents, frame_skip=frame_skip)
 
     return agents

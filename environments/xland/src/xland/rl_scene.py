@@ -28,10 +28,10 @@ def create_map_pool(
     max_iterations = 100000
 
     def _map_fn(rank):
+        root = None
         nonlocal max_iterations
-        success = False
-        while not success and max_iterations > 0:
-            success, root = create_map(
+        while root is None and max_iterations > 0:
+            root = create_map(
                 rank=rank,
                 width=width,
                 height=height,
@@ -41,10 +41,11 @@ def create_map_pool(
                 seed=seed,
                 headless=headless,
                 root=counter,
+                frame_skip=frame_skip,
                 **kwargs,
             )
             max_iterations -= 1
-            if success:
+            if root is not None:
                 return root
         return None
 

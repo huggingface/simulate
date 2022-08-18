@@ -36,13 +36,15 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv.")
     parser.add_argument("--record", default=None, type=str, required=False, help="Path to record agent.")
+    parser.add_argument("--n_maps", default=4, type=int, required=False, help="Number of maps to create.")
+    parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show.")
     args = parser.parse_args()
 
     plt.ion()
-
     fig1, ax1 = plt.subplots()
+
     if args.record is not None:
-        recorder = AgentRecorder(record_path=args.record, frame_skip=25)
+        recorder = AgentRecorder(record_path=args.record, frame_skip=1, fps=7.5)
 
     example_map = np.load("benchmark/examples/example_map_01.npy")
 
@@ -57,8 +59,8 @@ if __name__ == "__main__":
         n_objects=4,
         width=9,
         height=9,
-        n_maps=1,
-        n_show=1,
+        n_maps=args.n_maps,
+        n_show=args.n_show,
     )
     env = sm.PooledEnvironment([pool_fn])
 
@@ -69,28 +71,15 @@ if __name__ == "__main__":
 
     t = time.time()
 
-    for i in range(10000):
-        action = env.action_space.sample()
-
-        if type(action) == int:
-            action = [action]
-        else:
-            action = action.tolist()
-
-        if done:
-            obs = env.reset()
-            done = False
-
-        else:
-            obs, reward, done, info = env.step(action)
-
+    for i in range(400):
+        action = [env.action_space.sample() for i in range(args.n_show)]
+        obs, reward, done, info = env.step(action)
         obs = np.array(obs["camera"][0], dtype=np.uint8).transpose((1, 2, 0))
         if args.record is not None:
             recorder.add_frame(obs)
         else:
             axim1.set_data(obs)
             fig1.canvas.flush_events()
-            time.sleep(0.1)
 
     if args.record is not None:
         recorder.close()

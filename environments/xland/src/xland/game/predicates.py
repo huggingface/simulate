@@ -190,14 +190,15 @@ def add_near_reward(agents, objects, verbose=False):
             agent.add_reward_function(reward_function)
 
 
-def add_timeout_rewards(agents, scalar=0.0):
+def add_timeout_rewards(agents, scalar=0.0, frame_skip=None):
+    frame_skip = 1 if frame_skip is None else frame_skip
     for agent in agents:
         timeout_reward_function = RewardFunction(
             type="timeout",
             entity_a=agent,
             entity_b=agent,
             distance_metric="euclidean",
-            threshold=1000,
+            threshold=1000 // frame_skip,
             is_terminal=True,
             scalar=scalar,
         )
