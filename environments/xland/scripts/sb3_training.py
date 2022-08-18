@@ -28,7 +28,13 @@ if __name__ == "__main__":
 
     np.random.seed(args.seed)
     pool_fns = make_prebuilt_env(
-        args.env, executable=args.build_exe, n_maps=args.n_maps, n_show=args.n_show, headless=args.headless, starting_port=55000, n_parallel=args.n_parallel,
+        args.env,
+        executable=args.build_exe,
+        n_maps=args.n_maps,
+        n_show=args.n_show,
+        headless=args.headless,
+        starting_port=55000,
+        n_parallel=args.n_parallel,
     )
     env = sm.PooledEnvironment(pool_fns)
     model = PPO("MultiInputPolicy", env, verbose=3)

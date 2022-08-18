@@ -143,6 +143,7 @@ TASK_ARGS = {
 
 AVAILABLE_TASKS = TASK_ARGS.keys()
 
+
 def make_prebuilt_env(
     task,
     executable,
@@ -190,7 +191,7 @@ def make_prebuilt_env(
             executable=executable,
             port=starting_port + i,
             headless=headless,
-            seed=seed, # TODO: seed needs to be changed every map
+            seed=seed,  # TODO: seed needs to be changed every map
             n_maps=n_maps,
             n_show=n_show,
             object_type=object_type,
