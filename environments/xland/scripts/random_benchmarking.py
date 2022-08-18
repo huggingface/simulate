@@ -2,12 +2,12 @@
 # and PPO algorithms
 
 import argparse
-import time
+import os
 import pickle
+import time
 
 import numpy as np
-import os
-from xland.prebuilt import NAME_TO_MAKE_ENV
+from xland.prebuilt import make_prebuilt_env
 
 from simenv import ParallelSimEnv
 
@@ -38,8 +38,8 @@ if __name__ == "__main__":
 
     np.random.seed(args.seed)
 
-    env_fn = NAME_TO_MAKE_ENV[args.env](
-        executable=args.build_exe, n_maps=args.n_maps, n_show=args.n_show, headless=True
+    env_fn = make_prebuilt_env(
+        args.env, executable=args.build_exe, n_maps=args.n_maps, n_show=args.n_show, headless=True
     )
     env = ParallelSimEnv(env_fn=env_fn, n_parallel=args.n_parallel)
 
@@ -57,7 +57,7 @@ if __name__ == "__main__":
     while np.sum(metrics["episodes_per_slot"]) <= args.n_episodes:
         actions = sample_n_random(env.action_space.sample, concurrent_envs)
         if np.any(dones):
-            idxs = np.where(dones == True)
+            idxs = np.where(dones)
             metrics["episode_rewards"][idxs] += curr_rewards[idxs]
             metrics["episodes_per_slot"][idxs] += 1
             curr_rewards[idxs] = 0
@@ -71,7 +71,6 @@ if __name__ == "__main__":
     total_time = time.time() - t
     print("Executed in {} seconds".format(total_time))
 
-    metrics["total_time"] = total_time 
+    metrics["total_time"] = total_time
     with open(os.path.join(args.save_folder, "metrics_" + args.env + ".pickle"), "wb") as output_file:
         pickle.dump(metrics, output_file)
-

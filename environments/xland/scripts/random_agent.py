@@ -63,6 +63,5 @@ if __name__ == "__main__":
 
         axim1.set_data(obs)
         fig1.canvas.flush_events()
-        time.sleep(0.1)
 
     print("Executed in {} seconds".format(time.time() - t))
