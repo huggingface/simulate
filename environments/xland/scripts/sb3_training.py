@@ -4,24 +4,10 @@ import argparse
 
 import numpy as np
 from stable_baselines3 import PPO
-from xland.prebuilt import (
-    make_collect_all_environment,
-    make_easy_environment,
-    make_hard_environment,
-    make_medium_environment,
-    make_toy_environment,
-)
+from xland.prebuilt import make_prebuilt_env
 
 import simenv as sm
 
-
-NAME_TO_MAKE_ENV = {
-    "collect_all": make_collect_all_environment,
-    "toy": make_toy_environment,
-    "easy": make_easy_environment,
-    "medium": make_medium_environment,
-    "hard": make_hard_environment,
-}
 
 # TODO: check if seeding works properly and maybe migrate to using rng keys
 if __name__ == "__main__":
@@ -37,10 +23,13 @@ if __name__ == "__main__":
     parser.add_argument("--n_maps", default=16, type=int, required=False, help="Total number of maps")
     parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show at once")
     parser.add_argument("--seed", default=10, type=int, required=False, help="Random seed")
+    parser.add_argument("--headless", default=True, type=bool, required=False, help="Headless mode")
     args = parser.parse_args()
 
     np.random.seed(args.seed)
-    pool_fns = NAME_TO_MAKE_ENV[args.env](executable=args.build_exe, n_maps=args.n_maps, n_show=args.n_show, starting_port=55000, n_parallel=args.n_parallel)
+    pool_fns = make_prebuilt_env(
+        args.env, executable=args.build_exe, n_maps=args.n_maps, n_show=args.n_show, headless=args.headless, starting_port=55000, n_parallel=args.n_parallel,
+    )
     env = sm.PooledEnvironment(pool_fns)
     model = PPO("MultiInputPolicy", env, verbose=3)
     model.learn(total_timesteps=5000000)
