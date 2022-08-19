@@ -9,7 +9,7 @@ import time
 import numpy as np
 from xland.prebuilt import make_prebuilt_env
 
-from simenv import ParallelSimEnv
+from simenv import PooledEnvironment
 
 
 def sample_n_random(sample_fn, n):
@@ -34,14 +34,21 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=10, type=int, required=False, help="Random seed")
     parser.add_argument("--n_episodes", default=25600, type=int, required=False, help="Number of episodes")
     parser.add_argument("--save_folder", default="results", type=str, required=False, help="Where to save results")
+    parser.add_argument("--headless", default=True, type=bool, required=False, help="Headless mode")
     args = parser.parse_args()
 
     np.random.seed(args.seed)
 
-    env_fn = make_prebuilt_env(
-        args.env, executable=args.build_exe, n_maps=args.n_maps, n_show=args.n_show, headless=True
+    pool_fns = make_prebuilt_env(
+        args.env,
+        executable=args.build_exe,
+        n_maps=args.n_maps,
+        n_show=args.n_show,
+        headless=args.headless,
+        starting_port=55000,
+        n_parallel=args.n_parallel,
     )
-    env = ParallelSimEnv(env_fn=env_fn, n_parallel=args.n_parallel)
+    env = PooledEnvironment(pool_fns)
 
     concurrent_envs = args.n_show * args.n_parallel
     dones = np.zeros(concurrent_envs, dtype=bool)
