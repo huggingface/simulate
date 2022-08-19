@@ -1,0 +1,16 @@
+{
+    "name": "MountainCar",
+    "rootNamespace": "",
+    "references": [
+        "GUID:20acf4accf2cab340945bbf78cc82cf7"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

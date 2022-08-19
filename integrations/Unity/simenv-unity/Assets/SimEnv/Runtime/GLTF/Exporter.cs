@@ -162,7 +162,7 @@ namespace SimEnv.GLTF {
             accessor.min = new float[] { data.Min() };
             accessor.max = new float[] { data.Max() };
             byte[] bytes = new byte[data.Length * sizeof(ushort)];
-            ushort[] shortArray = Array.ConvertAll(data, x => checked((ushort)x));
+            ushort[] shortArray = Array.ConvertAll(data, x => (ushort)x);
             Buffer.BlockCopy(shortArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
             accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData);

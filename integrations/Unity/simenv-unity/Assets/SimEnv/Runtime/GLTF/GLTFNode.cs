@@ -232,10 +232,8 @@ namespace SimEnv.GLTF {
                     }
                 }
 
-                if (Application.isPlaying) {
-                    for (int i = 0; i < result.Length; i++)
-                        result[i].node.Initialize();
-                }
+                for (int i = 0; i < result.Length; i++)
+                    result[i].node.Initialize();
 
                 IsCompleted = true;
             }
