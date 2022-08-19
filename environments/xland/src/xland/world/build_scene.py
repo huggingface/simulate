@@ -15,7 +15,7 @@ from .set_object import create_objects
 MAX_SIZE = 10
 
 
-def add_walls(x, z, height=None, thickness=1, invisible=False):
+def add_walls(x, z, height=None, thickness=0.5, invisible=False):
     """
     Adding walls to prevent agent from falling.
 
@@ -67,36 +67,27 @@ def add_walls(x, z, height=None, thickness=1, invisible=False):
             ),
         ]
     else:
-        # "bounds": (min_v, max_v, min_v, max_v, min_v, max_v)
+        material = sm.Material.BLACK
         return [
             sm.Box(
                 position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2],
-                bounds=(x_min, x_max, 0, height, -thickness / 2, thickness / 2),
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[x_max - x_min, height, thickness],
-                ),
+                bounds=(x_min - thickness, x_max + thickness, -height / 2, height / 2, -thickness / 2, thickness / 2),
+                material=material,
             ),
-            sm.Asset(
+            sm.Box(
                 position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[x_max - x_min, height, thickness],
-                ),
+                bounds=(x_min - thickness, x_max + thickness, -height / 2, height / 2, -thickness / 2, thickness / 2),
+                material=material,
             ),
-            sm.Asset(
+            sm.Box(
                 position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[thickness, height, z_max - z_min],
-                ),
+                bounds=(-thickness / 2, thickness / 2, -height / 2, height / 2, z_min - thickness, z_max + thickness),
+                material=material,
             ),
-            sm.Asset(
+            sm.Box(
                 position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[thickness, height, z_max - z_min],
-                ),
+                bounds=(-thickness / 2, thickness / 2, -height / 2, height / 2, z_min - thickness, z_max + thickness),
+                material=material,
             ),
         ]
 

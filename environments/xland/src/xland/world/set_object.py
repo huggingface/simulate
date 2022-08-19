@@ -174,6 +174,8 @@ def create_objects(positions, object_type=None, specific_color=None, object_size
     Create objects in simenv.
     """
 
+    object_names = defaultdict(lambda: 0)
+
     if len(positions) == 0:
         return []
 
@@ -198,9 +200,15 @@ def create_objects(positions, object_type=None, specific_color=None, object_size
         obj_idxs = np.random.choice(np.arange(len(OBJECTS), dtype=int), size=len(positions))
         objects = [OBJECTS[idx] for idx in obj_idxs]
 
+    def increase_and_return(color, obj, n_instance):
+        partial_name = color + "_" + obj + "_" + str(n_instance)
+        full_name = partial_name + "_" + str(object_names[partial_name])
+        object_names[partial_name] += 1
+        return full_name
+
     return [
         get_object_fn(obj)(
-            name=color_name + "_" + obj + "_" + str(n_instance),
+            name=increase_and_return(color_name, obj, n_instance),
             position=pos,
             material=color,
             physics_component=sm.RigidBodyComponent(mass=0.2),
