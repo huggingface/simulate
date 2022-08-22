@@ -334,7 +334,15 @@ namespace SimEnv.GLTF {
                         nodes[i].mesh = results.Count;
                         ExportResult result = Export(gltfObject, mesh, ref bufferData);
                         result.node = nodes[i];
-                        nodes[i].meshResult = result;
+                        results.Add(result);
+                    }
+                }
+                if (nodes[i].meshCollider) {
+                    Mesh mesh = nodes[i].meshCollider.sharedMesh;
+                    if (mesh != null) {
+                        nodes[i].colliderMesh = results.Count;
+                        ExportResult result = Export(gltfObject, mesh, ref bufferData);
+                        result.node = nodes[i];
                         results.Add(result);
                     }
                 }

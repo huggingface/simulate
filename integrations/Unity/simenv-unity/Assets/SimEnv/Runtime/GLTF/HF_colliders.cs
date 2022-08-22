@@ -19,17 +19,20 @@ namespace SimEnv.GLTF {
             public int? mesh;
             [JsonConverter(typeof(TranslationConverter))] public Vector3 offset = Vector3.zero;
             public bool intangible = false;
+            public bool convex = false;
 
             public bool ShouldSerializemesh() { return mesh.HasValue; }
             public bool ShouldSerializeoffset() { return offset != Vector3.zero; }
             public bool ShouldSerializeintangible() { return intangible; }
+            public bool ShouldSerializeconvex() { return convex; }
 
             public override int GetHashCode() {
                 return type.GetHashCode()
                     ^ boundingBox.GetHashCode()
                     ^ mesh.GetHashCode()
                     ^ offset.GetHashCode()
-                    ^ intangible.GetHashCode();
+                    ^ intangible.GetHashCode()
+                    ^ convex.GetHashCode();
             }
 
             public override bool Equals(object obj) {
@@ -39,9 +42,15 @@ namespace SimEnv.GLTF {
                     && boundingBox == other.boundingBox
                     && mesh == other.mesh
                     && offset == other.offset
-                    && intangible == other.intangible)
+                    && intangible == other.intangible
+                    && convex == other.convex)
                     return true;
                 return false;
+            }
+
+            public class ImportResult {
+                public GLTFCollider collider;
+                public Mesh mesh;
             }
         }
 
@@ -83,6 +92,11 @@ namespace SimEnv.GLTF {
                 CapsuleCollider capsule = col as CapsuleCollider;
                 collider.offset = capsule.center;
                 collider.boundingBox = new Vector3(capsule.radius, capsule.height, capsule.radius);
+            } else if (col is MeshCollider) {
+                collider.type = ColliderType.mesh;
+                MeshCollider meshCollider = col as MeshCollider;
+                collider.mesh = node.colliderMesh;
+                collider.convex = meshCollider.convex;
             } else {
                 Debug.LogWarning($"Collider type {col.GetType()} not implemented");
             }

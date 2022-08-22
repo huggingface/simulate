@@ -132,7 +132,6 @@ namespace SimEnv.GLTF {
                     if (nodes[i].mesh.HasValue) {
                         GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
                         if (meshResult == null) continue;
-
                         Mesh mesh = meshResult.mesh;
                         Renderer renderer;
                         if (nodes[i].skin.HasValue) {
@@ -178,7 +177,15 @@ namespace SimEnv.GLTF {
                             if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.components == null || extensions.HF_colliders.components.Count < componentId) {
                                 Debug.LogWarning("Error importing collider");
                             } else {
-                                result[i].node.colliderData = extensions.HF_colliders.components[componentId];
+                                HFColliders.GLTFCollider collider = extensions.HF_colliders.components[componentId];
+                                Mesh mesh = null;
+                                if (collider.mesh.HasValue)
+                                    mesh = meshTask.result[collider.mesh.Value].mesh;
+                                HFColliders.GLTFCollider.ImportResult importResult = new HFColliders.GLTFCollider.ImportResult() {
+                                    collider = collider,
+                                    mesh = mesh,
+                                };
+                                result[i].node.colliderData = importResult;
                             }
                         }
 
@@ -243,8 +250,9 @@ namespace SimEnv.GLTF {
             [JsonIgnore] public Transform transform;
             [JsonIgnore] public MeshRenderer renderer;
             [JsonIgnore] public MeshFilter filter;
+            [JsonIgnore] public MeshCollider meshCollider;
             [JsonIgnore] public SkinnedMeshRenderer skinnedMeshRenderer;
-            [JsonIgnore] public GLTFMesh meshResult;
+            [JsonIgnore] public int? colliderMesh;
         }
 
         public static List<ExportResult> Export(GLTFObject gltfObject, Transform root) {
@@ -263,6 +271,7 @@ namespace SimEnv.GLTF {
             node.scale = transform.localScale;
             node.renderer = transform.gameObject.GetComponent<MeshRenderer>();
             node.filter = transform.gameObject.GetComponent<MeshFilter>();
+            node.meshCollider = transform.gameObject.GetComponent<MeshCollider>();
             node.skinnedMeshRenderer = transform.gameObject.GetComponent<SkinnedMeshRenderer>();
             nodes.Add(node);
             if (transform.childCount > 0) {

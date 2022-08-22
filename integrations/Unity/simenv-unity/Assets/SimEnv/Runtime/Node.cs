@@ -7,7 +7,7 @@ namespace SimEnv {
     public class Node : MonoBehaviour {
         public GLTFCamera cameraData;
         public KHRLightsPunctual.GLTFLight lightData;
-        public HFColliders.GLTFCollider colliderData;
+        public HFColliders.GLTFCollider.ImportResult colliderData;
         public HFRigidBodies.GLTFRigidBody rigidBodyData;
         public HFArticulatedBodies.GLTFArticulatedBody articulatedBodyData;
         public HFRlAgents.HFRlAgentsComponent agentData;
@@ -17,7 +17,7 @@ namespace SimEnv {
         public new Collider collider { get; private set; }
         public new Rigidbody rigidbody { get; private set; }
         public ArticulationBody articulatedBody { get; private set; }
-        
+
         public Data initialState { get; private set; }
 
         public void Initialize() {
@@ -76,30 +76,34 @@ namespace SimEnv {
         }
 
         void InitializeCollider() {
-            if (colliderData.mesh.HasValue) {
-                Debug.LogWarning("Ignoring collider mesh value");
-            }
-            if (colliderData.type == ColliderType.box) {
+            HFColliders.GLTFCollider collider = colliderData.collider;
+            if (collider.type == ColliderType.box) {
                 BoxCollider col = gameObject.AddComponent<BoxCollider>();
-                col.size = colliderData.boundingBox;
-                col.center = colliderData.offset;
-                col.isTrigger = colliderData.intangible;
-                collider = col;
-            } else if (colliderData.type == ColliderType.sphere) {
+                col.size = collider.boundingBox;
+                col.center = collider.offset;
+                col.isTrigger = collider.intangible;
+                this.collider = col;
+            } else if (collider.type == ColliderType.sphere) {
                 SphereCollider col = gameObject.AddComponent<SphereCollider>();
-                col.radius = Mathf.Min(colliderData.boundingBox[0], colliderData.boundingBox[1], colliderData.boundingBox[2]);
-                col.center = colliderData.offset;
-                col.isTrigger = colliderData.intangible;
-                collider = col;
-            } else if (colliderData.type == ColliderType.capsule) {
+                col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[1], collider.boundingBox[2]);
+                col.center = collider.offset;
+                col.isTrigger = collider.intangible;
+                this.collider = col;
+            } else if (collider.type == ColliderType.capsule) {
                 CapsuleCollider col = gameObject.AddComponent<CapsuleCollider>();
-                col.radius = Mathf.Min(colliderData.boundingBox[0], colliderData.boundingBox[2]);
-                col.height = colliderData.boundingBox[1];
-                col.center = colliderData.offset;
-                col.isTrigger = colliderData.intangible;
-                collider = col;
+                col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[2]);
+                col.height = collider.boundingBox[1];
+                col.center = collider.offset;
+                col.isTrigger = collider.intangible;
+                this.collider = col;
+            } else if (collider.type == ColliderType.mesh) {
+                MeshCollider col = gameObject.AddComponent<MeshCollider>();
+                col.sharedMesh = colliderData.mesh;
+                col.isTrigger = collider.intangible;
+                col.convex = collider.convex;
+                this.collider = col;
             } else {
-                Debug.LogWarning(string.Format("Collider type {0} not implemented", colliderData.GetType()));
+                Debug.LogWarning(string.Format("Collider type {0} not implemented", collider.GetType()));
             }
         }
 
