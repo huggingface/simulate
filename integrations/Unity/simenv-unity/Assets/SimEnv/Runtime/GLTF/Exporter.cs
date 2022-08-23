@@ -82,7 +82,7 @@ namespace SimEnv.GLTF {
             byte[] bytes = new byte[floatArray.Length * sizeof(float)];
             Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
-            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData);
+            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, BufferViewTarget.ARRAY_BUFFER);
             gltfObject.accessors ??= new List<GLTFAccessor>();
             gltfObject.accessors.Add(accessor);
             int accessorID = gltfObject.accessors.Count - 1;
@@ -113,7 +113,7 @@ namespace SimEnv.GLTF {
             byte[] bytes = new byte[floatArray.Length * sizeof(float)];
             Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
-            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData);
+            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, BufferViewTarget.ARRAY_BUFFER);
             gltfObject.accessors ??= new List<GLTFAccessor>();
             gltfObject.accessors.Add(accessor);
             int accessorID = gltfObject.accessors.Count - 1;
@@ -147,14 +147,14 @@ namespace SimEnv.GLTF {
             byte[] bytes = new byte[floatArray.Length * sizeof(float)];
             Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
-            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData);
+            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, BufferViewTarget.ARRAY_BUFFER);
             gltfObject.accessors ??= new List<GLTFAccessor>();
             gltfObject.accessors.Add(accessor);
             int accessorID = gltfObject.accessors.Count - 1;
             return accessorID;
         }
 
-        public static int WriteInt(int[] data, GLTFObject gltfObject, ref byte[] bufferData) {
+        public static int WriteInt(int[] data, GLTFObject gltfObject, ref byte[] bufferData, BufferViewTarget bufferViewTarget) {
             GLTFAccessor accessor = new GLTFAccessor();
             accessor.type = AccessorType.SCALAR;
             accessor.componentType = GLType.UNSIGNED_SHORT;
@@ -162,10 +162,10 @@ namespace SimEnv.GLTF {
             accessor.min = new float[] { data.Min() };
             accessor.max = new float[] { data.Max() };
             byte[] bytes = new byte[data.Length * sizeof(ushort)];
-            ushort[] shortArray = Array.ConvertAll(data, x => (ushort)x);
+            ushort[] shortArray = Array.ConvertAll(data, x => checked((ushort)x));
             Buffer.BlockCopy(shortArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
-            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData);
+            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, bufferViewTarget);
             gltfObject.accessors ??= new List<GLTFAccessor>();
             gltfObject.accessors.Add(accessor);
             int accessorID = gltfObject.accessors.Count - 1;
@@ -178,7 +178,7 @@ namespace SimEnv.GLTF {
             Array.Resize(ref bufferData, bufferData.Length + padSize);
         }
 
-        public static int WriteToBuffer(byte[] newData, GLTFObject gltfObject, ref byte[] bufferData) {
+        public static int WriteToBuffer(byte[] newData, GLTFObject gltfObject, ref byte[] bufferData, BufferViewTarget bufferViewTarget) {
             int byteOffset = bufferData.Length;
             int byteLength = newData.Length;
             Array.Resize(ref bufferData, byteOffset + byteLength);
@@ -187,6 +187,7 @@ namespace SimEnv.GLTF {
             bufferView.buffer = 0; // Always exports to a single buffer
             bufferView.byteOffset = byteOffset;
             bufferView.byteLength = byteLength;
+            bufferView.target = (int)bufferViewTarget;
             gltfObject.bufferViews ??= new List<GLTFBufferView>();
             gltfObject.bufferViews.Add(bufferView);
             int bufferViewID = gltfObject.bufferViews.Count - 1;

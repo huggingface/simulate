@@ -65,6 +65,8 @@ namespace SimEnv.GLTF {
                 node.extensions.HF_colliders = new GLTFNode.HFCollider() { component_id = components.IndexOf(collider) };
             }
             if (components.Count == 0) return;
+            gltfObject.extensionsUsed ??= new List<string>();
+            gltfObject.extensionsUsed.Add("HF_colliders");
             gltfObject.extensions ??= new GLTFExtensions();
             gltfObject.extensions.HF_colliders ??= new HFColliders();
             gltfObject.extensions.HF_colliders.components.AddRange(components);
@@ -79,6 +81,7 @@ namespace SimEnv.GLTF {
                 Debug.LogWarning($"Node {node.name} has multiple colliders. Ignoring extras.");
             Collider col = cols[0];
             GLTFCollider collider = new GLTFCollider();
+            collider.name = col.name;
             if (col is BoxCollider) {
                 collider.type = ColliderType.box;
                 collider.offset = ((BoxCollider)col).center;

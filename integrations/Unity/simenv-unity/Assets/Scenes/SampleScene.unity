@@ -38,7 +38,7 @@ RenderSettings:
   m_ReflectionIntensity: 1
   m_CustomReflection: {fileID: 0}
   m_Sun: {fileID: 0}
-  m_IndirectSpecularColor: {r: 0.17822531, g: 0.22315508, b: 0.30521485, a: 1}
+  m_IndirectSpecularColor: {r: 0.12731749, g: 0.13414757, b: 0.1210787, a: 1}
   m_UseRadianceAmbientProbe: 0
 --- !u!157 &3
 LightmapSettings:
@@ -139,7 +139,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!4 &1143586154
 Transform:
   m_ObjectHideFlags: 0
@@ -425,13 +425,13 @@ PrefabInstance:
   m_Modification:
     m_TransformParent: {fileID: 0}
     m_Modifications:
-    - target: {fileID: 399253305513702564, guid: f7b91e9f1033e804194542e6f967a2dc, type: 3}
-      propertyPath: m_Convex
-      value: 0
-      objectReference: {fileID: 0}
     - target: {fileID: 6039915585573425205, guid: f7b91e9f1033e804194542e6f967a2dc, type: 3}
       propertyPath: m_Name
       value: MountainCar
+      objectReference: {fileID: 0}
+    - target: {fileID: 6039915585573425205, guid: f7b91e9f1033e804194542e6f967a2dc, type: 3}
+      propertyPath: m_IsActive
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 9043930750588513997, guid: f7b91e9f1033e804194542e6f967a2dc, type: 3}
       propertyPath: m_RootOrder

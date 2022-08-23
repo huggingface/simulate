@@ -41,6 +41,8 @@ namespace SimEnv.GLTF {
                 node.extensions.HF_rigid_bodies = new GLTFNode.HFRigidbody() { component_id = rigidbodies.IndexOf(rigidbody) };
             }
             if (rigidbodies.Count == 0) return;
+            gltfObject.extensionsUsed ??= new List<string>();
+            gltfObject.extensionsUsed.Add("HF_rigid_bodies");
             gltfObject.extensions ??= new GLTFExtensions();
             gltfObject.extensions.HF_rigid_bodies ??= new HFRigidBodies();
             gltfObject.extensions.HF_rigid_bodies.components.AddRange(rigidbodies);

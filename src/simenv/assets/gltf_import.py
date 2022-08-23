@@ -199,6 +199,8 @@ def build_node_tree(
             if node_extension is not None:
                 component_id = node_extension.component_id
                 component_name = node_extension.name
+                if component_name is None:
+                    continue
                 model_extension = getattr(gltf_model.extensions, extension_name, None)
                 component = model_extension.components[component_id]
                 common_kwargs[component_name] = component
