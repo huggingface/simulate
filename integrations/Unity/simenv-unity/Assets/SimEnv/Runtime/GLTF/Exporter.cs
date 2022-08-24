@@ -13,14 +13,16 @@ namespace SimEnv.GLTF {
 #if UNITY_EDITOR
         [MenuItem("GameObject/SimEnv/Export GLB")]
         public static void ExportSelectedGLB() {
-            string filepath = EditorUtility.SaveFilePanel("Export GLB", "", "scene", "glb");
-            ExportGLB(Selection.activeGameObject, filepath);
+            GameObject selection = Selection.activeGameObject;
+            string filepath = EditorUtility.SaveFilePanel("Export GLB", "", selection.name, "glb");
+            ExportGLB(selection, filepath);
         }
 
         [MenuItem("GameObject/SimEnv/Export GLTF")]
         public static void ExportSelectedGLTF() {
-            string filepath = EditorUtility.SaveFilePanel("Export GLTF", "", "scene", "gltf");
-            ExportGLTF(Selection.activeGameObject, filepath);
+            GameObject selection = Selection.activeGameObject;
+            string filepath = EditorUtility.SaveFilePanel("Export GLTF", "", selection.name, "gltf");
+            ExportGLTF(selection, filepath);
         }
 #endif
 
@@ -44,7 +46,7 @@ namespace SimEnv.GLTF {
 
         public static GLTFObject CreateGLTFObject(Transform root, string filepath) {
             EnforceUniqueNames(root);
-            
+
             byte[] bufferData = new byte[0];
             Dictionary<string, GLTFImage.ExportResult> imageDict = new Dictionary<string, GLTFImage.ExportResult>();
 
@@ -55,6 +57,7 @@ namespace SimEnv.GLTF {
             List<GLTFMesh.ExportResult> meshes = GLTFMesh.Export(gltfObject, nodes, ref bufferData);
             GLTFMaterial.Export(gltfObject, imageDict, meshes, filepath);
             GLTFImage.Export(gltfObject, imageDict);
+            GLTFCamera.Export(gltfObject, nodes);
             KHRLightsPunctual.Export(gltfObject, nodes);
             HFColliders.Export(gltfObject, nodes);
             HFRigidBodies.Export(gltfObject, nodes);
