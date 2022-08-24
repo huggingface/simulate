@@ -7,8 +7,7 @@ import simenv as sm
 
 
 def create_scene(build_exe=None):
-    # scene = sm.Scene(engine="Unity", engine_exe=build_exe)
-    scene = sm.Scene()
+    scene = sm.Scene(engine="Unity", engine_exe=build_exe)
     scene.load("C:\\Users\\dylan\\Documents\\huggingface\\simenv\\integrations\\Unity\\simenv-unity\\Assets\\GLTF\\mountaincar\\Exported\\scene.gltf")
 
     """ scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-10, 10, -0.1, 0, -10, 10], material=sm.Material.GRAY75)

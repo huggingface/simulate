@@ -259,6 +259,7 @@ def build_node_tree(
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
         primitives = gltf_mesh.primitives
+        base_name = common_kwargs["name"]
         for index, primitive in enumerate(primitives):
             mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][index]
 
@@ -282,6 +283,9 @@ def build_node_tree(
                 )
             else:
                 scene_material = Material()
+            if len(primitives) > 1:
+                name = f"{base_name}_{mat.name}"
+                common_kwargs["name"] = name
             scene_node = Object3D(**common_kwargs, mesh=mesh, material=scene_material)
     else:
         # We just have an empty node with a transform

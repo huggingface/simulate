@@ -43,6 +43,8 @@ namespace SimEnv.GLTF {
         }
 
         public static GLTFObject CreateGLTFObject(Transform root, string filepath) {
+            EnforceUniqueNames(root);
+            
             byte[] bufferData = new byte[0];
             Dictionary<string, GLTFImage.ExportResult> imageDict = new Dictionary<string, GLTFImage.ExportResult>();
 
@@ -59,6 +61,22 @@ namespace SimEnv.GLTF {
             GLTFBuffer.Export(gltfObject, bufferData, filepath);
 
             return gltfObject;
+        }
+
+        static void EnforceUniqueNames(Transform root) {
+            Dictionary<string, int> counts = new Dictionary<string, int>();
+            Dictionary<Transform, string> names = new Dictionary<Transform, string>();
+            foreach (Transform child in root.GetComponentsInChildren<Transform>(true)) {
+                string suffix = "";
+                if (counts.ContainsKey(child.name)) {
+                    suffix = (counts[child.name]).ToString();
+                    counts[child.name]++;
+                } else {
+                    counts[child.name] = 0;
+                }
+                names[child] = child.name + suffix;
+            }
+            names.Keys.ToList().ForEach(transform => transform.name = names[transform]);
         }
 
         public static int WriteVec2(Vector2[] data, GLTFObject gltfObject, ref byte[] bufferData) {
