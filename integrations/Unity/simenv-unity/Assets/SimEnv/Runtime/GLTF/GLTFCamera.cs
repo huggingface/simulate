@@ -13,6 +13,11 @@ namespace SimEnv.GLTF {
         public int width = 512;
         public int height = 512;
 
+        public GLTFCamera() {
+            orthographic = new Orthographic();
+            perspective = new Perspective();
+        }
+
         public class Orthographic {
             public float xmag = 1f;
             public float ymag = 5f;
@@ -22,9 +27,9 @@ namespace SimEnv.GLTF {
 
         public class Perspective {
             public float? aspectRatio;
-            [JsonProperty(Required = Required.Always)] public float yfov;
+            [JsonProperty(Required = Required.Always)] public float yfov = 60;
             public float? zfar;
-            [JsonProperty(Required = Required.Always)] public float znear;
+            [JsonProperty(Required = Required.Always)] public float znear = .3f;
         }
 
         public static void Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {

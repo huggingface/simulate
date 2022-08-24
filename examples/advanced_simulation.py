@@ -8,7 +8,9 @@ import simenv as sm
 
 def create_scene(build_exe=None):
     scene = sm.Scene(engine="Unity", engine_exe=build_exe)
-    scene.load("C:\\Users\\dylan\\Documents\\huggingface\\simenv\\integrations\\Unity\\simenv-unity\\Assets\\GLTF\\mountaincar\\Exported\\scene.gltf")
+    scene.load(
+        "C:\\Users\\dylan\\Documents\\huggingface\\simenv\\integrations\\Unity\\simenv-unity\\Assets\\GLTF\\mountaincar\\Exported\\MountainCar.gltf"
+    )
 
     """ scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-10, 10, -0.1, 0, -10, 10], material=sm.Material.GRAY75)
 
@@ -25,9 +27,12 @@ def create_scene(build_exe=None):
 def simulate(scene, n_frames=30):
     plt.ion()
     _, ax = plt.subplots()
+    camera = None
     for _ in range(n_frames):
         event = scene.step()
-        im = np.array(event["frames"]["camera"], dtype=np.uint8).transpose(1, 2, 0)
+        if camera is None:
+            camera = next(iter(event["frames"].items()))[0]
+        im = np.array(event["frames"][camera], dtype=np.uint8).transpose(1, 2, 0)
         ax.clear()
         ax.imshow(im)
         plt.pause(0.1)
