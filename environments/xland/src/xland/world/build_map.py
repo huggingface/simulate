@@ -197,7 +197,6 @@ def generate_map(
     agent_pos,
     rank,
     predicate="random",
-    predicate="random",
 ):
     """
     Generate scene using simenv library.

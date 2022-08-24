@@ -29,7 +29,6 @@ def create_map(
     weights=None,
     neighbors=None,
     predicate="random",
-    predicate="random",
     **kwargs,
 ):
     """
@@ -115,9 +114,6 @@ def create_map(
                 obj_pos,
                 agent_pos,
                 rank=rank,
-                predicate=predicate,
-                physics_update_rate=kwargs.get("physics_update_rate", 30),
-                frame_skip=kwargs.get("frame_skip", 4),
                 predicate=predicate,
             )
 

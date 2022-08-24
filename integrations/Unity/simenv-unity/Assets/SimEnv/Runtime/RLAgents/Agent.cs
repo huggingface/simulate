@@ -206,12 +206,6 @@ namespace SimEnv.RlAgents {
                         reward.is_collectable, reward.trigger_once);
                     break;
 
-                case "see":
-                    rewardFunction = new SeeRewardFunction(
-                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal,
-                        reward.is_collectable, reward.trigger_once);
-                    break;
-
                 default:
                     Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
                     break;

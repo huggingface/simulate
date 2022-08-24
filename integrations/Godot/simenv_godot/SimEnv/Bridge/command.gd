@@ -1,17 +1,19 @@
-extends Node
 class_name Command
+extends Node
+
 
 signal callback
 
 var content : Variant
 var _commands : Dictionary
 
+
 func load_commands():
 	var directory: Directory = Directory.new()
 	var com_path : String = "res://SimEnv/Commands"
 	directory.open(com_path)
 	directory.list_dir_begin()
-
+	
 	while true:
 		var file = directory.get_next()
 		if file == "":
@@ -21,7 +23,7 @@ func load_commands():
 		_commands[command_name] = command_script.new()
 		_commands[command_name].connect("callback", _handle_callback)
 		add_child(_commands[command_name])
-
+	
 	directory.list_dir_end()
 
 func execute(type: String) -> void:
@@ -29,6 +31,8 @@ func execute(type: String) -> void:
 		_commands[type].execute(content)
 	else:
 		print("Unknown command.")
+		emit_signal("callback", PackedByteArray([97, 99, 107]))
+		
 		
 func _handle_callback(callback_data: PackedByteArray):
 	emit_signal("callback", callback_data)

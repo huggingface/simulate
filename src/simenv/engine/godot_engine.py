@@ -2,13 +2,13 @@ import atexit
 import base64
 import json
 import socket
-import numpy as np
 
-from simenv.rl.rl_component import RlComponent
 from .engine import Engine
 
 
 class GodotEngine(Engine):
+    """API for the Godot 4 engine integration"""
+
     def __init__(self, scene, auto_update=True, start_frame=0, end_frame=500, frame_rate=24, engine_port=55000):
         super().__init__(scene=scene, auto_update=auto_update)
         self.start_frame = start_frame
@@ -26,7 +26,7 @@ class GodotEngine(Engine):
         self._map_pool = False
 
     def _initialize_server(self):
-        """Create TCP socket and listen for connections."""
+        """Create TCP socket and listen for connections"""
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
         print("Server started. Waiting for connection...")
@@ -35,13 +35,29 @@ class GodotEngine(Engine):
         print(f"Connection from {self.client_address}")
 
     def _send_bytes(self, bytes, ack):
-        """Send bytes to server and wait for response."""
+        """Send bytes to socket and wait for response"""
         self.client.sendall(bytes)
         if ack:
             return self._get_response()
 
+    def run_command(self, command, **kwargs):
+        """Encode command and send the bytes to the socket"""
+        message = json.dumps({"type": command, **kwargs})
+        message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
+        self.client.sendall(message_bytes)
+        response = self._get_response()
+        try:
+            return json.loads(response)
+        except Exception:
+            return response
+
+    def run_command_async(self, command, **kwargs):
+        message = json.dumps({"type": command, **kwargs})
+        message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
+        self.client.sendall(message_bytes)
+
     def _get_response(self):
-        """Get response from server."""
+        """Get response from socket"""
         while True:
             data_length = self.client.recv(4)
             data_length = int.from_bytes(data_length, "little")
@@ -52,11 +68,19 @@ class GodotEngine(Engine):
                     response += self.client.recv(data_length - len(response)).decode()
                 return response
 
-    def _send_gltf(self, bytes):
-        """Send gltf bytes to server."""
-        b64_bytes = base64.b64encode(bytes).decode("ascii")
-        command = {"type": "BuildScene", "contents": {"b64bytes": b64_bytes}}
-        self.run_command(command)
+    def get_response_async(self):
+        response = self._get_response()
+        try:
+            return json.loads(response)
+        except Exception:
+            return response
+
+    def show(self, **kwargs):
+        """Show the scene in Godot"""
+        bytes = self._scene.as_glb_bytes()
+        b64bytes = base64.b64encode(bytes).decode("ascii")
+        kwargs.update({"b64bytes": b64bytes})
+        return self.run_command("initialize", **kwargs)
 
     def update_asset(self, root_node):
         # TODO update and make this API more consistent with all the
@@ -66,124 +90,23 @@ class GodotEngine(Engine):
     def update_all_assets(self):
         pass
 
-    def show(self, n_maps=-1, **engine_kwargs):
-        if self._map_pool:
-            self._send_gltf(self._scene.as_glb_bytes())
-            self._activate_pool(n_maps=n_maps)
-        else:
-            self.add_to_pool(self._scene)
-            self._activate_pool(n_maps=1)
-        self._send_gltf(self._scene.as_glb_bytes())
-
-    def _activate_pool(self, n_maps):
-        command = {"type": "ActivateEnvironments", "contents": {"n_maps": n_maps}}
-        return self.run_command(command)
-
-    def add_to_pool(self, map):
-        self._map_pool = True
-        agent = map.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))[0]
-        self.action_space = agent.acton_space
-        self.observation_space = agent.observation_space
-        map_bytes = map.as_glb_bytes()
-        b64_bytes = base64.b64encode(map_bytes).decode("ascii")
-        command = {"type": "AddToPool", "contents": {"b64bytes": b64_bytes}}
-        self.run_command(command, ack=True)
-
-    def step(self, action=None):
-        command = {"type": "Step", "contents": {"action": action}}
-        return self.run_command(command)
-
-    def step_send(self, action):
-        command = {"type": "Step", "contents": {"action": action}}
-        self.run_command(command, ack=False)
-
-    def step_recv(self):
-        return self._get_response()
-
-    def get_reward(self):
-        command = {"type": "GetReward", "contents": {"message": "message"}}
-        response = self.run_command(command)
-        data = json.loads(response)
-        return [float(f) for f in data["Items"]]
-
-    def get_reward_send(self):
-        command = {"type": "GetReward", "contents": {"message": "message"}}
-        return self.run_command(command, ack=False)
-
-    def get_reward_recv(self):
-        response = self._get_response()
-        data = json.loads(response)
-        return [float(f) for f in data["Items"]]
-
-    def get_done(self):
-        command = {"type": "GetDone", "contents": {"message": "message"}}
-        response = self.run_command(command)
-        data = json.loads(response)
-        return [d for d in data["Items"]]
-
-    def get_done_send(self):
-        command = {"type": "GetDone", "contents": {"message": "message"}}
-        self.run_command(command, ack=False)
-
-    def get_done_recv(self):
-        response = self._get_response()
-        data = json.loads(response)
-        return [d for d in data["Items"]]
+    def step(self, **kwargs):
+        """Step the simulation"""
+        return self.run_command("step", **kwargs)
 
     def reset(self):
-        command = {"type": "Reset", "contents": {"message": "message"}}
-        self.run_command(command)
-
-    def reset_send(self):
-        command = {"type": "Reset", "contents": {"message": "message"}}
-        self.run_command(command, ack=False)
-
-    def reset_recv(self):
-        return self._get_response()
-
-    def get_obs(self):
-        command = {"type": "GetObservation", "contents": {"message": "message"}}
-        encoded_obs = self.run_command(command)
-        data = json.loads(encoded_obs)
-        decoded_obs = self._extract_sensor_obs(data)
-        return decoded_obs
-
-    def get_observation_send(self):
-        command = {"type": "GetObservation", "contents": {"message": "message"}}
-        self.run_command(command, ack=False)
-
-    def get_observation_recv(self):
-        encoded_obs = self._get_response()
-        data = json.loads(encoded_obs)
-        decoded_obs = self._extract_sensor_obs(data)
-        return decoded_obs
-
-    def _extract_sensor_obs(self, data):
-        sensor_obs = {}
-        for obs_json in data["Items"]:
-            obs_data = json.loads(obs_json)
-            name = obs_data["name"]
-            sensor_obs[name] = self._reshape_obs(obs_data)
-        return sensor_obs
-
-    def _reshape_obs(self, obs):
-        shape = obs["shape"]
-        if len(shape) < 2:
-            return np.array(obs["Items"]).astype(np.float32).reshape(*shape)
-        else:
-            return np.flip(np.array(obs["Items"]).astype(np.uint8).reshape(*shape), 1).transpose(0, 3, 1, 2)
-
-    def run_command(self, command, ack=True):
-        message = json.dumps(command)
-        message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
-        return self._send_bytes(message_bytes, ack)
+        """Reset the environment"""
+        return self.run_command("reset")
 
     def _close(self):
         self.close()
 
     def close(self):
-        command = {"type": "Close", "contents": json.dumps({"message": "close"})}
-        self.run_command(command)
+        """Close the environment"""
+        try:
+            self.run_command("close")
+        except Exception as e:
+            print("exception sending close message", e)
         self.client.close()
         try:
             atexit.unregister(self._close)

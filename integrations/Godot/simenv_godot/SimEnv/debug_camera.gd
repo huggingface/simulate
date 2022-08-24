@@ -1,4 +1,6 @@
 extends Camera3D
+# Simple debug camera
+
 
 @export_range(0, 10, 0.01) var sensitivity : float = 3
 @export_range(0, 1000, 0.1) var default_velocity : float = 5
@@ -8,7 +10,9 @@ extends Camera3D
 
 @onready var _velocity = default_velocity
 
+
 func _input(event):
+	# Mouse input handling
 	if Input.get_mouse_mode() == Input.MOUSE_MODE_CAPTURED:
 		if event is InputEventMouseMotion:
 			rotation.y -= event.relative.x / 1000 * sensitivity
@@ -25,6 +29,7 @@ func _input(event):
 				_velocity = clamp(_velocity / speed_scale, min_speed, max_speed)
 
 func _process(delta):
+	# Keyboard input handling (change for different keyboard configs)
 	var direction = Vector3(
 		float(Input.is_key_pressed(KEY_D)) - float(Input.is_key_pressed(KEY_Q)),
 		float(Input.is_key_pressed(KEY_E)) - float(Input.is_key_pressed(KEY_A)), 

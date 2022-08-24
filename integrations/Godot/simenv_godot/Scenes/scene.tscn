@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://b0j8qghrwvoyr"]
+
+[ext_resource type="Script" path="res://SimEnv/debug_camera.gd" id="2_cqhjv"]
+
+[node name="Root" type="Node"]
+
+[node name="BaseWorld" type="Node3D" parent="."]
+
+[node name="Camera" type="Camera3D" parent="BaseWorld"]
+transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 8, 8, 8)
+script = ExtResource("2_cqhjv")
