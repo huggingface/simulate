@@ -429,10 +429,6 @@ PrefabInstance:
       propertyPath: m_Name
       value: MountainCar
       objectReference: {fileID: 0}
-    - target: {fileID: 6039915585573425205, guid: f7b91e9f1033e804194542e6f967a2dc, type: 3}
-      propertyPath: m_IsActive
-      value: 1
-      objectReference: {fileID: 0}
     - target: {fileID: 9043930750588513997, guid: f7b91e9f1033e804194542e6f967a2dc, type: 3}
       propertyPath: m_RootOrder
       value: 2

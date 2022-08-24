@@ -34,7 +34,6 @@ namespace SimEnv.GLTF {
             public string[] HF_custom;
         }
 
-        [Serializable]
         public class CustomExtensionWrapper {
             public string type;
             public string contents;
@@ -81,13 +80,16 @@ namespace SimEnv.GLTF {
             List<GLTFNode> nodes;
             GLTFMesh.ImportTask meshTask;
             GLTFSkin.ImportTask skinTask;
+            HFPhysicMaterials.ImportTask physicMaterialTask;
             List<GLTFCamera> cameras;
             GLTFExtensions extensions;
 
-            public ImportTask(List<GLTFNode> nodes, GLTFMesh.ImportTask meshTask, GLTFSkin.ImportTask skinTask, List<GLTFCamera> cameras, GLTFExtensions extensions) : base(meshTask, skinTask) {
+            public ImportTask(List<GLTFNode> nodes, GLTFMesh.ImportTask meshTask, GLTFSkin.ImportTask skinTask,
+                HFPhysicMaterials.ImportTask physicMaterialTask, List<GLTFCamera> cameras, GLTFExtensions extensions) : base(meshTask, skinTask, physicMaterialTask) {
                 this.nodes = nodes;
                 this.meshTask = meshTask;
                 this.skinTask = skinTask;
+                this.physicMaterialTask = physicMaterialTask;
                 this.cameras = cameras;
                 this.extensions = extensions;
             }
@@ -181,9 +183,13 @@ namespace SimEnv.GLTF {
                                 Mesh mesh = null;
                                 if (collider.mesh.HasValue)
                                     mesh = meshTask.result[collider.mesh.Value].mesh;
+                                PhysicMaterial physicMaterial = null;
+                                if (collider.physicMaterial.HasValue)
+                                    physicMaterial = physicMaterialTask.result[collider.physicMaterial.Value].material;
                                 HFColliders.GLTFCollider.ImportResult importResult = new HFColliders.GLTFCollider.ImportResult() {
                                     collider = collider,
                                     mesh = mesh,
+                                    physicMaterial = physicMaterial,
                                 };
                                 result[i].node.colliderData = importResult;
                             }

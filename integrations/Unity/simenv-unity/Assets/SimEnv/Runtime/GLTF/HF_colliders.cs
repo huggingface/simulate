@@ -20,6 +20,7 @@ namespace SimEnv.GLTF {
             [JsonConverter(typeof(TranslationConverter))] public Vector3 offset = Vector3.zero;
             public bool intangible = false;
             public bool convex = false;
+            public int? physicMaterial;
 
             public bool ShouldSerializemesh() { return mesh.HasValue; }
             public bool ShouldSerializeoffset() { return offset != Vector3.zero; }
@@ -32,7 +33,8 @@ namespace SimEnv.GLTF {
                     ^ mesh.GetHashCode()
                     ^ offset.GetHashCode()
                     ^ intangible.GetHashCode()
-                    ^ convex.GetHashCode();
+                    ^ convex.GetHashCode()
+                    ^ physicMaterial.GetHashCode();
             }
 
             public override bool Equals(object obj) {
@@ -43,44 +45,55 @@ namespace SimEnv.GLTF {
                     && mesh == other.mesh
                     && offset == other.offset
                     && intangible == other.intangible
-                    && convex == other.convex)
+                    && convex == other.convex
+                    && physicMaterial == other.physicMaterial)
                     return true;
                 return false;
             }
 
             public class ImportResult {
                 public GLTFCollider collider;
+                public PhysicMaterial physicMaterial;
                 public Mesh mesh;
             }
         }
 
-        public static void Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {
-            List<GLTFCollider> components = new List<GLTFCollider>();
+        public class ExportResult : GLTFCollider {
+            [JsonIgnore] public GLTFNode.ExportResult node;
+            [JsonIgnore] public Collider collider;
+        }
+
+        public static List<ExportResult> Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {
+            List<ExportResult> components = new List<ExportResult>();
             foreach (GLTFNode.ExportResult node in nodes) {
-                GLTFCollider collider = Export(node);
+                ExportResult collider = Export(node);
                 if (collider == null) continue;
                 if (!components.Contains(collider))
                     components.Add(collider);
                 node.extensions ??= new GLTFNode.Extensions();
                 node.extensions.HF_colliders = new GLTFNode.HFCollider() { component_id = components.IndexOf(collider) };
             }
-            if (components.Count == 0) return;
+            if (components.Count == 0) return components;
             gltfObject.extensionsUsed ??= new List<string>();
             gltfObject.extensionsUsed.Add("HF_colliders");
             gltfObject.extensions ??= new GLTFExtensions();
             gltfObject.extensions.HF_colliders ??= new HFColliders();
             gltfObject.extensions.HF_colliders.components.AddRange(components);
             gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
+            return components;
         }
 
-        static GLTFCollider Export(GLTFNode.ExportResult node) {
+        static ExportResult Export(GLTFNode.ExportResult node) {
             Collider[] cols = node.transform.GetComponents<Collider>();
             if (cols.Length == 0)
                 return null;
             else if (cols.Length > 1)
                 Debug.LogWarning($"Node {node.name} has multiple colliders. Ignoring extras.");
             Collider col = cols[0];
-            GLTFCollider collider = new GLTFCollider();
+            ExportResult collider = new ExportResult() {
+                node = node,
+                collider = col,
+            };
             collider.name = col.name;
             if (col is BoxCollider) {
                 collider.type = ColliderType.box;

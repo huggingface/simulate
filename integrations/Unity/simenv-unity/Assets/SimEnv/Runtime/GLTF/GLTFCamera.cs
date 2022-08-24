@@ -38,6 +38,7 @@ namespace SimEnv.GLTF {
             }
             if (components.Count == 0) return;
             gltfObject.cameras = components.Cast<GLTFCamera>().ToList();
+            gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
         }
 
         static GLTFCamera Export(GLTFNode.ExportResult node) {

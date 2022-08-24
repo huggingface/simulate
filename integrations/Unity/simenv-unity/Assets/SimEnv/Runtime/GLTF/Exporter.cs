@@ -59,7 +59,8 @@ namespace SimEnv.GLTF {
             GLTFImage.Export(gltfObject, imageDict);
             GLTFCamera.Export(gltfObject, nodes);
             KHRLightsPunctual.Export(gltfObject, nodes);
-            HFColliders.Export(gltfObject, nodes);
+            List<HFColliders.ExportResult> colliders = HFColliders.Export(gltfObject, nodes);
+            HFPhysicMaterials.Export(gltfObject, colliders);
             HFRigidBodies.Export(gltfObject, nodes);
             GLTFBuffer.Export(gltfObject, bufferData, filepath);
 

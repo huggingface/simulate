@@ -20,9 +20,11 @@ namespace SimEnv.GLTF {
             SkinnedMeshRenderer[] skinnedRenderers = root.GetComponentsInChildren<SkinnedMeshRenderer>(true);
             MeshCollider[] meshColliders = root.GetComponentsInChildren<MeshCollider>(true);
             MeshFilter[] filters = root.GetComponentsInChildren<MeshFilter>(true);
+            Collider[] colliders = root.GetComponentsInChildren<Collider>(true);
             AddMeshes(filters, skinnedRenderers, meshColliders, ctx, settings.generateLightmapUVs ? unwrapParams : null);
             AddMaterials(renderers, skinnedRenderers, ctx);
             AddAnimations(animations, ctx, settings.animationSettings);
+            AddColliders(colliders, ctx);
         }
 
         public static void AddMeshes(MeshFilter[] filters, SkinnedMeshRenderer[] skinnedRenderers, MeshCollider[] meshColliders,
@@ -102,6 +104,16 @@ namespace SimEnv.GLTF {
                         visitedTextures.Add(tex);
                     }
                 }
+            }
+        }
+
+        public static void AddColliders(Collider[] colliders, AssetImportContext ctx) {
+            HashSet<PhysicMaterial> visitedMaterials = new HashSet<PhysicMaterial>();
+            foreach(Collider collider in colliders) {
+                PhysicMaterial material = collider.sharedMaterial;
+                if(material == null || visitedMaterials.Contains(material)) continue;
+                ctx.AddObjectToAsset(material.name, material);
+                visitedMaterials.Add(material);
             }
         }
 

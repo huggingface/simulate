@@ -77,18 +77,21 @@ namespace SimEnv {
 
         void InitializeCollider() {
             HFColliders.GLTFCollider collider = colliderData.collider;
+            Collider sharedCollider = null;
             if (collider.type == ColliderType.box) {
                 BoxCollider col = gameObject.AddComponent<BoxCollider>();
                 col.size = collider.boundingBox;
                 col.center = collider.offset;
                 col.isTrigger = collider.intangible;
                 this.collider = col;
+                sharedCollider = col;
             } else if (collider.type == ColliderType.sphere) {
                 SphereCollider col = gameObject.AddComponent<SphereCollider>();
                 col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[1], collider.boundingBox[2]);
                 col.center = collider.offset;
                 col.isTrigger = collider.intangible;
                 this.collider = col;
+                sharedCollider = col;
             } else if (collider.type == ColliderType.capsule) {
                 CapsuleCollider col = gameObject.AddComponent<CapsuleCollider>();
                 col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[2]);
@@ -96,15 +99,20 @@ namespace SimEnv {
                 col.center = collider.offset;
                 col.isTrigger = collider.intangible;
                 this.collider = col;
+                sharedCollider = col;
             } else if (collider.type == ColliderType.mesh) {
                 MeshCollider col = gameObject.AddComponent<MeshCollider>();
                 col.sharedMesh = colliderData.mesh;
                 col.isTrigger = collider.intangible;
                 col.convex = collider.convex;
                 this.collider = col;
+                sharedCollider = col;
             } else {
                 Debug.LogWarning(string.Format("Collider type {0} not implemented", collider.GetType()));
+                return;
             }
+            if (colliderData.physicMaterial != null)
+                sharedCollider.sharedMaterial = colliderData.physicMaterial;
         }
 
         void InitializeRigidBody() {
