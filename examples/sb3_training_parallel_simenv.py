@@ -20,7 +20,7 @@ def generate_map(index):
     collectable = sm.Sphere(name=f"collectable_{index}", position=[2, 0.5, 3.4], radius=0.3)
     root += collectable
 
-    agent = sm.SimpleRlAgent(name=f"agent_{index}", reward_target=collectable, position=[0.0, 0.0, 0.0])
+    agent = sm.EgocentricCameraAgent(name=f"agent_{index}", reward_target=collectable, position=[0.0, 0.0, 0.0])
     root += agent
 
     sparse_reward = sm.RewardFunction(

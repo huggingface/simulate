@@ -26,7 +26,7 @@ def create_scene(port=55000):
     scene += sm.Box(name="wall4", position=[0, 0, -5], bounds=[-5, 5, 0, 1, 0, 0.1], material=sm.Material.RED)
     scene += sm.Box(name="target", position=[1, 0.5, 1], material=sm.Material.RED)
     scene += sm.Box(name="target_2", position=[-1, 0.5, 1], material=sm.Material.GREEN)
-    scene += sm.SimpleRlAgent(
+    scene += sm.EgocentricCameraAgent(
         name="agent",
         sensors=[
             sm.CameraSensor(width=CAMERA_WIDTH, height=CAMERA_HEIGHT, position=[0, 0.75, 0]),

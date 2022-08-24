@@ -38,7 +38,7 @@ from .utils import (
 
 
 if TYPE_CHECKING:
-    from ..rl.rl_component import RlComponent
+    from ..rl.core import RlComponent
 
 
 class Asset(NodeMixin, object):

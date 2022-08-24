@@ -28,6 +28,6 @@ def create_env():
     scene += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY)
     scene += sm.Box(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY)
     collectable = sm.Sphere(position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=sm.Material.GREEN)
-    agent = sm.SimpleRlAgent(reward_target=collectable)
+    agent = sm.EgocentricCameraAgent(reward_target=collectable)
     scene += [collectable, agent]
     return scene

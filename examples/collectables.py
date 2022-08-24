@@ -17,7 +17,7 @@ def create_env(executable=None, port=None, headless=None):
     root += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY75)
     root += sm.Box(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY75)
 
-    agent = sm.SimpleRlAgent(
+    agent = sm.EgocentricCameraAgent(
         sensors=[
             sm.CameraSensor(width=64, height=40, position=[0, 0.75, 0]),
         ],

@@ -24,7 +24,7 @@ target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.unifor
 scene += target
 
 
-agent = sm.SimpleRlAgent(name="agent", position=[0.0, 0.0, 0.0])
+agent = sm.EgocentricCameraAgent(name="agent", position=[0.0, 0.0, 0.0])
 agent_camera = agent.rl_component.camera_sensors[0].camera
 scene += agent
 

@@ -87,7 +87,7 @@ class GltfTest(unittest.TestCase):
         target = sm.Box(name="cube", position=[2, 0.5, 2], material=material)
         scene += target
 
-        agent = sm.SimpleRlAgent(reward_target=target)
+        agent = sm.EgocentricCameraAgent(reward_target=target)
         scene += agent
 
         with tempfile.TemporaryDirectory() as tmpdir:

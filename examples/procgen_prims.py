@@ -32,7 +32,7 @@ def create_env(executable=None, port=None, headless=None):
             )
             agent_position = [math.floor(maze_width / 2.0) + 0.5, 0.0, math.floor(maze_depth / 2.0) + 0.5]
 
-            agent = sm.SimpleRlAgent(position=agent_position)
+            agent = sm.EgocentricCameraAgent(position=agent_position)
             maze += agent
 
             for r in range(n_objects):

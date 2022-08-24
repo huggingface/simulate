@@ -43,7 +43,7 @@ def generate_map(index):
             name=f"cube{i}_{index}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material
         )
 
-    agent = sm.SimpleRlAgent(name=f"agent_{index}", reward_target=cube, position=[0.0, 0.0, 0.0])
+    agent = sm.EgocentricCameraAgent(name=f"agent_{index}", reward_target=cube, position=[0.0, 0.0, 0.0])
 
     root += agent
     return root

@@ -19,11 +19,11 @@ from typing import List, Optional, Union
 
 from ..assets import Asset, Camera, CameraSensor, Capsule, Collider, RigidBodyComponent
 from .actions import ActionMapping, DiscreteAction
+from .core import Agent, RlComponent
 from .reward_functions import RewardFunction
-from .rl_component import RlComponent
 
 
-class SimpleRlAgent(Capsule):
+class EgocentricCameraAgent(Capsule, Agent):
     """Create a Simple RL Agent in the Scene
 
         A simple agent is a capsule asset with:
@@ -76,11 +76,6 @@ class SimpleRlAgent(Capsule):
         camera = Camera(name=camera_name, width=camera_width, height=camera_height, position=[0, 0.75, 0])
         children = children + camera if children is not None else camera
         camera_sensors = [CameraSensor(camera)]
-        # for sensor in sensors:
-        #     if not isinstance(sensor, Sensor):
-        #         raise ValueError(f"{sensor} is not a Sensor")
-        #     if isinstance(sensor, StateSensor) and sensor.reference_entity is None:
-        #         sensor.reference_entity = self
 
         super().__init__(
             name=name,
@@ -120,41 +115,3 @@ class SimpleRlAgent(Capsule):
 
         # Add our physics component (by default the agent can only rotation along y axis)
         self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
-
-    def add_reward_function(self, reward_function: RewardFunction):
-        if self.rl_component.reward_functions is None:
-            self.rl_component.reward_functions = []
-        self.rl_component.reward_functions.append(reward_function)
-
-    def copy(self, with_children=True, **kwargs) -> "SimpleRlAgent":
-        """Return a copy of the Asset. Parent and children are not attached to the copy."""
-
-        copy_name = self.name + f"_copy{self._n_copies}"
-        self._n_copies += 1
-        instance_copy = type(self)(
-            name=copy_name,
-            position=self.position,
-            rotation=self.rotation,
-            scaling=self.scaling,
-            collider=self.collider,
-        )
-
-        if with_children:
-            copy_children = []
-            for child in self.tree_children:
-                copy_children.append(child.copy(**kwargs))
-            instance_copy.tree_children = copy_children
-
-            for child in instance_copy.tree_children:
-                child._post_copy()
-
-        instance_copy.rl_component = RlComponent(
-            self.rl_component.actions, self.rl_component.sensors, self.rl_component.rewards
-        )
-
-        instance_copy.physics_component = self.physics_component
-
-        return instance_copy
-
-    def _post_copy(self):
-        self.rl_component._post_copy(self)

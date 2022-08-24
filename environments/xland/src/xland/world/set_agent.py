@@ -1,6 +1,6 @@
 """Functions for setting the agent in the world."""
 
-from simenv import SimpleRlAgent
+from simenv import EgocentricCameraAgent
 
 from ..game.generation import add_dummy_generated_reward_fn
 from ..game.predicates import add_collect_all_rewards, add_timeout_rewards
@@ -23,7 +23,7 @@ def create_agents(agent_pos, objects, predicate=None, rank=0, camera_height=72, 
     agents = []
 
     for i, pos in enumerate(agent_pos):
-        agent = SimpleRlAgent(
+        agent = EgocentricCameraAgent(
             name="agent_" + str(rank) + "_" + str(i),
             position=pos,
             camera_height=camera_height,
