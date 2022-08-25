@@ -63,6 +63,14 @@ namespace SimEnv.RlAgents {
                 for (int i = 0; i < activeMaps.Count; i++) {
                     activeMaps[i].SetActions(actions[i.ToString()]);
                 }
+                Map map = new Map(root);
+                mapPool.Push(map);
+            }
+            CreatePositionPool(size);
+            for (int i = 0; i < size; i++) {
+                Map map = mapPool.Request();
+                map.SetPosition(positions[i]);
+                activeMaps.Add(map);
             }
         }
 
