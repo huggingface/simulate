@@ -94,7 +94,7 @@ class RlComponent(GltfExtensionMixin, gltf_extension_name="HF_rl_agents"):
     def observation_space(self):
         if self.camera_sensors is not None and len(self.camera_sensors) > 0:
             camera = self.camera_sensors[0]
-            space = spaces.Box(low=0, high=255, shape=(3, camera.camera.height, camera.camera.width), dtype=np.uint8)
+            space = spaces.Box(low=0, high=255, shape=[3, camera.camera.height, camera.camera.width], dtype=np.uint8)
             return space
         raise NotImplementedError("Sensors not found/implemented")
 
