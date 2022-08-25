@@ -68,7 +68,7 @@ class SimpleActor(Capsule):
         if name is not None:
             camera_name = f"{name}_camera"
         if camera_height is None:
-            camera_height = 32
+            camera_height = 40
         if camera_width is None:
             camera_width = 40
         self.camera = Camera(name=camera_name, width=camera_width, height=camera_height, position=[0, 0.75, 0])
