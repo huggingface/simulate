@@ -332,9 +332,19 @@ namespace SimEnv.GLTF {
                     Mesh mesh = nodes[i].filter.sharedMesh;
                     if (mesh != null) {
                         nodes[i].mesh = results.Count;
+                        bool writeTangents = nodes[i].renderer != null && nodes[i].renderer.sharedMaterial != null 
+                            && nodes[i].renderer.sharedMaterial.IsKeywordEnabled("_NORMALMAP");
+                        ExportResult result = Export(gltfObject, mesh, ref bufferData, writeTangents);
+                        result.node = nodes[i];
+                        results.Add(result);
+                    }
+                }
+                if (nodes[i].meshCollider) {
+                    Mesh mesh = nodes[i].meshCollider.sharedMesh;
+                    if (mesh != null) {
+                        nodes[i].colliderMesh = results.Count;
                         ExportResult result = Export(gltfObject, mesh, ref bufferData);
                         result.node = nodes[i];
-                        nodes[i].meshResult = result;
                         results.Add(result);
                     }
                 }
@@ -343,7 +353,7 @@ namespace SimEnv.GLTF {
             return results;
         }
 
-        public static ExportResult Export(GLTFObject gltfObject, Mesh mesh, ref byte[] bufferData) {
+        public static ExportResult Export(GLTFObject gltfObject, Mesh mesh, ref byte[] bufferData, bool writeTangents = false) {
             ExportResult result = new ExportResult();
             result.name = mesh.name;
             result.mesh = mesh;
@@ -362,12 +372,14 @@ namespace SimEnv.GLTF {
                     .Select(v => { v.x = -v.x; return v; }).ToArray();
                 attributes.NORMAL = Exporter.WriteVec3(normals, gltfObject, ref bufferData);
 
-                Vector4[] tangents = mesh.tangents.Skip(submesh.firstVertex).Take(submesh.vertexCount)
-                    .Select(v => { v.y = -v.y; v.z = -v.z; return v; }).ToArray();
-                attributes.TANGENT = Exporter.WriteVec4(tangents, gltfObject, ref bufferData);
+                if (writeTangents) {
+                    Vector4[] tangents = mesh.tangents.Skip(submesh.firstVertex).Take(submesh.vertexCount)
+                        .Select(v => { v.y = -v.y; v.z = -v.z; return v; }).ToArray();
+                    attributes.TANGENT = Exporter.WriteVec4(tangents, gltfObject, ref bufferData);
+                }
 
                 int[] triangles = mesh.GetTriangles(i).Reverse().Select(x => x - submesh.firstVertex).ToArray();
-                primitive.indices = Exporter.WriteInt(triangles, gltfObject, ref bufferData);
+                primitive.indices = Exporter.WriteInt(triangles, gltfObject, ref bufferData, BufferViewTarget.ELEMENT_ARRAY_BUFFER);
 
                 if (mesh.uv.Length > 0) {
                     Vector2[] uvs = mesh.uv.Skip(submesh.firstVertex).Take(submesh.vertexCount)

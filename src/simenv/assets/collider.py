@@ -34,6 +34,7 @@ class Collider(GltfExtensionMixin, gltf_extension_name="HF_colliders"):
     mesh (number) Index of the mesh data when using the mesh collider type. (Optional)
     offset (number[3]) The position offset of the collider relative to the object it's attached to. (Optional, default [0, 0, 0])
     intangible (boolean) Whether the collider should act as an intangible trigger. (Optiona, default False)
+    convex (boolean) Whether the collider is convex when using the mesh collider type. (Optional)
     """
 
     bounding_box: List[float]
@@ -41,6 +42,7 @@ class Collider(GltfExtensionMixin, gltf_extension_name="HF_colliders"):
     mesh: Optional[int] = None
     offset: Optional[List[float]] = None
     intangible: Optional[bool] = None
+    convex: Optional[bool] = None
 
     def __post_init__(self):
         if len(self.bounding_box) != 3:
