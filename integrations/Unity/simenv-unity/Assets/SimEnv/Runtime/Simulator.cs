@@ -91,18 +91,14 @@ namespace SimEnv {
 
         public static IEnumerator StepCoroutine(Dictionary<string, object> kwargs) {
             // Read step-related kwargs
-            bool readNodeData = MetaData.returnNodes;
-            if (kwargs.ContainsKey("return_nodes"))
-                readNodeData = kwargs.Parse<bool>("return_nodes", true);
-            bool readCameraData = MetaData.returnFrames;
-            if (kwargs.ContainsKey("return_frames"))
-                readCameraData = kwargs.Parse<bool>("return_frames", true);
-            int frameRate = MetaData.frameRate;
-            int frameSkip = MetaData.frameSkip;
-            if (kwargs.ContainsKey("frame_rate"))
-                frameRate = kwargs.Parse<int>("frame_rate");
-            if (kwargs.ContainsKey("frame_skip"))
-                frameSkip = kwargs.Parse<int>("frame_skip");
+            bool readNodeData;
+            kwargs.TryParse<bool>("return_nodes", out readNodeData, MetaData.returnNodes);
+            bool readCameraData;
+            readCameraData = kwargs.TryParse<bool>("return_frames", out readCameraData, MetaData.returnFrames);
+            int frameRate;
+            int frameSkip;
+            kwargs.TryParse<int>("frame_rate", out frameRate, MetaData.frameRate);
+            kwargs.TryParse<int>("frame_skip", out frameSkip, MetaData.frameSkip);
 
             if (currentEvent == null)
                 yield return ReadEventData(readNodeData, readCameraData);

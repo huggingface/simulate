@@ -1,67 +1,135 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 
 namespace SimEnv.RlAgents {
     public class AgentManager : PluginBase {
         public static AgentManager instance { get; private set; }
+        public static Dictionary<string, Agent> agents { get; private set; }
 
-        public static Dictionary<string, Agent> agents;
-        static List<string> activeAgents;
+        static MapPool mapPool;
+        static List<Map> activeMaps;
+        static List<Vector3> positions;
 
         public AgentManager() {
             instance = this;
             agents = new Dictionary<string, Agent>();
-            activeAgents = new List<string>();
+            mapPool = new MapPool();
+            activeMaps = new List<Map>();
+            positions = new List<Vector3>();
         }
 
-        // Find agent nodes
         public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
             foreach (Node node in Simulator.nodes.Values) {
                 if (node.agentData != null)
                     agents.Add(node.name, new Agent(node));
             }
-        }
-
-        // Before simulator steps forward, execute agent actions
-        public override void OnBeforeStep(EventData eventData) {
-            if (eventData.inputKwargs.ContainsKey("action")) {
-                activeAgents.Clear();
-                try {
-                    Dictionary<string, object> actions = eventData.inputKwargs.Parse<Dictionary<string, object>>("action");
-                    foreach (string key in actions.Keys) {
-                        if (!agents.TryGetValue(key, out Agent agent)) {
-                            Debug.LogWarning($"Agent {key} not found");
-                            continue;
-                        }
-                        activeAgents.Add(key);
-                        agent.Step(actions[key]);
-                    }
-                } catch (System.Exception e) {
-                    Debug.LogWarning("Failed to parse actions: " + e);
-                }
+            if (kwargs.TryParse<List<string>>("maps", out List<string> maps)) {
+                Debug.Log("\"maps\" kwarg found, enabling map pooling");
+                int size = 1;
+                if (!kwargs.TryParse<int>("n_show", out size))
+                    Debug.LogWarning("Keyword \"n_show\" not provided, defaulting to 1");
+                InitializeMapPool(maps, size);
+            } else if (agents.Count == 0) {
+                Debug.LogWarning("Found agents but no maps provided. Pass a list of map root names with the \"maps\" kwarg");
             }
         }
 
-        // After simulator steps forward, record agent reward and observations
+        static void InitializeMapPool(List<string> names, int size) {
+            foreach (string name in names) {
+                if (!Simulator.nodes.TryGetValue(name, out Node root)) {
+                    Debug.LogWarning($"Map root {name} not found");
+                    continue;
+                }
+                Map map = new Map(root);
+                mapPool.Push(map);
+            }
+            CreatePositionPool(size);
+            for (int i = 0; i < size; i++) {
+                Map map = mapPool.Request();
+                map.SetPosition(positions[i]);
+                activeMaps.Add(map);
+            }
+        }
+
+        public override void OnBeforeStep(EventData eventData) {
+            if (eventData.inputKwargs.TryParse<Dictionary<string, object>>("action", out Dictionary<string, object> actions)) {
+                foreach (Map map in activeMaps)
+                    map.SetActions(actions);
+            }
+        }
+
         public override void OnStep(EventData eventData) {
             if (agents.Count == 0) return;
             Dictionary<string, Agent.Data> agentEventData = new Dictionary<string, Agent.Data>();
-            foreach (string key in activeAgents) {
-                Agent agent = agents[key];
-                Agent.Data data = agent.GetEventData();
-                agentEventData.Add(key, data);
-                agent.ZeroReward();
+            Stack<Map> doneMaps = new Stack<Map>();
+            foreach (Map map in activeMaps) {
+                (Dictionary<string, Agent.Data> mapEventData, bool done) = map.Step();
+                if (mapEventData != null) {
+                    foreach (string key in mapEventData.Keys)
+                        agentEventData.Add(key, mapEventData[key]);
+                }
+                if (done)
+                    doneMaps.Push(map);
             }
             eventData.outputKwargs.Add("agents", agentEventData);
+            while (doneMaps.Count > 0) {
+                Map map = doneMaps.Pop();
+                int index = activeMaps.IndexOf(map);
+                ResetAt(index);
+            }
+        }
+
+        static void ResetAt(int index) {
+            Map map = activeMaps[index];
+            mapPool.Push(map);
+
+            map = mapPool.Request();
+            map.SetPosition(positions[index]);
+            map.SetActive(true);
+            activeMaps[index] = map;
         }
 
         public override void OnReset() {
-            foreach (Agent agent in agents.Values)
-                agent.Reset();
+            for (int i = activeMaps.Count - 1; i >= 0; i--) {
+                Map map = activeMaps[i];
+                activeMaps.RemoveAt(i);
+                mapPool.Push(map);
+            }
         }
 
         public override void OnBeforeSceneUnloaded() {
             agents.Clear();
+            mapPool.Clear();
+            activeMaps.Clear();
+            positions.Clear();
+        }
+
+        static void CreatePositionPool(int size) {
+            Bounds bounds = new Bounds(Vector3.zero, Vector3.zero);
+            foreach (Map map in mapPool) {
+                Bounds mapBounds = map.bounds;
+                bounds.Encapsulate(mapBounds);
+            }
+
+            Vector3 step = bounds.extents * 2f + new Vector3(1f, 0f, 1f);
+            int count = 0;
+            int root = Convert.ToInt32(Math.Ceiling(Math.Sqrt(Convert.ToDouble(size))));
+            bool stop = false;
+            for (int i = 0; i < root; i++) {
+                if (stop) break;
+                for (int j = 0; j < root; j++) {
+                    if (stop) break;
+                    positions.Add(new Vector3(Convert.ToSingle(i) * step.x, 0f, Convert.ToSingle(j) * step.z));
+
+                    count++;
+                    if (count == size) {
+                        stop = true;
+                    }
+                }
+            }
+            Debug.Assert(count == size);
+
         }
     }
 }
