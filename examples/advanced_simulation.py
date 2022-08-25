@@ -11,14 +11,6 @@ def create_scene(build_exe=None):
     scene.load(
         "C:\\Users\\dylan\\Documents\\huggingface\\simenv\\integrations\\Unity\\simenv-unity\\Assets\\GLTF\\mountaincar\\Exported\\MountainCar.gltf"
     )
-
-    """ scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-10, 10, -0.1, 0, -10, 10], material=sm.Material.GRAY75)
-
-    cube = sm.Box(name="cube", position=[0, 3, 0], scaling=[1, 1, 1], material=sm.Material.GRAY50)
-    cube.physics_component = sm.RigidBodyComponent()
-    scene += cube
-
-    scene += sm.Camera(name="camera", position=[0, 2, -10]) """
     scene.show()
 
     return scene
