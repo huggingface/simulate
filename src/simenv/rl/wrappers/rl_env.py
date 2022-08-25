@@ -15,63 +15,65 @@
 
 import gym
 import numpy as np
-from gym import spaces
 
 # Lint as: python3
 from ...scene import Scene
 
 
 class RLEnvironment(gym.Env):
-    def __init__(self, scene: Scene):
+    def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, **engine_kwargs):
         super(RLEnvironment, self).__init__()
-        self.scene = scene
 
-        agents = scene.agents
-        if len(agents) == 0:
-            print("No agent found. Add at least one agent to the scene")
-            return
-        elif len(agents) > 1:
-            print("More than one agent not supported. Use ParallelEnvironment for multiple agents per scene")
-        self.agent = agents[0]
-
-        self.action_space = None
-        if self.agent.rl_component.discrete_actions is not None:
-            self.action_space = self.agent.rl_component.discrete_actions
-        elif self.agent.rl_component.box_actions is not None:
-            self.action_space = self.agent.rl_component.box_actions
-        if self.action_space is None:
-            print("Action space not found. Does the environment contain an agent with an action space?")
-
-        self.observation_space = {}
-        if self.agent.rl_component.camera_sensors is not None and len(self.agent.rl_component.camera_sensors) > 0:
-            camera = self.agent.rl_component.camera_sensors[0].camera
-            self.observation_space[camera.name] = spaces.Box(
-                low=0, high=255, shape=[3, camera.height, camera.width], dtype=np.uint8
-            )
-        if len(self.observation_space) > 0:
-            self.observation_space = spaces.Dict(self.observation_space)
+        if hasattr(scene_or_map_fn, "__call__"):
+            self.scene = Scene(engine="Unity", **engine_kwargs)
+            self.map_roots = []
+            for i in range(n_maps):
+                map_root = scene_or_map_fn(i)
+                self.scene += map_root
+                self.map_roots.append(map_root)
         else:
-            print("Observation space not found. Does the environment contain an agent with a valid sensor?")
+            self.scene = scene_or_map_fn
+            self.map_roots = [self.scene]
+
+        self.agents = {agent.name: agent for agent in self.scene.agents}
+        self.n_agents = len(self.agents)
+
+        self.agent = next(iter(self.agents.values()))
+        self.action_space = self.agent.action_space
+        self.observation_space = self.agent.observation_space
 
         # Don't return simulation data, since minimal/faster data will be returned by agent sensors
-        self.scene.show(return_frames=False, return_nodes=False)
+        # Pass maps kwarg to enable map pooling
+        maps = [root.name for root in self.map_roots]
+        self.scene.show(frame_rate=30, frame_skip=4, return_frames=False, return_nodes=False, maps=maps, n_show=n_show)
 
-    def step(self, action):
-        event = self.scene.step(action={self.agent.name: int(action)})
+    def step(self):
+        action_dict = {}
+        for agent_name in self.agents.keys():
+            action_dict[agent_name] = self.action_space.sample()
+        event = self.scene.step(action=action_dict)
 
         # Extract observations, reward, and done from event data
         obs = {}
-        reward = 0.0
+        reward = 0
         done = False
         info = {}
-        try:
+        if self.n_agents == 1:
             agent_data = event["agents"][self.agent.name]
-            camera = self.agent.rl_component.camera_sensors[0].camera
-            obs[camera.name] = np.array(agent_data["frames"][camera.name], dtype=np.uint8)
+            obs[self.agent.camera.name] = np.array(agent_data["frames"][self.agent.camera.name], dtype=np.uint8)
             reward = agent_data["reward"]
             done = agent_data["done"]
-        except Exception:
-            print("Failed to parse agent data from event: " + str(event))
+        else:
+            reward = []
+            done = []
+            info = []
+            for agent_name in event["agents"].keys():
+                agent = self.agents[agent_name]
+                agent_data = event["agents"][agent_name]
+                obs[agent.camera.name] = np.array(agent_data["frames"][agent.camera.name], dtype=np.uint8)
+                reward.append(agent_data["reward"])
+                done.append(agent_data["done"])
+                info.append({})
 
         return obs, reward, done, info
 
