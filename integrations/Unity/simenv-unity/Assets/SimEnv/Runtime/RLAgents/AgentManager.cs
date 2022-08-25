@@ -10,6 +10,7 @@ namespace SimEnv.RlAgents {
         static MapPool mapPool;
         static List<Map> activeMaps;
         static List<Vector3> positions;
+        static int poolSize;
 
         public AgentManager() {
             instance = this;
@@ -26,16 +27,16 @@ namespace SimEnv.RlAgents {
             }
             if (kwargs.TryParse<List<string>>("maps", out List<string> maps)) {
                 Debug.Log("\"maps\" kwarg found, enabling map pooling");
-                int size = 1;
-                if (!kwargs.TryParse<int>("n_show", out size))
+                poolSize = 1;
+                if (!kwargs.TryParse<int>("n_show", out poolSize))
                     Debug.LogWarning("Keyword \"n_show\" not provided, defaulting to 1");
-                InitializeMapPool(maps, size);
+                InitializeMapPool(maps);
             } else if (agents.Count == 0) {
                 Debug.LogWarning("Found agents but no maps provided. Pass a list of map root names with the \"maps\" kwarg");
             }
         }
 
-        static void InitializeMapPool(List<string> names, int size) {
+        static void InitializeMapPool(List<string> names) {
             foreach (string name in names) {
                 if (!Simulator.nodes.TryGetValue(name, out Node root)) {
                     Debug.LogWarning($"Map root {name} not found");
@@ -44,8 +45,12 @@ namespace SimEnv.RlAgents {
                 Map map = new Map(root);
                 mapPool.Push(map);
             }
-            CreatePositionPool(size);
-            for (int i = 0; i < size; i++) {
+            CreatePositionPool();
+            PopulateMapPool();
+        }
+
+        static void PopulateMapPool() {
+            for (int i = 0; i < poolSize; i++) {
                 Map map = mapPool.Request();
                 map.SetPosition(positions[i]);
                 activeMaps.Add(map);
@@ -96,6 +101,7 @@ namespace SimEnv.RlAgents {
                 activeMaps.RemoveAt(i);
                 mapPool.Push(map);
             }
+            PopulateMapPool();
         }
 
         public override void OnBeforeSceneUnloaded() {
@@ -105,7 +111,7 @@ namespace SimEnv.RlAgents {
             positions.Clear();
         }
 
-        static void CreatePositionPool(int size) {
+        static void CreatePositionPool() {
             Bounds bounds = new Bounds(Vector3.zero, Vector3.zero);
             foreach (Map map in mapPool) {
                 Bounds mapBounds = map.bounds;
@@ -114,7 +120,7 @@ namespace SimEnv.RlAgents {
 
             Vector3 step = bounds.extents * 2f + new Vector3(1f, 0f, 1f);
             int count = 0;
-            int root = Convert.ToInt32(Math.Ceiling(Math.Sqrt(Convert.ToDouble(size))));
+            int root = Convert.ToInt32(Math.Ceiling(Math.Sqrt(Convert.ToDouble(poolSize))));
             bool stop = false;
             for (int i = 0; i < root; i++) {
                 if (stop) break;
@@ -123,12 +129,12 @@ namespace SimEnv.RlAgents {
                     positions.Add(new Vector3(Convert.ToSingle(i) * step.x, 0f, Convert.ToSingle(j) * step.z));
 
                     count++;
-                    if (count == size) {
+                    if (count == poolSize) {
                         stop = true;
                     }
                 }
             }
-            Debug.Assert(count == size);
+            Debug.Assert(count == poolSize);
 
         }
     }
