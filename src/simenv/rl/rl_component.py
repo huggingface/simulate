@@ -17,6 +17,9 @@
 from dataclasses import dataclass
 from typing import TYPE_CHECKING, List, Optional
 
+import numpy as np
+from gym import spaces
+
 from ..assets.gltf_extension import GltfExtensionMixin
 from ..assets.sensors import CameraSensor, RaycastSensor, StateSensor
 from .actions import BoxAction, DiscreteAction
@@ -79,9 +82,21 @@ class RlComponent(GltfExtensionMixin, gltf_extension_name="HF_rl_agents"):
         #     rewards = [rewards]
         # self.rewards = rewards
 
-    # @property
-    # def action_space(self):
-    #     return self.actions
+    @property
+    def action_space(self):
+        if self.discrete_actions is not None:
+            return self.discrete_actions
+        if self.box_actions is not None:
+            return self.box_actions
+        raise NotImplementedError("Action space not found/implemented")
+
+    @property
+    def observation_space(self):
+        if self.camera_sensors is not None and len(self.camera_sensors) > 0:
+            camera = self.camera_sensors[0]
+            space = spaces.Box(low=0, high=255, shape=[3, camera.camera.height, camera.camera.width], dtype=np.uint8)
+            return space
+        raise NotImplementedError("Sensors not found/implemented")
 
     def _post_copy(self, agent: "Asset"):
         self.reward_functions = [rf._post_copy(agent) for rf in self.reward_functions]

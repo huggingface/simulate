@@ -72,10 +72,10 @@ class SimpleRlAgent(Capsule):
         if camera_height is None:
             camera_height = 40
         if camera_width is None:
-            camera_width = 64
-        camera = Camera(name=camera_name, width=camera_width, height=camera_height, position=[0, 0.75, 0])
-        children = children + camera if children is not None else camera
-        camera_sensors = [CameraSensor(camera)]
+            camera_width = 40
+        self.camera = Camera(name=camera_name, width=camera_width, height=camera_height, position=[0, 0.75, 0])
+        children = children + self.camera if children is not None else self.camera
+        camera_sensors = [CameraSensor(self.camera)]
         # for sensor in sensors:
         #     if not isinstance(sensor, Sensor):
         #         raise ValueError(f"{sensor} is not a Sensor")
