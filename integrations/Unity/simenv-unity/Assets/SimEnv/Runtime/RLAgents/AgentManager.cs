@@ -32,7 +32,7 @@ namespace SimEnv.RlAgents {
                 if (!kwargs.TryParse<int>("n_show", out poolSize))
                     Debug.LogWarning("Keyword \"n_show\" not provided, defaulting to 1");
                 InitializeMapPool(maps);
-            } else if (agents.Count == 0) {
+            } else if (agents.Count > 0) {
                 Debug.LogWarning("Found agents but no maps provided. Pass a list of map root names with the \"maps\" kwarg");
             }
         }

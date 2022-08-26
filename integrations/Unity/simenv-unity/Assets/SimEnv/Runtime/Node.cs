@@ -35,17 +35,8 @@ namespace SimEnv {
         }
 
         public void ResetState() {
-            transform.position = new Vector3(
-                initialState.position[0],
-                initialState.position[1],
-                initialState.position[2]
-            );
-            transform.rotation = new Quaternion(
-                initialState.rotation[0],
-                initialState.rotation[1],
-                initialState.rotation[2],
-                initialState.rotation[3]
-            );
+            transform.position = initialState.position;
+            transform.rotation = initialState.rotation;
         }
 
         void InitializeCamera() {

@@ -710,6 +710,7 @@ class Polygon(Object3D):
         self,
         points: List[List[float]],
         position: Optional[List[float]] = None,
+        collider: Optional[Collider] = None,
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
@@ -737,7 +738,17 @@ class Polygon(Object3D):
         polygonPolyData.SetPolys(polygons)
 
         mesh = pv.PolyData(polygonPolyData)
-        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
+
+        if collider is None:
+            collider = Collider(
+                type="mesh",
+                mesh=0,  # TODO: pass the correct mesh reference
+                convex=True,
+            )
+
+        super().__init__(
+            mesh=mesh, name=name, position=position, parent=parent, collider=collider, children=children, **kwargs
+        )
 
 
 class RegularPolygon(Object3D):

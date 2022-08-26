@@ -35,19 +35,21 @@ class Collider(GltfExtensionMixin, gltf_extension_name="HF_colliders"):
     offset (number[3]) The position offset of the collider relative to the object it's attached to. (Optional, default [0, 0, 0])
     intangible (boolean) Whether the collider should act as an intangible trigger. (Optiona, default False)
     convex (boolean) Whether the collider is convex when using the mesh collider type. (Optional)
+    physic_material (int) Index of the physic material, if any. (Optional)
     """
 
-    bounding_box: List[float]
+    bounding_box: Optional[List[float]] = None
     type: Optional[str] = None
     mesh: Optional[int] = None
     offset: Optional[List[float]] = None
     intangible: Optional[bool] = None
     convex: Optional[bool] = None
+    physic_material: Optional[int] = None
 
     def __post_init__(self):
-        if len(self.bounding_box) != 3:
-            raise ValueError("Collider bounding_box must be a list of 3 numbers")
         if self.type is None:
             self.type = "box"
+        if self.type != "mesh" and len(self.bounding_box) != 3:
+            raise ValueError("Collider bounding_box must be a list of 3 numbers")
         if self.type not in ALLOWED_COLLIDER_TYPES:
             raise ValueError(f"Collider type {self.type} is not supported.")
