@@ -20,6 +20,7 @@ from gym import spaces
 # Lint as: python3
 from ...scene import Scene
 
+
 try:
     from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 except ImportError:
@@ -30,7 +31,6 @@ except ImportError:
 
 class ParallelRLEnvironment(VecEnv):
     def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, **engine_kwargs):
-        
 
         if hasattr(scene_or_map_fn, "__call__"):
             self.scene = Scene(engine="Unity", **engine_kwargs)
@@ -51,9 +51,10 @@ class ParallelRLEnvironment(VecEnv):
 
         self.agent = next(iter(self.agents.values()))
 
-        
-        self.action_space = spaces.Discrete(self.agent.action_space.n) # quick workaround while Thom refactors this
-        self.observation_space = {"CameraSensor": self.agent.observation_space} # quick workaround while Thom refactors this 
+        self.action_space = spaces.Discrete(self.agent.action_space.n)  # quick workaround while Thom refactors this
+        self.observation_space = {
+            "CameraSensor": self.agent.observation_space
+        }  # quick workaround while Thom refactors this
         self.observation_space = spaces.Dict(self.observation_space)
 
         super(ParallelRLEnvironment, self).__init__(n_show, self.observation_space, self.action_space)
@@ -74,7 +75,6 @@ class ParallelRLEnvironment(VecEnv):
         else:
             for i in range(self.n_show):
                 action_dict[str(i)] = int(action[i])
-
 
         event = self.scene.step(action=action_dict)
 
@@ -114,9 +114,9 @@ class ParallelRLEnvironment(VecEnv):
             out.append(val)
 
         if self.n_agents == 1:
-            return {"CameraSensor": np.stack(out)[0]} # quick workaround while Thom refactors this 
+            return {"CameraSensor": np.stack(out)[0]}  # quick workaround while Thom refactors this
         else:
-            return {"CameraSensor": np.stack(out)} # quick workaround while Thom refactors this 
+            return {"CameraSensor": np.stack(out)}  # quick workaround while Thom refactors this
 
     def reset(self):
         self.scene.reset()
@@ -138,7 +138,6 @@ class ParallelRLEnvironment(VecEnv):
 
     def close(self):
         self.scene.close()
-
 
     def env_is_wrapped(self):
         return [False] * self.n_agents * self.n_parallel
