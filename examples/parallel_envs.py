@@ -47,7 +47,7 @@ def create_env(executable=None, port=None, headless=None):
     agent.add_reward_function(sparse_reward)
     agent.add_reward_function(timeout_reward)
 
-    return sm.RLEnvironment(scene)
+    return sm.ParallelRLEnvironment(scene)
 
 
 def make_env(executable, rank, seed=0, headless=None):
@@ -64,7 +64,7 @@ if __name__ == "__main__":
     parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
     args = parser.parse_args()
 
-    n_envs = 2
+    n_envs = 1
     envs = SubprocVecEnv([make_env(args.build_exe, i) for i in range(n_envs)])
 
     obs = envs.reset()

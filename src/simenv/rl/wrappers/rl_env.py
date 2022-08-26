@@ -68,10 +68,9 @@ class ParallelRLEnvironment(VecEnv):
         # TODO: adapt this to multiagent setting
         if action is None:
             for i in range(self.n_show):
-                
                 action_dict[str(i)] = int(self.action_space.sample())
-        # elif isinstance(action, dict):
-        #     action_dict = int(action)
+        elif isinstance(action, np.int64):
+            action_dict["0"] = int(action)
         else:
             for i in range(self.n_show):
                 action_dict[str(i)] = int(action[i])
@@ -90,6 +89,7 @@ class ParallelRLEnvironment(VecEnv):
             obs[self.agent.camera.name] = camera_obs
             reward = agent_data["reward"]
             done = agent_data["done"]
+
         else:
             reward = []
             done = []
@@ -113,8 +113,10 @@ class ParallelRLEnvironment(VecEnv):
         for val in obs_dict.values():
             out.append(val)
 
-        return {"CameraSensor": np.stack(out)} # quick workaround while Thom refactors this 
-
+        if self.n_agents == 1:
+            return {"CameraSensor": np.stack(out)[0]} # quick workaround while Thom refactors this 
+        else:
+            return {"CameraSensor": np.stack(out)} # quick workaround while Thom refactors this 
 
     def reset(self):
         self.scene.reset()
