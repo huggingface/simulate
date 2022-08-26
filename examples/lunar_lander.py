@@ -114,6 +114,8 @@ def make_lander(engine="Unity", engine_exe=None):
     l_leg = sm.Polygon(points=l_leg_poly_shifted, material=lander_material, parent=lander, name="lander_l_leg")
     l_leg.mesh.extrude((0, 1, 0), capping=True, inplace=True)
 
+    lander.collider = sm.Collider(bounding_box=[2.0, 2.0, 2.0], type="mesh", mesh=0)
+
     # TODO add collider
     land = sm.Polygon(
         points=LAND_POLY,
@@ -121,7 +123,7 @@ def make_lander(engine="Unity", engine_exe=None):
         name="Moon",
     )
     land.mesh.extrude((0, 1, 0), capping=True, inplace=True)
-
+    land.collider = sm.Collider(bounding_box=[21.0, 1.0, 6.0], type="mesh", mesh=0)
     sc += lander
     # sc += r_leg
     # sc += l_leg
@@ -144,31 +146,39 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_steps", default=100, type=int, required=False, help="number of steps to run the simulator"
     )
+    parser.add_argument(
+        "--plt", default=False, type=bool, required=False, help="show camera in matplotlib"
+    )
+
     args = parser.parse_args()
 
     if args.show:
         sc = make_lander(engine="pyvista")
-        sc.show() #view_vector=(0, 1, 0)
+        sc.show()  # view_vector=(0, 1, 0)
         input("press any key to quit")
     else:
         sc = make_lander(engine="Unity", engine_exe=args.build_exe)
         sc += sm.LightSun()
         sc += sm.Camera(
-            name="cam", camera_type="orthographic",
+            name="cam",
+            camera_type="orthographic",
             # TODO Tune position
             position=[0, -5, 0],
             rotation=[0, -30, 0],
-            ymag=15, width=256, height=144
+            ymag=15,
+            width=256,
+            height=144,
         )
 
         # TODO Add adgent that acts via thrusters (lateral)
         sc.show()
 
-        plt.ion()
-        fig, ax = plt.subplots()
-        imdata = np.zeros(shape=(144, 256, 3), dtype=np.uint8)
-        axim = ax.imshow(imdata, vmin=0, vmax=255)
-        # env = sm.RLEnvironment(sc)
+        if args.plt:
+            plt.ion()
+            fig, ax = plt.subplots()
+            imdata = np.zeros(shape=(144, 256, 3), dtype=np.uint8)
+            axim = ax.imshow(imdata, vmin=0, vmax=255)
+            env = sm.RLEnvironment(sc)
         for i in range(1000):
             print(f"step {i}")
             event = sc.step()
@@ -176,9 +186,10 @@ if __name__ == "__main__":
             if "frames" in event and "cam" in event["frames"]:
                 frame = np.array(event["frames"]["cam"], dtype=np.uint8)
                 frame = frame.transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
-                axim.set_data(frame)
-                fig.canvas.flush_events()
-                plt.pause(0.01)
+                if args.plt:
+                    axim.set_data(frame)
+                    fig.canvas.flush_events()
+                    plt.pause(0.01)
 #
 # plt.pause(0.5)
 #
