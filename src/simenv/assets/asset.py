@@ -150,9 +150,23 @@ class Asset(NodeMixin, object):
     def physics_component(self):
         return self._physics_component
 
+    def check_parent_physics(self):
+        if self.tree_parent is not None:
+            if self.tree_parent.physics_component is not None:
+                return True
+            else:
+                return self.tree_parent.check_parent_physics()
+        return False
+
     @physics_component.setter
     def physics_component(self, physics_component: Union[None, RigidBodyComponent, ArticulatedBodyComponent]):
         self._physics_component = physics_component
+
+        if physics_component is not None:
+            # recursively check for parent with physics_component
+            multiple_physics = self.check_parent_physics()
+            if multiple_physics:
+                print("WARNING: A linked child asset and parent asset have a physics component, not supported.")
 
     def __len__(self):
         return len(self.tree_descendants)
