@@ -113,7 +113,7 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 
 @dataclass_json
 @dataclass
-class RaycastSensor:
+class RaycastSensor(NodeMixin):
     """A Raycast sensor: cast a ray to get an observation"""
 
     n_rays: int = 1

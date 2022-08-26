@@ -42,13 +42,13 @@ class ParallelRLEnvironment(VecEnv):
             self.scene = scene_or_map_fn
             self.map_roots = [self.scene]
 
-        self.agents = {agent.name: agent for agent in self.scene.agents}
-        self.n_agents = len(self.agents)
+        self.actors = {actor.name: actor for actor in self.scene.actors}
+        self.n_actors = len(self.actors)
         self.n_maps = n_maps
         self.n_show = n_show
-        self.n_agents_per_map = self.n_agents // self.n_maps
+        self.n_agents_per_map = self.n_actors // self.n_maps
 
-        self.agent = next(iter(self.agents.values()))
+        self.actor = next(iter(self.actors.values()))
 
         self.action_space = spaces.Discrete(self.agent.action_space.n)  # quick workaround while Thom refactors this
         self.observation_space = {
@@ -74,14 +74,13 @@ class ParallelRLEnvironment(VecEnv):
         action_dict = {}
         # TODO: adapt this to multiagent setting
         if action is None:
-            for i in range(self.n_show):
-                action_dict[str(i)] = int(self.action_space.sample())
-        elif isinstance(action, np.int64):
-            action_dict["0"] = int(action)
+            for actor_name in self.actors.keys():
+                action_dict[actor_name] = int(self.action_space.sample())
+        elif isinstance(action, dict):
+            action_dict = int(action)
         else:
-            for i in range(self.n_show):
-                action_dict[str(i)] = int(action[i])
-
+            for actor_name in self.actors.keys():
+                action_dict[actor_name] = int(action)
         event = self.scene.step(action=action_dict)
 
         # Extract observations, reward, and done from event data
@@ -89,24 +88,23 @@ class ParallelRLEnvironment(VecEnv):
         reward = 0
         done = False
         info = {}
-        if self.n_agents == 1:
-            agent_data = event["agents"][self.agent.name]
-            camera_obs = np.array(agent_data["frames"][self.agent.camera.name], dtype=np.uint8)
-            obs[self.agent.camera.name] = camera_obs
-            reward = agent_data["reward"]
-            done = agent_data["done"]
-
+        if self.n_actors == 1:
+            actor_data = event["actors"][self.actor.name]
+            camera_obs = np.array(actor_data["frames"][self.actor.camera.name], dtype=np.uint8)
+            obs[self.actor.camera.name] = camera_obs
+            reward = actor_data["reward"]
+            done = actor_data["done"]
         else:
             reward = []
             done = []
             info = []
-            for agent_name in event["agents"].keys():
-                agent = self.agents[agent_name]
-                agent_data = event["agents"][agent_name]
-                camera_obs = np.array(agent_data["frames"][agent.camera.name], dtype=np.uint8)
-                obs[agent.camera.name] = camera_obs
-                reward.append(agent_data["reward"])
-                done.append(agent_data["done"])
+            for actor_name in event["actors"].keys():
+                actor = self.actors[actor_name]
+                actor_data = event["actors"][actor_name]
+                camera_obs = np.array(actor_data["frames"][actor.camera.name], dtype=np.uint8)
+                obs[actor.camera.name] = camera_obs
+                reward.append(actor_data["reward"])
+                done.append(actor_data["done"])
                 info.append({})
 
         obs = self._obs_dict_to_tensor(obs)
@@ -130,14 +128,14 @@ class ParallelRLEnvironment(VecEnv):
         # To extract observations, we do a "fake" step (no actual simulation with frame_skip=0)
         event = self.scene.step(return_frames=True, frame_skip=0)
         obs = {}
-        if self.n_agents == 1:
-            camera_obs = np.array(event["frames"][self.agent.camera.name], dtype=np.uint8)
-            obs[self.agent.camera.name] = camera_obs
+        if self.n_actors == 1:
+            camera_obs = np.array(event["frames"][self.actor.camera.name], dtype=np.uint8)
+            obs[self.actor.camera.name] = camera_obs
         else:
-            for agent_name in event["agents"].keys():
-                agent = self.agents[agent_name]
-                camera_obs = np.array(event["frames"][agent.camera.name], dtype=np.uint8)
-                obs[agent.camera.name] = camera_obs
+            for actor_name in event["actors"].keys():
+                actor = self.actors[actor_name]
+                camera_obs = np.array(event["frames"][actor.camera.name], dtype=np.uint8)
+                obs[actor.camera.name] = camera_obs
 
         obs = self._obs_dict_to_tensor(obs)
         return obs
