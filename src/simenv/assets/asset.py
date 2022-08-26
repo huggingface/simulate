@@ -236,12 +236,18 @@ class Asset(NodeMixin, object):
         else:
             splitted_hub_path = hub_or_local_filepath.split("/")
             repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
+
             filename = splitted_hub_path[-1]
+            filename_extension = filename.split(".")
+            if len(filename_extension) == 1:
+                filename += ".gltf"
+
             subfolder = "/".join(splitted_hub_path[2:-1])
+
             file_path = hf_hub_download(
                 repo_id=repo_id,
                 filename=filename,
-                subfolder=subfolder,
+                subfolder=subfolder if subfolder else None,
                 revision=revision,
                 repo_type="space",
                 use_auth_token=use_auth_token,
@@ -355,6 +361,10 @@ class Asset(NodeMixin, object):
         hub_repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
         hub_filename = splitted_hub_path[-1]
         hub_subfolder = "/".join(splitted_hub_path[2:-1])
+
+        hub_filename_extension = hub_filename.split(".")
+        if len(hub_filename_extension) == 1:
+            hub_filename += ".gltf"
 
         repo_url = create_repo(
             repo_id=hub_repo_id,
