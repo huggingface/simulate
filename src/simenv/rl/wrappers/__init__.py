@@ -1,1 +1,1 @@
-from .rl_env import RLEnvironment
+from .rl_env import ParallelRLEnvironment

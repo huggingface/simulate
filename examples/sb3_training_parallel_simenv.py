@@ -56,12 +56,10 @@ if __name__ == "__main__":
     parser.add_argument("--n_maps", default=12, type=int, required=False, help="Number of maps to spawn")
     parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
+ 
+    env = sm.ParallelRLEnvironment(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
 
-    env = sm.RLEnvironment(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
-
-    for i in range(1000):
-        obs, reward, done, info = env.step()
-    """ model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
-    model.learn(total_timesteps=100000) """
+    model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
+    model.learn(total_timesteps=100000)
 
     env.close()

@@ -20,10 +20,17 @@ from gym import spaces
 # Lint as: python3
 from ...scene import Scene
 
+try:
+    from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+except ImportError:
 
-class RLEnvironment(gym.Env):
+    class VecEnv:
+        pass  # Dummy class if SB3 is not installed
+
+
+class ParallelRLEnvironment(VecEnv):
     def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, **engine_kwargs):
-        super(RLEnvironment, self).__init__()
+        
 
         if hasattr(scene_or_map_fn, "__call__"):
             self.scene = Scene(engine="Unity", **engine_kwargs)
@@ -38,14 +45,18 @@ class RLEnvironment(gym.Env):
 
         self.agents = {agent.name: agent for agent in self.scene.agents}
         self.n_agents = len(self.agents)
+        self.n_maps = n_maps
+        self.n_show = n_show
+        self.n_agents_per_map = self.n_agents // self.n_maps
 
         self.agent = next(iter(self.agents.values()))
 
-        self.action_space = self.agent.action_space
-        self.observation_space = {}
-        for agent in self.agents.values():
-            self.observation_space[agent.camera.name] = agent.observation_space
+        
+        self.action_space = spaces.Discrete(self.agent.action_space.n) # quick workaround while Thom refactors this
+        self.observation_space = {"CameraSensor": self.agent.observation_space} # quick workaround while Thom refactors this 
         self.observation_space = spaces.Dict(self.observation_space)
+
+        super(ParallelRLEnvironment, self).__init__(n_show, self.observation_space, self.action_space)
 
         # Don't return simulation data, since minimal/faster data will be returned by agent sensors
         # Pass maps kwarg to enable map pooling
@@ -54,14 +65,18 @@ class RLEnvironment(gym.Env):
 
     def step(self, action=None):
         action_dict = {}
+        # TODO: adapt this to multiagent setting
         if action is None:
-            for agent_name in self.agents.keys():
-                action_dict[agent_name] = int(self.action_space.sample())
-        elif isinstance(action, dict):
-            action_dict = int(action)
+            for i in range(self.n_show):
+                
+                action_dict[str(i)] = int(self.action_space.sample())
+        # elif isinstance(action, dict):
+        #     action_dict = int(action)
         else:
-            for agent_name in self.agents.keys():
-                action_dict[agent_name] = int(action)
+            for i in range(self.n_show):
+                action_dict[str(i)] = int(action[i])
+
+
         event = self.scene.step(action=action_dict)
 
         # Extract observations, reward, and done from event data
@@ -88,7 +103,18 @@ class RLEnvironment(gym.Env):
                 done.append(agent_data["done"])
                 info.append({})
 
+        obs = self._obs_dict_to_tensor(obs)
+        reward = np.array(reward)
+        done = np.array(done)
         return obs, reward, done, info
+
+    def _obs_dict_to_tensor(self, obs_dict):
+        out = []
+        for val in obs_dict.values():
+            out.append(val)
+
+        return {"CameraSensor": np.stack(out)} # quick workaround while Thom refactors this 
+
 
     def reset(self):
         self.scene.reset()
@@ -105,7 +131,37 @@ class RLEnvironment(gym.Env):
                 camera_obs = np.array(event["frames"][agent.camera.name], dtype=np.uint8)
                 obs[agent.camera.name] = camera_obs
 
+        obs = self._obs_dict_to_tensor(obs)
         return obs
 
     def close(self):
         self.scene.close()
+
+
+    def env_is_wrapped(self):
+        return [False] * self.n_agents * self.n_parallel
+
+    # required abstract methods
+
+    def step_async(self, actions: np.ndarray) -> None:
+        raise NotImplementedError()
+
+    def env_method(self):
+        raise NotImplementedError()
+
+    def get_attr(self):
+        raise NotImplementedError()
+
+    def seed(self, value):
+        # this should be done when the env is initialized
+        return
+        # raise NotImplementedError()
+
+    def set_attr(self):
+        raise NotImplementedError()
+
+    def step_send(self):
+        raise NotImplementedError()
+
+    def step_wait(self):
+        raise NotImplementedError()
