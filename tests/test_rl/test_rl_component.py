@@ -29,7 +29,7 @@ class RlComponentTest(unittest.TestCase):
         actions = sm.DiscreteAction(
             n=3,
             action_map=[
-                sm.ActionMapping("move_position", [1, 0, 0], 2.0),
+                sm.ActionMapping("change_position", [1, 0, 0], 2.0),
                 sm.ActionMapping("move_rotation", [0, 1, 0], -90),
                 sm.ActionMapping("move_rotation", [0, 0, 1], 90),
             ],

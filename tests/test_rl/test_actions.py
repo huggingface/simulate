@@ -16,15 +16,15 @@
 import unittest
 
 import simenv as sm
-from simenv.rl.actions import ActionMapping
+from simenv.assets.actions import ActionMapping
 
 
 # TODO add more tests on saving/exporting/loading in gltf files
 class ActionTest(unittest.TestCase):
     def test_create_mappedbox(self):
         action_map = [
-            sm.ActionMapping("move_position", axis=[1, 0, 0]),
-            sm.ActionMapping("move_position", axis=[0, 1, 0]),
+            sm.ActionMapping("change_position", axis=[1, 0, 0]),
+            sm.ActionMapping("change_position", axis=[0, 1, 0]),
         ]
         action = sm.BoxAction(low=-1.0, high=2.0, shape=(2,), action_map=action_map)
         self.assertIsInstance(action, sm.BoxAction)
@@ -36,7 +36,7 @@ class ActionTest(unittest.TestCase):
 
     def test_create_mappeddiscrete(self):
         action_map = [
-            sm.ActionMapping("move_position", axis=[1, 0, 0], amplitude=1),
+            sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=1),
             sm.ActionMapping("move_rotation", axis=[0, 1, 0], amplitude=10),
         ]
         action = sm.DiscreteAction(n=2, action_map=action_map)

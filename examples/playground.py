@@ -6,7 +6,7 @@ import numpy as np
 import simenv as sm
 
 
-scene = sm.Scene(engine="Unity")
+scene = sm.Scene(engine="unity")
 scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
 scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material.BLUE)
@@ -19,26 +19,38 @@ material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0,
 for i in range(20):
     scene += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 
+# Lets add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
+actor = sm.Capsule(name="actor", position=[0.0, 0.0, 0.0])  # Has a collider
+# Specify the action to control the actor: 3 discrete action to rotate and move forward
+actor.actions = sm.Action(n=3, mapping=[
+    sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=-90),
+    sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=90),
+    sm.ActionMapping("change_relative_position", axis=[1, 0, 0], amplitude=2.0),
+])
+scene += actor
+
+# Add a camera located on the actor
+actor_camera = sm.Camera(name="camera", width=40, height=40, position=[0, 0.75, 0])
+actor += actor_camera
+
+# Let's add a target and a reward function
 material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
 target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 scene += target
 
-
-agent = sm.SimpleRlAgent(name="agent", position=[0.0, 0.0, 0.0])
-agent_camera = agent.rl_component.camera_sensors[0].camera
-scene += agent
+scene += sm.RewardFunction(target, actor)  # By default a dense reward equal to the distance between 2 entities
 
 env = sm.RLEnvironment(scene)
 
 plt.ion()
 fig1, ax1 = plt.subplots()
-dummy_obs = np.zeros(shape=(agent.camera.height, agent.camera.width, 3), dtype=np.uint8)
+dummy_obs = np.zeros(shape=(actor.camera.height, actor.camera.width, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 for i in range(1000):
     obs, reward, done, info = env.step()
 
-    obs = obs[agent_camera.name].transpose(1, 2, 0)  # (C,H,W) -> (H,W,C)
+    obs = obs[actor_camera.name].transpose(1, 2, 0)  # (C,H,W) -> (H,W,C)
     axim1.set_data(obs)
     fig1.canvas.flush_events()
 

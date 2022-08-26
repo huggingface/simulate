@@ -17,6 +17,13 @@
 import itertools
 from typing import List, Optional, Union
 
+import numpy as np
+
+try:
+    from gym import spaces
+except:
+    pass
+
 from .asset import Asset
 from .collider import Collider
 
@@ -85,6 +92,10 @@ class Camera(Asset):
         self.znear = znear
         self.xmag = xmag
         self.ymag = ymag
+
+    @property
+    def observation_space(self):
+        return spaces.Box(low=0, high=255, shape=[3, self.height, self.width], dtype=np.uint8)
 
     def copy(self, with_children=True, **kwargs):
         """Return a copy of the Camera with copy of the children attached to the copy."""

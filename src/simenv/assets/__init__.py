@@ -1,3 +1,5 @@
+from .actions import *
+from .actors import *
 from .articulated_body import *
 from .asset import Asset
 from .camera import *
@@ -6,5 +8,6 @@ from .light import *
 from .material import *
 from .object import *
 from .rigid_body import *
+from .reward_functions import *
 from .sensors import *
 from .utils import *

@@ -1,13 +1,20 @@
-from dataclasses import dataclass
-from typing import Any, Optional
+import itertools
 
+from .utils import camelcase_to_snakecase
+
+from dataclasses import dataclass
+from typing import Any, ClassVar, Optional
+
+from .asset import Asset
+
+from .gltf_extension import GltfExtensionMixin
 
 ALLOWED_REWARD_TYPES = ["dense", "sparse", "or", "and", "not", "see", "timeout"]
 ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO(Ed) other metrics?
 
 
 @dataclass
-class RewardFunction:
+class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_functions"):
     """An RL reward function
 
     Attributes:
@@ -37,9 +44,9 @@ class RewardFunction:
         reward_function_b: RewardFunction, optional (default=None)
             When doing combination of rewards (and, or), the second reward function
     """
-
     entity_a: Any
     entity_b: Any
+    name: Optional[str] = None
     type: Optional[str] = None
     distance_metric: Optional[str] = None
     scalar: Optional[float] = 1.0
@@ -49,8 +56,11 @@ class RewardFunction:
     trigger_once: Optional[bool] = True
     reward_function_a: Optional["RewardFunction"] = None
     reward_function_b: Optional["RewardFunction"] = None
+    __NEW_ID: ClassVar[Any] = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __post_init__(self):
+        super().__init__(name=self.name)
+
         if self.type is None:
             self.type = "dense"
         if self.type not in ALLOWED_REWARD_TYPES:
@@ -62,8 +72,8 @@ class RewardFunction:
                 f"Invalid distance metric: {self.distance_metric}. Must be one of: {ALLOWED_REWARD_DISTANCE_METRICS}"
             )
 
-    def _post_copy(self, agent: Any):
-        root = agent.tree_root
+    def _post_copy(self, actor: Any):
+        root = actor.tree_root
 
         new_instance = type(self)(
             type=self.type,

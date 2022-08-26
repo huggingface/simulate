@@ -23,6 +23,8 @@ from typing import TYPE_CHECKING, List, Optional, Tuple, Union
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
+from .sensors import RaycastSensor, StateSensor
+from .actions import Action, ActionDict, ActionTuple
 from .anytree import NodeMixin
 from .articulated_body import ArticulatedBodyComponent
 from .collider import Collider
@@ -35,10 +37,6 @@ from .utils import (
     get_trs_from_transform_matrix,
     rotation_from_euler_degrees,
 )
-
-
-if TYPE_CHECKING:
-    from ..rl.rl_component import RlComponent
 
 
 class Asset(NodeMixin, object):
@@ -66,7 +64,7 @@ class Asset(NodeMixin, object):
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
         collider: Optional[Collider] = None,
-        rl_component: Optional["RlComponent"] = None,
+        actions: Optional[Union[Action, ActionDict, ActionTuple]] = None,
         physics_component: Union[None, RigidBodyComponent, ArticulatedBodyComponent] = None,
         parent=None,
         children=None,
@@ -92,9 +90,11 @@ class Asset(NodeMixin, object):
         if transformation_matrix is not None:
             self.transformation_matrix = transformation_matrix
 
+        # Extensions for physics/RL
         self.collider = collider
-        self.rl_component = rl_component
+        self.actions = actions
         self.physics_component = physics_component
+
         self._n_copies = 0
         self._created_from_file = created_from_file
 
@@ -126,25 +126,35 @@ class Asset(NodeMixin, object):
     def collider(self, collider: "Collider"):
         self._collider = collider
 
+    # Actions and action_space
     @property
-    def rl_component(self):
-        return self._rl_component
+    def actions(self):
+        return self._actions
 
-    @rl_component.setter
-    def rl_component(self, rl_component: "RlComponent"):
-        self._rl_component = rl_component
+    @actions.setter
+    def actions(self, actions: Union[Action, ActionDict, ActionTuple]):
+        self._actions = actions
 
     @property
     def action_space(self):
-        if self.rl_component is not None:
-            return self.rl_component.action_space
+        if self.actions is not None:
+            return self.actions.space
         return None
 
-    @property
-    def observation_space(self):
-        if self.rl_component is not None:
-            return self.rl_component.observation_space
-        return None
+    # # Sensors and observation_space
+    # @property
+    # def sensors(self):
+    #     return self._sensors
+
+    # @sensors.setter
+    # def sensors(self, sensors: Union[CameraSensor, StateSensor, RaycastSensor]):
+    #     self._sensors = sensors
+
+    # @property
+    # def observation_space(self):
+    #     if self.sensors is not None:
+    #         return map_sensors_to_spaces(self.sensors)
+    #     return None
 
     @property
     def physics_component(self):
@@ -247,11 +257,10 @@ class Asset(NodeMixin, object):
             file_path = hf_hub_download(
                 repo_id=repo_id,
                 filename=filename,
-                subfolder=subfolder if subfolder else None,
+                subfolder=subfolder if subfolder else None,  # remove when https://github.com/huggingface/huggingface_hub/issues/1016
                 revision=revision,
                 repo_type="space",
                 use_auth_token=use_auth_token,
-                # force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
                 **kwargs,
             )
 

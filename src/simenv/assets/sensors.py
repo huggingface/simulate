@@ -21,6 +21,8 @@ from typing import Any, List, Optional, Union
 import numpy as np
 from dataclasses_json import dataclass_json
 
+from .anytree.nodemixin import NodeMixin
+
 
 try:
     from gym import spaces
@@ -49,21 +51,21 @@ def get_state_sensor_n_properties(sensor):
     return n_features
 
 
+# @dataclass_json
+# @dataclass
+# class CameraSensor(NodeMixin):
+#     """A Camera sensor (just a pointer to a Camera object)
+
+#     Attributes:
+#         camera: Reference (or string name) of a Camera asset in the scene
+#     """
+
+#     camera: Any
+
+
 @dataclass_json
 @dataclass
-class CameraSensor:
-    """A Camera sensor (just a pointer to a Camera object)
-
-    Attributes:
-        camera: Reference (or string name) of a Camera asset in the scene
-    """
-
-    camera: Any
-
-
-@dataclass_json
-@dataclass
-class StateSensor:
+class StateSensor(NodeMixin):
     """A State sensor: pointer to two assets whose positions/rotations are used to compute an observation
 
     Attributes:
@@ -89,10 +91,14 @@ class StateSensor:
                 f"\nAllowed properties are: {ALLOWED_STATE_SENSOR_PROPERTIES}"
             )
 
+    @property
+    def observation_space(self):
+        return spaces.Box(low=-inf, high=inf, shape=[get_state_sensor_n_properties(self)], dtype=np.float32)
+
 
 @dataclass_json
 @dataclass
-class RaycastSensor:
+class RaycastSensor(NodeMixin):
     """A Raycast sensor: cast a ray to get an observation"""
 
     n_rays: int = 1
@@ -101,12 +107,6 @@ class RaycastSensor:
     def __post_init__(self):
         raise NotImplementedError
 
-
-def map_sensors_to_spaces(sensor: Union[CameraSensor, StateSensor, RaycastSensor]) -> spaces.Space:
-    if isinstance(sensor, CameraSensor):
-        return spaces.Box(low=0, high=255, shape=[3, sensor.camera.height, sensor.camera.width], dtype=np.uint8)
-    elif isinstance(sensor, StateSensor):
-        return spaces.Box(low=-inf, high=inf, shape=[get_state_sensor_n_properties(sensor)], dtype=np.float32)
-    raise NotImplementedError(
-        f"This sensor ({type(sensor)})is not yet implemented " f"as an RlAgent type of observation."
-    )
+    @property
+    def observation_space(self):
+        raise NotImplementedError

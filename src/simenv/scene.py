@@ -17,11 +17,17 @@
 import itertools
 from typing import List, Optional, Tuple, Union
 
-from .assets import Asset, Camera, Light, Object3D
+from simenv.assets.reward_functions import RewardFunction
+
+from .assets import Asset, Camera, Light, Object3D, RewardFunction, StateSensor, RaycastSensor
 from .assets.anytree import RenderTree
 from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
-from .rl import RlComponent
 
+
+try:
+    from gym import spaces
+except:
+    pass
 
 class Scene(Asset):
     """A Scene is the main place to add objects and object tree.
@@ -93,6 +99,24 @@ class Scene(Asset):
         """Reset the Scene"""
         return self.engine.reset(**engine_kwargs)
 
+    @property
+    def action_space(self):
+        actors = self.actors
+        if len(actors) == 1:
+            return actors[0].action_space
+        elif actors:
+            return spaces.Dict((act.name, act.action_space) for act in actors)
+        return None
+
+    @property
+    def observation_space(self):
+        sensors = self.sensors
+        if len(sensors) == 1:
+            return sensors[0].observation_space
+        elif sensors:
+            return spaces.Dict((sensor.name, sensor.observation_space) for sensor in sensors)
+        return None
+
     def close(self):
         self.engine.close()
 
@@ -112,5 +136,15 @@ class Scene(Asset):
         return self.tree_filtered_descendants(lambda node: isinstance(node, Object3D))
 
     @property
-    def agents(self) -> Tuple[Asset]:
-        return self.tree_filtered_descendants(lambda node: isinstance(node.rl_component, RlComponent))
+    def reward_functions(self):
+        """Tuple with all Reward functions in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, RewardFunction))
+
+    @property
+    def sensors(self):
+        """Tuple with all sensors in the Scene"""
+        return self.tree_filtered_descendants(lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor)))
+
+    @property
+    def actors(self) -> Tuple[Asset]:
+        return self.tree_filtered_descendants(lambda node: node.actions is not None)
