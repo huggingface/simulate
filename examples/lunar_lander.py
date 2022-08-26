@@ -123,8 +123,8 @@ def make_lander(engine="Unity", engine_exe=None):
     land.mesh.extrude((0, 1, 0), capping=True, inplace=True)
 
     sc += lander
-    sc += r_leg
-    sc += l_leg
+    # sc += r_leg
+    # sc += l_leg
     sc += land
 
     return sc
@@ -148,7 +148,7 @@ if __name__ == "__main__":
 
     if args.show:
         sc = make_lander(engine="pyvista")
-        sc.show(view_vector=(0, 1, 0))
+        sc.show() #view_vector=(0, 1, 0)
         input("press any key to quit")
     else:
         sc = make_lander(engine="Unity", engine_exe=args.build_exe)
@@ -162,7 +162,6 @@ if __name__ == "__main__":
         )
 
         # TODO Add adgent that acts via thrusters (lateral)
-        quit()
         sc.show()
 
         plt.ion()
