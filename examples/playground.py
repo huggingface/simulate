@@ -28,7 +28,7 @@ agent = sm.SimpleRlAgent(name="agent", position=[0.0, 0.0, 0.0])
 agent_camera = agent.rl_component.camera_sensors[0].camera
 scene += agent
 
-env = sm.RLEnvironment(scene)
+env = sm.ParallelRLEnvironment(scene)
 
 plt.ion()
 fig1, ax1 = plt.subplots()
@@ -37,8 +37,8 @@ axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
 for i in range(1000):
     obs, reward, done, info = env.step()
-
-    obs = obs[agent_camera.name].transpose(1, 2, 0)  # (C,H,W) -> (H,W,C)
+    
+    obs = obs["CameraSensor"][0].transpose(1, 2, 0)  # (C,H,W) -> (H,W,C)
     axim1.set_data(obs)
     fig1.canvas.flush_events()
 
