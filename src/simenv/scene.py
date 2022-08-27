@@ -19,6 +19,7 @@ from typing import List, Optional, Tuple, Union
 
 from .assets import Asset, Camera, Light, Object3D, RaycastSensor, RewardFunction, StateSensor
 from .assets.anytree import RenderTree
+from .assets.gltflib.models.extensions import Metadata
 from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
 
 
@@ -52,6 +53,7 @@ class Scene(Asset):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
+        metadata: Optional[Metadata] = None,
         transformation_matrix=None,
         children=None,
         **kwargs,
@@ -65,6 +67,7 @@ class Scene(Asset):
             children=children,
             created_from_file=created_from_file,
         )
+        self.metadata = metadata if metadata is not None else Metadata()
         self.engine = None
         if engine is not None:
             engine = engine.lower()

@@ -125,7 +125,7 @@ namespace SimEnv.RlAgents {
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
             Vector3 rotate = mapping.axis.normalized * magnitude / MetaData.frameRate;
-            actor.node.rigidbody.MoveRotation(actor.node.transform.rotation * Quaternion.Euler(rotate));
+            agent.node.rigidbody.MoveRotation(agent.node.transform.rotation * Quaternion.Euler(rotate));
         }
 
         public static void ChangeRelativeRotation(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {

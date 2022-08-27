@@ -20,7 +20,7 @@ namespace SimEnv.GLTF {
             [JsonConverter(typeof(TranslationConverter))] public Vector3 offset = Vector3.zero;
             public bool intangible = false;
             public bool convex = false;
-            public int? physicMaterial;
+            public int? physic_material;
 
             public bool ShouldSerializemesh() { return mesh.HasValue; }
             public bool ShouldSerializeoffset() { return offset != Vector3.zero; }
@@ -29,24 +29,24 @@ namespace SimEnv.GLTF {
 
             public override int GetHashCode() {
                 return type.GetHashCode()
-                    ^ boundingBox.GetHashCode()
+                    ^ bounding_box.GetHashCode()
                     ^ mesh.GetHashCode()
                     ^ offset.GetHashCode()
                     ^ intangible.GetHashCode()
                     ^ convex.GetHashCode()
-                    ^ physicMaterial.GetHashCode();
+                    ^ physic_material.GetHashCode();
             }
 
             public override bool Equals(object obj) {
                 if (!(obj is GLTFCollider)) return false;
                 GLTFCollider other = obj as GLTFCollider;
                 if (type == other.type
-                    && boundingBox == other.boundingBox
+                    && bounding_box == other.bounding_box
                     && mesh == other.mesh
                     && offset == other.offset
                     && intangible == other.intangible
                     && convex == other.convex
-                    && physicMaterial == other.physicMaterial)
+                    && physic_material == other.physic_material)
                     return true;
                 return false;
             }
@@ -98,16 +98,16 @@ namespace SimEnv.GLTF {
             if (col is BoxCollider) {
                 collider.type = ColliderType.box;
                 collider.offset = ((BoxCollider)col).center;
-                collider.boundingBox = ((BoxCollider)col).size;
+                collider.bounding_box = ((BoxCollider)col).size;
             } else if (col is SphereCollider) {
                 collider.type = ColliderType.sphere;
                 collider.offset = ((SphereCollider)col).center;
-                collider.boundingBox = Vector3.one * ((SphereCollider)col).radius;
+                collider.bounding_box = Vector3.one * ((SphereCollider)col).radius;
             } else if (col is CapsuleCollider) {
                 collider.type = ColliderType.capsule;
                 CapsuleCollider capsule = col as CapsuleCollider;
                 collider.offset = capsule.center;
-                collider.boundingBox = new Vector3(capsule.radius, capsule.height, capsule.radius);
+                collider.bounding_box = new Vector3(capsule.radius, capsule.height, capsule.radius);
             } else if (col is MeshCollider) {
                 collider.type = ColliderType.mesh;
                 MeshCollider meshCollider = col as MeshCollider;

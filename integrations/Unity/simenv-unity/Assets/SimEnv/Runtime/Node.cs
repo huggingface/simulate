@@ -80,22 +80,22 @@ namespace SimEnv {
             Collider sharedCollider = null;
             if (collider.type == ColliderType.box) {
                 BoxCollider col = gameObject.AddComponent<BoxCollider>();
-                col.size = collider.boundingBox;
+                col.size = collider.bounding_box;
                 col.center = collider.offset;
                 col.isTrigger = collider.intangible;
                 this.collider = col;
                 sharedCollider = col;
             } else if (collider.type == ColliderType.sphere) {
                 SphereCollider col = gameObject.AddComponent<SphereCollider>();
-                col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[1], collider.boundingBox[2]);
+                col.radius = Mathf.Min(collider.bounding_box[0], collider.bounding_box[1], collider.bounding_box[2]);
                 col.center = collider.offset;
                 col.isTrigger = collider.intangible;
                 this.collider = col;
                 sharedCollider = col;
             } else if (collider.type == ColliderType.capsule) {
                 CapsuleCollider col = gameObject.AddComponent<CapsuleCollider>();
-                col.radius = Mathf.Min(collider.boundingBox[0], collider.boundingBox[2]);
-                col.height = collider.boundingBox[1];
+                col.radius = Mathf.Min(collider.bounding_box[0], collider.bounding_box[2]);
+                col.height = collider.bounding_box[1];
                 col.center = collider.offset;
                 col.isTrigger = collider.intangible;
                 this.collider = col;

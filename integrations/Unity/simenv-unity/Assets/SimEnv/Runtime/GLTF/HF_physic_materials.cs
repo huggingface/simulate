@@ -16,36 +16,36 @@ namespace SimEnv.GLTF {
 
         public class GLTFPhysicMaterial {
             public string name = "";
-            public float dynamicFriction = .6f;
-            public float staticFriction = .6f;
+            public float dynamic_friction = .6f;
+            public float static_friction = .6f;
             public float bounciness = 0f;
-            [JsonConverter(typeof(EnumConverter))] public PhysicMaterialCombine frictionCombine;
-            [JsonConverter(typeof(EnumConverter))] public PhysicMaterialCombine bounceCombine;
+            [JsonConverter(typeof(EnumConverter))] public PhysicMaterialCombine friction_combine;
+            [JsonConverter(typeof(EnumConverter))] public PhysicMaterialCombine bounce_combine;
 
-            public bool ShouldSerializedynamicFriction() => dynamicFriction != .6f;
-            public bool ShouldSerializestaticFriction() => staticFriction != .6f;
+            public bool ShouldSerializedynamicFriction() => dynamic_friction != .6f;
+            public bool ShouldSerializestaticFriction() => static_friction != .6f;
             public bool ShouldSerializebounciness() => bounciness != 0;
-            public bool ShouldSerializefrictionCombine() => frictionCombine != PhysicMaterialCombine.average;
-            public bool ShouldSerializebounceCombine() => bounceCombine != PhysicMaterialCombine.average;
+            public bool ShouldSerializefrictionCombine() => friction_combine != PhysicMaterialCombine.average;
+            public bool ShouldSerializebounceCombine() => bounce_combine != PhysicMaterialCombine.average;
 
             public override int GetHashCode() {
                 return name.GetHashCode()
-                    ^ dynamicFriction.GetHashCode()
-                    ^ staticFriction.GetHashCode()
+                    ^ dynamic_friction.GetHashCode()
+                    ^ static_friction.GetHashCode()
                     ^ bounciness.GetHashCode()
-                    ^ frictionCombine.GetHashCode()
-                    ^ bounceCombine.GetHashCode();
+                    ^ friction_combine.GetHashCode()
+                    ^ bounce_combine.GetHashCode();
             }
 
             public override bool Equals(object obj) {
                 if (!(obj is GLTFPhysicMaterial)) return false;
                 GLTFPhysicMaterial other = obj as GLTFPhysicMaterial;
                 if (name == other.name
-                    && dynamicFriction == other.dynamicFriction
-                    && staticFriction == other.staticFriction
+                    && dynamic_friction == other.dynamic_friction
+                    && static_friction == other.static_friction
                     && bounciness == other.bounciness
-                    && frictionCombine == other.frictionCombine
-                    && bounceCombine == other.bounceCombine)
+                    && friction_combine == other.friction_combine
+                    && bounce_combine == other.bounce_combine)
                     return true;
                 return false;
             }
@@ -86,11 +86,11 @@ namespace SimEnv.GLTF {
             PhysicMaterial CreatePhysicMaterial(GLTFPhysicMaterial physicMaterial) {
                 return new PhysicMaterial() {
                     name = physicMaterial.name,
-                    dynamicFriction = physicMaterial.dynamicFriction,
-                    staticFriction = physicMaterial.staticFriction,
+                    dynamicFriction = physicMaterial.dynamic_friction,
+                    staticFriction = physicMaterial.static_friction,
                     bounciness = physicMaterial.bounciness,
-                    frictionCombine = (UnityEngine.PhysicMaterialCombine)((int)physicMaterial.frictionCombine),
-                    bounceCombine = (UnityEngine.PhysicMaterialCombine)((int)physicMaterial.bounceCombine),
+                    frictionCombine = (UnityEngine.PhysicMaterialCombine)((int)physicMaterial.friction_combine),
+                    bounceCombine = (UnityEngine.PhysicMaterialCombine)((int)physicMaterial.bounce_combine),
                 };
             }
         }
@@ -118,11 +118,11 @@ namespace SimEnv.GLTF {
             if (material == null) return null;
             GLTFPhysicMaterial physicMaterial = new GLTFPhysicMaterial() {
                 name = material.name,
-                dynamicFriction = material.dynamicFriction,
-                staticFriction = material.staticFriction,
+                dynamic_friction = material.dynamicFriction,
+                static_friction = material.staticFriction,
                 bounciness = material.bounciness,
-                frictionCombine = (PhysicMaterialCombine)((int)material.frictionCombine),
-                bounceCombine = (PhysicMaterialCombine)((int)material.bounceCombine),
+                friction_combine = (PhysicMaterialCombine)((int)material.frictionCombine),
+                bounce_combine = (PhysicMaterialCombine)((int)material.bounceCombine),
             };
             return physicMaterial;
         }

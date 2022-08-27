@@ -9,6 +9,7 @@ import simenv as sm
 def create_scene(build_exe=None):
     # Create a scene with Unity engine backend
     scene = sm.Scene(engine="Unity", engine_exe=build_exe)
+    scene += sm.LightSun()
 
     # Add a floor
     scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-10, 10, -0.1, 0, -10, 10], material=sm.Material.GRAY75)
