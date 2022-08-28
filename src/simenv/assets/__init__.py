@@ -11,5 +11,6 @@ from .object import *
 from .reward_functions import *
 from .rigid_body import *
 from .reward_functions import *
+from .rigid_body import *
 from .sensors import *
 from .utils import *

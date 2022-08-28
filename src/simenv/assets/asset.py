@@ -23,7 +23,6 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
-from .sensors import RaycastSensor, StateSensor
 from .actions import Action, ActionDict, ActionTuple
 from .anytree import NodeMixin
 from .articulated_body import ArticulatedBodyComponent

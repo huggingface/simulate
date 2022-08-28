@@ -15,7 +15,7 @@
 # Lint as: python3
 """ Store a python dataclass as a glTF extension."""
 import copy
-from dataclasses import field, fields, is_dataclass, make_dataclass
+from dataclasses import asdict, field, fields, is_dataclass, make_dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from dataclasses_json import DataClassJsonMixin, dataclass_json

@@ -4,6 +4,8 @@ from typing import Any, ClassVar, List, Optional, Union
 
 from .asset import Asset
 from .gltf_extension import GltfExtensionMixin
+from .utils import camelcase_to_snakecase
+
 
 
 ALLOWED_REWARD_TYPES = ["dense", "sparse", "or", "and", "not", "see", "timeout"]
@@ -103,6 +105,14 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
             raise ValueError(
                 f"Invalid distance metric: {self.distance_metric}. Must be one of: {ALLOWED_REWARD_DISTANCE_METRICS}"
             )
+
+    def _post_attach_children(self, children):
+        """Method call after attaching `children`.
+        We only allow Reward Functions as child of Reward functions.
+        """
+        if children is not None:
+            if any(not isinstance(child, "RewardFunction") for child in children):
+                raise TypeError("The children of a Reward Function should be Reward Functions")
 
     def _post_copy(self, actor: Any):
         root = actor.tree_root

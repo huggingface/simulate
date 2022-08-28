@@ -17,10 +17,17 @@
 import itertools
 from typing import List, Optional, Union
 
+from .actions import Action, ActionMapping
 from .camera import Camera
 from .collider import Collider
+from .object import Capsule
+from .controller import ActionMapping, Controller
+<<<<<<<
 from .controller import ActionMapping, Controller
 from .object import Capsule
+=======
+from .object import Capsule
+>>>>>>>
 from .rigid_body import RigidBodyComponent
 
 
