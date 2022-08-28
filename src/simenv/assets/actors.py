@@ -17,15 +17,15 @@
 import itertools
 from typing import List, Optional, Union
 
+from .actions import Action, ActionMapping
 from .camera import Camera
-from .object import Capsule
 from .collider import Collider
+from .object import Capsule
 from .rigid_body import RigidBodyComponent
-from .actions import ActionMapping, Action
 
 
 class SimpleActor(Capsule):
-    """ Create a Simple RL Actor in the Scene
+    """Create a Simple RL Actor in the Scene
 
         A simple actor is a capsule asset with:
         - a Camera as a child asset for observation device
@@ -102,7 +102,6 @@ class SimpleActor(Capsule):
             ActionMapping("change_relative_position", axis=[1, 0, 0], amplitude=2.0),
         ]
         self.actions = Action(n=3, mapping=mapping)
-
 
     def copy(self, with_children=True, **kwargs) -> "SimpleActor":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""

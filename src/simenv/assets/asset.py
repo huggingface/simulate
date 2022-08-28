@@ -18,17 +18,15 @@ import itertools
 import os
 import tempfile
 import uuid
-from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
 
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
-from .sensors import RaycastSensor, StateSensor
 from .actions import Action, ActionDict, ActionTuple
 from .anytree import NodeMixin
 from .articulated_body import ArticulatedBodyComponent
 from .collider import Collider
-from .gltf_extension import GltfExtensionMixin
 from .rigid_body import RigidBodyComponent
 from .utils import (
     camelcase_to_snakecase,
@@ -37,6 +35,9 @@ from .utils import (
     get_trs_from_transform_matrix,
     rotation_from_euler_degrees,
 )
+
+
+ALLOWED_COMPONENTS_ATTRIBUTES = ["collider", "actions", "physics_component"]
 
 
 class Asset(NodeMixin, object):
@@ -104,17 +105,17 @@ class Asset(NodeMixin, object):
         return self._uuid
 
     @property
-    def named_components(self) -> List[Tuple[str, GltfExtensionMixin]]:
+    def named_components(self) -> List[Tuple[str, Any]]:
         """Return a list of the components of the asset with their attributes name.
 
         We strip the beginning "_" of the attribute names (if stored as private).
         """
-        return list(
-            (key.lstrip("_"), value) for key, value in vars(self).items() if isinstance(value, GltfExtensionMixin)
-        )
+        for attribute in ALLOWED_COMPONENTS_ATTRIBUTES:
+            if getattr(self, attribute, None) is not None:
+                yield (attribute, getattr(self, attribute))
 
     @property
-    def components(self) -> List[GltfExtensionMixin]:
+    def components(self) -> List[Any]:
         """Return a list of the components of the asset."""
         return list(comp for _, comp in self.named_components)
 
@@ -140,21 +141,6 @@ class Asset(NodeMixin, object):
         if self.actions is not None:
             return self.actions.space
         return None
-
-    # # Sensors and observation_space
-    # @property
-    # def sensors(self):
-    #     return self._sensors
-
-    # @sensors.setter
-    # def sensors(self, sensors: Union[CameraSensor, StateSensor, RaycastSensor]):
-    #     self._sensors = sensors
-
-    # @property
-    # def observation_space(self):
-    #     if self.sensors is not None:
-    #         return map_sensors_to_spaces(self.sensors)
-    #     return None
 
     @property
     def physics_component(self):
@@ -257,7 +243,9 @@ class Asset(NodeMixin, object):
             file_path = hf_hub_download(
                 repo_id=repo_id,
                 filename=filename,
-                subfolder=subfolder if subfolder else None,  # remove when https://github.com/huggingface/huggingface_hub/issues/1016
+                subfolder=subfolder
+                if subfolder
+                else None,  # remove when https://github.com/huggingface/huggingface_hub/issues/1016
                 revision=revision,
                 repo_type="space",
                 use_auth_token=use_auth_token,

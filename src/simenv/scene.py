@@ -19,7 +19,7 @@ from typing import List, Optional, Tuple, Union
 
 from simenv.assets.reward_functions import RewardFunction
 
-from .assets import Asset, Camera, Light, Object3D, RewardFunction, StateSensor, RaycastSensor
+from .assets import Asset, Camera, Light, Object3D, RaycastSensor, RewardFunction, StateSensor
 from .assets.anytree import RenderTree
 from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
 
@@ -28,6 +28,7 @@ try:
     from gym import spaces
 except:
     pass
+
 
 class Scene(Asset):
     """A Scene is the main place to add objects and object tree.

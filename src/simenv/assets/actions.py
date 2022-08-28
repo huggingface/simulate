@@ -15,11 +15,12 @@
 # Lint as: python3
 """ Some mapping from Discrete and Box Spaces to physics actions."""
 from dataclasses import dataclass
-from typing import List, Optional, Union, Dict
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
 from .gltf_extension import GltfExtensionMixin
+
 
 try:
     from gym import spaces
@@ -92,19 +93,19 @@ class ActionMapping:
 
 
 @dataclass
-class Action(GltfExtensionMixin, gltf_extension_name="HF_actions"):
+class Action(GltfExtensionMixin, gltf_extension_name="HF_actions", object_type="component"):
     r"""Actions can be used to move or apply force/torque to an asset.
 
-        We define:
-        - the space were the action operate (discrete, continuous), it's similar to gym spaces in RL, and
-        - a mapping to the physics engine behavior
+    We define:
+    - the space were the action operate (discrete, continuous), it's similar to gym spaces in RL, and
+    - a mapping to the physics engine behavior
 
-        Action.space is a gym.space (define the space action happens in and allow to sample)
-        Action.mapping is a list of ActionMapping (to physics engine behaviors)
+    Action.space is a gym.space (define the space action happens in and allow to sample)
+    Action.mapping is a list of ActionMapping (to physics engine behaviors)
 
-        Use:
-            n (int) to define n discrete action spaces (with n associated mappings)
-            high/low/shape (float or list of float) to define a continuous action spaces (with a action mapping for each dimension)
+    Use:
+        n (int) to define n discrete action spaces (with n associated mappings)
+        high/low/shape (float or list of float) to define a continuous action spaces (with a action mapping for each dimension)
 
     """
     mapping: List[ActionMapping]
@@ -121,7 +122,7 @@ class Action(GltfExtensionMixin, gltf_extension_name="HF_actions"):
             raise ValueError("All the action mapping must be ActionMapping classes")
         if isinstance(self.mapping, ActionMapping):
             self.mapping = [self.mapping]
-        
+
         if all((self.n is None, self.low is None, self.high is None, self.shape is None)):
             raise ValueError("At least one of n, high, low, shape should be defined")
 
@@ -134,7 +135,9 @@ class Action(GltfExtensionMixin, gltf_extension_name="HF_actions"):
                 raise ValueError(f"Number of mapping ({len(self.mapping)}) does not match n ({self.n})")
         else:
             if self.n is not None:
-                raise ValueError("For continuous actions (one of high, low, shape is defined), n should be set to None.")
+                raise ValueError(
+                    "For continuous actions (one of high, low, shape is defined), n should be set to None."
+                )
 
             if self.dtype is None:
                 self.dtype = "float32"
@@ -143,13 +146,13 @@ class Action(GltfExtensionMixin, gltf_extension_name="HF_actions"):
 
 
 @dataclass
-class ActionTuple(GltfExtensionMixin, gltf_extension_name="HF_action_tuples"):
-    r""" Store a tuple of actions
+class ActionTuple(GltfExtensionMixin, gltf_extension_name="HF_action_tuples", object_type="component"):
+    r"""Store a tuple of actions
 
-        Attributes:
-            - actions: Tuple/list of the actions
-            - mapping: Tuple/list of the mappings of the actions 
-            - space: Tuple/list of thespacegs of the actions 
+    Attributes:
+        - actions: Tuple/list of the actions
+        - mapping: Tuple/list of the mappings of the actions
+        - space: Tuple/list of thespacegs of the actions
     """
     actions: List[Action]
     seed: Optional[Union[int, List[int], np.random.Generator]] = None
@@ -160,13 +163,13 @@ class ActionTuple(GltfExtensionMixin, gltf_extension_name="HF_action_tuples"):
 
 
 @dataclass
-class ActionDict(GltfExtensionMixin, gltf_extension_name="HF_action_dicts"):
-    r""" Store a dictionary of actions
+class ActionDict(GltfExtensionMixin, gltf_extension_name="HF_action_dicts", object_type="component"):
+    r"""Store a dictionary of actions
 
-        Attributes:
-            - actions: Dict of the actions
-            - mapping: Dict of the mappings of the actions 
-            - space: Dict of thespacegs of the actions 
+    Attributes:
+        - actions: Dict of the actions
+        - mapping: Dict of the mappings of the actions
+        - space: Dict of thespacegs of the actions
     """
     actions: Dict[str, Action]
     seed: Optional[Union[dict, int, np.random.Generator]] = None

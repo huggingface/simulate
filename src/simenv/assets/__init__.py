@@ -7,7 +7,7 @@ from .collider import *
 from .light import *
 from .material import *
 from .object import *
-from .rigid_body import *
 from .reward_functions import *
+from .rigid_body import *
 from .sensors import *
 from .utils import *
