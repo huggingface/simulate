@@ -6,7 +6,7 @@ import numpy as np
 import simenv as sm
 
 
-scene = sm.Scene(engine="pyvista")
+scene = sm.Scene(engine="unity")
 scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
 scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material.BLUE)
@@ -46,20 +46,15 @@ reward = sm.RewardFunction(type="not")  # By default a dense reward equal to the
 reward += sm.RewardFunction(entity_a=target, entity_b=actor)
 scene += reward
 
-print(scene)
-scene.show()
-scene.save("test.gltf")
-
-scene.create_from("test.gltf")
-print(scene)
-scene.show()
+env = sm.ParallelRLEnvironment(scene)
 
 plt.ion()
 fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(actor.camera.height, actor.camera.width, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
-# env = sm.RLEnvironment(scene)
+for i in range(1000):
+    obs, reward, done, info = env.step()
 
 # for i in range(1000):
 #     obs, reward, done, info = env.step()
@@ -67,13 +62,6 @@ axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 #     axim1.set_data(obs)
 #     fig1.canvas.flush_events()
 
-# for i in range(1000):
-#     obs, reward, done, info = env.step()
+    plt.pause(0.1)
 
-#     obs = obs[actor_camera.name].transpose(1, 2, 0)  # (C,H,W) -> (H,W,C)
-#     axim1.set_data(obs)
-#     fig1.canvas.flush_events()
-
-#     plt.pause(0.1)
-
-# scene.close()
+scene.close()
