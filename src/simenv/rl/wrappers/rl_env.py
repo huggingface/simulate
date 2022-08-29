@@ -61,7 +61,14 @@ class ParallelRLEnvironment(VecEnv):
         # Don't return simulation data, since minimal/faster data will be returned by agent sensors
         # Pass maps kwarg to enable map pooling
         maps = [root.name for root in self.map_roots]
-        self.scene.show(frame_rate=frame_rate, frame_skip=frame_skip, return_frames=False, return_nodes=False, maps=maps, n_show=n_show)
+        self.scene.show(
+            frame_rate=frame_rate,
+            frame_skip=frame_skip,
+            return_frames=False,
+            return_nodes=False,
+            maps=maps,
+            n_show=n_show,
+        )
 
     def step(self, action=None):
         action_dict = {}
