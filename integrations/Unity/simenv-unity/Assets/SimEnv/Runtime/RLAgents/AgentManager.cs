@@ -23,7 +23,7 @@ namespace SimEnv.RlAgents {
 
         public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
             foreach (Node node in Simulator.nodes.Values) {
-                if (node.agentData != null)
+                if (node.actionData != null)
                     agents.Add(node.name, new Agent(node));
             }
             if (kwargs.TryParse<List<string>>("maps", out List<string> maps)) {

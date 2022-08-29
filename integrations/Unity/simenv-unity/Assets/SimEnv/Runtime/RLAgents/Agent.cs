@@ -6,7 +6,7 @@ using System.Linq;
 namespace SimEnv.RlAgents {
     public class Agent {
         public Node node { get; private set; }
-        public HFRlAgents.ActionSpace actionSpace { get; private set; }
+        public HF_Actions.ActionSpace actionSpace { get; private set; }
 
         Dictionary<string, object> observations = new Dictionary<string, object>();
         List<RewardFunction> rewardFunctions = new List<RewardFunction>();
@@ -20,29 +20,49 @@ namespace SimEnv.RlAgents {
         }
 
         void Initialize() {
-            if (node.agentData == null) {
+            Debug.Log("initializing agent");
+            if (node.actionData == null) {
                 Debug.LogWarning("Agent missing action data");
                 return;
             }
-            if (node.agentData.box_actions == null && node.agentData.discrete_actions == null) {
+
+            if (node.actionData.n == null && node.actionData.low == null) {
                 Debug.LogWarning("At least one action space required.");
                 return;
             }
-            if (node.agentData.box_actions != null)
-                actionSpace = node.agentData.box_actions;
-            else if (node.agentData.discrete_actions != null)
-                actionSpace = node.agentData.discrete_actions;
 
-            rewardFunctions = new List<RewardFunction>();
-            if (node.agentData.reward_functions != null) {
-                foreach (HFRlAgents.HFRlAgentsReward reward in node.agentData.reward_functions) {
-                    if (!TryGetRewardFunction(reward, out RewardFunction rewardFunction)) {
-                        Debug.LogWarning("Failed to get reward function");
-                        continue;
-                    }
-                    rewardFunctions.Add(rewardFunction);
-                }
+            if (node.actionData.n != null) {
+                // Discrete action space
+                actionSpace = new HF_Actions.ActionSpace(node.actionData);
+            } else if (node.agentData.discrete_actions != null) {
+                // continuous action space
+                Debug.LogWarning("Continous actions are yet to be implemented");
+                return;
+
+            } else {
+                Debug.LogWarning("Error parsing agent action space");
+                return;
             }
+
+            // if (node.agentData.box_actions == null && node.agentData.discrete_actions == null) {
+            //     Debug.LogWarning("At least one action space required.");
+            //     return;
+            // }
+            // if (node.agentData.box_actions != null)
+            //     actionSpace = node.actionData.box_actions;
+            // else if (node.agentData.discrete_actions != null)
+            //     actionSpace = node.agentData.discrete_actions;
+
+            // rewardFunctions = new List<RewardFunction>();
+            // if (node.agentData.reward_functions != null) {
+            //     foreach (HFRlAgents.HFRlAgentsReward reward in node.agentData.reward_functions) {
+            //         if (!TryGetRewardFunction(reward, out RewardFunction rewardFunction)) {
+            //             Debug.LogWarning("Failed to get reward function");
+            //             continue;
+            //         }
+            //         rewardFunctions.Add(rewardFunction);
+            //     }
+            // }
 
             Simulator.BeforeIntermediateFrame += HandleIntermediateFrame;
         }

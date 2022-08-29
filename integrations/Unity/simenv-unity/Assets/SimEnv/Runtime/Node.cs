@@ -11,6 +11,7 @@ namespace SimEnv {
         public HFRigidBodies.GLTFRigidBody rigidBodyData;
         public HFArticulatedBodies.GLTFArticulatedBody articulatedBodyData;
         public HFRlAgents.HFRlAgentsComponent agentData;
+        public HF_Actions.HF_Action actionData;
 
         public new RenderCamera camera { get; private set; }
         public new Light light { get; private set; }

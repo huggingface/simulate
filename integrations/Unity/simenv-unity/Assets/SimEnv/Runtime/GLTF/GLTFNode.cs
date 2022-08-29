@@ -30,6 +30,7 @@ namespace SimEnv.GLTF {
             public HFCollider HF_colliders;
             public HFArticulatedBody HF_articulated_bodies;
             public HFRlAgent HF_rl_agents;
+            public HFAction HF_actions;
             public HFRigidbody HF_rigid_bodies;
             public string[] HF_custom;
         }
@@ -44,6 +45,10 @@ namespace SimEnv.GLTF {
         }
 
         public class HFRigidbody {
+            public int component_id;
+        }
+
+        public class HFAction {
             public int component_id;
         }
 
@@ -222,6 +227,16 @@ namespace SimEnv.GLTF {
                                 Debug.LogWarning("Error importing agent");
                             } else {
                                 result[i].node.agentData = extensions.HF_rl_agents.components[agentValue];
+                            }
+                        }
+                        // Actor Actions
+                        if (nodes[i].extensions.HF_actions != null) {
+                            int agentValue = nodes[i].extensions.HF_actions.component_id;
+                            if (extensions == null || extensions.HF_actions == null || extensions.HF_actions.components == null || extensions.HF_actions.components.Count < agentValue) {
+                                Debug.LogWarning("Error importing actor actions");
+                            } else {
+
+                                result[i].node.actionData = extensions.HF_actions.components[agentValue];
                             }
                         }
 

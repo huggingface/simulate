@@ -14,6 +14,7 @@ namespace SimEnv.GLTF {
             [JsonProperty(Required = Required.Always)] public List<ActionMapping> mapping;
             public List<float> low;
             public List<float> high;
+            public int? n;
             public List<int> shape;
             public string dtype;
 
@@ -27,6 +28,22 @@ namespace SimEnv.GLTF {
             public float? upperLimit;
             public float? lowerLimit;
         }
+
+        public class ActionSpace {
+
+            public ActionSpace(HF_Action actionData) {
+                this.actionMap = actionData.mapping;
+            }
+            public List<ActionMapping> actionMap;
+            public ActionMapping GetMapping(object key) {
+                if (!int.TryParse((string)key, out int index)) {
+                    Debug.LogWarning($"Failed to parse {key} to int index");
+                    return null;
+                }
+                return actionMap[index];
+            }
+        }
+
 
     }
 }
