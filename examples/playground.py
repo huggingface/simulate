@@ -20,7 +20,7 @@ for i in range(1):
     scene += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 
 # Lets add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
-actor = sm.Capsule(name="actor", position=[0.0, 0.0, 0.0])  # Has a collider
+actor = sm.Capsule(name="actor", position=[0.0, 0.0, 0.0], with_collider=True)  # Has a collider
 # Specify the action to control the actor: 3 discrete action to rotate and move forward
 actor.controller = sm.Controller(
     n=3,
