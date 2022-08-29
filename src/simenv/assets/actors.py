@@ -17,21 +17,20 @@
 import itertools
 from typing import List, Optional, Union
 
-from ..assets import Asset, Camera, CameraSensor, Capsule, Collider, RigidBodyComponent
-from .actions import ActionMapping, DiscreteAction
-from .reward_functions import RewardFunction
-from .rl_component import RlComponent
+from .camera import Camera
+from .collider import Collider
+from .controller import ActionMapping, Controller
+from .object import Capsule
+from .rigid_body import RigidBodyComponent
 
 
-class SimpleRlAgent(Capsule):
-    """Create a Simple RL Agent in the Scene
+class SimpleActor(Capsule):
+    """Create a Simple RL Actor in the Scene
 
-        A simple agent is a capsule asset with:
+        A simple actor is a capsule asset with:
         - a Camera as a child asset for observation device
         - a RigidBodyComponent component with a mass of 1.0
-        - a RLComponent component with
-            * 3 discrete actions, and
-            * a dense reward function as the distance to a target asset.
+        - a discrete controller
 
     Parameters
     ----------
@@ -49,7 +48,6 @@ class SimpleRlAgent(Capsule):
 
     def __init__(
         self,
-        reward_target: Optional[Asset] = None,
         mass: Optional[float] = 1.0,
         name=None,
         position: Optional[List[float]] = None,
@@ -75,12 +73,6 @@ class SimpleRlAgent(Capsule):
             camera_width = 40
         self.camera = Camera(name=camera_name, width=camera_width, height=camera_height, position=[0, 0.75, 0])
         children = children + self.camera if children is not None else self.camera
-        camera_sensors = [CameraSensor(self.camera)]
-        # for sensor in sensors:
-        #     if not isinstance(sensor, Sensor):
-        #         raise ValueError(f"{sensor} is not a Sensor")
-        #     if isinstance(sensor, StateSensor) and sensor.reference_entity is None:
-        #         sensor.reference_entity = self
 
         super().__init__(
             name=name,
@@ -93,40 +85,25 @@ class SimpleRlAgent(Capsule):
             transformation_matrix=transformation_matrix,
         )
 
-        # Rescale the agent
+        # Rescale the actor
         if scaling is not None:
             self.scale(scaling)
 
-        # Move our agent a bit higher than the ground
+        # Move our actor a bit higher than the ground
         self.translate_y(0.51)
 
-        # Create a reward function if a target is provided
-        rewards = None
-        if reward_target is not None:
-            # Create a reward function if a target is provided
-            rewards = RewardFunction(self, reward_target)
-
-        # Create our action maps to physics engine effects
-        action_map = [
-            ActionMapping("move_relative_rotation", axis=[0, 1, 0], amplitude=-90),
-            ActionMapping("move_relative_rotation", axis=[0, 1, 0], amplitude=90),
-            ActionMapping("move_relative_position", axis=[1, 0, 0], amplitude=2.0),
-        ]
-        discrete_actions = DiscreteAction(n=3, action_map=action_map)
-
-        self.rl_component = RlComponent(
-            discrete_actions=discrete_actions, camera_sensors=camera_sensors, reward_functions=rewards
-        )
-
-        # Add our physics component (by default the agent can only rotation along y axis)
+        # Add our physics component (by default the actor can only rotation along y axis)
         self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
 
-    def add_reward_function(self, reward_function: RewardFunction):
-        if self.rl_component.reward_functions is None:
-            self.rl_component.reward_functions = []
-        self.rl_component.reward_functions.append(reward_function)
+        # Create our action maps to physics engine effects
+        mapping = [
+            ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=-90),
+            ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=90),
+            ActionMapping("change_relative_position", axis=[1, 0, 0], amplitude=2.0),
+        ]
+        self.controller = Controller(n=3, mapping=mapping)
 
-    def copy(self, with_children=True, **kwargs) -> "SimpleRlAgent":
+    def copy(self, with_children=True, **kwargs) -> "SimpleActor":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
 
         copy_name = self.name + f"_copy{self._n_copies}"
@@ -148,13 +125,6 @@ class SimpleRlAgent(Capsule):
             for child in instance_copy.tree_children:
                 child._post_copy()
 
-        instance_copy.rl_component = RlComponent(
-            self.rl_component.actions, self.rl_component.sensors, self.rl_component.rewards
-        )
-
         instance_copy.physics_component = self.physics_component
 
         return instance_copy
-
-    def _post_copy(self):
-        self.rl_component._post_copy(self)

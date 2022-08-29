@@ -32,7 +32,7 @@ def create_env(executable=None, port=None, headless=None):
             )
             agent_position = [math.floor(maze_width / 2.0) + 0.5, 0.0, math.floor(maze_depth / 2.0) + 0.5]
 
-            agent = sm.SimpleRlAgent(position=agent_position)
+            agent = sm.SimpleActor(position=agent_position)
             maze += agent
 
             for r in range(n_objects):
@@ -56,7 +56,7 @@ def create_env(executable=None, port=None, headless=None):
                     is_terminal=True,
                     is_collectable=False,
                 )
-                agent.add_reward_function(reward_function)
+                scene += reward_function
 
             timeout_reward_function = sm.RewardFunction(
                 type="timeout",
@@ -68,7 +68,7 @@ def create_env(executable=None, port=None, headless=None):
                 scalar=-1.0,
             )
 
-            agent.add_reward_function(timeout_reward_function)
+            scene += timeout_reward_function
             scene.engine.add_to_pool(maze)
 
     scene.show(n_maps=3)

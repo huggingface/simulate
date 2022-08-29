@@ -14,12 +14,16 @@
 
 # Lint as: python3
 """ Sensors for the RL Agent."""
+import itertools
 from cmath import inf
-from dataclasses import dataclass
-from typing import Any, List, Optional, Union
+from dataclasses import InitVar, dataclass
+from typing import Any, ClassVar, List, Optional, Union
 
 import numpy as np
 from dataclasses_json import dataclass_json
+
+from .asset import Asset
+from .gltf_extension import GltfExtensionMixin
 
 
 try:
@@ -49,21 +53,8 @@ def get_state_sensor_n_properties(sensor):
     return n_features
 
 
-@dataclass_json
 @dataclass
-class CameraSensor:
-    """A Camera sensor (just a pointer to a Camera object)
-
-    Attributes:
-        camera: Reference (or string name) of a Camera asset in the scene
-    """
-
-    camera: Any
-
-
-@dataclass_json
-@dataclass
-class StateSensor:
+class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_sensors", object_type="node"):
     """A State sensor: pointer to two assets whose positions/rotations are used to compute an observation
 
     Attributes:
@@ -80,14 +71,44 @@ class StateSensor:
     reference_entity: Optional[Any] = None
     properties: Optional[List[str]] = None
 
-    def __post_init__(self):
+    name: InitVar[Optional[str]] = None
+    position: InitVar[Optional[List[float]]] = None
+    rotation: InitVar[Optional[List[float]]] = None
+    scaling: InitVar[Optional[Union[float, List[float]]]] = None
+    transformation_matrix: InitVar[Optional[List[float]]] = None
+    parent: InitVar[Optional[Any]] = None
+    children: InitVar[Optional[List[Any]]] = None
+    created_from_file: InitVar[Optional[str]] = None
+
+    __NEW_ID: ClassVar[Any] = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
+    def __post_init__(
+        self, name, position, rotation, scaling, transformation_matrix, parent, children, created_from_file
+    ):
+        super().__init__(
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            transformation_matrix=transformation_matrix,
+            parent=parent,
+            children=children,
+            created_from_file=created_from_file,
+        )
+
         if self.properties is None:
             self.properties = ["distance"]
+        if not isinstance(self.properties, (list, tuple)):
+            self.properties = [self.properties]
         elif any(properties_ not in ALLOWED_STATE_SENSOR_PROPERTIES for properties_ in self.properties):
             raise ValueError(
                 f"The properties {self.properties} is not a valid StateSensor properties"
                 f"\nAllowed properties are: {ALLOWED_STATE_SENSOR_PROPERTIES}"
             )
+
+    @property
+    def observation_space(self):
+        return spaces.Box(low=-inf, high=inf, shape=[get_state_sensor_n_properties(self)], dtype=np.float32)
 
 
 @dataclass_json
@@ -101,12 +122,6 @@ class RaycastSensor:
     def __post_init__(self):
         raise NotImplementedError
 
-
-def map_sensors_to_spaces(sensor: Union[CameraSensor, StateSensor, RaycastSensor]) -> spaces.Space:
-    if isinstance(sensor, CameraSensor):
-        return spaces.Box(low=0, high=255, shape=[3, sensor.camera.height, sensor.camera.width], dtype=np.uint8)
-    elif isinstance(sensor, StateSensor):
-        return spaces.Box(low=-inf, high=inf, shape=[get_state_sensor_n_properties(sensor)], dtype=np.float32)
-    raise NotImplementedError(
-        f"This sensor ({type(sensor)})is not yet implemented " f"as an RlAgent type of observation."
-    )
+    @property
+    def observation_space(self):
+        raise NotImplementedError

@@ -24,7 +24,14 @@ from dataclasses_json import DataClassJsonMixin, dataclass_json
 if TYPE_CHECKING:
     from .asset import Asset
 
-GLTF_EXTENSIONS_REGISTER = []
+GLTF_EXTENSIONS_REGISTER = []  # We use this to define all the extension fields to have in the extension
+
+GLTF_NODES_EXTENSION_CLASS = (
+    []
+)  # We use this to define all the nodes class in our scene which are defined as GLTF extensions
+GLTF_COMPONENTS_EXTENSION_CLASS = (
+    []
+)  # We use this to define all the component class in our scene which are defined as GLTF extensions
 
 
 class GltfExtensionMixin(DataClassJsonMixin):
@@ -39,25 +46,31 @@ class GltfExtensionMixin(DataClassJsonMixin):
                    decoded to a pointer to the asset object while loading from glTF).
 
     Attributes:
-        gltf_extension_name: The name of the glTF extension.
+        gltf_extension_name: (str) The name of the glTF extension.
+        object_type: (str) Either "node" is the object is a node, or
+            "component" if the object is a component (attached to a node)
 
     Example:
         class MyGltfExtension(GltfExtensionMixin,
-                              gltf_extension_name="my_extension"):
+                              gltf_extension_name="my_extension",
+                              object_type="node"):
     """
 
-    def __init_subclass__(cls, gltf_extension_name, **kwargs):
+    def __init_subclass__(cls, gltf_extension_name, object_type, **kwargs):
         super().__init_subclass__(**kwargs)
         if not gltf_extension_name:
             raise ValueError("A glTF extension name must be provided.")
+        if object_type not in ["node", "component"]:
+            raise ValueError("The type of the object must be one of 'node' or 'component'.")
+
         cls._gltf_extension_name = gltf_extension_name
 
         cls._gltf_extension_cls = dataclass_json(
             make_dataclass(
                 gltf_extension_name,
                 [
-                    ("components", Optional[List[cls]], field(default=None)),
-                    ("component_id", Optional[int], field(default=None)),
+                    ("objects", Optional[List[cls]], field(default=None)),
+                    ("object_id", Optional[int], field(default=None)),
                     ("name", Optional[str], field(default=None)),
                 ],
             )
@@ -69,6 +82,11 @@ class GltfExtensionMixin(DataClassJsonMixin):
                 raise ValueError(f"The glTF extension {gltf_extension_name} is already registered.")
         GLTF_EXTENSIONS_REGISTER.append((gltf_extension_name, Optional[cls._gltf_extension_cls], field(default=None)))
 
+        if object_type == "node":
+            GLTF_NODES_EXTENSION_CLASS.append(cls)
+        else:
+            GLTF_COMPONENTS_EXTENSION_CLASS.append(cls)
+
     def _add_component_to_gltf_model(self, gltf_model_extensions) -> int:
         """Add a component to a glTF model.
 
@@ -78,86 +96,108 @@ class GltfExtensionMixin(DataClassJsonMixin):
         Returns:
             The index of the component in the glTF model extensions.
         """
-        copy_self = copy.deepcopy(self)
+        # We are modifying the scene during the GLTF conversion to replace node pointers with string names
+        # We want to keep this modifications and thus need to copy the structures
+        # We only want to copy the fields of the dataclass, thus we don't use copy.deepcpy - come other properties (renderer, etc) are not picklable
+        self_dict = {f.name: copy.deepcopy(getattr(self, f.name)) for f in fields(self)}
+        copy_self = type(self)(**self_dict)
+
         if getattr(gltf_model_extensions, self._gltf_extension_name, None) is None:
-            components = [copy_self]
+            objects = [copy_self]
             # Create a component class to store our component
-            new_extension_component_cls = self._gltf_extension_cls(components=components)
+            new_extension_component_cls = self._gltf_extension_cls(objects=objects)
             if not hasattr(gltf_model_extensions, self._gltf_extension_name):
                 raise ValueError(f"The glTF model extensions does not have the {self._gltf_extension_name} extension.")
             setattr(gltf_model_extensions, self._gltf_extension_name, new_extension_component_cls)
         else:
-            components = getattr(getattr(gltf_model_extensions, self._gltf_extension_name), "components")
-            components.append(copy_self)
-        component_id = len(components) - 1
-        return component_id
+            objects = getattr(getattr(gltf_model_extensions, self._gltf_extension_name), "objects")
+            objects.append(copy_self)
+        object_id = len(objects) - 1
+        return object_id
 
-    def _add_component_to_gltf_node(self, gltf_node_extensions, component_id: int, component_name: str) -> str:
+    def _add_component_to_gltf_node(self, gltf_node_extensions, object_id: int, object_name: str) -> str:
         """
         Add a component to a glTF node.
 
         Args:
             gltf_node_extensions: The glTF node extensions dataclass_json.
-            component_id: The index of the component in the glTF model extensions.
+            object_id: The index of the component in the glTF model extensions.
 
         Returns:
             The name of the glTF node extensions.
         """
-        node_extension_cls = self._gltf_extension_cls(component_id=component_id, name=component_name)
+        node_extension_cls = self._gltf_extension_cls(object_id=object_id, name=object_name)
         if not hasattr(gltf_node_extensions, self._gltf_extension_name):
             raise ValueError(f"The glTF node extensions does not have the {self._gltf_extension_name} extension.")
         setattr(gltf_node_extensions, self._gltf_extension_name, node_extension_cls)
         return self._gltf_extension_name
 
 
-def _process_dataclass_after(obj_dataclass, node):
+def _process_dataclass_after(obj_dataclass, node, object_name):
     for f in fields(obj_dataclass):
         value = getattr(obj_dataclass, f.name)
         type_ = f.type
-        # If the attribute of the component has the right type ("Union[str, Asset]")
-        if type_ == Any:
-            if isinstance(value, str):
-                node_pointer = node.get_node(value)
-                setattr(obj_dataclass, f.name, node_pointer)  # We convert it in the node pointer
-        # Recursively explore child and nested dataclasses
-        elif is_dataclass(value):
-            _process_dataclass_after(value, node)
-        elif isinstance(value, (list, tuple)) and len(value) and is_dataclass(value[0]):
-            for obj in value:
-                _process_dataclass_after(obj, node)
-        elif isinstance(value, dict):
-            for key, val in value.items():
-                if is_dataclass(val):
-                    _process_dataclass_after(val, node)
-                elif isinstance(val, (list, tuple)) and len(val) and is_dataclass(val[0]):
-                    for obj in val:
-                        _process_dataclass_after(obj, node)
-
-
-def process_components_after_gltf(node: "Asset"):
-    """Setup the attributes of each components of the asset which refere to assets.
-    Sometime components refered to assets by names (when loading from a glTF file)
-    We convert them to references to the asset
-    """
-    for component in node.components:
-        _process_dataclass_after(component, node)
-
-    # Recursively through the tree
-    for child in node.tree_children:
-        process_components_after_gltf(child)
-
-
-def _process_dataclass_before(obj_dataclass, node, component_name):
-    for f in fields(obj_dataclass):
-        value = getattr(obj_dataclass, f.name)
-        type_ = f.type
-        # If the attribute of the component has the right type ("Union[str, Asset]")
-        if type_ == Any:
+        # If the attribute of the component has the right type: "Any" or "Optional[Any]" with a name attribute in the pointed object
+        # Then we assume it's a node in the tree and we replace a name of a pointed node by a direct pointer to the node
+        # We check the named node exist for safety
+        # Note that this only investigate the fields of the dataclass and thus not the "children" or "parent" attribute of an Asset, thus keeping the tree in good shape
+        if type_ == Any or type_ == Optional[Any]:
             if isinstance(value, str):
                 node_pointer = node.get_node(value)
                 if node_pointer is None:
                     raise ValueError(
-                        f"The field {f.name} of component '{component_name}' of node '{node.name}' has type 'Any' "
+                        f"The field {f.name} '{'of component' + object_name if object_name is not None else ''}' of node '{node.name}' has type 'Any' "
+                        f"point to a second asset called '{value}' but this second asset cannot be found "
+                        f"in the asset tree. Please check the name of the second asset is correct "
+                        "and the second asset is present in the scene or change the type of the component to be a string."
+                    )
+                setattr(obj_dataclass, f.name, node_pointer)  # We convert it in the node pointer
+        # Recursively explore child and nested dataclasses
+        elif is_dataclass(value):
+            _process_dataclass_after(value, node, object_name)
+        elif isinstance(value, (list, tuple)) and len(value) and is_dataclass(value[0]):
+            for obj in value:
+                _process_dataclass_after(obj, node, object_name)
+        elif isinstance(value, dict):
+            for key, val in value.items():
+                if is_dataclass(val):
+                    _process_dataclass_after(val, node, object_name)
+                elif isinstance(val, (list, tuple)) and len(val) and is_dataclass(val[0]):
+                    for obj in val:
+                        _process_dataclass_after(obj, node, object_name)
+
+
+def process_tree_after_gltf(node: "Asset"):
+    """Setup the attributes of each components of the asset which refere to assets.
+    Sometime components refered to assets by names (when loading from a glTF file)
+    We convert them to references to the asset
+    """
+    if node.__class__ in GLTF_NODES_EXTENSION_CLASS:
+        _process_dataclass_after(node, node, None)
+
+    for component_name, component in node.named_components:
+        if component.__class__ in GLTF_COMPONENTS_EXTENSION_CLASS:
+            _process_dataclass_after(component, node, component_name)
+
+    # Recursively through the tree
+    for child in node.tree_children:
+        process_tree_after_gltf(child)
+
+
+def _process_dataclass_before(obj_dataclass, node, object_name):
+    for f in fields(obj_dataclass):
+        value = getattr(obj_dataclass, f.name)
+        type_ = f.type
+        # If the attribute of the component has the right type: "Any" or "Optional[Any]" with a name attribute in the pointed object
+        # Then we assume it's a node in the tree and we replace a pointer with a name of the node
+        # We check the named node exist for safety
+        # Note that this only investigate the fields of the dataclass and thus not the "children" or "parent" attribute of an Asset, thus keeping the tree in good shape
+        if type_ == Any or type_ == Optional[Any]:
+            if isinstance(value, str):
+                node_pointer = node.get_node(value)
+                if node_pointer is None:
+                    raise ValueError(
+                        f"The field {f.name} '{'of component' + object_name if object_name is not None else ''}' of node '{node.name}' has type 'Any' "
                         f"point to a second asset called '{value}' but this second asset cannot be found "
                         f"in the asset tree. Please check the name of the second asset is correct "
                         "and the second asset is present in the scene or change the type of the component to be a string."
@@ -167,28 +207,32 @@ def _process_dataclass_before(obj_dataclass, node, component_name):
                 setattr(obj_dataclass, f.name, value.name)  # We convert it in the node name
         # Recursively explore child and nested dataclasses
         elif is_dataclass(value):
-            _process_dataclass_before(value, node, component_name)
+            _process_dataclass_before(value, node, object_name)
         elif isinstance(value, (list, tuple)) and len(value) and is_dataclass(value[0]):
             for obj in value:
-                _process_dataclass_before(obj, node, component_name)
+                _process_dataclass_before(obj, node, object_name)
         elif isinstance(value, dict):
             for key, val in value.items():
                 if is_dataclass(val):
-                    _process_dataclass_before(val, node, component_name)
+                    _process_dataclass_before(val, node, object_name)
                 elif isinstance(val, (list, tuple)) and len(val) and is_dataclass(val[0]):
                     for obj in val:
-                        _process_dataclass_before(obj, node, component_name)
+                        _process_dataclass_before(obj, node, object_name)
 
 
-def process_components_before_gltf(node: "Asset"):
-    """Setup the attributes of each components of the asset which refere to assets.
+def process_tree_before_gltf(node: "Asset"):
+    """Setup the attributes of each GLTFExtension tree/components of the asset which refere to assets.
     Sometime components refered to assets by names (when loading from a glTF file)
     We convert them to string of the names of the assets (which are unique)
     """
 
+    if node.__class__ in GLTF_NODES_EXTENSION_CLASS:
+        _process_dataclass_before(node, node, None)
+
     for component_name, component in node.named_components:
-        _process_dataclass_before(component, node, component_name)
+        if component.__class__ in GLTF_COMPONENTS_EXTENSION_CLASS:
+            _process_dataclass_before(component, node, component_name)
 
     # Recursively through the tree
     for child in node.tree_children:
-        process_components_before_gltf(child)
+        process_tree_before_gltf(child)

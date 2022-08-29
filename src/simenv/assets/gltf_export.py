@@ -20,9 +20,9 @@ from typing import Any, ByteString, Dict, List, Optional, Set
 import numpy as np
 import pyvista as pv
 
-from . import Asset, Camera, CameraSensor, Light, Material, Object3D, StateSensor
+from . import Asset, Camera, Light, Material, Object3D
 from . import gltflib as gl
-from .gltf_extension import process_components_after_gltf, process_components_before_gltf
+from .gltf_extension import GLTF_NODES_EXTENSION_CLASS, process_tree_after_gltf, process_tree_before_gltf
 
 
 # Conversion of Numnpy dtype and shapes in GLTF equivalents
@@ -424,77 +424,6 @@ def add_camera_to_model(
     return camera_id
 
 
-def add_camera_sensor_to_model(
-    camera_sensor: CameraSensor,
-    gltf_model: gl.GLTFModel,
-    buffer_data: ByteString,
-    buffer_id: int = 0,
-    cache: Optional[Dict] = None,
-) -> int:
-
-    gl_camera_sensor = gl.HFCameraSensor(
-        type=camera_sensor.camera_type, width=camera_sensor.width, height=camera_sensor.height
-    )
-    if camera_sensor.camera_type == "perspective":
-        gl_camera_sensor.perspective = gl.PerspectiveCameraInfo(
-            aspectRatio=camera_sensor.aspect_ratio,
-            yfov=np.radians(camera_sensor.yfov),
-            zfar=camera_sensor.zfar,
-            znear=camera_sensor.znear,
-        )
-    else:
-        gl_camera_sensor.orthographic = gl.OrthographicCameraInfo(
-            xmag=camera_sensor.xmag, ymag=camera_sensor.ymag, zfar=camera_sensor.zfar, znear=camera_sensor.znear
-        )
-
-    # If we have already created exactly the same camera we avoid double storing
-    cached_id = is_data_cached(data=gl_camera_sensor.to_json(), cache=cache)
-    if cached_id is not None:
-        return cached_id
-
-    # Add the new camera sensor
-    if gltf_model.extensions.HF_camera_sensors is None:
-        gltf_model.extensions.HF_camera_sensors = gl.HFCameraSensors(camera_sensors=[gl_camera_sensor])
-    else:
-        gltf_model.extensions.HF_camera_sensors.camera_sensors.append(gl_camera_sensor)
-    id = len(gltf_model.extensions.HF_camera_sensors.camera_sensors) - 1
-
-    cache_data(data=gl_camera_sensor.to_json(), data_id=id, cache=cache)
-
-    return id
-
-
-def add_state_sensor_to_model(
-    state_sensor: StateSensor,
-    gltf_model: gl.GLTFModel,
-    buffer_data: ByteString,
-    buffer_id: int = 0,
-    cache: Optional[Dict] = None,
-) -> int:
-
-    gl_state_sensor = gl.HFStateSensor(
-        reference_entity_name=state_sensor.reference_entity.name,
-        target_entity_name=state_sensor.target_entity.name,
-        properties=state_sensor.properties,
-    )
-
-    # If we have already created exactly the same state sensor we avoid double storing
-    cached_id = is_data_cached(data=gl_state_sensor.to_json(), cache=cache)
-    if cached_id is not None:
-        return cached_id
-
-    # Add the new state sensor
-    if gltf_model.extensions.HF_state_sensors is None:
-        gltf_model.extensions.HF_state_sensors = gl.HFStateSensors(state_sensors=[gl_state_sensor])
-    else:
-        gltf_model.extensions.HF_state_sensors.state_sensors.append(gl_state_sensor)
-    id = len(gltf_model.extensions.HF_state_sensors.state_sensors) - 1
-
-    cache_data(data=gl_state_sensor.to_json(), data_id=id, cache=cache)
-
-    return id
-
-
 def add_light_to_model(
     node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
@@ -528,119 +457,6 @@ def add_light_to_model(
     return light_id
 
 
-def add_collider_to_model(
-    node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
-) -> int:
-    collider = node.collider
-
-    # If we have already created exactly the same collider we avoid double storing
-    cached_id = is_data_cached(data=collider.to_json(), cache=cache)
-    if cached_id is not None:
-        return cached_id
-
-    # Add the new collider
-    collider_id = collider._add_component_to_gltf_model(gltf_model.extensions)
-
-    cache_data(data=collider.to_json(), data_id=collider_id, cache=cache)
-
-    return collider_id
-
-
-# def add_rigidbody_to_model(
-#     node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
-# ) -> int:
-#     rigidbody = node.physics_component
-
-#     # If we have already created exactly the same rigidbody we avoid double storing
-#     cached_id = is_data_cached(data=rigidbody.to_json(), cache=cache)
-#     if cached_id is not None:
-#         return cached_id
-
-#     # Add the new rigidbody
-#     if gltf_model.extensions.HF_rigid_bodies is None:
-#         gltf_model.extensions.HF_rigid_bodies = gl.HFRigidBodies(rigidbodies=[rigidbody])
-#     else:
-#         gltf_model.extensions.HF_rigid_bodies.rigidbodies.append(rigidbody)
-#     rigidbody_id = len(gltf_model.extensions.HF_rigid_bodies.rigidbodies) - 1
-
-#     cache_data(data=rigidbody.to_json(), data_id=rigidbody_id, cache=cache)
-
-#     return rigidbody_id
-
-
-def get_gl_reward(reward) -> gl.HFRlAgentsReward:
-    # If reward is none, which means that its parent is not a and / or / not reward function
-    if reward is None:
-        return None
-
-    return gl.HFRlAgentsReward(
-        type=reward.type,
-        entity_a=reward.entity_a.name,
-        entity_b=reward.entity_b.name,
-        distance_metric=reward.distance_metric,
-        scalar=reward.scalar,
-        threshold=reward.threshold,
-        is_terminal=reward.is_terminal,
-        is_collectable=reward.is_collectable,
-        trigger_once=reward.trigger_once,
-        reward_function_a=get_gl_reward(reward.reward_function_a),
-        reward_function_b=get_gl_reward(reward.reward_function_b),
-    )
-
-
-# def add_rl_component_to_model(
-#     node: Asset, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
-# ) -> int:
-#     rl_component: "RlComponent" = node.rl_component
-
-#     actions = rl_component.actions
-#     actions_type = actions.__class__.__name__
-#     if actions_type not in ["Discrete", "Box", "MappedDiscrete", "MappedBox"]:
-#         raise ValueError(f"Unsupported action space type: {actions_type}")
-
-#     gl_actions = gl.HFRlAgentsActions(
-#         type=actions_type,
-#         n=actions.n if "Discrete" in actions_type else None,
-#         low=actions.low if "Box" in actions_type else None,
-#         high=actions.high if "Box" in actions_type else None,
-#         shape=actions.shape if "Box" in actions_type else None,
-#         dtype=actions.dtype if "Box" in actions_type else None,
-#     )
-
-#     if "Mapped" in actions_type:
-#         gl_actions.physics = [phys.value for phys in actions.physics]
-#         gl_actions.clip_high = actions.clip_high
-#         gl_actions.clip_low = actions.clip_low
-#         gl_actions.amplitudes = actions.amplitudes if actions_type == "MappedDiscrete" else None
-#         gl_actions.scaling = actions.scaling if actions_type == "MappedBox" else None
-#         gl_actions.offset = actions.offset if actions_type == "MappedBox" else None
-
-#     rewards: "List[RewardFunction]" = rl_component.reward_functions
-#     gl_rewards = [get_gl_reward(reward) for reward in rewards]
-
-#     agent = gl.HFRlAgentsComponent(
-#         actions=gl_actions,
-#         sensor_nodes=[asset.name for asset in rl_component.sensors],
-#         rewards=gl_rewards,
-#     )
-
-#     # If we have already created exactly the same agent we avoid double storing
-#     cached_id = is_data_cached(data=agent.to_json(), cache=cache)
-#     if cached_id is not None:
-#         return cached_id
-
-#     # Add the new agent
-#     if gltf_model.extensions.HF_rl_agents is None:
-#         gltf_model.extensions.HF_rl_agents = gl.HFRlAgents(agents=[agent])
-#     else:
-#         gltf_model.extensions.HF_rl_agents.agents.append(agent)
-#     agent_id = len(gltf_model.extensions.HF_rl_agents.agents) - 1
-
-#     cache_data(data=agent.to_json(), data_id=agent_id, cache=cache)
-
-#     return agent_id
-
-
 def add_node_to_scene(
     node: Asset,
     gltf_model: gl.GLTFModel,
@@ -670,24 +486,11 @@ def add_node_to_scene(
 
     extensions = gl.Extensions()
     extension_used = set()
-    if isinstance(node, CameraSensor):
-        sensor_id = add_camera_sensor_to_model(
-            camera_sensor=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-        )
-        extensions.HF_camera_sensors = gl.HFCameraSensors(camera_sensor=sensor_id)
-        extension_used.add("HF_camera_sensor")
-    elif isinstance(node, StateSensor):
-        sensor_id = add_state_sensor_to_model(
-            state_sensor=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-        )
-        extensions.HF_state_sensors = gl.HFStateSensors(state_sensor=sensor_id)
-        extension_used.add("HF_state_sensor")
 
-    elif isinstance(node, Camera):
+    if isinstance(node, Camera):
         gl_node.camera = add_camera_to_model(
             camera=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
-
     elif isinstance(node, Light):
         light_id = add_light_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
@@ -699,33 +502,29 @@ def add_node_to_scene(
         gl_node.mesh = add_mesh_to_model(
             node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
+    else:
+        for cls in GLTF_NODES_EXTENSION_CLASS:
+            if isinstance(node, cls):
+                object_id = is_data_cached(data=node.to_json(), cache=cache)
+                if object_id is None:
+                    object_id = node._add_component_to_gltf_model(gltf_model.extensions)
+                    cache_data(data=node.to_json(), data_id=object_id, cache=cache)
 
-    # Add RL component if node has one
-    # if getattr(node, "rl_component", None) is not None:
-    #     agent_id = add_rl_component_to_model(
-    #         node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-    #     )
-    #     extensions.HF_rl_agents = gl.HFRlAgents(agent=agent_id)
-    #     extension_used.add("HF_rl_agents")
-
-    # # Add Rigidbody if node has one
-    # if getattr(node, "physics_component", None) is not None:
-    #     rigidbody_id = add_rigidbody_to_model(
-    #         node=node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-    #     )
-    #     extensions.HF_rigid_bodies = gl.HFRigidBodies(rigidbody=rigidbody_id)
-    #     extension_used.add("HF_rigid_bodies")
+                new_extension_used = node._add_component_to_gltf_node(
+                    extensions, object_id=object_id, object_name=node.name
+                )
+                extension_used.add(new_extension_used)
 
     # Add all the automatic components of the node
     for component_name, component in node.named_components:
         # If we have already created exactly the same collider we avoid double storing
-        component_id = is_data_cached(data=component.to_json(), cache=cache)
-        if component_id is None:
-            component_id = component._add_component_to_gltf_model(gltf_model.extensions)
-            cache_data(data=component.to_json(), data_id=component_id, cache=cache)
+        object_id = is_data_cached(data=component.to_json(), cache=cache)
+        if object_id is None:
+            object_id = component._add_component_to_gltf_model(gltf_model.extensions)
+            cache_data(data=component.to_json(), data_id=object_id, cache=cache)
 
         new_extension_used = component._add_component_to_gltf_node(
-            extensions, component_id=component_id, component_name=component_name
+            extensions, object_id=object_id, object_name=component_name
         )
         extension_used.add(new_extension_used)
 
@@ -782,13 +581,13 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
     )
     cache = {}  # A mapping for Mesh/material/Texture already added
 
-    process_components_before_gltf(root_node)
+    process_tree_before_gltf(root_node)
 
     extension_used = add_node_to_scene(
         node=root_node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=0, cache=cache
     )
 
-    process_components_after_gltf(root_node)
+    process_tree_after_gltf(root_node)
 
     # Update scene requirements with the GLTF extensions we need
     if extension_used:

@@ -23,15 +23,14 @@ import simenv as sm
 # TODO add more tests on saving/exporting/loading in gltf files
 class ObservationsTest(unittest.TestCase):
     def test_map_sensors_to_spaces(self):
-        cam = sm.Camera(height=64, width=64)
-        camera_sensor = sm.CameraSensor(camera=cam)
-        space = sm.map_sensors_to_spaces(camera_sensor)
+        camera = sm.Camera(height=64, width=64)
+        space = camera.observation_space
 
         self.assertEqual(space.shape, (3, 64, 64))
         self.assertEqual(space.dtype, np.uint8)
 
         state_sensor = sm.StateSensor(None, None, properties=["position", "distance", "position.x"])
-        space = sm.map_sensors_to_spaces(state_sensor)
+        space = state_sensor.observation_space
 
         self.assertEqual(space.shape, (5,))
         self.assertEqual(space.dtype, np.float32)

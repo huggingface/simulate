@@ -111,6 +111,21 @@ namespace SimEnv.RlAgents {
                     agentEventData.Add(key, mapEventData[key]);
             }
             eventData.outputKwargs.Add("agents", agentEventData);
+            while (doneMaps.Count > 0) {
+                Map map = doneMaps.Pop();
+                int index = activeMaps.IndexOf(map);
+                ResetAt(index);
+            }
+        }
+
+        static void ResetAt(int index) {
+            Map map = activeMaps[index];
+            mapPool.Push(map);
+
+            map = mapPool.Request();
+            map.SetPosition(positions[index]);
+            map.SetActive(true);
+            activeMaps[index] = map;
         }
 
         static void ResetAt(int index) {

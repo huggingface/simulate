@@ -24,7 +24,7 @@ ALLOWED_COLLIDER_TYPES = ["box", "sphere", "capsule", "mesh"]
 
 
 @dataclass
-class Collider(GltfExtensionMixin, gltf_extension_name="HF_colliders"):
+class Collider(GltfExtensionMixin, gltf_extension_name="HF_colliders", object_type="component"):
     """
     A physics collider.
 

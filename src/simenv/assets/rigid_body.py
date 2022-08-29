@@ -34,7 +34,7 @@ ALLOWED_COLLISION_DETECTION = ["discrete", "continuous"]
 
 
 @dataclass()
-class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodies"):
+class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodies", object_type="component"):
     """
     A rigid body caracteristics that can be added to a primitive.
 

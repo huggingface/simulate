@@ -23,7 +23,28 @@ class RewardsTest(unittest.TestCase):
     def test_create_reward_function(self):
         a = sm.Asset(name="a")
         b = sm.Asset(name="b")
-        reward = sm.RewardFunction(a, b)
+        reward = sm.RewardFunction(entity_a=a, entity_b=b)
 
+        self.assertIsInstance(reward, sm.Asset)
         self.assertIs(reward.entity_a, a)
         self.assertIs(reward.entity_b, b)
+
+    def test_reward_children(self):
+        reward = sm.RewardFunction(type="and")
+        a = sm.Asset(name="a")
+        b = sm.Asset(name="b")
+        reward += sm.RewardFunction(entity_a=a, entity_b=b)
+        reward += sm.RewardFunction(entity_a=b, entity_b=a)
+
+        scene = sm.Scene()
+        scene += reward
+
+        scene += a
+        scene -= reward
+        scene.a += reward
+
+        self.assertIsInstance(reward, sm.Asset)
+        self.assertEqual(len(reward), 2)
+
+        with self.assertRaises(TypeError):
+            reward += b

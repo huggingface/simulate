@@ -18,7 +18,7 @@ import itertools
 import os
 import tempfile
 import uuid
-from typing import TYPE_CHECKING, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
@@ -26,7 +26,7 @@ from huggingface_hub import create_repo, hf_hub_download, upload_file
 from .anytree import NodeMixin
 from .articulated_body import ArticulatedBodyComponent
 from .collider import Collider
-from .gltf_extension import GltfExtensionMixin
+from .controller import Controller, ControllerDict, ControllerTuple
 from .rigid_body import RigidBodyComponent
 from .utils import (
     camelcase_to_snakecase,
@@ -37,8 +37,7 @@ from .utils import (
 )
 
 
-if TYPE_CHECKING:
-    from ..rl.rl_component import RlComponent
+ALLOWED_COMPONENTS_ATTRIBUTES = ["collider", "actuator", "physics_component"]
 
 
 class Asset(NodeMixin, object):
@@ -66,7 +65,7 @@ class Asset(NodeMixin, object):
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
         collider: Optional[Collider] = None,
-        rl_component: Optional["RlComponent"] = None,
+        controller: Optional[Union[Controller, ControllerDict, ControllerTuple]] = None,
         physics_component: Union[None, RigidBodyComponent, ArticulatedBodyComponent] = None,
         parent=None,
         children=None,
@@ -92,9 +91,11 @@ class Asset(NodeMixin, object):
         if transformation_matrix is not None:
             self.transformation_matrix = transformation_matrix
 
+        # Extensions for physics/RL
         self.collider = collider
-        self.rl_component = rl_component
+        self.controller = controller
         self.physics_component = physics_component
+
         self._n_copies = 0
         self._created_from_file = created_from_file
 
@@ -104,17 +105,17 @@ class Asset(NodeMixin, object):
         return self._uuid
 
     @property
-    def named_components(self) -> List[Tuple[str, GltfExtensionMixin]]:
+    def named_components(self) -> List[Tuple[str, Any]]:
         """Return a list of the components of the asset with their attributes name.
 
         We strip the beginning "_" of the attribute names (if stored as private).
         """
-        return list(
-            (key.lstrip("_"), value) for key, value in vars(self).items() if isinstance(value, GltfExtensionMixin)
-        )
+        for attribute in ALLOWED_COMPONENTS_ATTRIBUTES:
+            if getattr(self, attribute, None) is not None:
+                yield (attribute, getattr(self, attribute))
 
     @property
-    def components(self) -> List[GltfExtensionMixin]:
+    def components(self) -> List[Any]:
         """Return a list of the components of the asset."""
         return list(comp for _, comp in self.named_components)
 
@@ -126,24 +127,19 @@ class Asset(NodeMixin, object):
     def collider(self, collider: "Collider"):
         self._collider = collider
 
+    # Actions and action_space
     @property
-    def rl_component(self):
-        return self._rl_component
+    def controller(self):
+        return self._controller
 
-    @rl_component.setter
-    def rl_component(self, rl_component: "RlComponent"):
-        self._rl_component = rl_component
+    @controller.setter
+    def controller(self, controller: Union[Controller, ControllerTuple, ControllerDict]):
+        self._controller = controller
 
     @property
     def action_space(self):
-        if self.rl_component is not None:
-            return self.rl_component.action_space
-        return None
-
-    @property
-    def observation_space(self):
-        if self.rl_component is not None:
-            return self.rl_component.observation_space
+        if self.controller is not None:
+            return self.controller.space
         return None
 
     @property
@@ -247,11 +243,12 @@ class Asset(NodeMixin, object):
             file_path = hf_hub_download(
                 repo_id=repo_id,
                 filename=filename,
-                subfolder=subfolder if subfolder else None,
+                subfolder=subfolder
+                if subfolder
+                else None,  # remove when https://github.com/huggingface/huggingface_hub/issues/1016
                 revision=revision,
                 repo_type="space",
                 use_auth_token=use_auth_token,
-                # force_download=True,  # Remove when this is solved: https://github.com/huggingface/huggingface_hub/pull/801#issuecomment-1134576435
                 **kwargs,
             )
 
@@ -797,6 +794,18 @@ class Asset(NodeMixin, object):
         if getattr(parent.tree_root, "engine", None) is not None:
             if parent.tree_root.engine.auto_update:
                 parent.tree_root.engine.update_asset(self)
+
+        # Avoid circular imports (Reward functions are Asset) - unfortunately we cannot do this test on the Reward function side
+        # as this would involve calling _post_attaching_childran
+        from .reward_functions import RewardFunction
+
+        if isinstance(parent, RewardFunction):
+            if not isinstance(self, RewardFunction):
+                raise TypeError(
+                    f"Reward functions can only have reward function as children. "
+                    f"You are trying to make node {self.name} of type {type(self)} "
+                    f"a child of node {parent.name} of type {type(parent)}"
+                )
 
     def _post_detach_parent(self, parent):
         """NodeMixing nethod call after detaching from a `parent`."""

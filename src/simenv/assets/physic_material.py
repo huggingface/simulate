@@ -21,7 +21,7 @@ from .gltf_extension import GltfExtensionMixin
 
 
 @dataclass
-class PhysicMaterial(GltfExtensionMixin, gltf_extension_name="HF_physic_materials"):
+class PhysicMaterial(GltfExtensionMixin, gltf_extension_name="HF_physic_materials", object_type="component"):
     """
     A physic material.
 

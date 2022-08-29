@@ -19,14 +19,14 @@ import simenv as sm
 
 
 # TODO add more tests on saving/exporting/loading in gltf files
-class AgentTest(unittest.TestCase):
+class ActorTest(unittest.TestCase):
     def test_create_agent(self):
-        agent = sm.SimpleRlAgent()
-        self.assertIsInstance(agent, sm.SimpleRlAgent)
-        self.assertIsInstance(agent, sm.Capsule)
+        actor = sm.SimpleActor()
+        self.assertIsInstance(actor, sm.SimpleActor)
+        self.assertIsInstance(actor, sm.Capsule)
 
-        self.assertIsInstance(agent.rl_component, sm.RlComponent)
-        self.assertIsInstance(agent.physics_component, sm.RigidBodyComponent)
+        self.assertIsInstance(actor.controller, sm.Controller)
+        self.assertIsInstance(actor.physics_component, sm.RigidBodyComponent)
 
-        self.assertTrue(len(agent), 1)
-        self.assertIsInstance(agent.tree_children[0], sm.Camera)
+        self.assertTrue(len(actor), 1)
+        self.assertIsInstance(actor.tree_children[0], sm.Camera)
