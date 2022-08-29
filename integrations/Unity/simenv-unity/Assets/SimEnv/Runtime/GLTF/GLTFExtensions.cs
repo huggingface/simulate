@@ -6,5 +6,6 @@ namespace SimEnv.GLTF {
         public HFArticulatedBodies HF_articulated_bodies;
         public HFRigidBodies HF_rigid_bodies;
         public HFRlAgents HF_rl_agents;
+        public HF_Actions HF_actions;
     }
 }
