@@ -63,15 +63,8 @@ namespace SimEnv.RlAgents {
                 for (int i = 0; i < activeMaps.Count; i++) {
                     activeMaps[i].SetActions(actions[i.ToString()]);
                 }
-                Map map = new Map(root);
-                mapPool.Push(map);
             }
-            CreatePositionPool(size);
-            for (int i = 0; i < size; i++) {
-                Map map = mapPool.Request();
-                map.SetPosition(positions[i]);
-                activeMaps.Add(map);
-            }
+
         }
 
         public override void OnStep(EventData eventData) {
@@ -119,11 +112,6 @@ namespace SimEnv.RlAgents {
                     agentEventData.Add(key, mapEventData[key]);
             }
             eventData.outputKwargs.Add("agents", agentEventData);
-            while (doneMaps.Count > 0) {
-                Map map = doneMaps.Pop();
-                int index = activeMaps.IndexOf(map);
-                ResetAt(index);
-            }
         }
 
         static void ResetAt(int index) {
