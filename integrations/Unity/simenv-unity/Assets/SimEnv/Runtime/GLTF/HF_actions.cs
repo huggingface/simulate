@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
@@ -30,16 +31,13 @@ namespace SimEnv.GLTF {
         }
 
         public class ActionSpace {
-
             public ActionSpace(HF_Action actionData) {
                 this.actionMap = actionData.mapping;
             }
             public List<ActionMapping> actionMap;
             public ActionMapping GetMapping(object key) {
-                if (!int.TryParse((string)key, out int index)) {
-                    Debug.LogWarning($"Failed to parse {key} to int index");
-                    return null;
-                }
+                Debug.Log(key.GetType().ToString());
+                int index = Convert.ToInt32(key);
                 return actionMap[index];
             }
         }
