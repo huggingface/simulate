@@ -9,8 +9,6 @@ import time
 import numpy as np
 from xland.prebuilt import make_prebuilt_env
 
-from simenv import PooledEnvironment
-
 
 def sample_n_random(sample_fn, n):
     return np.array([sample_fn() for _ in range(n)])
@@ -28,7 +26,7 @@ if __name__ == "__main__":
 
     # Parameters still to be fixed
     parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
-    parser.add_argument("--n_parallel", default=4, type=int, required=False, help="Number of parallel environments")
+    parser.add_argument("--n_parallel", default=1, type=int, required=False, help="Number of parallel environments")
     parser.add_argument("--n_maps", default=64, type=int, required=False, help="Total number of maps")
     parser.add_argument("--n_show", default=16, type=int, required=False, help="Number of maps to show at once")
     parser.add_argument("--seed", default=10, type=int, required=False, help="Random seed")
@@ -37,9 +35,12 @@ if __name__ == "__main__":
     parser.add_argument("--headless", default=True, type=bool, required=False, help="Headless mode")
     args = parser.parse_args()
 
+    # TODO: add back parallel environments once refactor is done
+    assert args.n_parallel == 1
+
     np.random.seed(args.seed)
 
-    pool_fns = make_prebuilt_env(
+    env_fn = make_prebuilt_env(
         args.env,
         executable=args.build_exe,
         n_maps=args.n_maps,
@@ -48,7 +49,9 @@ if __name__ == "__main__":
         starting_port=55000,
         n_parallel=args.n_parallel,
     )
-    env = PooledEnvironment(pool_fns)
+
+    port = 55000
+    env = env_fn(port)
 
     concurrent_envs = args.n_show * args.n_parallel
     dones = np.zeros(concurrent_envs, dtype=bool)

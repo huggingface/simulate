@@ -5,7 +5,7 @@ import simenv as sm
 from .gen_map import create_map
 
 
-def create_map_pool(
+def create_env_pool(
     executable,
     width,
     height,
@@ -49,12 +49,10 @@ def create_map_pool(
                 return root
         return None
 
-    map_pool = sm.MapPool(
+    map_pool = sm.ParallelRLEnvironment(
         _map_fn,
         n_maps=n_maps,
         n_show=n_show,
-        map_width=width,
-        map_height=height,
         engine_exe=executable,
         engine_port=port,
         engine_headless=headless,
@@ -69,9 +67,8 @@ def create_map_pool(
 
 
 # TODO: bug with seed
-def make_pool(
+def make_env_fn(
     executable,
-    port,
     width=9,
     height=9,
     n_maps=8,
@@ -80,8 +77,8 @@ def make_pool(
     tiles=None,
     neighbors=None,
     seed=0,
-    headless=None,
-    frame_rate=None,
+    headless=False,
+    frame_rate=30,
     frame_skip=4,
     **kwargs,
 ):
@@ -89,8 +86,8 @@ def make_pool(
     Generate XLand RL env with certain width and height.
     """
 
-    def _make_pool():
-        pool = create_map_pool(
+    def _env_fn(port):
+        env = create_env_pool(
             executable=executable,
             width=width,
             height=height,
@@ -106,6 +103,6 @@ def make_pool(
             frame_skip=frame_skip,
             **kwargs,
         )
-        return pool
+        return env
 
-    return _make_pool
+    return _env_fn

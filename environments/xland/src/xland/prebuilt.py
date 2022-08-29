@@ -5,7 +5,7 @@ import os
 import numpy as np
 from xland.utils import generate_tiles
 
-from .rl_scene import make_pool
+from .rl_scene import make_env_fn
 
 
 def gen_collect_all_args(xland_folder=""):
@@ -150,8 +150,6 @@ def make_prebuilt_env(
     n_maps,
     n_show,
     headless,
-    n_parallel=1,
-    starting_port=55000,
     seed=None,
     specific_color=None,
     object_type=None,
@@ -170,8 +168,6 @@ def make_prebuilt_env(
         n_maps: number of maps to generate.
         n_show: number of maps to show at once.
         headless: if the environment should be run in headless mode.
-        n_parallel: number of parallel environments
-        starting_port: starting port to create environments
         seed: seed to generate maps.
         mono_color: to use a single color for the objects.
         mono_object: to use a single format for all objects.
@@ -184,20 +180,14 @@ def make_prebuilt_env(
 
     task_args = TASK_ARGS[task](xland_folder)
     env_args = {**default_args, **common_args, **task_args}
-    pool_fns = []
 
-    for i in range(n_parallel):
-        pool_fn = make_pool(
-            executable=executable,
-            port=starting_port + i,
-            headless=headless,
-            seed=seed,  # TODO: seed needs to be changed every map
-            n_maps=n_maps,
-            n_show=n_show,
-            object_type=object_type,
-            specific_color=specific_color,
-            **env_args,
-        )
-        pool_fns.append(pool_fn)
-
-    return pool_fns
+    return make_env_fn(
+        executable=executable,
+        headless=headless,
+        seed=seed,  # TODO: seed needs to be changed every map
+        n_maps=n_maps,
+        n_show=n_show,
+        object_type=object_type,
+        specific_color=specific_color,
+        **env_args,
+    )

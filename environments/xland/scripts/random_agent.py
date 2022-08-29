@@ -6,9 +6,7 @@ import time
 import imageio
 import numpy as np
 from matplotlib import pyplot as plt
-from xland import make_pool
-
-import simenv as sm
+from xland import make_env_fn
 
 
 class AgentRecorder:
@@ -49,9 +47,8 @@ if __name__ == "__main__":
     example_map = np.load("benchmark/examples/example_map_01.npy")
 
     # Maybe the executable is not something to be exposed? Can't we generate it and use it by default
-    pool_fn = make_pool(
+    env_fn = make_env_fn(
         executable=args.build_exe,
-        port=55000,
         sample_from=example_map,
         engine="Unity",
         seed=None,
@@ -62,11 +59,13 @@ if __name__ == "__main__":
         n_maps=args.n_maps,
         n_show=args.n_show,
     )
-    env = sm.PooledEnvironment([pool_fn])
+
+    port = 55000
+    env = env_fn(port)
 
     done = False
     obs = env.reset()
-    obs = np.array(obs["camera"][0], dtype=np.uint8).transpose((1, 2, 0))
+    obs = np.array(obs["CameraSensor"][0], dtype=np.uint8).transpose((1, 2, 0))
     axim1 = ax1.imshow(obs, vmin=0, vmax=255)
 
     t = time.time()
@@ -74,7 +73,7 @@ if __name__ == "__main__":
     for i in range(400):
         action = [env.action_space.sample() for i in range(args.n_show)]
         obs, reward, done, info = env.step(action)
-        obs = np.array(obs["camera"][0], dtype=np.uint8).transpose((1, 2, 0))
+        obs = np.array(obs["CameraSensor"][0], dtype=np.uint8).transpose((1, 2, 0))
         if args.record is not None:
             recorder.add_frame(obs)
         else:

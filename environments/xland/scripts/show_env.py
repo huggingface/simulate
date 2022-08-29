@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # Check create_scene for more information about the arguments where
     # `help`` is not provided
     # Main arguments are the following:
-    parser.add_argument("--show", type=bool, default=False, help="Show the map")
+    parser.add_argument("--show", default=False, action="store_true", help="Show the map")
     parser.add_argument("--verbose", type=bool, default=False, help="Verbose for debugging")
     parser.add_argument("--width", type=int, default=8, help="Width of generated map")
     parser.add_argument("--height", type=int, default=10, help="Height of generated map")
@@ -64,7 +64,7 @@ if __name__ == "__main__":
 
     t = time.time()
 
-    root = create_map(executable=args.build_exe, **vars(args), **kwargs, root=-1, nb_attempts=100)
+    root = create_map(rank=0, executable=args.build_exe, **vars(args), **kwargs, root=-1, nb_attempts=100)
 
     print("Time in seconds to generate map: {}".format(time.time() - t))
 
