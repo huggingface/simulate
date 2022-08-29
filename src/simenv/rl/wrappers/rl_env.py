@@ -46,13 +46,13 @@ class ParallelRLEnvironment(VecEnv):
         self.n_actors = len(self.actors)
         self.n_maps = n_maps
         self.n_show = n_show
-        self.n_agents_per_map = self.n_actors // self.n_maps
+        self.n_actors_per_map = self.n_actors // self.n_maps
 
         self.actor = next(iter(self.actors.values()))
 
-        self.action_space = spaces.Discrete(self.agent.action_space.n)  # quick workaround while Thom refactors this
+        self.action_space = self.scene.action_space # quick workaround while Thom refactors this
         self.observation_space = {
-            "CameraSensor": self.agent.observation_space
+            "CameraSensor": self.scene.observation_space
         }  # quick workaround while Thom refactors this
         self.observation_space = spaces.Dict(self.observation_space)
 
@@ -74,13 +74,14 @@ class ParallelRLEnvironment(VecEnv):
         action_dict = {}
         # TODO: adapt this to multiagent setting
         if action is None:
-            for actor_name in self.actors.keys():
-                action_dict[actor_name] = int(self.action_space.sample())
-        elif isinstance(action, dict):
-            action_dict = int(action)
+            for i in range(self.n_show):
+                action_dict[str(i)] = int(self.action_space.sample())
+        elif isinstance(action, np.int64):
+            action_dict["0"] = int(action)
         else:
-            for actor_name in self.actors.keys():
-                action_dict[actor_name] = int(action)
+            for i in range(self.n_show):
+                action_dict[str(i)] = int(action[i])
+
         event = self.scene.step(action=action_dict)
 
         # Extract observations, reward, and done from event data
@@ -89,11 +90,12 @@ class ParallelRLEnvironment(VecEnv):
         done = False
         info = {}
         if self.n_actors == 1:
-            actor_data = event["actors"][self.actor.name]
+            actor_data = event["agents"][self.actor.name]
             camera_obs = np.array(actor_data["frames"][self.actor.camera.name], dtype=np.uint8)
             obs[self.actor.camera.name] = camera_obs
             reward = actor_data["reward"]
             done = actor_data["done"]
+
         else:
             reward = []
             done = []
