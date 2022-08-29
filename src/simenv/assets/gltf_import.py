@@ -202,7 +202,7 @@ def build_node_tree(
                 if component_name is None:
                     continue
                 model_extension = getattr(gltf_model.extensions, extension_name, None)
-                component = model_extension.objects[object_id]
+                component = model_extension.components[object_id]
                 if type(component) in GLTF_NODES_EXTENSION_CLASS:
                     common_kwargs["cls"] = component
                 else:
