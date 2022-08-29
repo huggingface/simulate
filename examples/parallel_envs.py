@@ -47,7 +47,7 @@ def create_env(executable=None, port=None, headless=None):
     agent.add_reward_function(sparse_reward)
     agent.add_reward_function(timeout_reward)
 
-    return sm.RLEnvironment(scene)
+    return sm.ParallelRLEnvironment(scene)
 
 
 def make_env(executable, rank, seed=0, headless=None):

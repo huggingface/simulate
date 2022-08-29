@@ -28,9 +28,9 @@ namespace SimEnv.RlAgents {
             root.gameObject.transform.position = position;
         }
 
-        public void SetActions(Dictionary<string, object> actions) {
+        public void SetActions(object action) {
             foreach (string key in agents.Keys)
-                agents[key].Step(actions[key]);
+                agents[key].Step(action);
         }
 
         public (Dictionary<string, Agent.Data>, bool) Step() {
@@ -44,6 +44,15 @@ namespace SimEnv.RlAgents {
                 agent.ZeroReward();
             }
             return (agentEventData, done);
+        }
+        public Dictionary<string, Agent.Data> GetAgentEventData() {
+            Dictionary<string, Agent.Data> agentEventData = new Dictionary<string, Agent.Data>();
+            foreach (string key in agents.Keys) {
+                Agent agent = agents[key];
+                Agent.Data data = agent.GetEventData();
+                agentEventData.Add(key, data);
+            }
+            return agentEventData;
         }
 
         public void Reset() {

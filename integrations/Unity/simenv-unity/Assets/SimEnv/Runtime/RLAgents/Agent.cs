@@ -70,12 +70,20 @@ namespace SimEnv.RlAgents {
 
         public Data GetEventData() {
             UpdateReward();
-            Data data = new Data() {
-                done = IsDone(),
-                reward = GetReward(),
-                frames = GetCameraObservations(),
-            };
+            bool done = IsDone();
+            float reward = GetReward();
             ZeroReward();
+            Dictionary<string, uint[,,]> frames = null;
+            // no need to render if the environment is done, frames will be taken from the next map
+            if (!done) {
+                frames = GetCameraObservations();
+            }
+            Data data = new Data() {
+                done = done,
+                reward = reward,
+                frames = frames,
+            };
+
             return data;
         }
 

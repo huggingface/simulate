@@ -64,7 +64,6 @@ scene.show()
 
 # for i in range(1000):
 #     obs, reward, done, info = env.step()
-
 #     obs = obs[actor_camera.name].transpose(1, 2, 0)  # (C,H,W) -> (H,W,C)
 #     axim1.set_data(obs)
 #     fig1.canvas.flush_events()
