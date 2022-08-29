@@ -39,5 +39,3 @@ if __name__ == "__main__":
     env = sm.PooledEnvironment(pool_fns)
     model = PPO("MultiInputPolicy", env, verbose=3)
     model.learn(total_timesteps=5000000)
-
-    env.close()

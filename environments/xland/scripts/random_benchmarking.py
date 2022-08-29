@@ -56,7 +56,7 @@ if __name__ == "__main__":
     t = time.time()
     curr_rewards = np.zeros(concurrent_envs)
     metrics = {
-        "episode_rewards": np.zeros(concurrent_envs),
+        "rewards_per_slot": np.zeros(concurrent_envs),
         "episodes_per_slot": np.zeros(concurrent_envs),
     }
 
@@ -65,15 +65,13 @@ if __name__ == "__main__":
         actions = sample_n_random(env.action_space.sample, concurrent_envs)
         if np.any(dones):
             idxs = np.where(dones)
-            metrics["episode_rewards"][idxs] += curr_rewards[idxs]
+            metrics["rewards_per_slot"][idxs] += curr_rewards[idxs]
             metrics["episodes_per_slot"][idxs] += 1
             curr_rewards[idxs] = 0
 
         else:
             _, rewards, dones, _ = env.step(actions)
             curr_rewards += rewards
-
-    env.close()
 
     total_time = time.time() - t
     print("Executed in {} seconds".format(total_time))

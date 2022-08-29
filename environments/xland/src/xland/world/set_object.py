@@ -205,7 +205,7 @@ def create_objects(positions, object_type=None, specific_color=None, object_size
         full_name = partial_name + "_" + str(object_names[partial_name])
         object_names[partial_name] += 1
         return full_name
-    
+
     return [
         get_object_fn(obj)(
             name=increase_and_return(color_name, obj, rank),

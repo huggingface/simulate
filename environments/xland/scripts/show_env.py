@@ -45,26 +45,26 @@ if __name__ == "__main__":
     parser.add_argument("--benchmark", type=str, default="benchmark/examples", help="Benchmarks folder path.")
 
     args = parser.parse_args()
-    extra_args = defaultdict(lambda: None)
+    kwargs = defaultdict(lambda: None)
 
     if args.sample_from is None and args.map is None:
         tiles, symmetries, weights, neighbors = generate_tiles(args.max_height)
-        extra_args["tiles"] = tiles
-        extra_args["symmetries"] = symmetries
-        extra_args["weights"] = weights
-        extra_args["neighbors"] = neighbors
+        kwargs["tiles"] = tiles
+        kwargs["symmetries"] = symmetries
+        kwargs["weights"] = weights
+        kwargs["neighbors"] = neighbors
 
     else:
         name = args.map or args.sample_from
         m = np.load(join(args.benchmark, name) + ".npy")
         if args.map is not None:
-            extra_args["specific_map"] = m
+            kwargs["specific_map"] = m
         else:
-            extra_args["sample_map"] = m
+            kwargs["sample_map"] = m
 
     t = time.time()
 
-    root = create_map(executable=args.build_exe, **vars(args), **extra_args, root=-1, nb_attempts=100)
+    root = create_map(executable=args.build_exe, **vars(args), **kwargs, root=-1, nb_attempts=100)
 
     print("Time in seconds to generate map: {}".format(time.time() - t))
 
