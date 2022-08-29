@@ -91,7 +91,7 @@ class GltfTest(unittest.TestCase):
         actor += actor_camera
 
         # Specify the action to control the actor: 3 discrete action to rotate and move forward
-        actor.actions = sm.Action(
+        actor.controller = sm.Controller(
             n=3,
             mapping=[
                 sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=-90),
@@ -106,7 +106,9 @@ class GltfTest(unittest.TestCase):
         target = sm.Box(name="cube", position=[1, 0.5, 1], material=material)
         scene += target
 
-        scene += sm.RewardFunction(target, actor)  # By default a dense reward equal to the distance between 2 entities
+        scene += sm.RewardFunction(
+            entity_a=target, entity_b=actor
+        )  # By default a dense reward equal to the distance between 2 entities
 
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = os.path.join(tmpdir, "test.gltf")
@@ -114,6 +116,10 @@ class GltfTest(unittest.TestCase):
             self.assertTrue(os.path.exists(file_path))
 
             scene2 = sm.Scene.create_from(file_path)
+            print(scene)
+            print(len(scene))
+            print(scene2)
+            print(len(scene2))
             self.assertTrue(len(scene) == len(scene2))
 
     def test_create_asset_from_gltf_in_asset(self):

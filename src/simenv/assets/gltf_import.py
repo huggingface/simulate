@@ -296,6 +296,11 @@ def build_node_tree(
             # We have a custom node type (reward function, sensors, etc)
             scene_node = common_kwargs.pop("cls")
             for key, value in common_kwargs.items():
+                # These two are different
+                if key == "parent":
+                    key = "tree_parent"
+                if key == "children":
+                    key = "tree_children"
                 setattr(scene_node, key, value)
         else:
             scene_node = Asset(**common_kwargs)

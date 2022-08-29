@@ -19,6 +19,7 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 
+from .action_mapping import ActionMapping
 from .gltf_extension import GltfExtensionMixin
 
 
@@ -33,68 +34,16 @@ except ImportError:
         class Discrete:
             pass  # Dummy class if gym is not installed
 
+        class Tuple:
+            pass
 
-ALLOWED_PHYSICAL_ACTION_TYPES = [
-    "add_force",
-    "add_relative_force",
-    "add_torque",
-    "add_relative_torque",
-    "add_force_at_position",
-    "change_position",
-    "change_relative_position",
-    "change_rotation",
-    "change_relative_rotation",
-]
+        class Dict:
+            pass
 
 
 @dataclass
-class ActionMapping:
-    """Map a RL agent action to an actor physical action
-
-    Args:
-        physical_action (str): the physical action to be mapped to. A string selected in:
-            - "add_force": add a force to the object
-            - "add_relative_force": add a force to the object in the object's local coordinate system
-            - "add_torque": add a torque to the object
-            - "add_relative_torque": add a torque to the object in the object's local coordinate system
-            - "add_force_at_position": add a force to the object at a position in the object's local coordinate system
-            - "change_position": move the object along an axis
-            - "move_position_relative": move the object along an axis in local coordinates
-            - "rotate": rotate the object around an axis
-            - "change_relative_rotation": rotate the object along an axis in local coordinates
-        axis (List[float]): the axis of the action to be applied along or around
-        amplitude (float): the amplitude of the action to be applied (see below for details)
-        offset (float): the offset of the action to be applied (see below for details)
-        position (List[float]): the position of the action to be applied
-            (in the special case of the "add_force_at_position" action, this is the position of the force)
-        upper_limit (float): the upper limit of the resulting physical action (see below for details)
-        lower_limit (float): the lower limit of the resulting physical action (see below for details)
-
-    The conversion is as follow (where X is the RL input action and Y the physics engine action e.g. force, torque, position):
-        Y = Y + (X - offset) * amplitude
-        if clip_low is not None:
-            Y = max(Y, clip_low)
-        if clip_high is not None:
-            Y = min(Y, clip_high)
-    In the case of discrete action we assume X = 1.0 so that amplitude can be used to define the discrete value to apply.
-    """
-
-    physical_action: str
-    axis: List[float]
-    amplitude: float = 1.0
-    offset: float = 0.0
-    position: Optional[List[float]] = None
-    upper_limit: Optional[float] = None
-    lower_limit: Optional[float] = None
-
-    def __post_init__(self):
-        if self.physical_action not in ALLOWED_PHYSICAL_ACTION_TYPES:
-            raise ValueError(f"{self.physical_action} is not a valid physical action type")
-
-
-@dataclass
-class Action(GltfExtensionMixin, gltf_extension_name="HF_actions", object_type="component"):
-    r"""Actions can be used to move or apply force/torque to an asset.
+class Controller(GltfExtensionMixin, gltf_extension_name="HF_controllers", object_type="component"):
+    r"""An Asset Controller can be used to move or apply force/torque to an asset.
 
     We define:
     - the space were the action operate (discrete, continuous), it's similar to gym spaces in RL, and
@@ -146,34 +95,36 @@ class Action(GltfExtensionMixin, gltf_extension_name="HF_actions", object_type="
 
 
 @dataclass
-class ActionTuple(GltfExtensionMixin, gltf_extension_name="HF_action_tuples", object_type="component"):
-    r"""Store a tuple of actions
+class ControllerTuple(GltfExtensionMixin, gltf_extension_name="HF_controllers_tuples", object_type="component"):
+    r"""Store a tuple of controllers/ActionSpaces. Associated to a gym Tuple action space
 
     Attributes:
-        - actions: Tuple/list of the actions
+        - controllers: Tuple/list of the actions
         - mapping: Tuple/list of the mappings of the actions
         - space: Tuple/list of thespacegs of the actions
     """
-    actions: List[Action]
+    controllers: List[Controller]
     seed: Optional[Union[int, List[int], np.random.Generator]] = None
 
     def __post_init__(self):
-        self.mapping = (act.mapping for act in self.actions)
-        self.space = spaces.Tuple((act.space for act in self.space), seed=self.seed)
+        self.mapping = (controller.mapping for controller in self.controllers)
+        self.space = spaces.Tuple((controller.space for controller in self.controllers), seed=self.seed)
 
 
 @dataclass
-class ActionDict(GltfExtensionMixin, gltf_extension_name="HF_action_dicts", object_type="component"):
-    r"""Store a dictionary of actions
+class ControllerDict(GltfExtensionMixin, gltf_extension_name="HF_controllers_dicts", object_type="component"):
+    r"""Store a dictionary of controllers/ActionSpaces. Associated to a gym Dict action space
 
     Attributes:
-        - actions: Dict of the actions
+        - controllers: Dict of the actions
         - mapping: Dict of the mappings of the actions
         - space: Dict of thespacegs of the actions
     """
-    actions: Dict[str, Action]
+    controllers: Dict[str, Controller]
     seed: Optional[Union[dict, int, np.random.Generator]] = None
 
     def __post_init__(self):
-        self.mapping = {key: act.mapping for key, act in self.actions.items()}
-        self.space = spaces.Dict({key: act.space for key, act in self.actions.items()}, seed=self.seed)
+        self.mapping = {key: controller.mapping for key, controller in self.controllers.items()}
+        self.space = spaces.Dict(
+            {key: controller.space for key, controller in self.controllers.items()}, seed=self.seed
+        )

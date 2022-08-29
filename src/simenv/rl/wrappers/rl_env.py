@@ -15,7 +15,6 @@
 
 import gym
 import numpy as np
-from gym import spaces
 
 # Lint as: python3
 from ...scene import Scene

@@ -22,7 +22,7 @@ for i in range(1):
 # Lets add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
 actor = sm.Capsule(name="actor", position=[0.0, 0.0, 0.0])  # Has a collider
 # Specify the action to control the actor: 3 discrete action to rotate and move forward
-actor.actions = sm.Action(
+actor.controller = sm.Controller(
     n=3,
     mapping=[
         sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=-90),
@@ -35,6 +35,7 @@ scene += actor
 # Add a camera located on the actor
 actor_camera = sm.Camera(name="camera", width=40, height=40, position=[0, 0.75, 0])
 actor += actor_camera
+# Add a StateSensor for the sake of the example (not really usable here because the camera is attached to the actor)
 actor += sm.StateSensor(target_entity=actor, reference_entity=actor_camera, properties="position")
 
 # Let's add a target and a reward function
@@ -42,8 +43,8 @@ material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0,
 target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 scene += target
 
-reward = sm.RewardFunction(type="not")  # By default a dense reward equal to the distance between 2 entities
-reward += sm.RewardFunction(entity_a=target, entity_b=actor)
+reward = sm.RewardFunction(type="not")  # A negation of a reward
+reward += sm.RewardFunction(entity_a=target, entity_b=actor, type="sparse")
 scene += reward
 
 print(scene)

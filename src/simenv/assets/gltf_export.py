@@ -20,14 +20,9 @@ from typing import Any, ByteString, Dict, List, Optional, Set
 import numpy as np
 import pyvista as pv
 
-from . import Asset, Camera, Light, Material, Object3D, StateSensor
+from . import Asset, Camera, Light, Material, Object3D
 from . import gltflib as gl
-from .gltf_extension import (
-    GLTF_COMPONENTS_EXTENSION_CLASS,
-    GLTF_NODES_EXTENSION_CLASS,
-    process_tree_after_gltf,
-    process_tree_before_gltf,
-)
+from .gltf_extension import GLTF_NODES_EXTENSION_CLASS, process_tree_after_gltf, process_tree_before_gltf
 
 
 # Conversion of Numnpy dtype and shapes in GLTF equivalents

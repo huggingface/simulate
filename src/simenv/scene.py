@@ -17,8 +17,6 @@
 import itertools
 from typing import List, Optional, Tuple, Union
 
-from simenv.assets.reward_functions import RewardFunction
-
 from .assets import Asset, Camera, Light, Object3D, RaycastSensor, RewardFunction, StateSensor
 from .assets.anytree import RenderTree
 from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
@@ -26,7 +24,7 @@ from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
 
 try:
     from gym import spaces
-except:
+except ImportError:
     pass
 
 
@@ -148,4 +146,4 @@ class Scene(Asset):
 
     @property
     def actors(self) -> Tuple[Asset]:
-        return self.tree_filtered_descendants(lambda node: node.actions is not None)
+        return self.tree_filtered_descendants(lambda node: node.controller is not None)

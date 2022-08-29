@@ -18,15 +18,15 @@ import itertools
 import os
 import tempfile
 import uuid
-from typing import TYPE_CHECKING, Any, List, Optional, Tuple, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
-from .actions import Action, ActionDict, ActionTuple
 from .anytree import NodeMixin
 from .articulated_body import ArticulatedBodyComponent
 from .collider import Collider
+from .controller import Controller, ControllerDict, ControllerTuple
 from .rigid_body import RigidBodyComponent
 from .utils import (
     camelcase_to_snakecase,
@@ -37,7 +37,7 @@ from .utils import (
 )
 
 
-ALLOWED_COMPONENTS_ATTRIBUTES = ["collider", "actions", "physics_component"]
+ALLOWED_COMPONENTS_ATTRIBUTES = ["collider", "actuator", "physics_component"]
 
 
 class Asset(NodeMixin, object):
@@ -65,7 +65,7 @@ class Asset(NodeMixin, object):
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
         collider: Optional[Collider] = None,
-        actions: Optional[Union[Action, ActionDict, ActionTuple]] = None,
+        controller: Optional[Union[Controller, ControllerDict, ControllerTuple]] = None,
         physics_component: Union[None, RigidBodyComponent, ArticulatedBodyComponent] = None,
         parent=None,
         children=None,
@@ -93,7 +93,7 @@ class Asset(NodeMixin, object):
 
         # Extensions for physics/RL
         self.collider = collider
-        self.actions = actions
+        self.controller = controller
         self.physics_component = physics_component
 
         self._n_copies = 0
@@ -129,17 +129,17 @@ class Asset(NodeMixin, object):
 
     # Actions and action_space
     @property
-    def actions(self):
-        return self._actions
+    def controller(self):
+        return self._controller
 
-    @actions.setter
-    def actions(self, actions: Union[Action, ActionDict, ActionTuple]):
-        self._actions = actions
+    @controller.setter
+    def controller(self, controller: Union[Controller, ControllerTuple, ControllerDict]):
+        self._controller = controller
 
     @property
     def action_space(self):
-        if self.actions is not None:
-            return self.actions.space
+        if self.controller is not None:
+            return self.controller.space
         return None
 
     @property
@@ -794,6 +794,18 @@ class Asset(NodeMixin, object):
         if getattr(parent.tree_root, "engine", None) is not None:
             if parent.tree_root.engine.auto_update:
                 parent.tree_root.engine.update_asset(self)
+
+        # Avoid circular imports (Reward functions are Asset) - unfortunately we cannot do this test on the Reward function side
+        # as this would involve calling _post_attaching_childran
+        from .reward_functions import RewardFunction
+
+        if isinstance(parent, RewardFunction):
+            if not isinstance(self, RewardFunction):
+                raise TypeError(
+                    f"Reward functions can only have reward function as children. "
+                    f"You are trying to make node {self.name} of type {type(self)} "
+                    f"a child of node {parent.name} of type {type(parent)}"
+                )
 
     def _post_detach_parent(self, parent):
         """NodeMixing nethod call after detaching from a `parent`."""

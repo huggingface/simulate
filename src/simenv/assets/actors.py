@@ -17,9 +17,9 @@
 import itertools
 from typing import List, Optional, Union
 
-from .actions import Action, ActionMapping
 from .camera import Camera
 from .collider import Collider
+from .controller import ActionMapping, Controller
 from .object import Capsule
 from .rigid_body import RigidBodyComponent
 
@@ -30,7 +30,7 @@ class SimpleActor(Capsule):
         A simple actor is a capsule asset with:
         - a Camera as a child asset for observation device
         - a RigidBodyComponent component with a mass of 1.0
-        - a discrete actions
+        - a discrete controller
 
     Parameters
     ----------
@@ -97,11 +97,11 @@ class SimpleActor(Capsule):
 
         # Create our action maps to physics engine effects
         mapping = [
-            ActionMapping("move_relative_rotation", axis=[0, 1, 0], amplitude=-90),
-            ActionMapping("move_relative_rotation", axis=[0, 1, 0], amplitude=90),
+            ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=-90),
+            ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=90),
             ActionMapping("change_relative_position", axis=[1, 0, 0], amplitude=2.0),
         ]
-        self.actions = Action(n=3, mapping=mapping)
+        self.controller = Controller(n=3, mapping=mapping)
 
     def copy(self, with_children=True, **kwargs) -> "SimpleActor":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
