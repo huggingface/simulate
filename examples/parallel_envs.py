@@ -23,8 +23,9 @@ def create_env(executable=None, port=None, headless=None):
     collectable = sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
     scene += collectable
 
-    agent = sm.SimpleRlAgent(position=[0, 0, 0], reward_target=collectable)
+    agent = sm.SimpleActor(position=[0, 0, 0])
     scene += agent
+    scene += sm.RewardFunction(entity_a=agent, entity_b=collectable)
 
     sparse_reward = sm.RewardFunction(
         type="sparse",

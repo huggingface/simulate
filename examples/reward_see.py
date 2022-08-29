@@ -31,11 +31,10 @@ def create_scene(port=55000):
         material=sm.Material.RED,
         physics_component=sm.RigidBodyComponent(mass=mass),
     )
-    scene += sm.SimpleRlAgent(
+    scene += sm.SimpleActor(
         name="agent",
-        sensors=[
-            sm.CameraSensor(width=CAMERA_WIDTH, height=CAMERA_HEIGHT, position=[0, 0.1, 0]),
-        ],
+        camera_width=CAMERA_WIDTH,
+        camera_height=CAMERA_HEIGHT,
         position=[0.0, 0.0, 0.0],
     )
 
