@@ -29,7 +29,7 @@ except ImportError:
 
 
 class ParallelRLEnvironment(VecEnv):
-    def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, **engine_kwargs):
+    def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, frame_rate=30, frame_skip=4, **engine_kwargs):
 
         if hasattr(scene_or_map_fn, "__call__"):
             self.scene = Scene(engine="Unity", **engine_kwargs)
@@ -61,7 +61,14 @@ class ParallelRLEnvironment(VecEnv):
         # Don't return simulation data, since minimal/faster data will be returned by agent sensors
         # Pass maps kwarg to enable map pooling
         maps = [root.name for root in self.map_roots]
-        self.scene.show(frame_rate=30, frame_skip=4, return_frames=False, return_nodes=False, maps=maps, n_show=n_show)
+        self.scene.show(
+            frame_rate=frame_rate,
+            frame_skip=frame_skip,
+            return_frames=False,
+            return_nodes=False,
+            maps=maps,
+            n_show=n_show,
+        )
 
     def step(self, action=None):
         action_dict = {}

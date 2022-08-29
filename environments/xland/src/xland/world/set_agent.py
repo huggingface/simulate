@@ -3,10 +3,26 @@
 from simenv import SimpleRlAgent
 
 from ..game.generation import add_dummy_generated_reward_fn
-from ..game.predicates import add_collect_all_rewards, add_timeout_rewards
+from ..game.predicates import (
+    add_collect_all_rewards,
+    add_near_reward,
+    add_random_collectables_rewards,
+    add_timeout_rewards,
+)
 
 
-def create_agents(agent_pos, objects, predicate=None, rank=0, camera_height=72, camera_width=96):
+def create_agents(
+    agent_pos,
+    objects,
+    predicate=None,
+    verbose=True,
+    rank=0,
+    camera_width=96,
+    camera_height=72,
+    n_options=1,
+    n_conjunctions=2,
+    frame_skip=None,
+):
     """
     Create agents in simenv.
 
@@ -18,6 +34,9 @@ def create_agents(agent_pos, objects, predicate=None, rank=0, camera_height=72, 
         camera_width: width of the agent camera
         camera_height: height of the agent camera
         verbose: verbose for debugging
+        rank: which map we are working with
+        n_options: number of options to be used if generating random tasks
+        n_conjunctions: number of conjunctios to be used if generating random tasks
     """
 
     agents = []
@@ -33,12 +52,22 @@ def create_agents(agent_pos, objects, predicate=None, rank=0, camera_height=72, 
         agents.append(agent)
 
     if predicate == "random":
-        add_dummy_generated_reward_fn(objects, agents)
+        add_dummy_generated_reward_fn(
+            agents, objects, n_conjunctions=n_conjunctions, n_options=n_options, verbose=verbose
+        )
+
+    elif predicate == "near":
+        add_near_reward(agents, objects, verbose=verbose)
+
+    elif predicate == "collect_all":
+        add_collect_all_rewards(agents, objects, verbose=verbose)
+
+    elif predicate == "collect_random_collectables":
+        add_random_collectables_rewards(agents, objects, verbose=verbose)
 
     else:
-        # Defaults to task on collection of all objects.
-        add_collect_all_rewards(agents, objects)
+        raise ValueError("Only `random`, `near`, `collect_all`, `collect_random_collectables` are supported.")
 
-    add_timeout_rewards(agents)
+    add_timeout_rewards(agents, frame_skip=frame_skip)
 
     return agents
