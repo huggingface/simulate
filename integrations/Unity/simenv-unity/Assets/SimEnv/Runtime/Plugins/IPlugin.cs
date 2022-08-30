@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections;
 
 namespace SimEnv {
     /// <summary>
@@ -55,6 +56,10 @@ namespace SimEnv {
         /// Called after the Simulator steps forward.
         /// </summary>
         void OnStep(EventData eventData);
+        /// <summary>
+        /// Coroutine called after the Simulator steps forward.
+        /// </summary>
+        public IEnumerator OnStepCoroutine(EventData eventData);
 
         /// <summary>
         /// Called when the scene is reset.

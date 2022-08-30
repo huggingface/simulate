@@ -6,9 +6,9 @@ using SimEnv.GLTF;
 namespace SimEnv.RlAgents {
     public static class Actions {
         public static void ExecuteAction(this Agent agent, object action) {
-            HF_Actions.ActionMapping mapping = agent.actionSpace.GetMapping(action);
+            HF_Controllers.ActionMapping mapping = agent.actionSpace.GetMapping(action);
             List<float> value = new List<float> { 1f }; // TODO refactor when I (Ed) understand what this is
-            switch (mapping.physical_action) {
+            switch (mapping.action) {
                 case "add_force":
                     agent.AddForce(value, mapping);
                     break;
@@ -39,7 +39,7 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public static void AddForce(this Agent agent, List<float> value, HF_Actions.ActionMapping mapping) {
+        public static void AddForce(this Agent agent, List<float> value, HF_Controllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -51,7 +51,7 @@ namespace SimEnv.RlAgents {
             agent.node.rigidbody.AddForce(force, ForceMode.Impulse);
         }
 
-        public static void AddRelativeForce(this Agent agent, List<float> value, HF_Actions.ActionMapping mapping) {
+        public static void AddRelativeForce(this Agent agent, List<float> value, HF_Controllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -63,7 +63,7 @@ namespace SimEnv.RlAgents {
             agent.node.rigidbody.AddRelativeForce(force, ForceMode.Impulse);
         }
 
-        public static void AddTorque(this Agent agent, List<float> value, HF_Actions.ActionMapping mapping) {
+        public static void AddTorque(this Agent agent, List<float> value, HF_Controllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -75,7 +75,7 @@ namespace SimEnv.RlAgents {
             agent.node.rigidbody.AddTorque(force, ForceMode.Impulse);
         }
 
-        public static void AddRelativeTorque(this Agent agent, List<float> value, HF_Actions.ActionMapping mapping) {
+        public static void AddRelativeTorque(this Agent agent, List<float> value, HF_Controllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -87,11 +87,11 @@ namespace SimEnv.RlAgents {
             agent.node.rigidbody.AddTorque(force, ForceMode.Impulse);
         }
 
-        public static void AddForceAtPosition(this Agent agent, List<float> value, HF_Actions.ActionMapping mapping) {
+        public static void AddForceAtPosition(this Agent agent, List<float> value, HF_Controllers.ActionMapping mapping) {
             throw new NotImplementedException();
         }
 
-        public static void MovePosition(this Agent agent, List<float> value, HF_Actions.ActionMapping mapping) {
+        public static void MovePosition(this Agent agent, List<float> value, HF_Controllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -103,7 +103,7 @@ namespace SimEnv.RlAgents {
             agent.node.rigidbody.MovePosition(agent.node.transform.position + move);
         }
 
-        public static void MoveRelativePosition(this Agent agent, List<float> value, HF_Actions.ActionMapping mapping) {
+        public static void MoveRelativePosition(this Agent agent, List<float> value, HF_Controllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -115,7 +115,7 @@ namespace SimEnv.RlAgents {
             agent.node.rigidbody.MovePosition(agent.node.transform.position + move);
         }
 
-        public static void MoveRotation(this Agent agent, List<float> value, HF_Actions.ActionMapping mapping) {
+        public static void MoveRotation(this Agent agent, List<float> value, HF_Controllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -127,7 +127,7 @@ namespace SimEnv.RlAgents {
             agent.node.rigidbody.MoveRotation(agent.node.transform.rotation * Quaternion.Euler(rotate));
         }
 
-        public static void MoveRelativeRotation(this Agent agent, List<float> value, HF_Actions.ActionMapping mapping) {
+        public static void MoveRelativeRotation(this Agent agent, List<float> value, HF_Controllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;

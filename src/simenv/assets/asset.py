@@ -38,7 +38,7 @@ from .utils import (
 )
 
 
-ALLOWED_COMPONENTS_ATTRIBUTES = ["collider", "actuator", "physics_component"]
+ALLOWED_COMPONENTS_ATTRIBUTES = ["collider", "actuator", "physics_component", "controller"]
 
 
 class Asset(NodeMixin, object):

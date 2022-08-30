@@ -85,16 +85,17 @@ class ParallelRLEnvironment(VecEnv):
         event = self.scene.step(action=action_dict)
 
         # Extract observations, reward, and done from event data
-        obs = {}
+        obs = None
         reward = 0
         done = False
         info = {}
         if self.n_actors == 1:
             actor_data = event["agents"][self.actor.name]
-            camera_obs = np.array(actor_data["frames"][self.actor.camera.name], dtype=np.uint8)
-            obs[self.actor.camera.name] = camera_obs
+            obs = self._extract_sensor_obs(event["agents"][self.actor.name]["observations"])
             reward = actor_data["reward"]
             done = actor_data["done"]
+
+            return obs, reward, done, info
 
         else:
             reward = []
@@ -113,6 +114,23 @@ class ParallelRLEnvironment(VecEnv):
         reward = np.array(reward)
         done = np.array(done)
         return obs, reward, done, info
+
+    def _extract_sensor_obs(self, obs):
+        sensor_obs = {}
+        for sensor_name, sensor_data in obs.items():
+            if sensor_data["type"] == "uint8":
+                shape = sensor_data["shape"]
+                measurement = np.array(sensor_data["uintBuffer"], dtype=np.uint8).reshape(shape)
+                sensor_obs[sensor_name] = measurement
+                pass
+            elif sensor_data["type"] == "float":
+                shape = sensor_data["shape"]
+                measurement = np.array(sensor_data["uintBuffer"], dtype=np.float32).reshape(shape)
+                sensor_obs[sensor_name] = measurement
+            else:
+                raise TypeError
+
+        return sensor_obs
 
     def _obs_dict_to_tensor(self, obs_dict):
         out = []

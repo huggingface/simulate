@@ -6,9 +6,11 @@ using System.Linq;
 namespace SimEnv.RlAgents {
     public class Agent {
         public Node node { get; private set; }
-        public HF_Actions.ActionSpace actionSpace { get; private set; }
+        public HF_Controllers.ActionSpace actionSpace { get; private set; }
 
-        Dictionary<string, object> observations = new Dictionary<string, object>();
+        private Dictionary<string, object> observations = new Dictionary<string, object>();
+
+        private List<ISensor> sensors = new List<ISensor>();
         List<RewardFunction> rewardFunctions = new List<RewardFunction>();
         float accumReward;
         object currentAction;
@@ -21,28 +23,13 @@ namespace SimEnv.RlAgents {
 
         void Initialize() {
             Debug.Log("initializing agent");
-            if (node.actionData == null) {
-                Debug.LogWarning("Agent missing action data");
-                return;
-            }
 
-            if (node.actionData.n == null && node.actionData.low == null) {
-                Debug.LogWarning("At least one action space required.");
-                return;
-            }
+            InitActions();
+            InitSensors();
+            InitRewardFunctions();
 
-            if (node.actionData.n != null) {
-                // Discrete action space
-                actionSpace = new HF_Actions.ActionSpace(node.actionData);
-            } else if (node.agentData.discrete_actions != null) {
-                // continuous action space
-                Debug.LogWarning("Continous actions are yet to be implemented");
-                return;
 
-            } else {
-                Debug.LogWarning("Error parsing agent action space");
-                return;
-            }
+
 
             // if (node.agentData.box_actions == null && node.agentData.discrete_actions == null) {
             //     Debug.LogWarning("At least one action space required.");
@@ -67,6 +54,51 @@ namespace SimEnv.RlAgents {
             Simulator.BeforeIntermediateFrame += HandleIntermediateFrame;
         }
 
+        void InitActions() {
+            if (node.actionData == null) {
+                Debug.LogWarning("Agent missing action data");
+                return;
+            }
+            if (node.actionData.n == null && node.actionData.low == null) {
+                Debug.LogWarning("At least one action space required.");
+                return;
+            }
+
+            if (node.actionData.n != null) {
+                // Discrete action space
+                actionSpace = new HF_Controllers.ActionSpace(node.actionData);
+            } else if (node.agentData.discrete_actions != null) {
+                // continuous action space
+                Debug.LogWarning("Continous actions are yet to be implemented");
+                return;
+            } else {
+                Debug.LogWarning("Error parsing agent action space");
+                return;
+            }
+        }
+        void InitSensors() {
+            // search children for Cameras and add these as camera sensors
+            // this is a bit slow but it only runs once at startup
+            foreach (Node node2 in Simulator.nodes.Values) {
+                if (node2.camera != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
+                    CameraSensor cameraSensor = new CameraSensor(node2.camera);
+                    sensors.Add(cameraSensor);
+                }
+            }
+
+            // search children for StateSensors
+
+
+            // search children for RaycastSensors
+
+
+        }
+
+        void InitRewardFunctions() {
+
+        }
+
+
         void HandleIntermediateFrame() {
             if (node == null || node.gameObject == null) {
                 Simulator.BeforeIntermediateFrame -= HandleIntermediateFrame;
@@ -77,35 +109,51 @@ namespace SimEnv.RlAgents {
         }
 
         public void Step(object action) {
-            foreach (string cameraName in node.agentData.camera_sensors.Select(x => x.camera)) {
-                if (!Simulator.nodes.TryGetValue(cameraName, out Node cameraNode) || cameraNode.camera == null) {
-                    Debug.LogWarning($"Couldn't find camera {cameraName}");
-                    continue;
-
-                }
-                cameraNode.camera.camera.enabled = true;
-            }
             this.currentAction = action;
         }
 
         public Data GetEventData() {
+            Debug.Log("Agent GetEventData");
             UpdateReward();
             bool done = IsDone();
             float reward = GetReward();
             ZeroReward();
-            Dictionary<string, uint[,,]> frames = null;
+            Dictionary<string, SensorBuffer> observations = null;
             // no need to render if the environment is done, frames will be taken from the next map
             if (!done) {
-                frames = GetCameraObservations();
+                observations = GetSensorObservations();
             }
             Data data = new Data() {
                 done = done,
                 reward = reward,
-                frames = frames,
+                observations = observations,
             };
 
             return data;
         }
+
+        public void EnableSensors() {
+            foreach (var sensor in sensors) {
+                sensor.Enable();
+            }
+        }
+
+        public void DisableSensors() {
+            foreach (var sensor in sensors) {
+                sensor.Disable();
+            }
+        }
+
+        Dictionary<string, SensorBuffer> GetSensorObservations() {
+            Debug.Log("getting sensor observations");
+            Dictionary<string, SensorBuffer> observations = new Dictionary<string, SensorBuffer>();
+            foreach (var sensor in sensors) {
+                observations[sensor.GetName()] = sensor.GetObs();
+
+            }
+            return observations;
+        }
+
 
         Dictionary<string, uint[,,]> GetCameraObservations() {
             Dictionary<string, uint[,,]> cameras = new Dictionary<string, uint[,,]>();
@@ -245,7 +293,7 @@ namespace SimEnv.RlAgents {
         public class Data {
             public bool done;
             public float reward;
-            public Dictionary<string, uint[,,]> frames;
+            public Dictionary<string, SensorBuffer> observations;
         }
     }
 }
