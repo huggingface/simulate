@@ -29,7 +29,7 @@ class SimpleActor(Sphere):
 
     A SimpleActor is a sphere asset with:
     - basic XYZ positional control (continuous),
-    - no mass
+    - mass of 1 (default)
     - no Camera
 
     """
@@ -39,14 +39,11 @@ class SimpleActor(Sphere):
 
     def __init__(
         self,
-        mass: Optional[float] = 1.0,
         name=None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
         collider: Optional[Collider] = None,
-        camera_height: Optional[int] = None,
-        camera_width: Optional[int] = None,
         transformation_matrix=None,
         parent=None,
         children=None,
