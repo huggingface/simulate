@@ -143,11 +143,12 @@ def add_random_collectables_rewards(agents, objects, verbose=False):
             print("Agent {} will collect object {}".format(agent.name, objects[obj_idx].name))
 
 
-def add_collect_all_rewards(agents, objects):
+def add_collect_all_rewards(agents, objects, verbose=False):
     """
     Second default task when no predicate is given.
 
     All agents have to collect all objects.
+    # TODO: print what the agent will collect if verbose parameter is True
     """
     terminal = False
     if len(objects) == 1:
@@ -168,14 +169,36 @@ def add_collect_all_rewards(agents, objects):
             agent.add_reward_function(reward_function)
 
 
-def add_timeout_rewards(agents, scalar=0.0):
+def add_near_reward(agents, objects, verbose=False):
+    """
+    Agents have to be near one of the objects.
+
+    TODO: print task if verbose is True
+    """
+    for agent in agents:
+        for obj in objects:
+            reward_function = RewardFunction(
+                type="sparse",
+                entity_a=agent,
+                entity_b=obj,
+                distance_metric="euclidean",
+                threshold=1.0,
+                is_terminal=False,
+                is_collectable=False,
+            )
+
+            agent.add_reward_function(reward_function)
+
+
+def add_timeout_rewards(agents, scalar=0.0, frame_skip=None):
+    frame_skip = 1 if frame_skip is None else frame_skip
     for agent in agents:
         timeout_reward_function = RewardFunction(
             type="timeout",
             entity_a=agent,
             entity_b=agent,
             distance_metric="euclidean",
-            threshold=1000,
+            threshold=1000 // frame_skip,
             is_terminal=True,
             scalar=scalar,
         )

@@ -202,7 +202,12 @@ namespace SimEnv.GLTF {
             meshTask.RunSynchronously();
             GLTFSkin.ImportTask skinTask = new GLTFSkin.ImportTask(gltfObject.skins, accessorTask);
             skinTask.RunSynchronously();
-            GLTFNode.ImportTask nodeTask = new GLTFNode.ImportTask(gltfObject.nodes, meshTask, skinTask, gltfObject.cameras, gltfObject.extensions);
+            List<HFPhysicMaterials.GLTFPhysicMaterial> physicMaterials = null;
+            if (gltfObject.extensions != null && gltfObject.extensions.HF_physic_materials != null)
+                physicMaterials = gltfObject.extensions.HF_physic_materials.components;
+            HFPhysicMaterials.ImportTask physicMaterialTask = new HFPhysicMaterials.ImportTask(physicMaterials, importSettings);
+            physicMaterialTask.RunSynchronously();
+            GLTFNode.ImportTask nodeTask = new GLTFNode.ImportTask(gltfObject.nodes, meshTask, skinTask, physicMaterialTask, gltfObject.cameras, gltfObject.extensions);
             nodeTask.RunSynchronously();
             GLTFAnimation.ImportResult[] animationResult = gltfObject.animations.Import(accessorTask.result, nodeTask.result, importSettings);
             if (animationResult != null)
@@ -242,7 +247,12 @@ namespace SimEnv.GLTF {
             importTasks.Add(meshTask);
             GLTFSkin.ImportTask skinTask = new GLTFSkin.ImportTask(gltfObject.skins, accessorTask);
             importTasks.Add(skinTask);
-            GLTFNode.ImportTask nodeTask = new GLTFNode.ImportTask(gltfObject.nodes, meshTask, skinTask, gltfObject.cameras, gltfObject.extensions);
+            List<HFPhysicMaterials.GLTFPhysicMaterial> physicMaterials = null;
+            if (gltfObject.extensions != null && gltfObject.extensions.HF_physic_materials != null)
+                physicMaterials = gltfObject.extensions.HF_physic_materials.components;
+            HFPhysicMaterials.ImportTask physicMaterialTask = new HFPhysicMaterials.ImportTask(physicMaterials, importSettings);
+            importTasks.Add(physicMaterialTask);
+            GLTFNode.ImportTask nodeTask = new GLTFNode.ImportTask(gltfObject.nodes, meshTask, skinTask, physicMaterialTask, gltfObject.cameras, gltfObject.extensions);
             importTasks.Add(nodeTask);
 
             for (int i = 0; i < importTasks.Count; i++)

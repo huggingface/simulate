@@ -9,7 +9,7 @@ import simenv as sm
 def create_env(executable=None, port=None, headless=None):
     scene = sm.Scene(engine="Unity", engine_exe=executable, engine_port=port, engine_headless=headless)
 
-    scene += sm.Light(name="sun", position=[0, 20, 0], rotation=[60, -30, 0], intensity=3.5)
+    scene += sm.LightSun()
     scene += sm.Box(name="floor", position=[0, -0.05, 0], scaling=[100, 0.1, 100])
     scene += sm.Box(name="wall1", position=[-1, 0.5, 0], scaling=[0.1, 1, 5.1])
     scene += sm.Box(name="wall2", position=[1, 0.5, 0], scaling=[0.1, 1, 5.1])
@@ -23,8 +23,9 @@ def create_env(executable=None, port=None, headless=None):
     collectable = sm.Sphere(name="collectable", position=[2, 0.5, 3.4], radius=0.3)
     scene += collectable
 
-    agent = sm.SimpleRlAgent(position=[0, 0, 0], reward_target=collectable)
+    agent = sm.SimpleActor(position=[0, 0, 0])
     scene += agent
+    scene += sm.RewardFunction(entity_a=agent, entity_b=collectable)
 
     sparse_reward = sm.RewardFunction(
         type="sparse",
@@ -47,7 +48,7 @@ def create_env(executable=None, port=None, headless=None):
     agent.add_reward_function(sparse_reward)
     agent.add_reward_function(timeout_reward)
 
-    return sm.RLEnvironment(scene)
+    return sm.ParallelRLEnvironment(scene)
 
 
 def make_env(executable, rank, seed=0, headless=None):
@@ -61,10 +62,10 @@ def make_env(executable, rank, seed=0, headless=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default=None, type=str, required=True, help="Pre-built unity app for simenv")
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
     args = parser.parse_args()
 
-    n_envs = 1
+    n_envs = 2
     envs = SubprocVecEnv([make_env(args.build_exe, i) for i in range(n_envs)])
 
     obs = envs.reset()

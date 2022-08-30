@@ -25,7 +25,7 @@ import pyvista as pv
 from huggingface_hub import hf_hub_download
 
 from . import Asset, Camera, Light, Material, Object3D
-from .gltf_extension import GLTF_EXTENSIONS_REGISTER, process_components_after_gltf
+from .gltf_extension import GLTF_EXTENSIONS_REGISTER, GLTF_NODES_EXTENSION_CLASS, process_tree_after_gltf
 from .gltflib import GLTF, FileResource, TextureInfo
 from .gltflib.enums import AccessorType, ComponentType
 
@@ -197,11 +197,16 @@ def build_node_tree(
         for (extension_name, _, _) in GLTF_EXTENSIONS_REGISTER:
             node_extension = getattr(gltf_node.extensions, extension_name, None)
             if node_extension is not None:
-                component_id = node_extension.component_id
+                object_id = node_extension.object_id
                 component_name = node_extension.name
+                if component_name is None:
+                    continue
                 model_extension = getattr(gltf_model.extensions, extension_name, None)
-                component = model_extension.components[component_id]
-                common_kwargs[component_name] = component
+                component = model_extension.objects[object_id]
+                if type(component) in GLTF_NODES_EXTENSION_CLASS:
+                    common_kwargs["cls"] = component
+                else:
+                    common_kwargs[component_name] = component
 
     if gltf_node.camera is not None:
         # Let's add a Camera
@@ -257,6 +262,7 @@ def build_node_tree(
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
         primitives = gltf_mesh.primitives
+        base_name = common_kwargs["name"]
         for index, primitive in enumerate(primitives):
             mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][index]
 
@@ -280,10 +286,24 @@ def build_node_tree(
                 )
             else:
                 scene_material = Material()
+            if len(primitives) > 1:
+                name = f"{base_name}_{mat.name}"
+                common_kwargs["name"] = name
             scene_node = Object3D(**common_kwargs, mesh=mesh, material=scene_material)
     else:
-        # We just have an empty node with a transform
-        scene_node = Asset(**common_kwargs)
+        # We now have either an empty node with a transform or one of our custom nodes (reward function, sensors, etc)
+        if "cls" in common_kwargs:
+            # We have a custom node type (reward function, sensors, etc)
+            scene_node = common_kwargs.pop("cls")
+            for key, value in common_kwargs.items():
+                # These two are different
+                if key == "parent":
+                    key = "tree_parent"
+                if key == "children":
+                    key = "tree_children"
+                setattr(scene_node, key, value)
+        else:
+            scene_node = Asset(**common_kwargs)
 
     # Recursively build the node tree
     if gltf_node.children:
@@ -367,6 +387,6 @@ def load_gltf_as_tree(
             )
         )
     for node in main_nodes:
-        process_components_after_gltf(node)
+        process_tree_after_gltf(node)
 
     return main_nodes

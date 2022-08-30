@@ -18,7 +18,8 @@ namespace SimEnv.GLTF {
             public float range;
 
             public override int GetHashCode() {
-                return color.GetHashCode()
+                return name.GetHashCode()
+                    ^ color.GetHashCode()
                     ^ intensity.GetHashCode()
                     ^ type.GetHashCode()
                     ^ range.GetHashCode();
@@ -27,7 +28,8 @@ namespace SimEnv.GLTF {
             public override bool Equals(object obj) {
                 if (!(obj is GLTFLight)) return false;
                 GLTFLight other = obj as GLTFLight;
-                if (color == other.color
+                if (name == other.name
+                    && color == other.color
                     && intensity == other.intensity
                     && type == other.type
                     && range == other.range)
@@ -48,6 +50,8 @@ namespace SimEnv.GLTF {
                 node.extensions.KHR_lights_punctual = new GLTFNode.KHRLight() { light = lights.IndexOf(light) };
             }
             if (lights.Count == 0) return;
+            gltfObject.extensionsUsed ??= new List<string>();
+            gltfObject.extensionsUsed.Add("KHR_lights_punctual");
             gltfObject.extensions ??= new GLTFExtensions();
             gltfObject.extensions.KHR_lights_punctual ??= new KHRLightsPunctual();
             gltfObject.extensions.KHR_lights_punctual.lights.AddRange(lights);
@@ -75,6 +79,7 @@ namespace SimEnv.GLTF {
                     Debug.LogWarning($"Light type {light.type} not implemented.");
                     return null;
             }
+            gltfLight.name = light.name;
             gltfLight.intensity = light.intensity;
             gltfLight.range = light.range;
             gltfLight.color = light.color;

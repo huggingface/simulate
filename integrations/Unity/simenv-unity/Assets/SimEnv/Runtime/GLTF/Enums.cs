@@ -11,6 +11,8 @@ namespace SimEnv.GLTF {
     public enum LightType { directional, point, spot }
     public enum ColliderType { box, sphere, capsule, mesh }
     public enum InterpolationMode { ImportFromFile = -1, LINEAR = 0, STEP = 1, CUBICSPLINE = 2 }
+    public enum BufferViewTarget { ARRAY_BUFFER = 34962, ELEMENT_ARRAY_BUFFER = 34963 }
+    public enum PhysicMaterialCombine { average, minimum, multiply, maximum }
 
     public static class EnumExtensions {
         public static int ByteSize(this GLType gltype) {

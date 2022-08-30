@@ -13,7 +13,6 @@
 # limitations under the License.
 """Wrapper around SimEnv scene for easier RL training"""
 
-import gym
 import numpy as np
 from gym import spaces
 
@@ -21,59 +20,109 @@ from gym import spaces
 from ...scene import Scene
 
 
-class RLEnvironment(gym.Env):
-    def __init__(self, scene: Scene):
-        super(RLEnvironment, self).__init__()
-        self.scene = scene
+try:
+    from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+except ImportError:
 
-        agents = scene.agents
-        if len(agents) == 0:
-            print("No agent found. Add at least one agent to the scene")
-            return
-        elif len(agents) > 1:
-            print("More than one agent not supported. Use ParallelEnvironment for multiple agents per scene")
-        self.agent = agents[0]
+    class VecEnv:
+        pass  # Dummy class if SB3 is not installed
 
-        self.action_space = None
-        if self.agent.rl_component.discrete_actions is not None:
-            self.action_space = self.agent.rl_component.discrete_actions
-        elif self.agent.rl_component.box_actions is not None:
-            self.action_space = self.agent.rl_component.box_actions
-        if self.action_space is None:
-            print("Action space not found. Does the environment contain an agent with an action space?")
 
-        self.observation_space = {}
-        if self.agent.rl_component.camera_sensors is not None and len(self.agent.rl_component.camera_sensors) > 0:
-            camera = self.agent.rl_component.camera_sensors[0].camera
-            self.observation_space[camera.name] = spaces.Box(
-                low=0, high=255, shape=[3, camera.height, camera.width], dtype=np.uint8
-            )
-        if len(self.observation_space) > 0:
-            self.observation_space = spaces.Dict(self.observation_space)
+class ParallelRLEnvironment(VecEnv):
+    def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, frame_rate=30, frame_skip=4, **engine_kwargs):
+
+        if hasattr(scene_or_map_fn, "__call__"):
+            self.scene = Scene(engine="Unity", **engine_kwargs)
+            self.map_roots = []
+            for i in range(n_maps):
+                map_root = scene_or_map_fn(i)
+                self.scene += map_root
+                self.map_roots.append(map_root)
         else:
-            print("Observation space not found. Does the environment contain an agent with a valid sensor?")
+            self.scene = scene_or_map_fn
+            self.map_roots = [self.scene]
+
+        self.agents = {agent.name: agent for agent in self.scene.agents}
+        self.n_agents = len(self.agents)
+        self.n_maps = n_maps
+        self.n_show = n_show
+        self.n_agents_per_map = self.n_agents // self.n_maps
+
+        self.agent = next(iter(self.agents.values()))
+
+        self.action_space = spaces.Discrete(self.agent.action_space.n)  # quick workaround while Thom refactors this
+        self.observation_space = {
+            "CameraSensor": self.agent.observation_space
+        }  # quick workaround while Thom refactors this
+        self.observation_space = spaces.Dict(self.observation_space)
+
+        super(ParallelRLEnvironment, self).__init__(n_show, self.observation_space, self.action_space)
 
         # Don't return simulation data, since minimal/faster data will be returned by agent sensors
-        self.scene.show(return_frames=False, return_nodes=False)
+        # Pass maps kwarg to enable map pooling
+        maps = [root.name for root in self.map_roots]
+        self.scene.show(
+            frame_rate=frame_rate,
+            frame_skip=frame_skip,
+            return_frames=False,
+            return_nodes=False,
+            maps=maps,
+            n_show=n_show,
+        )
 
-    def step(self, action):
-        event = self.scene.step(action={self.agent.name: int(action)})
+    def step(self, action=None):
+        action_dict = {}
+        # TODO: adapt this to multiagent setting
+        if action is None:
+            for i in range(self.n_show):
+                action_dict[str(i)] = int(self.action_space.sample())
+        elif isinstance(action, np.int64):
+            action_dict["0"] = int(action)
+        else:
+            for i in range(self.n_show):
+                action_dict[str(i)] = int(action[i])
+
+        event = self.scene.step(action=action_dict)
 
         # Extract observations, reward, and done from event data
         obs = {}
-        reward = 0.0
+        reward = 0
         done = False
         info = {}
-        try:
+        if self.n_agents == 1:
             agent_data = event["agents"][self.agent.name]
-            camera = self.agent.rl_component.camera_sensors[0].camera
-            obs[camera.name] = np.array(agent_data["frames"][camera.name], dtype=np.uint8)
+            camera_obs = np.array(agent_data["frames"][self.agent.camera.name], dtype=np.uint8)
+            obs[self.agent.camera.name] = camera_obs
             reward = agent_data["reward"]
             done = agent_data["done"]
-        except Exception:
-            print("Failed to parse agent data from event: " + str(event))
 
+        else:
+            reward = []
+            done = []
+            info = []
+            for agent_name in event["agents"].keys():
+                agent = self.agents[agent_name]
+                agent_data = event["agents"][agent_name]
+                camera_obs = np.array(agent_data["frames"][agent.camera.name], dtype=np.uint8)
+                obs[agent.camera.name] = camera_obs
+                reward.append(agent_data["reward"])
+                done.append(agent_data["done"])
+                info.append({})
+
+        obs = self._obs_dict_to_tensor(obs)
+        reward = np.array(reward)
+        done = np.array(done)
         return obs, reward, done, info
+
+    def _obs_dict_to_tensor(self, obs_dict):
+        out = []
+        for val in obs_dict.values():
+            out.append(val)
+
+        if self.n_agents == 1:
+            return {"CameraSensor": np.stack(out)[0]}  # quick workaround while Thom refactors this
+        else:
+            return {"CameraSensor": np.stack(out)}  # quick workaround while Thom refactors this
 
     def reset(self):
         self.scene.reset()
@@ -81,14 +130,45 @@ class RLEnvironment(gym.Env):
         # To extract observations, we do a "fake" step (no actual simulation with frame_skip=0)
         event = self.scene.step(return_frames=True, frame_skip=0)
         obs = {}
-        try:
-            camera = self.agent.rl_component.camera_sensors[0].camera
-            obs[camera.name] = np.array(event["frames"][camera.name], dtype=np.uint8)
-        except Exception:
-            print("Failed to get observations from event: " + str(event))
-            pass
+        if self.n_agents == 1:
+            camera_obs = np.array(event["frames"][self.agent.camera.name], dtype=np.uint8)
+            obs[self.agent.camera.name] = camera_obs
+        else:
+            for agent_name in event["agents"].keys():
+                agent = self.agents[agent_name]
+                camera_obs = np.array(event["frames"][agent.camera.name], dtype=np.uint8)
+                obs[agent.camera.name] = camera_obs
 
+        obs = self._obs_dict_to_tensor(obs)
         return obs
 
     def close(self):
         self.scene.close()
+
+    def env_is_wrapped(self):
+        return [False] * self.n_agents * self.n_parallel
+
+    # required abstract methods
+
+    def step_async(self, actions: np.ndarray) -> None:
+        raise NotImplementedError()
+
+    def env_method(self):
+        raise NotImplementedError()
+
+    def get_attr(self):
+        raise NotImplementedError()
+
+    def seed(self, value):
+        # this should be done when the env is initialized
+        return
+        # raise NotImplementedError()
+
+    def set_attr(self):
+        raise NotImplementedError()
+
+    def step_send(self):
+        raise NotImplementedError()
+
+    def step_wait(self):
+        raise NotImplementedError()

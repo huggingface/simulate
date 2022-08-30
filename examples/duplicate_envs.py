@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import simenv as sm
+from simenv.assets.reward_functions import RewardFunction
 
 
 CAMERA_HEIGHT = 40
@@ -43,9 +44,9 @@ def generate_map(index):
             name=f"cube{i}_{index}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material
         )
 
-    agent = sm.SimpleRlAgent(name=f"agent_{index}", reward_target=cube, position=[0.0, 0.0, 0.0])
-
+    agent = sm.SimpleActor(name=f"agent_{index}", position=[0.0, 0.0, 0.0])
     root += agent
+    root += RewardFunction(entity_a=agent, entity_b=cube)
     return root
 
 

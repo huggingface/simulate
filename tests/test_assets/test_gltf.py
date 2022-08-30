@@ -83,12 +83,32 @@ class GltfTest(unittest.TestCase):
         for i in range(20):
             scene += sm.Box(name=f"cube{i}", position=[1, 0.5, 1], material=material)
 
-        material = sm.Material(base_color=[0.8, 0, 0])
-        target = sm.Box(name="cube", position=[2, 0.5, 2], material=material)
+        # Lets add an actor in the scene, a capsule with associated actions and a camera as observation device
+        actor = sm.Capsule(name="actor", position=[0.0, 0.0, 0.0])  # Has a collider,
+
+        # Add a camera to the actor
+        actor_camera = sm.Camera(name="camera", width=40, height=40, position=[0, 0.75, 0])
+        actor += actor_camera
+
+        # Specify the action to control the actor: 3 discrete action to rotate and move forward
+        actor.controller = sm.Controller(
+            n=3,
+            mapping=[
+                sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=-90),
+                sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=90),
+                sm.ActionMapping("change_relative_position", axis=[1, 0, 0], amplitude=2.0),
+            ],
+        )
+        scene += actor
+
+        # Let's add a target and a reward function
+        material = sm.Material(base_color=[0.7, 0.8, 0])
+        target = sm.Box(name="cube", position=[1, 0.5, 1], material=material)
         scene += target
 
-        agent = sm.SimpleRlAgent(reward_target=target)
-        scene += agent
+        scene += sm.RewardFunction(
+            entity_a=target, entity_b=actor
+        )  # By default a dense reward equal to the distance between 2 entities
 
         with tempfile.TemporaryDirectory() as tmpdir:
             file_path = os.path.join(tmpdir, "test.gltf")
@@ -96,6 +116,10 @@ class GltfTest(unittest.TestCase):
             self.assertTrue(os.path.exists(file_path))
 
             scene2 = sm.Scene.create_from(file_path)
+            print(scene)
+            print(len(scene))
+            print(scene2)
+            print(len(scene2))
             self.assertTrue(len(scene) == len(scene2))
 
     def test_create_asset_from_gltf_in_asset(self):

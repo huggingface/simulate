@@ -20,7 +20,7 @@ import simenv as sm
 
 
 def create_env():
-    """ " Create a simple environment with a single agent and a single target."""
+    """ " Create a simple environment with a single actor and a single target."""
     scene = sm.Scene() + sm.LightSun()
     scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-11, 11, 0, 0.1, -11, 51], material=sm.Material.BLUE)
     scene += sm.Box(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.GRAY)
@@ -28,6 +28,7 @@ def create_env():
     scene += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY)
     scene += sm.Box(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY)
     collectable = sm.Sphere(position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=sm.Material.GREEN)
-    agent = sm.SimpleRlAgent(reward_target=collectable)
-    scene += [collectable, agent]
+    actor = sm.SimpleActor()
+    reward = sm.RewardFunction(collectable, actor, is_collectable=True)
+    scene += [collectable, actor, reward]
     return scene

@@ -69,6 +69,8 @@ def create_map(
     success = False
     attempt = 0
     nb_attempts = kwargs.get("nb_attempts", 10)
+    camera_width = kwargs.get("camera_width", 96)
+    camera_height = kwargs.get("camera_height", 72)
 
     while not success and attempt < nb_attempts:
 
@@ -101,9 +103,9 @@ def create_map(
             sg.map_2d,
             n_objects=n_objects,
             n_agents=n_agents,
-            threshold=kwargs.get("threshold", 0.5),
-            enforce_lower_floor=kwargs.get("enforce_lower_floor", True),
             verbose=verbose,
+            threshold=kwargs.pop("threshold", 0.5),
+            enforce_lower_floor=kwargs.pop("enforce_lower_floor", True),
         )
 
         # If there is no enough area, we should try again and continue the loop
@@ -115,6 +117,10 @@ def create_map(
                 agent_pos,
                 rank=rank,
                 predicate=predicate,
+                camera_width=camera_width,
+                camera_height=camera_height,
+                object_type=kwargs.pop("object_type", None),
+                specific_color=kwargs.pop("specific_color", None),
             )
 
         else:
@@ -123,5 +129,7 @@ def create_map(
             if seed is not None:
                 # Change to seed to test other maps
                 seed += 1
+    if success:
+        return root
 
-    return success, root
+    return None

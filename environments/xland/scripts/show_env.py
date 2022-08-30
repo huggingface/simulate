@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # Check create_scene for more information about the arguments where
     # `help`` is not provided
     # Main arguments are the following:
-    parser.add_argument("--show", type=bool, default=False, help="Show the map")
+    parser.add_argument("--show", default=False, action="store_true", help="Show the map")
     parser.add_argument("--verbose", type=bool, default=False, help="Verbose for debugging")
     parser.add_argument("--width", type=int, default=8, help="Width of generated map")
     parser.add_argument("--height", type=int, default=10, help="Height of generated map")
@@ -45,25 +45,27 @@ if __name__ == "__main__":
     parser.add_argument("--benchmark", type=str, default="benchmark/examples", help="Benchmarks folder path.")
 
     args = parser.parse_args()
-    extra_args = defaultdict(lambda: None)
+    kwargs = defaultdict(lambda: None)
 
     if args.sample_from is None and args.map is None:
         tiles, symmetries, weights, neighbors = generate_tiles(args.max_height)
-        extra_args["tiles"] = tiles
-        extra_args["symmetries"] = symmetries
-        extra_args["weights"] = weights
-        extra_args["neighbors"] = neighbors
+        kwargs["tiles"] = tiles
+        kwargs["symmetries"] = symmetries
+        kwargs["weights"] = weights
+        kwargs["neighbors"] = neighbors
 
     else:
         name = args.map or args.sample_from
         m = np.load(join(args.benchmark, name) + ".npy")
         if args.map is not None:
-            extra_args["specific_map"] = m
+            kwargs["specific_map"] = m
         else:
-            extra_args["sample_map"] = m
+            kwargs["sample_map"] = m
 
     t = time.time()
-    success, root = create_map(**vars(args), **extra_args, root=-1, nb_attempts=100)
+
+    root = create_map(rank=0, executable=args.build_exe, **vars(args), **kwargs, root=-1, nb_attempts=100)
+
     print("Time in seconds to generate map: {}".format(time.time() - t))
 
     is_pyvista = args.engine is None or args.engine.lower() == "pyvista"
@@ -75,7 +77,7 @@ if __name__ == "__main__":
     scene += root
 
     # If we want to show the map and we were successful
-    if args.show and success:
+    if args.show and scene is not None:
         if args.engine is None or args.engine.lower() == "pyvista":
             scene.remove(scene.root_0.agents_root_0)
 
@@ -84,7 +86,7 @@ if __name__ == "__main__":
         input("Press Enter to continue...")
         scene.close()
 
-    if success:
+    if scene is not None:
         print("Successful generation!")
     else:
         print("Failed to generate!")

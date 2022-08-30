@@ -1,0 +1,72 @@
+; Engine configuration file.
+; It's best edited using the editor UI and not directly,
+; since the parameters that go here are not all obvious.
+;
+; Format:
+;   [section] ; section goes between []
+;   param=value ; assign values to parameters
+
+config_version=5
+
+_global_script_classes=[{
+"base": "Node",
+"class": &"Agent",
+"language": &"GDScript",
+"path": "res://SimEnv/RLAgents/agent.gd"
+}, {
+"base": "Node",
+"class": &"AgentManager",
+"language": &"GDScript",
+"path": "res://SimEnv/RLAgents/agent_manager.gd"
+}, {
+"base": "Node",
+"class": &"Client",
+"language": &"GDScript",
+"path": "res://SimEnv/Bridge/client.gd"
+}, {
+"base": "Node",
+"class": &"Command",
+"language": &"GDScript",
+"path": "res://SimEnv/Bridge/command.gd"
+}, {
+"base": "Node",
+"class": &"RLAction",
+"language": &"GDScript",
+"path": "res://SimEnv/RLAgents/rl_action.gd"
+}, {
+"base": "Node",
+"class": &"RenderCamera",
+"language": &"GDScript",
+"path": "res://SimEnv/render_camera.gd"
+}, {
+"base": "Node",
+"class": &"RewardFunction",
+"language": &"GDScript",
+"path": "res://SimEnv/RLAgents/reward_function.gd"
+}, {
+"base": "Node3D",
+"class": &"SimulationNode",
+"language": &"GDScript",
+"path": "res://SimEnv/simulation_node.gd"
+}]
+_global_script_class_icons={
+"Agent": "",
+"AgentManager": "",
+"Client": "",
+"Command": "",
+"RLAction": "",
+"RenderCamera": "",
+"RewardFunction": "",
+"SimulationNode": ""
+}
+
+[application]
+
+config/name="SimEnv"
+run/main_scene="res://Scenes/scene.tscn"
+config/features=PackedStringArray("4.0", "Vulkan Clustered")
+config/icon="res://icon.png"
+
+[autoload]
+
+Simulator="*res://SimEnv/simulator.gd"

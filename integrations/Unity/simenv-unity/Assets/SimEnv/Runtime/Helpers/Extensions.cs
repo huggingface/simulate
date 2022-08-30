@@ -15,25 +15,8 @@ namespace SimEnv {
             return Simulator.instance.StartCoroutine(item);
         }
 
-        public static T Parse<T>(this Dictionary<string, object> kwargs, string key, bool silent = false) {
-            if (!kwargs.TryGetValue(key, out object value)) {
-                if (!silent)
-                    Debug.LogWarning("Key not found in kwargs");
-                return default(T);
-            }
-            try {
-                if (typeof(T).IsPrimitive)
-                    return (T)Convert.ChangeType(value, typeof(T));
-                JObject jObject = JObject.FromObject(value);
-                return jObject.ToObject<T>();
-            } catch (Exception e) {
-                Debug.LogWarning($"Failed to parse object with key {key} to type {typeof(T)}: {e}");
-                return default(T);
-            }
-        }
-
-        public static bool TryParse<T>(this Dictionary<string, object> kwargs, string key, out T result) {
-            result = default(T);
+        public static bool TryParse<T>(this Dictionary<string, object> kwargs, string key, out T result, T defaultValue = default(T)) {
+            result = defaultValue;
             if (!kwargs.TryGetValue(key, out object value))
                 return false;
             try {
@@ -41,10 +24,21 @@ namespace SimEnv {
                     result = (T)Convert.ChangeType(value, typeof(T));
                     return true;
                 }
-                JObject jObject = JObject.FromObject(value);
-                result = jObject.ToObject<T>();
-                return true;
-            } catch (Exception) {
+                JToken token = value as JToken;
+                switch (token.Type) {
+                    case JTokenType.Array:
+                        JArray jArray = JArray.FromObject(value);
+                        result = jArray.ToObject<T>();
+                        return true;
+                    case JTokenType.Object:
+                        JObject jObject = JObject.FromObject(value);
+                        result = jObject.ToObject<T>();
+                        return true;
+                    default:
+                        throw new ArgumentException("Unknown object type");
+                }
+            } catch (Exception e) {
+                Debug.LogWarning($"Failed to parse object with key {key} to type {typeof(T)}: {e}");
                 return false;
             }
         }

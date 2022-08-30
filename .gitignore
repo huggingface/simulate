@@ -147,3 +147,4 @@ wfc_binding.cpp
 
 .config/
 test.gltf
+.godot

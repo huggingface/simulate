@@ -13,14 +13,16 @@ namespace SimEnv.GLTF {
 #if UNITY_EDITOR
         [MenuItem("GameObject/SimEnv/Export GLB")]
         public static void ExportSelectedGLB() {
-            string filepath = EditorUtility.SaveFilePanel("Export GLB", "", "scene", "glb");
-            ExportGLB(Selection.activeGameObject, filepath);
+            GameObject selection = Selection.activeGameObject;
+            string filepath = EditorUtility.SaveFilePanel("Export GLB", "", selection.name, "glb");
+            ExportGLB(selection, filepath);
         }
 
         [MenuItem("GameObject/SimEnv/Export GLTF")]
         public static void ExportSelectedGLTF() {
-            string filepath = EditorUtility.SaveFilePanel("Export GLTF", "", "scene", "gltf");
-            ExportGLTF(Selection.activeGameObject, filepath);
+            GameObject selection = Selection.activeGameObject;
+            string filepath = EditorUtility.SaveFilePanel("Export GLTF", "", selection.name, "gltf");
+            ExportGLTF(selection, filepath);
         }
 #endif
 
@@ -43,6 +45,8 @@ namespace SimEnv.GLTF {
         }
 
         public static GLTFObject CreateGLTFObject(Transform root, string filepath) {
+            EnforceUniqueNames(root);
+
             byte[] bufferData = new byte[0];
             Dictionary<string, GLTFImage.ExportResult> imageDict = new Dictionary<string, GLTFImage.ExportResult>();
 
@@ -53,12 +57,30 @@ namespace SimEnv.GLTF {
             List<GLTFMesh.ExportResult> meshes = GLTFMesh.Export(gltfObject, nodes, ref bufferData);
             GLTFMaterial.Export(gltfObject, imageDict, meshes, filepath);
             GLTFImage.Export(gltfObject, imageDict);
+            GLTFCamera.Export(gltfObject, nodes);
             KHRLightsPunctual.Export(gltfObject, nodes);
-            HFColliders.Export(gltfObject, nodes);
+            List<HFColliders.ExportResult> colliders = HFColliders.Export(gltfObject, nodes);
+            HFPhysicMaterials.Export(gltfObject, colliders);
             HFRigidBodies.Export(gltfObject, nodes);
             GLTFBuffer.Export(gltfObject, bufferData, filepath);
 
             return gltfObject;
+        }
+
+        static void EnforceUniqueNames(Transform root) {
+            Dictionary<string, int> counts = new Dictionary<string, int>();
+            Dictionary<Transform, string> names = new Dictionary<Transform, string>();
+            foreach (Transform child in root.GetComponentsInChildren<Transform>(true)) {
+                string suffix = "";
+                if (counts.ContainsKey(child.name)) {
+                    suffix = (counts[child.name]).ToString();
+                    counts[child.name]++;
+                } else {
+                    counts[child.name] = 0;
+                }
+                names[child] = child.name + suffix;
+            }
+            names.Keys.ToList().ForEach(transform => transform.name = names[transform]);
         }
 
         public static int WriteVec2(Vector2[] data, GLTFObject gltfObject, ref byte[] bufferData) {
@@ -82,7 +104,7 @@ namespace SimEnv.GLTF {
             byte[] bytes = new byte[floatArray.Length * sizeof(float)];
             Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
-            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData);
+            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, BufferViewTarget.ARRAY_BUFFER);
             gltfObject.accessors ??= new List<GLTFAccessor>();
             gltfObject.accessors.Add(accessor);
             int accessorID = gltfObject.accessors.Count - 1;
@@ -113,7 +135,7 @@ namespace SimEnv.GLTF {
             byte[] bytes = new byte[floatArray.Length * sizeof(float)];
             Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
-            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData);
+            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, BufferViewTarget.ARRAY_BUFFER);
             gltfObject.accessors ??= new List<GLTFAccessor>();
             gltfObject.accessors.Add(accessor);
             int accessorID = gltfObject.accessors.Count - 1;
@@ -147,14 +169,14 @@ namespace SimEnv.GLTF {
             byte[] bytes = new byte[floatArray.Length * sizeof(float)];
             Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
-            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData);
+            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, BufferViewTarget.ARRAY_BUFFER);
             gltfObject.accessors ??= new List<GLTFAccessor>();
             gltfObject.accessors.Add(accessor);
             int accessorID = gltfObject.accessors.Count - 1;
             return accessorID;
         }
 
-        public static int WriteInt(int[] data, GLTFObject gltfObject, ref byte[] bufferData) {
+        public static int WriteInt(int[] data, GLTFObject gltfObject, ref byte[] bufferData, BufferViewTarget bufferViewTarget) {
             GLTFAccessor accessor = new GLTFAccessor();
             accessor.type = AccessorType.SCALAR;
             accessor.componentType = GLType.UNSIGNED_SHORT;
@@ -165,7 +187,7 @@ namespace SimEnv.GLTF {
             ushort[] shortArray = Array.ConvertAll(data, x => checked((ushort)x));
             Buffer.BlockCopy(shortArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
-            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData);
+            accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, bufferViewTarget);
             gltfObject.accessors ??= new List<GLTFAccessor>();
             gltfObject.accessors.Add(accessor);
             int accessorID = gltfObject.accessors.Count - 1;
@@ -178,7 +200,7 @@ namespace SimEnv.GLTF {
             Array.Resize(ref bufferData, bufferData.Length + padSize);
         }
 
-        public static int WriteToBuffer(byte[] newData, GLTFObject gltfObject, ref byte[] bufferData) {
+        public static int WriteToBuffer(byte[] newData, GLTFObject gltfObject, ref byte[] bufferData, BufferViewTarget bufferViewTarget) {
             int byteOffset = bufferData.Length;
             int byteLength = newData.Length;
             Array.Resize(ref bufferData, byteOffset + byteLength);
@@ -187,6 +209,7 @@ namespace SimEnv.GLTF {
             bufferView.buffer = 0; // Always exports to a single buffer
             bufferView.byteOffset = byteOffset;
             bufferView.byteLength = byteLength;
+            bufferView.target = (int)bufferViewTarget;
             gltfObject.bufferViews ??= new List<GLTFBufferView>();
             gltfObject.bufferViews.Add(bufferView);
             int bufferViewID = gltfObject.bufferViews.Count - 1;

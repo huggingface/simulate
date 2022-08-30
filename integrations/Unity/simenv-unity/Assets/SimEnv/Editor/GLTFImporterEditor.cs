@@ -10,6 +10,7 @@ namespace SimEnv.GLTF {
         public override void OnImportAsset(AssetImportContext ctx) {
             AnimationClip[] animations;
             GameObject root = Importer.LoadFromFile(ctx.assetPath, importSettings, out animations);
+            MeshCollider col = root.GetComponentInChildren<MeshCollider>();
             GLTFAssetUtility.SaveToAsset(root, animations, ctx, importSettings);
         }
     }

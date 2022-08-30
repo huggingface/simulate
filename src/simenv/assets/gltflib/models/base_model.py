@@ -4,8 +4,6 @@ from typing import Any, List, Optional
 from dataclasses_json import dataclass_json
 
 from ...gltf_extension import GLTF_EXTENSIONS_REGISTER
-from .extensions.hf_rl_agents import HFRlAgents
-from .extensions.hf_sensors import HFCameraSensors, HFStateSensors
 from .extensions.khr_lights_ponctual import KHRLightsPunctual
 
 
@@ -17,9 +15,6 @@ class OldExtensions:
     """
 
     KHR_lights_punctual: Optional[KHRLightsPunctual] = None
-    HF_rl_agents: Optional[HFRlAgents] = None
-    HF_camera_sensors: Optional[HFCameraSensors] = None
-    HF_state_sensors: Optional[HFStateSensors] = None
     HF_custom: Optional[List[str]] = None
 
 
