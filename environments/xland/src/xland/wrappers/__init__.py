@@ -1,1 +1,1 @@
-from .camera_wrapper import CameraWrapper, GymWrapper
+from .camera_wrapper import CameraWrapper

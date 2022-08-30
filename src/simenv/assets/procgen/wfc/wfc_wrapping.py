@@ -1,7 +1,6 @@
 """Python wrapper for constructors of C++ classes."""
 
 import numpy as np
-
 from wfc_binding import build_neighbor, build_tile, run_wfc, transform_to_id_pair
 
 
