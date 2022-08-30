@@ -105,6 +105,14 @@ def make_lander(engine="Unity", engine_exe=None):
         ),
     )
     lander.mesh.extrude((0, 1, 0), capping=True, inplace=True)
+    lander.controller = sm.Controller(
+        mapping=[
+            sm.ActionMapping("add_relative_force", axis=[1, 0, 0], amplitude=1),
+            sm.ActionMapping("add_relative_force", axis=[1, 0, 0], amplitude=-1),
+            sm.ActionMapping("add_relative_force", axis=[0, 1, 0], amplitude=1),
+        ],
+        n=3,
+    )
 
     r_leg_poly_shifted = shift_polygon(LEG_RIGHT_POLY, lander_init_pos)
     r_leg = sm.Polygon(points=r_leg_poly_shifted, material=lander_material, parent=lander, name="lander_r_leg")
@@ -146,9 +154,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_steps", default=100, type=int, required=False, help="number of steps to run the simulator"
     )
-    parser.add_argument(
-        "--plt", default=False, type=bool, required=False, help="show camera in matplotlib"
-    )
+    parser.add_argument("--plt", default=False, type=bool, required=False, help="show camera in matplotlib")
 
     args = parser.parse_args()
 
@@ -178,18 +184,19 @@ if __name__ == "__main__":
             fig, ax = plt.subplots()
             imdata = np.zeros(shape=(144, 256, 3), dtype=np.uint8)
             axim = ax.imshow(imdata, vmin=0, vmax=255)
-            env = sm.RLEnvironment(sc)
+            # env = sm.RLEnvironment(sc)
         for i in range(1000):
             print(f"step {i}")
-            event = sc.step()
+            action = sc.action_space.sample()
+            event = sc.step(action)
             # event, _, _, _ = env.step(action=0)
-            if "frames" in event and "cam" in event["frames"]:
-                frame = np.array(event["frames"]["cam"], dtype=np.uint8)
-                frame = frame.transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
-                if args.plt:
-                    axim.set_data(frame)
-                    fig.canvas.flush_events()
-                    plt.pause(0.01)
+            # if "frames" in event and "cam" in event["frames"]:
+            #     frame = np.array(event["frames"]["cam"], dtype=np.uint8)
+            #     frame = frame.transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
+            #     if args.plt:
+            #         axim.set_data(frame)
+            #         fig.canvas.flush_events()
+            #         plt.pause(0.01)
 #
 # plt.pause(0.5)
 #
