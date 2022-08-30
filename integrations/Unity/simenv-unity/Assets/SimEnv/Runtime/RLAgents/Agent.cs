@@ -6,7 +6,7 @@ using System.Linq;
 namespace SimEnv.RlAgents {
     public class Agent {
         public Node node { get; private set; }
-        public HF_Controllers.ActionSpace actionSpace { get; private set; }
+        public HFControllers.ActionSpace actionSpace { get; private set; }
 
         private Dictionary<string, object> observations = new Dictionary<string, object>();
 
@@ -66,7 +66,7 @@ namespace SimEnv.RlAgents {
 
             if (node.actionData.n != null) {
                 // Discrete action space
-                actionSpace = new HF_Controllers.ActionSpace(node.actionData);
+                actionSpace = new HFControllers.ActionSpace(node.actionData);
             } else if (node.agentData.discrete_actions != null) {
                 // continuous action space
                 Debug.LogWarning("Continous actions are yet to be implemented");
@@ -83,6 +83,9 @@ namespace SimEnv.RlAgents {
                 if (node2.camera != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
                     CameraSensor cameraSensor = new CameraSensor(node2.camera);
                     sensors.Add(cameraSensor);
+                }
+                if (node2.sensor != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
+                    sensors.Add(node2.sensor);
                 }
             }
 
@@ -113,7 +116,6 @@ namespace SimEnv.RlAgents {
         }
 
         public Data GetEventData() {
-            Debug.Log("Agent GetEventData");
             UpdateReward();
             bool done = IsDone();
             float reward = GetReward();
@@ -145,7 +147,6 @@ namespace SimEnv.RlAgents {
         }
 
         Dictionary<string, SensorBuffer> GetSensorObservations() {
-            Debug.Log("getting sensor observations");
             Dictionary<string, SensorBuffer> observations = new Dictionary<string, SensorBuffer>();
             foreach (var sensor in sensors) {
                 observations[sensor.GetName()] = sensor.GetObs();

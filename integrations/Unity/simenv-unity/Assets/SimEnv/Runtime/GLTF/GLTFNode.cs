@@ -30,8 +30,9 @@ namespace SimEnv.GLTF {
             public HFCollider HF_colliders;
             public HFArticulatedBody HF_articulated_bodies;
             public HFRlAgent HF_rl_agents;
-            public HF_Controller HF_controllers;
+            public HFController HF_controllers;
             public HFRigidbody HF_rigid_bodies;
+            public HFStateSensor HF_state_sensors;
             public string[] HF_custom;
         }
 
@@ -43,12 +44,15 @@ namespace SimEnv.GLTF {
         public class HFRlAgent {
             public int component_id;
         }
+        public class HFStateSensor {
+            public int state_sensor;
+        }
 
         public class HFRigidbody {
             public int component_id;
         }
 
-        public class HF_Controller {
+        public class HFController {
             public int component_id;
         }
 
@@ -236,6 +240,18 @@ namespace SimEnv.GLTF {
                                 Debug.LogWarning("Error importing actor controller");
                             } else {
                                 result[i].node.actionData = extensions.HF_controllers.components[agentValue];
+                            }
+                        }
+                        // State Sensor
+                        if (nodes[i].extensions.HF_state_sensors != null) {
+
+                            int sensorValue = nodes[i].extensions.HF_state_sensors.state_sensor;
+                            if (extensions == null || extensions.HF_state_sensors == null || extensions.HF_state_sensors.components == null || extensions.HF_state_sensors.components.Count < sensorValue) {
+                                Debug.LogWarning("Error importing state sensor");
+                            } else {
+                                HFStateSensors.HFStateSensor stateSensorData = extensions.HF_state_sensors.components[sensorValue];
+
+                                StateSensor stateSensor = new StateSensor(result[i].node, stateSensorData);
                             }
                         }
 

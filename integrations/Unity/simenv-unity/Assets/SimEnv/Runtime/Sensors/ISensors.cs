@@ -46,7 +46,6 @@ namespace SimEnv {
         public void Enable();
         public void Disable();
         public string GetBufferType();
-        public IEnumerator GetObs(SensorBuffer buffer, int index);
         public SensorBuffer GetObs();
     }
 }

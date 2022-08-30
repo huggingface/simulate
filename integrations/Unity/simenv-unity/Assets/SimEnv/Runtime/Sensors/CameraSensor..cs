@@ -31,7 +31,7 @@ namespace SimEnv {
         }
 
         public int[] GetShape() {
-            int[] shape = { renderCamera.camera.targetTexture.height, renderCamera.camera.targetTexture.width, 3 };
+            int[] shape = { 3, renderCamera.camera.targetTexture.height, renderCamera.camera.targetTexture.width };
             return shape;
         }
         public string GetBufferType() {

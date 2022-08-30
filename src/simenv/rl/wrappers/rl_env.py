@@ -125,7 +125,7 @@ class ParallelRLEnvironment(VecEnv):
                 pass
             elif sensor_data["type"] == "float":
                 shape = sensor_data["shape"]
-                measurement = np.array(sensor_data["uintBuffer"], dtype=np.float32).reshape(shape)
+                measurement = np.array(sensor_data["floatBuffer"], dtype=np.float32).reshape(shape)
                 sensor_obs[sensor_name] = measurement
             else:
                 raise TypeError

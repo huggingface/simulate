@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
+using UnityEngine;
 
 namespace SimEnv {
     public class EventData {
@@ -28,8 +29,10 @@ namespace SimEnv {
         public override void WriteJson(JsonWriter writer, object value, JsonSerializer serializer) {
             EventData eventData = value as EventData;
             JObject jo = JObject.FromObject(eventData);
-            foreach(string key in eventData.outputKwargs.Keys)
+            foreach (string key in eventData.outputKwargs.Keys) {
                 jo.Add(key, JObject.FromObject(eventData.outputKwargs[key]));
+
+            }
             jo.WriteTo(writer);
         }
 
