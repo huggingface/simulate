@@ -14,9 +14,11 @@
 
 # Lint as: python3
 """ A simenv Collider."""
-from dataclasses import dataclass
-from typing import List, Optional
+import itertools
+from dataclasses import InitVar, dataclass
+from typing import Any, ClassVar, List, Optional, Union
 
+from .asset import Asset
 from .gltf_extension import GltfExtensionMixin
 
 
@@ -24,30 +26,64 @@ ALLOWED_COLLIDER_TYPES = ["box", "sphere", "capsule", "mesh"]
 
 
 @dataclass
-class Collider(GltfExtensionMixin, gltf_extension_name="HF_colliders", object_type="component"):
+class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", object_type="node"):
     """
     A physics collider.
 
     Properties:
-    bounding_box (number[3]) The XYZ size of the bounding box that encapsulates the collider. The collider will attempt to fill the bounding box.
     type (str) The shape of the collider. (Optional, default "box")
-    mesh (number) Index of the mesh data when using the mesh collider type. (Optional)
+    bounding_box (number[3]) The XYZ size of the bounding box that encapsulates the collider. The collider will attempt to fill the bounding box. (Optional)
+    mesh (number) A mesh when using the mesh collider type. (Optional)
     offset (number[3]) The position offset of the collider relative to the object it's attached to. (Optional, default [0, 0, 0])
     intangible (boolean) Whether the collider should act as an intangible trigger. (Optiona, default False)
     convex (boolean) Whether the collider is convex when using the mesh collider type. (Optional)
     """
 
-    bounding_box: List[float]
     type: Optional[str] = None
-    mesh: Optional[int] = None
+    bounding_box: List[float] = None
+    mesh: Optional[Any] = None
     offset: Optional[List[float]] = None
     intangible: Optional[bool] = None
     convex: Optional[bool] = None
 
-    def __post_init__(self):
-        if len(self.bounding_box) != 3:
-            raise ValueError("Collider bounding_box must be a list of 3 numbers")
+    name: InitVar[Optional[str]] = None
+    position: InitVar[Optional[List[float]]] = None
+    rotation: InitVar[Optional[List[float]]] = None
+    scaling: InitVar[Optional[Union[float, List[float]]]] = None
+    transformation_matrix: InitVar[Optional[List[float]]] = None
+    parent: InitVar[Optional[Any]] = None
+    children: InitVar[Optional[List[Any]]] = None
+    created_from_file: InitVar[Optional[str]] = None
+
+    __NEW_ID: ClassVar[Any] = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
+    def __post_init__(
+        self, name, position, rotation, scaling, transformation_matrix, parent, children, created_from_file
+    ):
+        super().__init__(
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            transformation_matrix=transformation_matrix,
+            parent=parent,
+            children=children,
+            created_from_file=created_from_file,
+        )
+
         if self.type is None:
-            self.type = "box"
+            if self.mesh is not None:
+                self.type = "mesh"
+            else:
+                self.type = "box"
+
         if self.type not in ALLOWED_COLLIDER_TYPES:
             raise ValueError(f"Collider type {self.type} is not supported.")
+
+        if self.bounding_box is None and self.mesh is None:
+            raise ValueError(
+                "You should provide either a bounding box (for box, sphere and capsule colliders) or a mesh."
+            )
+
+        if self.bounding_box is not None and len(self.bounding_box) != 3:
+            raise ValueError("Collider bounding_box must be a list of 3 numbers")

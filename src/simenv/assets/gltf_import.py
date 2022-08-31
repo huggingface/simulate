@@ -193,21 +193,28 @@ def build_node_tree(
         mat = np.array(gltf_node.matrix).reshape(4, 4, order="F")
         common_kwargs["transformation_matrix"] = mat
 
+    # Load the extensions
     if gltf_node.extensions is not None:
         for (extension_name, _, _) in GLTF_EXTENSIONS_REGISTER:
             node_extension = getattr(gltf_node.extensions, extension_name, None)
             if node_extension is not None:
+                # We have either a special type of node (Reward, Sensor, Colliders)
+                # Or a special type of components (added to a node)
                 object_id = node_extension.object_id
                 component_name = node_extension.name
                 if component_name is None:
                     continue
                 model_extension = getattr(gltf_model.extensions, extension_name, None)
-                component = model_extension.components[object_id]
-                if type(component) in GLTF_NODES_EXTENSION_CLASS:
-                    common_kwargs["cls"] = component
-                else:
-                    common_kwargs[component_name] = component
+                component = model_extension.objects[object_id]
 
+                # Is it a node or component
+                if type(component) in GLTF_NODES_EXTENSION_CLASS:
+                    common_kwargs["cls"] = component  # node
+                else:
+                    common_kwargs[component_name] = component  # component
+
+    # Create the various type of objects
+    # Is it a camera
     if gltf_node.camera is not None:
         # Let's add a Camera
         gltf_camera = gltf_model.cameras[gltf_node.camera]
@@ -222,7 +229,7 @@ def build_node_tree(
             ymag=gltf_camera.orthographic.ymag if camera_type == "orthographic" else None,
             **common_kwargs,
         )
-
+    # It is a light
     elif gltf_node.extensions is not None and gltf_node.extensions.KHR_lights_punctual is not None:
         # Let's add a light
         gltf_light_id = gltf_node.extensions.KHR_lights_punctual.light
@@ -257,7 +264,7 @@ def build_node_tree(
             raise ValueError(
                 f"Unrecognized GLTF file light type: {gltf_light.type}, please check that the file is conform with the KHR_lights_punctual specifications"
             )
-
+    # Is it an Object3D or a Collider
     elif gltf_node.mesh is not None:
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
@@ -286,17 +293,32 @@ def build_node_tree(
                 )
             else:
                 scene_material = Material()
+
+            common_kwargs["mesh"] = mesh
+            common_kwargs["material"] = scene_material
             if len(primitives) > 1:
                 name = f"{base_name}_{mat.name}"
                 common_kwargs["name"] = name
-            scene_node = Object3D(**common_kwargs, mesh=mesh, material=scene_material)
+
+            if "cls" in common_kwargs:
+                # We have a custom node type with a mesh (Collider)
+                scene_node = common_kwargs.pop("cls")
+                for key, value in common_kwargs.items():
+                    # These two are different when set after creation
+                    if key == "parent":
+                        key = "tree_parent"
+                    if key == "children":
+                        key = "tree_children"
+                    setattr(scene_node, key, value)
+            else:
+                scene_node = Object3D(**common_kwargs)
     else:
-        # We now have either an empty node with a transform or one of our custom nodes (reward function, sensors, etc)
+        # We now have either an empty node with a transform or one of our custom nodes without meshes (reward function, sensors, etc)
         if "cls" in common_kwargs:
             # We have a custom node type (reward function, sensors, etc)
             scene_node = common_kwargs.pop("cls")
             for key, value in common_kwargs.items():
-                # These two are different
+                # These two are different when set after creation
                 if key == "parent":
                     key = "tree_parent"
                 if key == "children":

@@ -49,12 +49,11 @@ class Object3D(Asset):
         material: Optional[Material] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        super().__init__(name=name, position=position, parent=parent, children=children, collider=collider, **kwargs)
+        super().__init__(name=name, position=position, parent=parent, children=children, **kwargs)
 
         self.mesh = mesh if mesh is not None else pv.PolyData()
 
@@ -98,7 +97,6 @@ class Object3D(Asset):
         instance_copy.position = self.position
         instance_copy.rotation = self.rotation
         instance_copy.scaling = self.scaling
-        instance_copy.collider = self.collider
 
         if with_children:
             copy_children = []
@@ -189,6 +187,9 @@ class Sphere(Object3D):
 
     Parameters
     ----------
+    with_collider: bool (optional)
+        Set to true to automatically add an associated Sphere collider (default False)
+
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
@@ -230,7 +231,6 @@ class Sphere(Object3D):
         self,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
-        collider: Optional[Collider] = None,
         radius: Optional[float] = 1.0,
         theta_resolution: Optional[int] = 10,
         phi_resolution: Optional[int] = 10,
@@ -239,6 +239,7 @@ class Sphere(Object3D):
         start_phi: Optional[float] = 0,
         end_phi: Optional[float] = 180,
         sphere_type: Optional[str] = "uv",
+        with_collider: bool = False,
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
@@ -265,15 +266,15 @@ class Sphere(Object3D):
             direction = (0, 1, 0)
         pv.translate(mesh, (0, 0, 0), direction)
 
-        if collider is None:
+        if with_collider:
             collider = Collider(
+                name="collider",
                 type="sphere",
                 bounding_box=(radius, radius, radius),
             )
+            children = (children if children is not None else []) + [collider]
 
-        super().__init__(
-            name=name, mesh=mesh, position=position, parent=parent, children=children, collider=collider, **kwargs
-        )
+        super().__init__(name=name, mesh=mesh, position=position, parent=parent, children=children, **kwargs)
 
 
 # TODO: add rest of arguments
@@ -319,12 +320,12 @@ class Capsule(Object3D):
         self,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
-        collider: Optional[Collider] = None,
         height: Optional[float] = 1.0,
         radius: Optional[float] = 0.2,
         theta_resolution: Optional[int] = 4,
         phi_resolution: Optional[int] = 4,
         sphere_type: Optional[str] = "uv",
+        with_collider: bool = False,
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
@@ -349,15 +350,15 @@ class Capsule(Object3D):
             direction = (0, 1, 0)
         pv.translate(mesh, (0, 0, 0), direction)
 
-        if collider is None:
+        if with_collider:
             collider = Collider(
+                name="collider",
                 type="capsule",
                 bounding_box=(radius, height, radius),
             )
+            children = (children if children is not None else []) + [collider]
 
-        super().__init__(
-            mesh=mesh, name=name, position=position, parent=parent, children=children, collider=collider, **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Cylinder(Object3D):
@@ -459,10 +460,10 @@ class Box(Object3D):
         bounds: Optional[Union[float, List[float]]] = None,
         level: Optional[int] = 0,
         quads: Optional[bool] = True,
+        with_collider: bool = False,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
-        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
@@ -485,18 +486,17 @@ class Box(Object3D):
         if direction is not None:
             pv.translate(mesh, (0, 0, 0), direction)
 
-        if collider is None:
+        if with_collider:
             bounding_box = (bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
             offset = (
                 (bounds[0] + bounds[1]) / 2.0,
                 (bounds[2] + bounds[3]) / 2.0,
                 (bounds[4] + bounds[5]) / 2.0,
             )
-            collider = Collider(type="box", bounding_box=bounding_box, offset=offset)
+            collider = Collider(name="collider", type="box", bounding_box=bounding_box, offset=offset)
+            children = (children if children is not None else []) + [collider]
 
-        super().__init__(
-            mesh=mesh, name=name, position=position, parent=parent, children=children, collider=collider, **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
 
 class Cone(Object3D):

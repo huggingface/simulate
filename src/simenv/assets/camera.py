@@ -26,7 +26,6 @@ except:
     pass
 
 from .asset import Asset
-from .collider import Collider
 
 
 ALLOWED_CAMERA_TYPES = ["perspective", "orthographic"]
@@ -64,7 +63,6 @@ class Camera(Asset):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
-        collider: Optional[Collider] = None,
         scaling: Optional[Union[float, List[float]]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
@@ -76,7 +74,6 @@ class Camera(Asset):
             scaling=scaling,
             parent=parent,
             children=children,
-            collider=collider,
         )
         self.width = width
         self.height = height
@@ -109,7 +106,6 @@ class Camera(Asset):
             position=self.position,
             rotation=self.rotation,
             scaling=self.scaling,
-            collider=self.collider,
             width=self.width,
             height=self.height,
             aspect_ratio=self.aspect_ratio,
@@ -155,7 +151,6 @@ class CameraDistant(Camera):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
-        collider: Optional[Collider] = None,
         scaling: Optional[Union[float, List[float]]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
@@ -173,7 +168,6 @@ class CameraDistant(Camera):
             scaling=scaling,
             parent=parent,
             children=children,
-            collider=collider,
             width=width,
             height=height,
             aspect_ratio=aspect_ratio,

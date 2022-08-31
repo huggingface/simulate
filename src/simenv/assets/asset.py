@@ -26,7 +26,6 @@ from huggingface_hub import create_repo, hf_hub_download, upload_file
 from .actions import Action, ActionDict, ActionTuple
 from .anytree import NodeMixin
 from .articulated_body import ArticulatedBodyComponent
-from .collider import Collider
 from .controller import Controller, ControllerDict, ControllerTuple
 from .rigid_body import RigidBodyComponent
 from .utils import (
@@ -38,7 +37,7 @@ from .utils import (
 )
 
 
-ALLOWED_COMPONENTS_ATTRIBUTES = ["collider", "actuator", "physics_component", "controller"]
+ALLOWED_COMPONENTS_ATTRIBUTES = ["actuator", "physics_component"]
 
 
 class Asset(NodeMixin, object):
@@ -65,7 +64,6 @@ class Asset(NodeMixin, object):
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
-        collider: Optional[Collider] = None,
         controller: Optional[Union[Controller, ControllerDict, ControllerTuple]] = None,
         physics_component: Union[None, RigidBodyComponent, ArticulatedBodyComponent] = None,
         parent=None,
@@ -93,7 +91,6 @@ class Asset(NodeMixin, object):
             self.transformation_matrix = transformation_matrix
 
         # Extensions for physics/RL
-        self.collider = collider
         self.controller = controller
         self.physics_component = physics_component
 
@@ -119,14 +116,6 @@ class Asset(NodeMixin, object):
     def components(self) -> List[Any]:
         """Return a list of the components of the asset."""
         return list(comp for _, comp in self.named_components)
-
-    @property
-    def collider(self):
-        return self._collider
-
-    @collider.setter
-    def collider(self, collider: "Collider"):
-        self._collider = collider
 
     # Actions and action_space
     @property
@@ -175,7 +164,6 @@ class Asset(NodeMixin, object):
             position=self.position,
             rotation=self.rotation,
             scaling=self.scaling,
-            collider=self.collider,
         )
 
         if with_children:
