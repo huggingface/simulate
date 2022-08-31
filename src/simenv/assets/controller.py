@@ -15,7 +15,7 @@
 # Lint as: python3
 """ Some mapping from Discrete and Box Spaces to physics actions."""
 from dataclasses import dataclass
-from typing import Dict, List, Optional, Type, Union
+from typing import Dict, List, Optional, Union
 
 import numpy as np
 
