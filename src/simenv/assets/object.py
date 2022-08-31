@@ -1246,5 +1246,5 @@ class ProcGenPrimsMaze3D(Asset):
                 position=[px, 0.5, pz],
                 material=self.wall_material,
                 scaling=[sx, 1.0, sz],
-                with_collider=True
+                with_collider=True,
             )

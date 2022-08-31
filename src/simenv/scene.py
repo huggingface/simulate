@@ -110,7 +110,9 @@ class Scene(Asset):
         actors = self.actors
         if len(actors) > 0:
             actor = actors[0]
-            sensors = actor.tree_filtered_descendants(lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor)))
+            sensors = actor.tree_filtered_descendants(
+                lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor))
+            )
             if len(sensors) == 1:
                 return sensors[0].observation_space
             elif sensors:

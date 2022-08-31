@@ -14,6 +14,7 @@
 """Wrapper around SimEnv scene for easier RL training"""
 
 from collections import defaultdict
+
 import numpy as np
 from gym import spaces
 
@@ -104,10 +105,10 @@ class ParallelRLEnvironment(VecEnv):
                 reward.append(actor_data["reward"])
                 done.append(actor_data["done"])
                 info.append({})
-            
+
             obs = self._obs_dict_to_tensor2(obs)
             reward = np.array(reward)
-            done = np.array(done) 
+            done = np.array(done)
 
         return obs, reward, done, info
 
@@ -126,7 +127,7 @@ class ParallelRLEnvironment(VecEnv):
                 actor_data = event["actors"][actor_name]
                 actor_obs = self._extract_sensor_obs(actor_data["observations"])
                 obs.append(actor_obs)
-            
+
             obs = self._obs_dict_to_tensor2(obs)
 
         return obs
@@ -137,7 +138,7 @@ class ParallelRLEnvironment(VecEnv):
         for o in obs:
             for key, value in o.items():
                 out[key].append(value)
-        
+
         for k in out.keys():
             out[key] = np.stack(out[key])
 
@@ -169,8 +170,6 @@ class ParallelRLEnvironment(VecEnv):
     #         return {"CameraSensor": np.stack(out)[0]}  # quick workaround while Thom refactors this
     #     else:
     #         return {"CameraSensor": np.stack(out)}  # quick workaround while Thom refactors this
-
-    
 
     def close(self):
         self.scene.close()

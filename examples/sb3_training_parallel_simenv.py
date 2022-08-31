@@ -7,15 +7,69 @@ import simenv as sm
 
 def generate_map(index):
     root = sm.Asset(name=f"root_{index}")
-    root += sm.Box(name=f"floor_{index}", position=[0, -0.05, 0], scaling=[10, 0.1, 10], material=sm.Material.BLUE, with_collider=True)
-    root += sm.Box(name=f"wall1_{index}", position=[-1, 0.5, 0], scaling=[0.1, 1, 5.1], material=sm.Material.GRAY75, with_collider=True)
-    root += sm.Box(name=f"wall2_{index}", position=[1, 0.5, 0], scaling=[0.1, 1, 5.1], material=sm.Material.GRAY75, with_collider=True)
-    root += sm.Box(name=f"wall3_{index}", position=[0, 0.5, 4.5], scaling=[5.9, 1, 0.1], material=sm.Material.GRAY75, with_collider=True)
-    root += sm.Box(name=f"wall4_{index}", position=[-2, 0.5, 2.5], scaling=[1.9, 1, 0.1], material=sm.Material.GRAY75, with_collider=True)
-    root += sm.Box(name=f"wall5_{index}", position=[2, 0.5, 2.5], scaling=[1.9, 1, 0.1], material=sm.Material.GRAY75, with_collider=True)
-    root += sm.Box(name=f"wall6_{index}", position=[-3, 0.5, 3.5], scaling=[0.1, 1, 2.1], material=sm.Material.GRAY75, with_collider=True)
-    root += sm.Box(name=f"wall7_{index}", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1], material=sm.Material.GRAY75, with_collider=True)
-    root += sm.Box(name=f"wall8_{index}", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1], material=sm.Material.GRAY75, with_collider=True)
+    root += sm.Box(
+        name=f"floor_{index}",
+        position=[0, -0.05, 0],
+        scaling=[10, 0.1, 10],
+        material=sm.Material.BLUE,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall1_{index}",
+        position=[-1, 0.5, 0],
+        scaling=[0.1, 1, 5.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall2_{index}",
+        position=[1, 0.5, 0],
+        scaling=[0.1, 1, 5.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall3_{index}",
+        position=[0, 0.5, 4.5],
+        scaling=[5.9, 1, 0.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall4_{index}",
+        position=[-2, 0.5, 2.5],
+        scaling=[1.9, 1, 0.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall5_{index}",
+        position=[2, 0.5, 2.5],
+        scaling=[1.9, 1, 0.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall6_{index}",
+        position=[-3, 0.5, 3.5],
+        scaling=[0.1, 1, 2.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall7_{index}",
+        position=[3, 0.5, 3.5],
+        scaling=[0.1, 1, 2.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall8_{index}",
+        position=[0, 0.5, -2.5],
+        scaling=[1.9, 1, 0.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
 
     collectable = sm.Sphere(name=f"collectable_{index}", position=[2, 0.5, 3.4], radius=0.3, with_collider=True)
     root += collectable

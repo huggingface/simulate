@@ -1,7 +1,8 @@
+import argparse
 import math
 import random
 import time
-import argparse
+
 from stable_baselines3 import PPO
 
 import simenv as sm
@@ -16,8 +17,10 @@ def generate_map(index):
     n_objects = 1
     maze = ProcGenPrimsMaze3D(maze_width, maze_depth, wall_material=sm.Material.YELLOW)
     maze += sm.Box(
-        position=[0, 0, 0], bounds=[0.0, maze_width, 0, 0.1, 0.0, maze_depth], material=sm.Material.BLUE
-        , with_collider=True
+        position=[0, 0, 0],
+        bounds=[0.0, maze_width, 0, 0.1, 0.0, maze_depth],
+        material=sm.Material.BLUE,
+        with_collider=True,
     )
     actor_position = [math.floor(maze_width / 2.0) + 0.5, 0.0, math.floor(maze_depth / 2.0) + 0.5]
 
@@ -30,12 +33,7 @@ def generate_map(index):
             # avoid overlapping collectables
             position = [random.randint(0, maze_width - 1) + 0.5, 0.5, random.randint(0, maze_depth - 1) + 0.5]
 
-        collectable = sm.Sphere(
-            position=position,
-            radius=0.2,
-            material=sm.Material.RED,
-            with_collider=True
-        )
+        collectable = sm.Sphere(position=position, radius=0.2, material=sm.Material.RED, with_collider=True)
         maze += collectable
         reward_function = sm.RewardFunction(
             type="sparse",
