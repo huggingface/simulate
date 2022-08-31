@@ -45,6 +45,7 @@ namespace SimEnv.GLTF {
             }
             for (int i = 0; i < meshColliders.Length; i++) {
                 Mesh mesh = meshColliders[i].sharedMesh;
+                Debug.Log(mesh);
                 if (visitedMeshes.Contains(mesh)) continue;
                 ctx.AddObjectToAsset(mesh.name, mesh);
                 visitedMeshes.Add(mesh);

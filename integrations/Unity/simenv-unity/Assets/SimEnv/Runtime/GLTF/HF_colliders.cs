@@ -15,7 +15,7 @@ namespace SimEnv.GLTF {
         public class GLTFCollider {
             public string name = "";
             [JsonConverter(typeof(EnumConverter))] public ColliderType type = ColliderType.box;
-            [JsonProperty("bounding_box"), JsonConverter(typeof(Vector3Converter))] public Vector3 boundingBox;
+            [JsonConverter(typeof(Vector3Converter))] public Vector3 bounding_box;
             public int? mesh;
             [JsonConverter(typeof(TranslationConverter))] public Vector3 offset = Vector3.zero;
             public bool intangible = false;

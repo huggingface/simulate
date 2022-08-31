@@ -155,8 +155,8 @@ namespace SimEnv.GLTF {
                                 mesh = meshResult.mesh;
                             }
                             PhysicMaterial physicMaterial = null;
-                            if (collider.physicMaterial.HasValue)
-                                physicMaterial = physicMaterialTask.result[collider.physicMaterial.Value].material;
+                            if (collider.physic_material.HasValue)
+                                physicMaterial = physicMaterialTask.result[collider.physic_material.Value].material;
 
                             HFColliders.GLTFCollider.ImportResult importResult = new HFColliders.GLTFCollider.ImportResult() {
                                 collider = collider,
@@ -164,14 +164,9 @@ namespace SimEnv.GLTF {
                                 physicMaterial = physicMaterial,
                             };
 
-                            if (result[i].parent == null) {
-                                Debug.LogWarning("Error collider node has no parent");
-                            } else {
-                                result[i].transform.gameObject.SetActive(false);  // We don't need the gameobject since colliders are objects on the parent in Unity
-                                result[result[i].parent.Value].node.colliderData = importResult;  // we add the Collider as a component to the parent node
-                                Debug.LogWarning($"Adding collider to node {result[i].parent.Value}");
-                                Debug.LogWarning($"Data {result[result[i].parent.Value].node.colliderData}");
-                            }
+                            result[result[i].parent.Value].node.colliderData = importResult;  // we add the Collider as a component to the parent node
+                            Debug.LogWarning($"Adding collider to node {result[i].parent.Value}");
+                            Debug.LogWarning($"Data {result[result[i].parent.Value].node.colliderData}");
                         }
                     } else if (nodes[i].mesh.HasValue) {
                         GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];

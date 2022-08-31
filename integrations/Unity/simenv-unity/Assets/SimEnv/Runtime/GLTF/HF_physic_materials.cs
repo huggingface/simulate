@@ -102,7 +102,7 @@ namespace SimEnv.GLTF {
                 if (physicMaterial == null) continue;
                 if (!objects.Contains(physicMaterial))
                     objects.Add(physicMaterial);
-                collider.physicMaterial = objects.IndexOf(physicMaterial);
+                collider.physic_material = objects.IndexOf(physicMaterial);
             }
             if (objects.Count == 0) return;
             gltfObject.extensionsUsed ??= new List<string>();
