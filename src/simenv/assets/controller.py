@@ -67,7 +67,7 @@ class Controller(GltfExtensionMixin, gltf_extension_name="HF_controllers", objec
     low: Optional[Union[float, List[float]]] = None
     high: Optional[Union[float, List[float]]] = None
     shape: Optional[List[int]] = None
-    dtype: Type = np.float32
+    dtype: Optional[str] = "float32"
 
     seed: Optional[int] = None
 
@@ -95,8 +95,8 @@ class Controller(GltfExtensionMixin, gltf_extension_name="HF_controllers", objec
                 raise ValueError(
                     "For continuous actions (one of high, low, shape is defined), n should be set to None."
                 )
-
-            self.space = spaces.Box(low=self.low, high=self.high, shape=self.shape, dtype=self.dtype, seed=self.seed)
+            dtype = np.dtype(self.dtype)
+            self.space = spaces.Box(low=self.low, high=self.high, shape=self.shape, dtype=dtype, seed=self.seed)
 
 
 @dataclass
