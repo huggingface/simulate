@@ -43,6 +43,8 @@ target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.unifor
 scene += target
 
 
+
+
 and_reward = sm.RewardFunction(type="and")
 and_child1 = sm.RewardFunction(type="sparse", entity_a=target, entity_b=actor)
 and_child2 = sm.RewardFunction(type="sparse", entity_a=target, entity_b=target)
@@ -56,7 +58,7 @@ or_child2 += sm.RewardFunction(type="dense", entity_a=target, entity_b=actor)
 or_reward += [or_child1, or_child2]
 actor += or_reward
 
-not_reward = sm.RewardFunction(type="not")  # By default a dense reward equal to the distance between 2 entities
+not_reward =  sm.RewardFunction(type="not")  # By default a dense reward equal to the distance between 2 entities
 not_reward += sm.RewardFunction(type="see", entity_a=target, entity_b=actor)
 actor += not_reward
 
@@ -72,12 +74,12 @@ plt.ion()
 fig1, ax1 = plt.subplots()
 dummy_obs = np.zeros(shape=(actor.camera.height, actor.camera.width, 3), dtype=np.uint8)
 axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
-
+  
 
 for i in range(1000):
     print(i)
     obs, reward, done, info = env.step()
-    obs = obs["CameraSensor"].transpose(1, 2, 0)
+    obs = obs["CameraSensor"].transpose(1,2,0)
     axim1.set_data(obs)
     fig1.canvas.flush_events()
 
