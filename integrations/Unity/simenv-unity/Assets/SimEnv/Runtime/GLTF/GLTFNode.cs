@@ -33,6 +33,7 @@ namespace SimEnv.GLTF {
             public HFController HF_controllers;
             public HFRigidbody HF_rigid_bodies;
             public HFStateSensor HF_state_sensors;
+            public HFRewardFunction HF_reward_functions;
             public string[] HF_custom;
         }
 
@@ -45,7 +46,7 @@ namespace SimEnv.GLTF {
             public int component_id;
         }
         public class HFStateSensor {
-            public int state_sensor;
+            public int component_id;
         }
 
         public class HFRigidbody {
@@ -61,6 +62,9 @@ namespace SimEnv.GLTF {
         }
 
         public class HFCollider {
+            public int component_id;
+        }
+        public class HFRewardFunction {
             public int component_id;
         }
 
@@ -235,23 +239,32 @@ namespace SimEnv.GLTF {
                         }
                         // Actor Actions
                         if (nodes[i].extensions.HF_controllers != null) {
-                            int agentValue = nodes[i].extensions.HF_controllers.component_id;
-                            if (extensions == null || extensions.HF_controllers == null || extensions.HF_controllers.components == null || extensions.HF_controllers.components.Count < agentValue) {
+                            int value = nodes[i].extensions.HF_controllers.component_id;
+                            if (extensions == null || extensions.HF_controllers == null || extensions.HF_controllers.components == null || extensions.HF_controllers.components.Count < value) {
                                 Debug.LogWarning("Error importing actor controller");
                             } else {
-                                result[i].node.actionData = extensions.HF_controllers.components[agentValue];
+                                result[i].node.actionData = extensions.HF_controllers.components[value];
                             }
                         }
                         // State Sensor
                         if (nodes[i].extensions.HF_state_sensors != null) {
 
-                            int sensorValue = nodes[i].extensions.HF_state_sensors.state_sensor;
+                            int sensorValue = nodes[i].extensions.HF_state_sensors.component_id;
                             if (extensions == null || extensions.HF_state_sensors == null || extensions.HF_state_sensors.components == null || extensions.HF_state_sensors.components.Count < sensorValue) {
                                 Debug.LogWarning("Error importing state sensor");
                             } else {
-                                HFStateSensors.HFStateSensor stateSensorData = extensions.HF_state_sensors.components[sensorValue];
+                                result[i].node.stateSensorData = extensions.HF_state_sensors.components[sensorValue];
+                            }
+                        }
+                        // Reward Functions
+                        if (nodes[i].extensions.HF_reward_functions != null) {
 
-                                StateSensor stateSensor = new StateSensor(result[i].node, stateSensorData);
+                            int rewardValue = nodes[i].extensions.HF_reward_functions.component_id;
+                            if (extensions == null || extensions.HF_reward_functions == null || extensions.HF_reward_functions.components == null || extensions.HF_reward_functions.components.Count < rewardValue) {
+                                Debug.LogWarning("Error importing reward function");
+                            } else {
+                                Debug.Log(extensions.HF_reward_functions.components[rewardValue].type);
+                                result[i].node.rewardFunctionData = extensions.HF_reward_functions.components[rewardValue];
                             }
                         }
 

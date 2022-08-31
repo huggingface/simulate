@@ -12,6 +12,8 @@ namespace SimEnv {
         public HFArticulatedBodies.GLTFArticulatedBody articulatedBodyData;
         public HFRlAgents.HFRlAgentsComponent agentData;
         public HFControllers.HFController actionData;
+        public HFStateSensors.HFStateSensor stateSensorData;
+        public HFRewardFunctions.HFRewardFunction rewardFunctionData;
 
         public new RenderCamera camera { get; private set; }
         public new Light light { get; private set; }
@@ -24,6 +26,8 @@ namespace SimEnv {
         public void Initialize() {
             if (cameraData != null)
                 InitializeCamera();
+            if (stateSensorData != null)
+                InitializeStateSensor();
             if (lightData != null)
                 InitializeLight();
             if (colliderData != null)
@@ -51,6 +55,10 @@ namespace SimEnv {
 
         void InitializeCamera() {
             camera = new RenderCamera(this, cameraData);
+        }
+
+        void InitializeStateSensor() {
+            sensor = new StateSensor(this, stateSensorData);
         }
 
         void InitializeLight() {
