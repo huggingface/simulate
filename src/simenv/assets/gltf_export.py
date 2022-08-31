@@ -612,7 +612,7 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
     process_tree_after_gltf(root_node)
 
     # Add metadata
-    if root_node.metadata is not None:
+    if hasattr(root_node, "metadata") and root_node.metadata is not None:
         if not extension_used:
             extension_used = set()
         extension_used.add("HF_metadata")
