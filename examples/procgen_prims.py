@@ -60,7 +60,6 @@ def generate_map(index):
     return maze
 
 
-
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
