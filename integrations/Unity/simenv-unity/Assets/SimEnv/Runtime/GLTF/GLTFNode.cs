@@ -29,7 +29,6 @@ namespace SimEnv.GLTF {
             public KHRLight KHR_lights_punctual;
             public HFCollider HF_colliders;
             public HFArticulatedBody HF_articulated_bodies;
-            public HFRlAgent HF_rl_agents;
             public HFController HF_controllers;
             public HFRigidbody HF_rigid_bodies;
             public HFStateSensor HF_state_sensors;
@@ -42,9 +41,6 @@ namespace SimEnv.GLTF {
             public string contents;
         }
 
-        public class HFRlAgent {
-            public int object_id;
-        }
         public class HFStateSensor {
             public int object_id;
         }
@@ -141,7 +137,7 @@ namespace SimEnv.GLTF {
                 for (int i = 0; i < result.Length; i++)
                     nodes[i].ApplyMatrix(result[i].transform);
 
-                // Now we add the more complex properties to the nodes (Mesh, Lights, Colliders, Cameras, RL Agents, etc)
+                // Now we add the more complex properties to the nodes (Mesh, Lights, Colliders, Cameras, Actor, etc)
                 // Colliders and Mesh
                 for (int i = 0; i < result.Length; i++) {
                     // Colliders are compnent and not node in Unity so we are taking care of this case
@@ -152,7 +148,7 @@ namespace SimEnv.GLTF {
                         } else {
                             Debug.LogWarning($"collider with node {i}");
                             HFColliders.GLTFCollider collider = extensions.HF_colliders.objects[componentId];
-                            
+
                             Mesh mesh = null;
                             if (nodes[i].mesh.HasValue) {
                                 GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
@@ -161,7 +157,7 @@ namespace SimEnv.GLTF {
                             PhysicMaterial physicMaterial = null;
                             if (collider.physicMaterial.HasValue)
                                 physicMaterial = physicMaterialTask.result[collider.physicMaterial.Value].material;
-                                
+
                             HFColliders.GLTFCollider.ImportResult importResult = new HFColliders.GLTFCollider.ImportResult() {
                                 collider = collider,
                                 mesh = mesh,
@@ -207,7 +203,7 @@ namespace SimEnv.GLTF {
                     if (nodes[i].camera.HasValue)
                         result[i].node.cameraData = cameras[nodes[i].camera.Value];
 
-                    // Extensions (lights, colliders, RL agents, etc)
+                    // Extensions (lights, colliders, Actor etc)
                     if (nodes[i].extensions != null) {
                         // Lights
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
@@ -236,16 +232,6 @@ namespace SimEnv.GLTF {
                                 Debug.LogWarning("Error importing rigidbody");
                             } else {
                                 result[i].node.rigidBodyData = extensions.HF_rigid_bodies.objects[componentId];
-                            }
-                        }
-
-                        // RL Agents
-                        if (nodes[i].extensions.HF_rl_agents != null) {
-                            int agentValue = nodes[i].extensions.HF_rl_agents.object_id;
-                            if (extensions == null || extensions.HF_rl_agents == null || extensions.HF_rl_agents.objects == null || extensions.HF_rl_agents.objects.Count < agentValue) {
-                                Debug.LogWarning("Error importing agent");
-                            } else {
-                                result[i].node.agentData = extensions.HF_rl_agents.objects[agentValue];
                             }
                         }
                         // Actor Actions
