@@ -2,7 +2,6 @@ import itertools
 from typing import List, Optional, Union
 
 from .asset import Asset
-from .collider import Collider
 
 
 class Light(Asset):
@@ -33,7 +32,6 @@ class Light(Asset):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -44,7 +42,6 @@ class Light(Asset):
             scaling=scaling,
             parent=parent,
             children=children,
-            collider=collider,
         )
         self.intensity = intensity
         self.color = color
@@ -63,7 +60,6 @@ class Light(Asset):
             position=self.position,
             rotation=self.rotation,
             scaling=self.scaling,
-            collider=self.collider,
             intensity=self.intensity,
             color=self.color,
             range=self.range,
@@ -101,7 +97,6 @@ class LightSun(Light):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        collider: Optional[Collider] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -120,7 +115,6 @@ class LightSun(Light):
             position=position,
             rotation=rotation,
             scaling=scaling,
-            collider=collider,
             parent=parent,
             children=children,
         )

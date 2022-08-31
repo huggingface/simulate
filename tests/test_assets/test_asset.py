@@ -47,7 +47,6 @@ class AssetTest(unittest.TestCase):
         np.testing.assert_array_equal(asset.rotation, np.array([0.0, 0.0, 0.0, 1.0]))
         np.testing.assert_array_equal(asset.scaling, np.array([1.0, 1.0, 1.0]))
 
-        self.assertIsNone(asset.collider)
         self.assertEqual(asset._n_copies, 0)
 
     def test_translate_asset(self):
