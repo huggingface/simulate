@@ -21,9 +21,10 @@ namespace SimEnv.GLTF {
             public bool convex = false;
             public int? physic_material;
 
-            public bool ShouldSerializeoffset() { return offset != Vector3.zero; }
-            public bool ShouldSerializeintangible() { return intangible; }
-            public bool ShouldSerializeconvex() { return convex; }
+            public bool ShouldSerializebounding_box() => bounding_box != Vector3.zero;
+            public bool ShouldSerializeoffset() => offset != Vector3.zero;
+            public bool ShouldSerializeintangible() => intangible;
+            public bool ShouldSerializeconvex() => convex;
 
             public override int GetHashCode() {
                 return type.GetHashCode()
@@ -67,7 +68,10 @@ namespace SimEnv.GLTF {
                 if (!objects.Contains(collider))
                     objects.Add(collider);
                 node.extensions ??= new GLTFNode.Extensions();
-                node.extensions.HF_colliders = new GLTFNode.HFCollider() { object_id = objects.IndexOf(collider) };
+                node.extensions.HF_colliders = new GLTFNode.NodeExtension() { 
+                    name = collider.name,
+                    object_id = objects.IndexOf(collider),
+                };
             }
             if (objects.Count == 0) return objects;
             gltfObject.extensionsUsed ??= new List<string>();

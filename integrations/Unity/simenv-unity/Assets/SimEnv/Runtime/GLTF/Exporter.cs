@@ -101,7 +101,7 @@ namespace SimEnv.GLTF {
             Dictionary<Transform, List<Collider>> colliders = new Dictionary<Transform, List<Collider>>();
             foreach (Transform child in root.GetComponentsInChildren<Transform>(true)) {
                 Collider[] cols = child.GetComponents<Collider>();
-                if ((cols.Length > 0 && child.GetComponent<MeshFilter>() != null) || cols.Length > 1)
+                if ((cols.Length > 0 && (child.GetComponent<MeshFilter>() != null || child.childCount > 0)) || cols.Length > 1)
                     colliders.Add(child, cols.ToList());
             }
             List<Transform> children = new List<Transform>();
@@ -119,7 +119,6 @@ namespace SimEnv.GLTF {
                     children.Add(copy);
                     string suffix = i > 0 ? i.ToString() : "";
                     copy.gameObject.name = $"{transform.name}Collider{suffix}";
-                    Debug.Log(copy.gameObject.name);
                     foreach (Component component in copy.GetComponents<Component>()) {
                         if (component is Transform) continue;
                         if (!(component is Collider) || !((Collider)component).EquivalentTo(colliders[transform][i]))

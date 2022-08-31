@@ -202,8 +202,6 @@ def build_node_tree(
                 # Or a special type of components (added to a node)
                 object_id = node_extension.object_id
                 component_name = node_extension.name
-                if component_name is None:
-                    continue
                 model_extension = getattr(gltf_model.extensions, extension_name, None)
                 component = model_extension.objects[object_id]
 
@@ -212,6 +210,16 @@ def build_node_tree(
                     common_kwargs["cls"] = component  # node
                 else:
                     common_kwargs[component_name] = component  # component
+
+    # Add material to collider
+    gltf_collider = None
+    if gltf_node.extensions is not None and gltf_node.extensions.HF_colliders is not None:
+        gltf_collider = common_kwargs["cls"]
+        material_id = gltf_collider.physic_material
+        if material_id is not None:
+            material = gltf_model.extensions.HF_physic_materials.objects[material_id]
+            common_kwargs["material"] = material
+            gltf_collider.physic_material = None
 
     # Create the various type of objects
     # Is it a camera
@@ -273,36 +281,36 @@ def build_node_tree(
         for index, primitive in enumerate(primitives):
             mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][index]
 
-            material_id = primitive.material
-            if material_id is not None:
-                mat = gltf_model.materials[material_id]
-                pbr = mat.pbrMetallicRoughness
+            if gltf_collider is None:
+                material_id = primitive.material
+                if material_id is not None:
+                    mat = gltf_model.materials[material_id]
+                    pbr = mat.pbrMetallicRoughness
 
-                scene_material = Material(
-                    name=mat.name,
-                    base_color=pbr.baseColorFactor,
-                    base_color_texture=get_texture_as_pyvista(gltf_scene, pbr.baseColorTexture),
-                    metallic_factor=pbr.metallicFactor,
-                    metallic_roughness_texture=get_texture_as_pyvista(gltf_scene, pbr.metallicRoughnessTexture),
-                    normal_texture=get_texture_as_pyvista(gltf_scene, mat.normalTexture),
-                    occlusion_texture=get_texture_as_pyvista(gltf_scene, mat.occlusionTexture),
-                    emissive_factor=mat.emissiveFactor,
-                    emissive_texture=get_texture_as_pyvista(gltf_scene, mat.emissiveTexture),
-                    alpha_mode=mat.alphaMode,
-                    alpha_cutoff=mat.alphaCutoff,
-                )
-            else:
-                scene_material = Material()
+                    scene_material = Material(
+                        name=mat.name,
+                        base_color=pbr.baseColorFactor,
+                        base_color_texture=get_texture_as_pyvista(gltf_scene, pbr.baseColorTexture),
+                        metallic_factor=pbr.metallicFactor,
+                        metallic_roughness_texture=get_texture_as_pyvista(gltf_scene, pbr.metallicRoughnessTexture),
+                        normal_texture=get_texture_as_pyvista(gltf_scene, mat.normalTexture),
+                        occlusion_texture=get_texture_as_pyvista(gltf_scene, mat.occlusionTexture),
+                        emissive_factor=mat.emissiveFactor,
+                        emissive_texture=get_texture_as_pyvista(gltf_scene, mat.emissiveTexture),
+                        alpha_mode=mat.alphaMode,
+                        alpha_cutoff=mat.alphaCutoff,
+                    )
+                else:
+                    scene_material = Material()
+                common_kwargs["material"] = scene_material
 
             common_kwargs["mesh"] = mesh
-            common_kwargs["material"] = scene_material
             if len(primitives) > 1:
                 name = f"{base_name}_{mat.name}"
                 common_kwargs["name"] = name
 
-            if "cls" in common_kwargs:
-                # We have a custom node type with a mesh (Collider)
-                scene_node = common_kwargs.pop("cls")
+            if gltf_collider is not None:
+                scene_node = gltf_collider
                 for key, value in common_kwargs.items():
                     # These two are different when set after creation
                     if key == "parent":

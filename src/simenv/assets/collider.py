@@ -48,6 +48,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     offset: Optional[List[float]] = None
     intangible: Optional[bool] = None
     convex: Optional[bool] = None
+    physic_material: Optional[int] = None
 
     name: InitVar[Optional[str]] = None
     mesh: InitVar[Optional[Union[pv.UnstructuredGrid, pv.PolyData]]] = None

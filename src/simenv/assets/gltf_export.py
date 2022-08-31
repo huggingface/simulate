@@ -469,9 +469,9 @@ def add_node_to_scene(
     cache: Optional[Dict] = None,
 ) -> Set[str]:
 
-    translation = node.position.tolist() if node.position is not None else None
-    rotation = node.rotation.tolist() if node.rotation is not None else None
-    scale = node.scaling.tolist() if node.scaling is not None else None
+    translation = list(node.position) if node.position is not None else None
+    rotation = list(node.rotation) if node.rotation is not None else None
+    scale = list(node.scaling) if node.scaling is not None else None
 
     if translation is None and rotation is None and scale is None and node.transformation_matrix is not None:
         # We transpose to get Column major format for gltf

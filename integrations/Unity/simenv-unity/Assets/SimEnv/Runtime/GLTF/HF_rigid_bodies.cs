@@ -12,13 +12,13 @@ namespace SimEnv.GLTF {
         }
 
         public class GLTFRigidBody {
+            public string name = "";
             [JsonProperty(Required = Required.Always)] public float mass;
             [JsonConverter(typeof(TranslationConverter))] public Vector3 center_of_mass = Vector3.zero;
             [JsonConverter(typeof(Vector3Converter))] public Vector3? inertia_tensor;
             public float linear_drag = 0f;
             public float angular_drag = 0f;
             [JsonProperty(Required = Required.Always)] public List<string> constraints = new List<string>();
-            public string name = "";
             public bool use_gravity = true;
             public bool continuous = false;
             public bool kinematic = false;
@@ -38,7 +38,10 @@ namespace SimEnv.GLTF {
                 if (!rigidbodies.Contains(rigidbody))
                     rigidbodies.Add(rigidbody);
                 node.extensions ??= new GLTFNode.Extensions();
-                node.extensions.HF_rigid_bodies = new GLTFNode.HFRigidbody() { object_id = rigidbodies.IndexOf(rigidbody) };
+                node.extensions.HF_rigid_bodies = new GLTFNode.NodeExtension() {
+                    name = "physics_component",
+                    object_id = rigidbodies.IndexOf(rigidbody),
+                };
             }
             if (rigidbodies.Count == 0) return;
             gltfObject.extensionsUsed ??= new List<string>();
@@ -57,6 +60,7 @@ namespace SimEnv.GLTF {
                 Debug.LogWarning($"Node {node.name} has multiple rigidbodies. Ignoring extras.");
             Rigidbody rigidbody = rigidbodies[0];
             GLTFRigidBody gltfRigidbody = new GLTFRigidBody();
+            gltfRigidbody.name = rigidbody.name;
             gltfRigidbody.mass = rigidbody.mass;
             gltfRigidbody.linear_drag = rigidbody.drag;
             gltfRigidbody.angular_drag = rigidbody.angularDrag;

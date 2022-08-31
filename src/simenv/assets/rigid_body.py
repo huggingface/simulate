@@ -69,6 +69,7 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
 
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
+    name: Optional[str] = None
     mass: Optional[float] = None
     center_of_mass: Optional[List[float]] = None
     inertia_tensor: Optional[List[float]] = None

@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using UnityEngine;
 
 namespace SimEnv.GLTF {
     public class HFRewardFunctions {

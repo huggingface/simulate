@@ -7,10 +7,9 @@ import simenv as sm
 
 
 def create_scene(build_exe=None):
-    scene = sm.Scene(engine="Unity", engine_exe=build_exe)
-    scene.load(
-        "C:\\Users\\dylan\\Documents\\huggingface\\simenv\\integrations\\Unity\\simenv-unity\\Assets\\GLTF\\mountaincar\\Exported\\MountainCar.gltf"
-    )
+    gltf_path = "C:\\Users\\dylan\\Documents\\huggingface\\simenv\\integrations\\Unity\\simenv-unity\\Assets\\GLTF\\mountaincar\\Exported\\MountainCar.gltf"
+    scene = sm.Scene.create_from(gltf_path, engine="Unity")
+    scene.Railroad.RailCollider.material = None
     scene.show()
 
     return scene
@@ -39,6 +38,6 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     scene = create_scene(args.build_exe)
-    simulate(scene, args.n_frames)
+    # simulate(scene, args.n_frames)
 
     input("Press enter to continue...")

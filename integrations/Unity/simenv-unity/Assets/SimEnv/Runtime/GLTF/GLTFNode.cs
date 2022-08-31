@@ -27,12 +27,12 @@ namespace SimEnv.GLTF {
 
         public class Extensions {
             public KHRLight KHR_lights_punctual;
-            public HFCollider HF_colliders;
-            public HFArticulatedBody HF_articulated_bodies;
-            public HFController HF_controllers;
-            public HFRigidbody HF_rigid_bodies;
-            public HFStateSensor HF_state_sensors;
-            public HFRewardFunction HF_reward_functions;
+            public NodeExtension HF_colliders;
+            public NodeExtension HF_articulated_bodies;
+            public NodeExtension HF_controllers;
+            public NodeExtension HF_rigid_bodies;
+            public NodeExtension HF_state_sensors;
+            public NodeExtension HF_reward_functions;
             public string[] HF_custom;
         }
 
@@ -41,31 +41,14 @@ namespace SimEnv.GLTF {
             public string contents;
         }
 
-        public class HFStateSensor {
-            public int object_id;
-        }
-
-        public class HFRigidbody {
-            public int object_id;
-        }
-
-        public class HFController {
+        public class NodeExtension {
+            public string name;
             public int object_id;
         }
 
         public class KHRLight {
+            public string name;
             public int light;
-        }
-
-        public class HFCollider {
-            public int object_id;
-        }
-        public class HFRewardFunction {
-            public int object_id;
-        }
-
-        public class HFArticulatedBody {
-            public int object_id;
         }
 
         public class ImportResult {
