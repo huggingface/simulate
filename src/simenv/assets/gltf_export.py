@@ -516,7 +516,7 @@ def add_node_to_scene(
             # One our our special type of nodes (RewardFunction, Sensors, Colliders, etc)
             if isinstance(node, cls):
                 # For the colliders we add the mesh manually
-                if isinstance(node, Collider):
+                if isinstance(node, Collider) and node.mesh is not None:
                     gl_node.mesh = add_mesh_to_model(
                         mesh=node.mesh,
                         material=getattr(node, "material", None),

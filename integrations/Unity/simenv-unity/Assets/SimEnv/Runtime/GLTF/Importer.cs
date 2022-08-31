@@ -204,7 +204,7 @@ namespace SimEnv.GLTF {
             skinTask.RunSynchronously();
             List<HFPhysicMaterials.GLTFPhysicMaterial> physicMaterials = null;
             if (gltfObject.extensions != null && gltfObject.extensions.HF_physic_materials != null)
-                physicMaterials = gltfObject.extensions.HF_physic_materials.components;
+                physicMaterials = gltfObject.extensions.HF_physic_materials.objects;
             HFPhysicMaterials.ImportTask physicMaterialTask = new HFPhysicMaterials.ImportTask(physicMaterials, importSettings);
             physicMaterialTask.RunSynchronously();
             GLTFNode.ImportTask nodeTask = new GLTFNode.ImportTask(gltfObject.nodes, meshTask, skinTask, physicMaterialTask, gltfObject.cameras, gltfObject.extensions);
@@ -249,7 +249,7 @@ namespace SimEnv.GLTF {
             importTasks.Add(skinTask);
             List<HFPhysicMaterials.GLTFPhysicMaterial> physicMaterials = null;
             if (gltfObject.extensions != null && gltfObject.extensions.HF_physic_materials != null)
-                physicMaterials = gltfObject.extensions.HF_physic_materials.components;
+                physicMaterials = gltfObject.extensions.HF_physic_materials.objects;
             HFPhysicMaterials.ImportTask physicMaterialTask = new HFPhysicMaterials.ImportTask(physicMaterials, importSettings);
             importTasks.Add(physicMaterialTask);
             GLTFNode.ImportTask nodeTask = new GLTFNode.ImportTask(gltfObject.nodes, meshTask, skinTask, physicMaterialTask, gltfObject.cameras, gltfObject.extensions);

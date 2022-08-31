@@ -5,10 +5,10 @@ using UnityEngine;
 
 namespace SimEnv.GLTF {
     public class HFControllers {
-        public List<HFController> components;
+        public List<HFController> objects;
 
         public HFControllers() {
-            components = new List<HFController>();
+            objects = new List<HFController>();
         }
 
         public class HFController {

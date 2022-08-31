@@ -4,7 +4,7 @@ using UnityEngine;
 
 namespace SimEnv.GLTF {
     public class HFRewardFunctions {
-        public List<HFRewardFunction> components;
+        public List<HFRewardFunction> objects;
 
         // A serialization of a reward function
         public class HFRewardFunction {

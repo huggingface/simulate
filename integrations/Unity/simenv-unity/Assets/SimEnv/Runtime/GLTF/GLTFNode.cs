@@ -43,18 +43,18 @@ namespace SimEnv.GLTF {
         }
 
         public class HFRlAgent {
-            public int component_id;
+            public int object_id;
         }
         public class HFStateSensor {
-            public int component_id;
+            public int object_id;
         }
 
         public class HFRigidbody {
-            public int component_id;
+            public int object_id;
         }
 
         public class HFController {
-            public int component_id;
+            public int object_id;
         }
 
         public class KHRLight {
@@ -62,14 +62,14 @@ namespace SimEnv.GLTF {
         }
 
         public class HFCollider {
-            public int component_id;
+            public int object_id;
         }
         public class HFRewardFunction {
-            public int component_id;
+            public int object_id;
         }
 
         public class HFArticulatedBody {
-            public int component_id;
+            public int object_id;
         }
 
         public class ImportResult {
@@ -146,11 +146,12 @@ namespace SimEnv.GLTF {
                 for (int i = 0; i < result.Length; i++) {
                     // Colliders are compnent and not node in Unity so we are taking care of this case
                     if (nodes[i].extensions != null && nodes[i].extensions.HF_colliders != null) {
-                        int componentId = nodes[i].extensions.HF_colliders.component_id;
-                        if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.components == null || extensions.HF_colliders.components.Count < componentId) {
+                        int componentId = nodes[i].extensions.HF_colliders.object_id;
+                        if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.objects == null || extensions.HF_colliders.objects.Count < componentId) {
                             Debug.LogWarning("Error importing collider");
                         } else {
-                            HFColliders.GLTFCollider collider = extensions.HF_colliders.components[componentId];
+                            Debug.LogWarning($"collider with node {i}");
+                            HFColliders.GLTFCollider collider = extensions.HF_colliders.objects[componentId];
                             
                             Mesh mesh = null;
                             if (nodes[i].mesh.HasValue) {
@@ -160,6 +161,7 @@ namespace SimEnv.GLTF {
                             PhysicMaterial physicMaterial = null;
                             if (collider.physicMaterial.HasValue)
                                 physicMaterial = physicMaterialTask.result[collider.physicMaterial.Value].material;
+                                
                             HFColliders.GLTFCollider.ImportResult importResult = new HFColliders.GLTFCollider.ImportResult() {
                                 collider = collider,
                                 mesh = mesh,
@@ -169,8 +171,10 @@ namespace SimEnv.GLTF {
                             if (result[i].parent == null) {
                                 Debug.LogWarning("Error collider node has no parent");
                             } else {
-                                result[i].transform.gameObject.SetActive(false);  // We don't need the gameobject since colliders are components on the parent in Unity
+                                result[i].transform.gameObject.SetActive(false);  // We don't need the gameobject since colliders are objects on the parent in Unity
                                 result[result[i].parent.Value].node.colliderData = importResult;  // we add the Collider as a component to the parent node
+                                Debug.LogWarning($"Adding collider to node {result[i].parent.Value}");
+                                Debug.LogWarning($"Data {result[result[i].parent.Value].node.colliderData}");
                             }
                         }
                     } else if (nodes[i].mesh.HasValue) {
@@ -217,61 +221,61 @@ namespace SimEnv.GLTF {
 
                         // Articulated body
                         if (nodes[i].extensions.HF_articulated_bodies != null) {
-                            int componentId = nodes[i].extensions.HF_articulated_bodies.component_id;
-                            if (extensions == null || extensions.HF_articulated_bodies == null || extensions.HF_articulated_bodies.components == null || extensions.HF_articulated_bodies.components.Count < componentId) {
+                            int componentId = nodes[i].extensions.HF_articulated_bodies.object_id;
+                            if (extensions == null || extensions.HF_articulated_bodies == null || extensions.HF_articulated_bodies.objects == null || extensions.HF_articulated_bodies.objects.Count < componentId) {
                                 Debug.LogWarning("Error importing articulated body");
                             } else {
-                                result[i].node.articulatedBodyData = extensions.HF_articulated_bodies.components[componentId];
+                                result[i].node.articulatedBodyData = extensions.HF_articulated_bodies.objects[componentId];
                             }
                         }
 
                         // Rigidbody
                         if (nodes[i].extensions.HF_rigid_bodies != null) {
-                            int componentId = nodes[i].extensions.HF_rigid_bodies.component_id;
-                            if (extensions == null || extensions.HF_rigid_bodies == null || extensions.HF_rigid_bodies.components == null || extensions.HF_rigid_bodies.components.Count < componentId) {
+                            int componentId = nodes[i].extensions.HF_rigid_bodies.object_id;
+                            if (extensions == null || extensions.HF_rigid_bodies == null || extensions.HF_rigid_bodies.objects == null || extensions.HF_rigid_bodies.objects.Count < componentId) {
                                 Debug.LogWarning("Error importing rigidbody");
                             } else {
-                                result[i].node.rigidBodyData = extensions.HF_rigid_bodies.components[componentId];
+                                result[i].node.rigidBodyData = extensions.HF_rigid_bodies.objects[componentId];
                             }
                         }
 
                         // RL Agents
                         if (nodes[i].extensions.HF_rl_agents != null) {
-                            int agentValue = nodes[i].extensions.HF_rl_agents.component_id;
-                            if (extensions == null || extensions.HF_rl_agents == null || extensions.HF_rl_agents.components == null || extensions.HF_rl_agents.components.Count < agentValue) {
+                            int agentValue = nodes[i].extensions.HF_rl_agents.object_id;
+                            if (extensions == null || extensions.HF_rl_agents == null || extensions.HF_rl_agents.objects == null || extensions.HF_rl_agents.objects.Count < agentValue) {
                                 Debug.LogWarning("Error importing agent");
                             } else {
-                                result[i].node.agentData = extensions.HF_rl_agents.components[agentValue];
+                                result[i].node.agentData = extensions.HF_rl_agents.objects[agentValue];
                             }
                         }
                         // Actor Actions
                         if (nodes[i].extensions.HF_controllers != null) {
-                            int value = nodes[i].extensions.HF_controllers.component_id;
-                            if (extensions == null || extensions.HF_controllers == null || extensions.HF_controllers.components == null || extensions.HF_controllers.components.Count < value) {
+                            int value = nodes[i].extensions.HF_controllers.object_id;
+                            if (extensions == null || extensions.HF_controllers == null || extensions.HF_controllers.objects == null || extensions.HF_controllers.objects.Count < value) {
                                 Debug.LogWarning("Error importing actor controller");
                             } else {
-                                result[i].node.actionData = extensions.HF_controllers.components[value];
+                                result[i].node.actionData = extensions.HF_controllers.objects[value];
                             }
                         }
                         // State Sensor
                         if (nodes[i].extensions.HF_state_sensors != null) {
 
-                            int sensorValue = nodes[i].extensions.HF_state_sensors.component_id;
-                            if (extensions == null || extensions.HF_state_sensors == null || extensions.HF_state_sensors.components == null || extensions.HF_state_sensors.components.Count < sensorValue) {
+                            int sensorValue = nodes[i].extensions.HF_state_sensors.object_id;
+                            if (extensions == null || extensions.HF_state_sensors == null || extensions.HF_state_sensors.objects == null || extensions.HF_state_sensors.objects.Count < sensorValue) {
                                 Debug.LogWarning("Error importing state sensor");
                             } else {
-                                result[i].node.stateSensorData = extensions.HF_state_sensors.components[sensorValue];
+                                result[i].node.stateSensorData = extensions.HF_state_sensors.objects[sensorValue];
                             }
                         }
                         // Reward Functions
                         if (nodes[i].extensions.HF_reward_functions != null) {
 
-                            int rewardValue = nodes[i].extensions.HF_reward_functions.component_id;
-                            if (extensions == null || extensions.HF_reward_functions == null || extensions.HF_reward_functions.components == null || extensions.HF_reward_functions.components.Count < rewardValue) {
+                            int rewardValue = nodes[i].extensions.HF_reward_functions.object_id;
+                            if (extensions == null || extensions.HF_reward_functions == null || extensions.HF_reward_functions.objects == null || extensions.HF_reward_functions.objects.Count < rewardValue) {
                                 Debug.LogWarning("Error importing reward function");
                             } else {
-                                Debug.Log(extensions.HF_reward_functions.components[rewardValue].type);
-                                result[i].node.rewardFunctionData = extensions.HF_reward_functions.components[rewardValue];
+                                Debug.Log(extensions.HF_reward_functions.objects[rewardValue].type);
+                                result[i].node.rewardFunctionData = extensions.HF_reward_functions.objects[rewardValue];
                             }
                         }
 

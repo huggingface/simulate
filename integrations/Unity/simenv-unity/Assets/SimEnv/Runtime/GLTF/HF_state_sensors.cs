@@ -4,10 +4,10 @@ using System.Collections.Generic;
 
 namespace SimEnv.GLTF {
     public class HFStateSensors {
-        public List<HFStateSensor> components;
+        public List<HFStateSensor> objects;
 
         public HFStateSensors() {
-            components = new List<HFStateSensor>();
+            objects = new List<HFStateSensor>();
         }
         public class HFStateSensor {
             public string reference_entity;

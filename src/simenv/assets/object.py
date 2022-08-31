@@ -108,6 +108,14 @@ class Object3D(Asset):
 
         return instance_copy
 
+    def _post_name_change(self, value):
+        """NodeMixing nethod call after changing the name of a node."""
+        for node in self.tree_children:
+            if isinstance(node, Collider):
+                node.name = self.name + "_collider"  # Let's keep the name of the collider in sync
+
+        self.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
+
     def __repr__(self):
         mesh_str = ""
         if hasattr(self, "mesh") and self.mesh is not None:
@@ -266,15 +274,15 @@ class Sphere(Object3D):
             direction = (0, 1, 0)
         pv.translate(mesh, (0, 0, 0), direction)
 
+        super().__init__(name=name, mesh=mesh, position=position, parent=parent, children=children, **kwargs)
+
         if with_collider:
             collider = Collider(
-                name="collider",
+                name=self.name + "_collider",
                 type="sphere",
                 bounding_box=(radius, radius, radius),
             )
-            children = (children if children is not None else []) + [collider]
-
-        super().__init__(name=name, mesh=mesh, position=position, parent=parent, children=children, **kwargs)
+            self.tree_children = (children if children is not None else []) + [collider]
 
 
 # TODO: add rest of arguments
@@ -350,15 +358,15 @@ class Capsule(Object3D):
             direction = (0, 1, 0)
         pv.translate(mesh, (0, 0, 0), direction)
 
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
+
         if with_collider:
             collider = Collider(
-                name="collider",
+                name=self.name + "_collider",
                 type="capsule",
                 bounding_box=(radius, height, radius),
             )
-            children = (children if children is not None else []) + [collider]
-
-        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
+            self.tree_children = (children if children is not None else []) + [collider]
 
 
 class Cylinder(Object3D):
@@ -486,6 +494,8 @@ class Box(Object3D):
         if direction is not None:
             pv.translate(mesh, (0, 0, 0), direction)
 
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
+
         if with_collider:
             bounding_box = (bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
             offset = (
@@ -493,10 +503,8 @@ class Box(Object3D):
                 (bounds[2] + bounds[3]) / 2.0,
                 (bounds[4] + bounds[5]) / 2.0,
             )
-            collider = Collider(name="collider", type="box", bounding_box=bounding_box, offset=offset)
-            children = (children if children is not None else []) + [collider]
-
-        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
+            collider = Collider(name=self.name + "_collider", type="box", bounding_box=bounding_box, offset=offset)
+            self.tree_children = (children if children is not None else []) + [collider]
 
 
 class Cone(Object3D):

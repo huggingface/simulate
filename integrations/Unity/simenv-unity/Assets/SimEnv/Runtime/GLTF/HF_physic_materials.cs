@@ -8,10 +8,10 @@ using UnityEngine;
 
 namespace SimEnv.GLTF {
     public class HFPhysicMaterials {
-        public List<GLTFPhysicMaterial> components;
+        public List<GLTFPhysicMaterial> objects;
 
         public HFPhysicMaterials() {
-            components = new List<GLTFPhysicMaterial>();
+            objects = new List<GLTFPhysicMaterial>();
         }
 
         public class GLTFPhysicMaterial {
@@ -96,21 +96,21 @@ namespace SimEnv.GLTF {
         }
 
         public static void Export(GLTFObject gltfObject, List<HFColliders.ExportResult> colliders) {
-            List<GLTFPhysicMaterial> components = new List<GLTFPhysicMaterial>();
+            List<GLTFPhysicMaterial> objects = new List<GLTFPhysicMaterial>();
             foreach (HFColliders.ExportResult collider in colliders) {
                 GLTFPhysicMaterial physicMaterial = Export(collider);
                 if (physicMaterial == null) continue;
-                if (!components.Contains(physicMaterial))
-                    components.Add(physicMaterial);
-                collider.physicMaterial = components.IndexOf(physicMaterial);
+                if (!objects.Contains(physicMaterial))
+                    objects.Add(physicMaterial);
+                collider.physicMaterial = objects.IndexOf(physicMaterial);
             }
-            if (components.Count == 0) return;
+            if (objects.Count == 0) return;
             gltfObject.extensionsUsed ??= new List<string>();
             gltfObject.extensionsUsed.Add("HF_physic_materials");
             gltfObject.extensions ??= new GLTFExtensions();
             gltfObject.extensions.HF_physic_materials ??= new HFPhysicMaterials();
-            gltfObject.extensions.HF_physic_materials.components.AddRange(components);
-            gltfObject.extensions.HF_colliders.components = colliders.Cast<HFColliders.GLTFCollider>().ToList();
+            gltfObject.extensions.HF_physic_materials.objects.AddRange(objects);
+            gltfObject.extensions.HF_colliders.objects = colliders.Cast<HFColliders.GLTFCollider>().ToList();
         }
 
         static GLTFPhysicMaterial Export(HFColliders.ExportResult collider) {

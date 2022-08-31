@@ -4,9 +4,9 @@ using UnityEngine;
 
 namespace SimEnv.GLTF {
     public class HFRlAgents {
-        public List<HFRlAgentsComponent> components;
+        public List<HFRlAgentsComponent> objects;
 
-        // A serialization of an agent components (actions possibly mapped to physics, observations devices, reward functions)
+        // A serialization of an agent objects (actions possibly mapped to physics, observations devices, reward functions)
         public class HFRlAgentsComponent {
             public BoxAction box_actions;
             public DiscreteAction discrete_actions;

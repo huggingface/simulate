@@ -80,6 +80,7 @@ class SimpleActor(Capsule):
             parent=parent,
             children=children,
             transformation_matrix=transformation_matrix,
+            with_collider=True,
         )
 
         # Rescale the actor

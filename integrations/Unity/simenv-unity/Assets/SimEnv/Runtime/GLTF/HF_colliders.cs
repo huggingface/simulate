@@ -6,10 +6,10 @@ using System.Linq;
 
 namespace SimEnv.GLTF {
     public class HFColliders {
-        public List<GLTFCollider> components;
+        public List<GLTFCollider> objects;
 
         public HFColliders() {
-            components = new List<GLTFCollider>();
+            objects = new List<GLTFCollider>();
         }
 
         public class GLTFCollider {
@@ -64,23 +64,23 @@ namespace SimEnv.GLTF {
         }
 
         public static List<ExportResult> Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {
-            List<ExportResult> components = new List<ExportResult>();
+            List<ExportResult> objects = new List<ExportResult>();
             foreach (GLTFNode.ExportResult node in nodes) {
                 ExportResult collider = Export(node);
                 if (collider == null) continue;
-                if (!components.Contains(collider))
-                    components.Add(collider);
+                if (!objects.Contains(collider))
+                    objects.Add(collider);
                 node.extensions ??= new GLTFNode.Extensions();
-                node.extensions.HF_colliders = new GLTFNode.HFCollider() { component_id = components.IndexOf(collider) };
+                node.extensions.HF_colliders = new GLTFNode.HFCollider() { object_id = objects.IndexOf(collider) };
             }
-            if (components.Count == 0) return components;
+            if (objects.Count == 0) return objects;
             gltfObject.extensionsUsed ??= new List<string>();
             gltfObject.extensionsUsed.Add("HF_colliders");
             gltfObject.extensions ??= new GLTFExtensions();
             gltfObject.extensions.HF_colliders ??= new HFColliders();
-            gltfObject.extensions.HF_colliders.components.AddRange(components);
+            gltfObject.extensions.HF_colliders.objects.AddRange(objects);
             gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
-            return components;
+            return objects;
         }
 
         static ExportResult Export(GLTFNode.ExportResult node) {

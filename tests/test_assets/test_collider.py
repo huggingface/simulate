@@ -27,3 +27,14 @@ class ColliderTest(unittest.TestCase):
         child_asset = sm.Asset()
         with self.assertRaises(sm.assets.anytree.TreeError):
             collider += child_asset
+
+    def test_several_colliders(self):
+        root = sm.Asset()
+        box1 = sm.Box(with_collider=True)
+        self.assertTrue(any(isinstance(node, sm.Collider) for node in box1.tree_children))
+
+        box2 = sm.Box(with_collider=True)
+        self.assertTrue(any(isinstance(node, sm.Collider) for node in box2.tree_children))
+
+        root += box1
+        root += box2

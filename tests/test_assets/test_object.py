@@ -146,9 +146,9 @@ class ObjectsTest(unittest.TestCase):
                  [ 1.1102230e-16, -1.0000000e+00,  0.0000000e+00]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNotNone(asset.collider)
-        self.assertEqual(asset.collider.type, "sphere")
-        self.assertTupleEqual(asset.collider.bounding_box, (1.0, 1.0, 1.0))
+        self.assertTrue(any(isinstance(node, sm.Collider) for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.type == "sphere") for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.bounding_box == (1.0, 1.0, 1.0)) for node in asset.tree_children))
     
 
     def test_capsule(self):
@@ -211,9 +211,9 @@ class ObjectsTest(unittest.TestCase):
                  [ 1.8019377e-01,  3.8460109e-01, -1.9309644e-02]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNotNone(asset.collider)
-        self.assertEqual(asset.collider.type, "capsule")
-        self.assertTupleEqual(asset.collider.bounding_box, (0.2, 1.0, 0.2))
+        self.assertTrue(any(isinstance(node, sm.Collider) for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.type == "capsule") for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.bounding_box == (0.2, 1.0, 0.2)) for node in asset.tree_children))
 
     def test_cylinder(self):
         asset = sm.Cylinder(resolution=5)
@@ -272,9 +272,9 @@ class ObjectsTest(unittest.TestCase):
                  [ 0.5, -0.5,  0.5]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNotNone(asset.collider)
-        self.assertEqual(asset.collider.type, "box")
-        self.assertTupleEqual(asset.collider.bounding_box, (1.0, 1.0, 1.0))
+        self.assertTrue(any(isinstance(node, sm.Collider) for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.type == "box") for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.bounding_box == (1.0, 1.0, 1.0)) for node in asset.tree_children))
 
     def test_cone(self):
         asset = sm.Cone()
