@@ -18,13 +18,6 @@ namespace SimEnv.RlAgents {
                     agents.Add(node.name, agent);
             }
 
-
-            foreach (Node node in root.GetComponentsInChildren<Node>(true)) {
-                if (node.rewardFunctionData != null) {
-                    Debug.Log("found reward function in child" + node.rewardFunctionData.type);
-                }
-            }
-
         }
 
         public void SetActive(bool active) {

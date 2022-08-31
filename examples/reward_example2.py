@@ -47,21 +47,21 @@ and_reward = sm.RewardFunction(type="and")
 and_child1 = sm.RewardFunction(type="sparse", entity_a=target, entity_b=actor)
 and_child2 = sm.RewardFunction(type="sparse", entity_a=target, entity_b=target)
 and_reward += [and_child1, and_child2]
-scene += and_reward
+actor += and_reward
 
 or_reward = sm.RewardFunction(type="or")
 or_child1 = sm.RewardFunction(type="dense", entity_a=target, entity_b=actor)
 or_child2 = sm.RewardFunction(type="not")
 or_child2 += sm.RewardFunction(type="dense", entity_a=target, entity_b=actor)
 or_reward += [or_child1, or_child2]
-scene += or_reward
+actor += or_reward
 
 not_reward = sm.RewardFunction(type="not")  # By default a dense reward equal to the distance between 2 entities
 not_reward += sm.RewardFunction(type="see", entity_a=target, entity_b=actor)
-scene += not_reward
+actor += not_reward
 
 timeout_reward = sm.RewardFunction(type="timeout")
-scene += timeout_reward
+actor += timeout_reward
 
 print(scene)
 scene.save("test.gltf")
