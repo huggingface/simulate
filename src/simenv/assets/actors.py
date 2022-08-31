@@ -21,6 +21,7 @@ from .camera import Camera
 from .controller import ActionMapping, Controller
 from .object import Capsule, Sphere
 from .rigid_body import RigidBodyComponent
+from .collider import Collider
 
 
 class SimpleActor(Sphere):
