@@ -5,10 +5,10 @@ using System.Collections.Generic;
 
 namespace SimEnv.GLTF {
     public class HFArticulatedBodies {
-        public List<GLTFArticulatedBody> components;
+        public List<GLTFArticulatedBody> objects;
 
         public HFArticulatedBodies() {
-            components = new List<GLTFArticulatedBody>();
+            objects = new List<GLTFArticulatedBody>();
         }
 
         public class GLTFArticulatedBody {
@@ -58,19 +58,19 @@ namespace SimEnv.GLTF {
         }
 
         // public static void Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {
-        //     List<GLTFCollider> components = new List<GLTFCollider>();
+        //     List<GLTFCollider> objects = new List<GLTFCollider>();
         //     foreach (GLTFNode.ExportResult node in nodes) {
         //         GLTFCollider collider = Export(node);
         //         if (collider == null) continue;
-        //         if (!components.Contains(collider))
-        //             components.Add(collider);
+        //         if (!objects.Contains(collider))
+        //             objects.Add(collider);
         //         node.extensions ??= new GLTFNode.Extensions();
-        //         node.extensions.HF_colliders = new GLTFNode.HFCollider() { component_id = components.IndexOf(collider) };
+        //         node.extensions.HF_colliders = new GLTFNode.HFCollider() { object_id = objects.IndexOf(collider) };
         //     }
-        //     if (components.Count == 0) return;
+        //     if (objects.Count == 0) return;
         //     gltfObject.extensions ??= new GLTFExtensions();
         //     gltfObject.extensions.HF_colliders ??= new HFColliders();
-        //     gltfObject.extensions.HF_colliders.components.AddRange(components);
+        //     gltfObject.extensions.HF_colliders.objects.AddRange(objects);
         //     gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
         // }
 

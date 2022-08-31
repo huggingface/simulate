@@ -24,14 +24,14 @@ from dataclasses_json import DataClassJsonMixin, dataclass_json
 if TYPE_CHECKING:
     from .asset import Asset
 
-GLTF_EXTENSIONS_REGISTER = []  # We use this to define all the extension fields to have in the extension
+# We use this to define all the extension fields to have in the extension
+GLTF_EXTENSIONS_REGISTER = []
 
-GLTF_NODES_EXTENSION_CLASS = (
-    []
-)  # We use this to define all the nodes class in our scene which are defined as GLTF extensions
-GLTF_COMPONENTS_EXTENSION_CLASS = (
-    []
-)  # We use this to define all the component class in our scene which are defined as GLTF extensions
+# We use this to define all the nodes class in our scene which are defined as GLTF extensions
+GLTF_NODES_EXTENSION_CLASS = []
+
+# We use this to define all the component class in our scene which are defined as GLTF extensions
+GLTF_COMPONENTS_EXTENSION_CLASS = []
 
 
 class GltfExtensionMixin(DataClassJsonMixin):

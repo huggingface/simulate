@@ -5,41 +5,42 @@ using SimEnv.GLTF;
 
 namespace SimEnv.RlAgents {
     public static class Actions {
-        public static void ExecuteAction(this Agent agent, object action) {
-            HFRlAgents.ActionMapping mapping = agent.actionSpace.GetMapping(action);
-            List<float> value = agent.actionSpace.Sample();
-            switch (mapping.physical_action) {
+        public static void ExecuteAction(this Actor actor, object action) {
+
+            HFControllers.ActionMapping mapping = actor.actionSpace.GetMapping(action);
+            List<float> value = new List<float> { 1f }; // TODO refactor when I (Ed) understand what this is
+            switch (mapping.action) {
                 case "add_force":
-                    agent.AddForce(value, mapping);
+                    actor.AddForce(value, mapping);
                     break;
                 case "add_relative_force":
-                    agent.AddRelativeForce(value, mapping);
+                    actor.AddRelativeForce(value, mapping);
                     break;
                 case "add_torque":
-                    agent.AddTorque(value, mapping);
+                    actor.AddTorque(value, mapping);
                     break;
                 case "add_relative_torque":
-                    agent.AddRelativeTorque(value, mapping);
+                    actor.AddRelativeTorque(value, mapping);
                     break;
                 case "add_force_at_position":
-                    agent.AddForceAtPosition(value, mapping);
+                    actor.AddForceAtPosition(value, mapping);
                     break;
-                case "move_position":
-                    agent.MovePosition(value, mapping);
+                case "change_position":
+                    actor.ChangePosition(value, mapping);
                     break;
-                case "move_relative_position":
-                    agent.MoveRelativePosition(value, mapping);
+                case "change_relative_position":
+                    actor.ChangeRelativePosition(value, mapping);
                     break;
-                case "move_rotation":
-                    agent.MoveRotation(value, mapping);
+                case "change_rotation":
+                    actor.ChangeRotation(value, mapping);
                     break;
-                case "move_relative_rotation":
-                    agent.MoveRelativeRotation(value, mapping);
+                case "change_relative_rotation":
+                    actor.ChangeRelativeRotation(value, mapping);
                     break;
             }
         }
 
-        public static void AddForce(this Agent agent, List<float> value, HFRlAgents.ActionMapping mapping) {
+        public static void AddForce(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -48,10 +49,10 @@ namespace SimEnv.RlAgents {
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
             Vector3 force = mapping.axis.normalized * magnitude;
-            agent.node.rigidbody.AddForce(force, ForceMode.Impulse);
+            actor.node.rigidbody.AddForce(force, ForceMode.Impulse);
         }
 
-        public static void AddRelativeForce(this Agent agent, List<float> value, HFRlAgents.ActionMapping mapping) {
+        public static void AddRelativeForce(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -60,10 +61,10 @@ namespace SimEnv.RlAgents {
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
             Vector3 force = mapping.axis.normalized * magnitude;
-            agent.node.rigidbody.AddRelativeForce(force, ForceMode.Impulse);
+            actor.node.rigidbody.AddRelativeForce(force, ForceMode.Impulse);
         }
 
-        public static void AddTorque(this Agent agent, List<float> value, HFRlAgents.ActionMapping mapping) {
+        public static void AddTorque(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -72,10 +73,10 @@ namespace SimEnv.RlAgents {
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
             Vector3 force = mapping.axis.normalized * magnitude;
-            agent.node.rigidbody.AddTorque(force, ForceMode.Impulse);
+            actor.node.rigidbody.AddTorque(force, ForceMode.Impulse);
         }
 
-        public static void AddRelativeTorque(this Agent agent, List<float> value, HFRlAgents.ActionMapping mapping) {
+        public static void AddRelativeTorque(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -83,15 +84,15 @@ namespace SimEnv.RlAgents {
                 magnitude = Mathf.Max(magnitude, mapping.lowerLimit.Value);
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
-            Vector3 force = agent.node.transform.TransformDirection(mapping.axis.normalized) * magnitude;
-            agent.node.rigidbody.AddTorque(force, ForceMode.Impulse);
+            Vector3 force = actor.node.transform.TransformDirection(mapping.axis.normalized) * magnitude;
+            actor.node.rigidbody.AddTorque(force, ForceMode.Impulse);
         }
 
-        public static void AddForceAtPosition(this Agent agent, List<float> value, HFRlAgents.ActionMapping mapping) {
+        public static void AddForceAtPosition(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
             throw new NotImplementedException();
         }
 
-        public static void MovePosition(this Agent agent, List<float> value, HFRlAgents.ActionMapping mapping) {
+        public static void ChangePosition(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -100,10 +101,10 @@ namespace SimEnv.RlAgents {
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
             Vector3 move = mapping.axis.normalized * magnitude / MetaData.frameRate;
-            agent.node.rigidbody.MovePosition(agent.node.transform.position + move);
+            actor.node.rigidbody.MovePosition(actor.node.transform.position + move);
         }
 
-        public static void MoveRelativePosition(this Agent agent, List<float> value, HFRlAgents.ActionMapping mapping) {
+        public static void ChangeRelativePosition(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -111,11 +112,11 @@ namespace SimEnv.RlAgents {
                 magnitude = Mathf.Max(magnitude, mapping.lowerLimit.Value);
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
-            Vector3 move = agent.node.transform.TransformDirection(mapping.axis.normalized) * magnitude / MetaData.frameRate;
-            agent.node.rigidbody.MovePosition(agent.node.transform.position + move);
+            Vector3 move = actor.node.transform.TransformDirection(mapping.axis.normalized) * magnitude / MetaData.frameRate;
+            actor.node.rigidbody.MovePosition(actor.node.transform.position + move);
         }
 
-        public static void MoveRotation(this Agent agent, List<float> value, HFRlAgents.ActionMapping mapping) {
+        public static void ChangeRotation(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -124,10 +125,10 @@ namespace SimEnv.RlAgents {
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
             Vector3 rotate = mapping.axis.normalized * magnitude / MetaData.frameRate;
-            agent.node.rigidbody.MoveRotation(agent.node.transform.rotation * Quaternion.Euler(rotate));
+            actor.node.rigidbody.MoveRotation(actor.node.transform.rotation * Quaternion.Euler(rotate));
         }
 
-        public static void MoveRelativeRotation(this Agent agent, List<float> value, HFRlAgents.ActionMapping mapping) {
+        public static void ChangeRelativeRotation(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -135,8 +136,8 @@ namespace SimEnv.RlAgents {
                 magnitude = Mathf.Max(magnitude, mapping.lowerLimit.Value);
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
-            Vector3 rotate = agent.node.transform.TransformDirection(mapping.axis.normalized) * magnitude / MetaData.frameRate;
-            agent.node.rigidbody.MoveRotation(agent.node.transform.rotation * Quaternion.Euler(rotate));
+            Vector3 rotate = actor.node.transform.TransformDirection(mapping.axis.normalized) * magnitude / MetaData.frameRate;
+            actor.node.rigidbody.MoveRotation(actor.node.transform.rotation * Quaternion.Euler(rotate));
         }
     }
 }

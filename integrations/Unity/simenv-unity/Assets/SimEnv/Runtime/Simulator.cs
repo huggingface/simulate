@@ -122,6 +122,8 @@ namespace SimEnv {
             // Execute post-step functionality
             foreach (IPlugin plugin in plugins)
                 plugin.OnStep(currentEvent);
+            foreach (IPlugin plugin in plugins)
+                yield return plugin.OnStepCoroutine(currentEvent);
             AfterStep?.Invoke();
         }
 

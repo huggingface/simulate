@@ -7,16 +7,17 @@ namespace SimEnv.RlAgents {
         public bool active { get; private set; }
 
         Node root;
-        Dictionary<string, Agent> agents;
+        Dictionary<string, Actor> actors;
 
         public Map(Node root) {
             this.root = root;
             bounds = GetLocalBoundsForObject(root.gameObject);
-            agents = new Dictionary<string, Agent>();
+            actors = new Dictionary<string, Actor>();
             foreach (Node node in root.GetComponentsInChildren<Node>(true)) {
-                if (AgentManager.agents.TryGetValue(node.name, out Agent agent))
-                    agents.Add(node.name, agent);
+                if (ActorManager.actors.TryGetValue(node.name, out Actor Actor))
+                    actors.Add(node.name, Actor);
             }
+
         }
 
         public void SetActive(bool active) {
@@ -29,36 +30,45 @@ namespace SimEnv.RlAgents {
         }
 
         public void SetActions(object action) {
-            foreach (string key in agents.Keys)
-                agents[key].Step(action);
+            foreach (string key in actors.Keys)
+                actors[key].Step(action);
         }
 
-        public (Dictionary<string, Agent.Data>, bool) Step() {
-            Dictionary<string, Agent.Data> agentEventData = new Dictionary<string, Agent.Data>();
+        public (Dictionary<string, Actor.Data>, bool) Step() {
+            Dictionary<string, Actor.Data> ActorEventData = new Dictionary<string, Actor.Data>();
             bool done = false;
-            foreach (string key in agents.Keys) {
-                Agent agent = agents[key];
-                Agent.Data data = agent.GetEventData();
-                done = done || data.done;
-                agentEventData.Add(key, data);
-                agent.ZeroReward();
+            foreach (string key in actors.Keys) {
+                Actor Actor = actors[key];
+                Actor.Data data = Actor.GetEventData();
+                done = done || data.done; // TODO: this assumes when one Actor in the map is done the map should be reset
+                ActorEventData.Add(key, data);
+                Actor.ZeroReward();
             }
-            return (agentEventData, done);
+            return (ActorEventData, done);
         }
-        public Dictionary<string, Agent.Data> GetAgentEventData() {
-            Dictionary<string, Agent.Data> agentEventData = new Dictionary<string, Agent.Data>();
-            foreach (string key in agents.Keys) {
-                Agent agent = agents[key];
-                Agent.Data data = agent.GetEventData();
-                agentEventData.Add(key, data);
+        public Dictionary<string, Actor.Data> GetActorEventData() {
+            Dictionary<string, Actor.Data> ActorEventData = new Dictionary<string, Actor.Data>();
+            foreach (string key in actors.Keys) {
+                Actor Actor = actors[key];
+                Actor.Data data = Actor.GetEventData();
+                ActorEventData.Add(key, data);
             }
-            return agentEventData;
+            return ActorEventData;
         }
 
         public void Reset() {
             // TODO: Reset initial positions
-            foreach (Agent agent in agents.Values)
-                agent.Reset();
+            foreach (Actor Actor in actors.Values)
+                Actor.Reset();
+        }
+
+        public void EnableActorSensors() {
+            foreach (Actor Actor in actors.Values)
+                Actor.EnableSensors();
+        }
+        public void DisableActorSensors() {
+            foreach (Actor Actor in actors.Values)
+                Actor.DisableSensors();
         }
 
         static Bounds GetLocalBoundsForObject(GameObject go) {

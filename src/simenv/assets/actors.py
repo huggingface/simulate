@@ -18,7 +18,6 @@ import itertools
 from typing import List, Optional, Union
 
 from .camera import Camera
-from .collider import Collider
 from .controller import ActionMapping, Controller
 from .object import Capsule
 from .rigid_body import RigidBodyComponent
@@ -53,7 +52,6 @@ class SimpleActor(Capsule):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        collider: Optional[Collider] = None,
         camera_height: Optional[int] = None,
         camera_width: Optional[int] = None,
         transformation_matrix=None,
@@ -81,8 +79,8 @@ class SimpleActor(Capsule):
             scaling=scaling,
             parent=parent,
             children=children,
-            collider=collider,
             transformation_matrix=transformation_matrix,
+            with_collider=True,
         )
 
         # Rescale the actor
@@ -113,7 +111,6 @@ class SimpleActor(Capsule):
             position=self.position,
             rotation=self.rotation,
             scaling=self.scaling,
-            collider=self.collider,
         )
 
         if with_children:

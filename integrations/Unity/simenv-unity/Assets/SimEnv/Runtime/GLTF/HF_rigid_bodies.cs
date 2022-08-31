@@ -6,10 +6,10 @@ using System.Linq;
 
 namespace SimEnv.GLTF {
     public class HFRigidBodies {
-        public List<GLTFRigidBody> components;
+        public List<GLTFRigidBody> objects;
 
         public HFRigidBodies() {
-            components = new List<GLTFRigidBody>();
+            objects = new List<GLTFRigidBody>();
         }
 
         public class GLTFRigidBody {
@@ -39,14 +39,14 @@ namespace SimEnv.GLTF {
                 if (!rigidbodies.Contains(rigidbody))
                     rigidbodies.Add(rigidbody);
                 node.extensions ??= new GLTFNode.Extensions();
-                node.extensions.HF_rigid_bodies = new GLTFNode.HFRigidbody() { component_id = rigidbodies.IndexOf(rigidbody) };
+                node.extensions.HF_rigid_bodies = new GLTFNode.HFRigidbody() { object_id = rigidbodies.IndexOf(rigidbody) };
             }
             if (rigidbodies.Count == 0) return;
             gltfObject.extensionsUsed ??= new List<string>();
             gltfObject.extensionsUsed.Add("HF_rigid_bodies");
             gltfObject.extensions ??= new GLTFExtensions();
             gltfObject.extensions.HF_rigid_bodies ??= new HFRigidBodies();
-            gltfObject.extensions.HF_rigid_bodies.components.AddRange(rigidbodies);
+            gltfObject.extensions.HF_rigid_bodies.objects.AddRange(rigidbodies);
             gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
         }
 

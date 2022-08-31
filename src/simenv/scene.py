@@ -101,19 +101,22 @@ class Scene(Asset):
     @property
     def action_space(self):
         actors = self.actors
-        if len(actors) == 1:
+        if len(actors) > 0:
             return actors[0].action_space
-        elif actors:
-            return spaces.Dict((act.name, act.action_space) for act in actors)
         return None
 
     @property
     def observation_space(self):
-        sensors = self.sensors
-        if len(sensors) == 1:
-            return sensors[0].observation_space
-        elif sensors:
-            return spaces.Dict((sensor.name, sensor.observation_space) for sensor in sensors)
+        actors = self.actors
+        if len(actors) > 0:
+            actor = actors[0]
+            sensors = actor.tree_filtered_descendants(
+                lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor))
+            )
+            if len(sensors) == 1:
+                return sensors[0].observation_space
+            elif sensors:
+                return spaces.Dict({sensor.name: sensor.observation_space for sensor in sensors})
         return None
 
     def close(self):
@@ -143,6 +146,11 @@ class Scene(Asset):
     def sensors(self):
         """Tuple with all sensors in the Scene"""
         return self.tree_filtered_descendants(lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor)))
+
+    @property
+    def unique_sensors(self):
+        """Tuple with all sensors in the Scene"""
+        return set(self.tree_filtered_descendants(lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor))))
 
     @property
     def actors(self) -> Tuple[Asset]:

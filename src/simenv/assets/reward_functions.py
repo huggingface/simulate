@@ -50,7 +50,7 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
     is_terminal: Optional[bool] = False
     is_collectable: Optional[bool] = False
     trigger_once: Optional[bool] = True
-    reward_function_a: InitVar[Optional["RewardFunction"]] = None
+    reward_function_a: InitVar[Optional["RewardFunction"]] = None  # There are in the tree structure now
     reward_function_b: InitVar[Optional["RewardFunction"]] = None
 
     name: InitVar[Optional[str]] = None
@@ -103,6 +103,14 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
             raise ValueError(
                 f"Invalid distance metric: {self.distance_metric}. Must be one of: {ALLOWED_REWARD_DISTANCE_METRICS}"
             )
+
+    def _post_attach_children(self, children):
+        """Method call after attaching `children`.
+        We only allow Reward Functions as child of Reward functions.
+        """
+        if children is not None:
+            if any(not isinstance(child, "RewardFunction") for child in children):
+                raise TypeError("The children of a Reward Function should be Reward Functions")
 
     def _post_copy(self, actor: Any):
         root = actor.tree_root

@@ -1,21 +1,22 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
 namespace SimEnv.RlAgents {
-    public class AgentManager : PluginBase {
-        public static AgentManager instance { get; private set; }
-        public static Dictionary<string, Agent> agents { get; private set; }
+    public class ActorManager : PluginBase {
+        public static ActorManager instance { get; private set; }
+        public static Dictionary<string, Actor> actors { get; private set; }
 
         static MapPool mapPool;
         static List<Map> activeMaps;
         static List<Vector3> positions;
         static int poolSize;
 
-        public AgentManager() {
+        public ActorManager() {
             instance = this;
-            agents = new Dictionary<string, Agent>();
+            actors = new Dictionary<string, Actor>();
             mapPool = new MapPool();
             activeMaps = new List<Map>();
             positions = new List<Vector3>();
@@ -23,8 +24,9 @@ namespace SimEnv.RlAgents {
 
         public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
             foreach (Node node in Simulator.nodes.Values) {
-                if (node.agentData != null)
-                    agents.Add(node.name, new Agent(node));
+                if (node.actionData != null) {
+                    actors.Add(node.name, new Actor(node));
+                }
             }
             if (kwargs.TryParse<List<string>>("maps", out List<string> maps)) {
                 Debug.Log("\"maps\" kwarg found, enabling map pooling");
@@ -32,8 +34,8 @@ namespace SimEnv.RlAgents {
                 if (!kwargs.TryParse<int>("n_show", out poolSize))
                     Debug.LogWarning("Keyword \"n_show\" not provided, defaulting to 1");
                 InitializeMapPool(maps);
-            } else if (agents.Count == 0) {
-                Debug.LogWarning("Found agents but no maps provided. Pass a list of map root names with the \"maps\" kwarg");
+            } else if (actors.Count == 0) {
+                Debug.LogWarning("Found Actor but no maps provided. Pass a list of map root names with the \"maps\" kwarg");
             }
         }
 
@@ -67,8 +69,20 @@ namespace SimEnv.RlAgents {
         }
 
         public override void OnStep(EventData eventData) {
-            if (agents.Count == 0) return;
-            Dictionary<string, Agent.Data> agentEventData = new Dictionary<string, Agent.Data>();
+
+            return;
+        }
+
+        public override IEnumerator OnStepCoroutine(EventData eventData) {
+            if (actors.Count == 0) yield return null;
+            for (int i = 0; i < activeMaps.Count; i++) {
+                activeMaps[i].EnableActorSensors();
+            }
+
+
+
+            yield return new WaitForEndOfFrame();
+            Dictionary<string, Actor.Data> actorEventData = new Dictionary<string, Actor.Data>();
 
             // The following code aims to implement the following:
             // consider the case of a pool of size four with two active maps
@@ -87,14 +101,16 @@ namespace SimEnv.RlAgents {
             // Unity and python side
 
             for (int i = 0; i < activeMaps.Count; i++) {
-                (Dictionary<string, Agent.Data> mapEventData, bool done) = activeMaps[i].Step();
+
+                (Dictionary<string, Actor.Data> mapEventData, bool done) = activeMaps[i].Step();
 
                 if (mapEventData == null) continue;
                 if (done) {
                     ResetAt(i);
-                    Dictionary<string, Agent.Data> newMapEventData = activeMaps[i].GetAgentEventData();
+                    yield return new WaitForEndOfFrame(); // we have to yield again due to camera being repositioned
+                    Dictionary<string, Actor.Data> newMapEventData = activeMaps[i].GetActorEventData();
                     // now for the hacky part, there are two assumptions here: 
-                    // 1. both maps have the same number of agents / keys
+                    // 1. both maps have the same number of Actor / keys
                     // 2. the ordering of the mapEventData keys is the same in both cases
                     // we copy accross the old values to the new eventData dictionary
                     string[] oldKeys = mapEventData.Keys.ToArray<string>();
@@ -108,24 +124,13 @@ namespace SimEnv.RlAgents {
 
                 }
                 foreach (string key in mapEventData.Keys)
-                    agentEventData.Add(key, mapEventData[key]);
+                    actorEventData.Add(key, mapEventData[key]);
             }
-            eventData.outputKwargs.Add("agents", agentEventData);
-            while (doneMaps.Count > 0) {
-                Map map = doneMaps.Pop();
-                int index = activeMaps.IndexOf(map);
-                ResetAt(index);
+            eventData.outputKwargs.Add("actors", actorEventData);
+
+            for (int i = 0; i < activeMaps.Count; i++) {
+                activeMaps[i].DisableActorSensors();
             }
-        }
-
-        static void ResetAt(int index) {
-            Map map = activeMaps[index];
-            mapPool.Push(map);
-
-            map = mapPool.Request();
-            map.SetPosition(positions[index]);
-            map.SetActive(true);
-            activeMaps[index] = map;
         }
 
         static void ResetAt(int index) {
@@ -148,7 +153,7 @@ namespace SimEnv.RlAgents {
         }
 
         public override void OnBeforeSceneUnloaded() {
-            agents.Clear();
+            actors.Clear();
             mapPool.Clear();
             activeMaps.Clear();
             positions.Clear();

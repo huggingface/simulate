@@ -5,6 +5,8 @@ namespace SimEnv.GLTF {
         public HFPhysicMaterials HF_physic_materials;
         public HFArticulatedBodies HF_articulated_bodies;
         public HFRigidBodies HF_rigid_bodies;
-        public HFRlAgents HF_rl_agents;
+        public HFControllers HF_controllers;
+        public HFStateSensors HF_state_sensors;
+        public HFRewardFunctions HF_reward_functions;
     }
 }

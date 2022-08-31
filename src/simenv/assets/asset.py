@@ -23,9 +23,8 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
-from .anytree import NodeMixin
+from .anytree import NodeMixin, TreeError
 from .articulated_body import ArticulatedBodyComponent
-from .collider import Collider
 from .controller import Controller, ControllerDict, ControllerTuple
 from .rigid_body import RigidBodyComponent
 from .utils import (
@@ -37,7 +36,7 @@ from .utils import (
 )
 
 
-ALLOWED_COMPONENTS_ATTRIBUTES = ["collider", "actuator", "physics_component"]
+ALLOWED_COMPONENTS_ATTRIBUTES = ["actuator", "physics_component", "controller"]
 
 
 class Asset(NodeMixin, object):
@@ -64,7 +63,6 @@ class Asset(NodeMixin, object):
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
-        collider: Optional[Collider] = None,
         controller: Optional[Union[Controller, ControllerDict, ControllerTuple]] = None,
         physics_component: Union[None, RigidBodyComponent, ArticulatedBodyComponent] = None,
         parent=None,
@@ -92,7 +90,6 @@ class Asset(NodeMixin, object):
             self.transformation_matrix = transformation_matrix
 
         # Extensions for physics/RL
-        self.collider = collider
         self.controller = controller
         self.physics_component = physics_component
 
@@ -118,14 +115,6 @@ class Asset(NodeMixin, object):
     def components(self) -> List[Any]:
         """Return a list of the components of the asset."""
         return list(comp for _, comp in self.named_components)
-
-    @property
-    def collider(self):
-        return self._collider
-
-    @collider.setter
-    def collider(self, collider: "Collider"):
-        self._collider = collider
 
     # Actions and action_space
     @property
@@ -188,7 +177,6 @@ class Asset(NodeMixin, object):
             position=self.position,
             rotation=self.rotation,
             scaling=self.scaling,
-            collider=self.collider,
         )
 
         if with_children:
@@ -809,17 +797,26 @@ class Asset(NodeMixin, object):
             if parent.tree_root.engine.auto_update:
                 parent.tree_root.engine.update_asset(self)
 
+        # We have a couple of restrictions on parent/children nodes
+
         # Avoid circular imports (Reward functions are Asset) - unfortunately we cannot do this test on the Reward function side
         # as this would involve calling _post_attaching_childran
+        from .collider import Collider
         from .reward_functions import RewardFunction
 
         if isinstance(parent, RewardFunction):
             if not isinstance(self, RewardFunction):
-                raise TypeError(
+                raise TreeError(
                     f"Reward functions can only have reward function as children. "
                     f"You are trying to make node {self.name} of type {type(self)} "
                     f"a child of node {parent.name} of type {type(parent)}"
                 )
+        elif isinstance(parent, Collider):
+            raise TreeError(
+                f"Colliders can not have children. "
+                f"You are trying to make node {self.name} of type {type(self)} "
+                f"a child of node {parent.name} of type {type(parent)}"
+            )
 
     def _post_detach_parent(self, parent):
         """NodeMixing nethod call after detaching from a `parent`."""

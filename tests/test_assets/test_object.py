@@ -66,8 +66,6 @@ class ObjectsTest(unittest.TestCase):
 
         self.assertListEqual(asset.material.base_color, [1.0, 1.0, 1.0, 1.0])
 
-        self.assertIsNone(asset.collider)
-
         with self.assertRaises(ValueError):
             asset.plot()  # Cannot plot empty meshes
 
@@ -117,7 +115,7 @@ class ObjectsTest(unittest.TestCase):
         np.testing.assert_allclose(asset.mesh.points, dafault_mesh, atol=1e-5)
 
     def test_sphere(self):
-        asset = sm.Sphere(theta_resolution=5, phi_resolution=5)
+        asset = sm.Sphere(theta_resolution=5, phi_resolution=5, with_collider=True)
         default_faces = np.array([ 3,  2,  5,  0,  3, 34,  8, 17,  3, 43, 11, 18,  3, 52, 14, 19,  3,
                 61, 25, 20,  3,  4,  1,  7,  3, 40, 21, 10,  3, 49, 22, 13,  3, 58,
                 23, 16,  3, 67, 24, 31,  4, 26,  3,  6, 35,  4, 28, 32, 41, 37,  4,
@@ -148,13 +146,13 @@ class ObjectsTest(unittest.TestCase):
                  [ 1.1102230e-16, -1.0000000e+00,  0.0000000e+00]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNotNone(asset.collider)
-        self.assertEqual(asset.collider.type, "sphere")
-        self.assertTupleEqual(asset.collider.bounding_box, (1.0, 1.0, 1.0))
+        self.assertTrue(any(isinstance(node, sm.Collider) for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.type == "sphere") for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.bounding_box == (1.0, 1.0, 1.0)) for node in asset.tree_children))
     
 
     def test_capsule(self):
-        asset = sm.Capsule(theta_resolution=5, phi_resolution=5)
+        asset = sm.Capsule(theta_resolution=5, phi_resolution=5, with_collider=True)
         default_faces = np.array([ 3,  0,  1,  7,  3,  0,  7, 13,  3,  0, 13, 19,  3,  0, 19, 25,  3,
         0, 25, 31,  3,  0, 31, 37,  3,  0, 37, 43,  3,  6, 49, 12,  3, 12,
        49, 18,  3, 18, 49, 24,  3, 24, 49, 30,  3, 30, 49, 36,  3, 36, 49,
@@ -213,9 +211,9 @@ class ObjectsTest(unittest.TestCase):
                  [ 1.8019377e-01,  3.8460109e-01, -1.9309644e-02]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNotNone(asset.collider)
-        self.assertEqual(asset.collider.type, "capsule")
-        self.assertTupleEqual(asset.collider.bounding_box, (0.2, 1.0, 0.2))
+        self.assertTrue(any(isinstance(node, sm.Collider) for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.type == "capsule") for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.bounding_box == (0.2, 1.0, 0.2)) for node in asset.tree_children))
 
     def test_cylinder(self):
         asset = sm.Cylinder(resolution=5)
@@ -246,10 +244,8 @@ class ObjectsTest(unittest.TestCase):
                  [ 0.        , -0.5       , -1.        ]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNone(asset.collider)
-
     def test_box(self):
-        asset = sm.Box()
+        asset = sm.Box(with_collider=True)
         default_faces = np.array([ 4,  0,  4,  6,  2,  4,  5,  1,  3,  7,  4,  8, 10, 18, 16,  4, 20,
        22, 14, 12,  4, 11,  9, 13, 15,  4, 17, 19, 23, 21])
         np.testing.assert_allclose(asset.mesh.faces, default_faces, atol=1e-5)
@@ -276,9 +272,9 @@ class ObjectsTest(unittest.TestCase):
                  [ 0.5, -0.5,  0.5]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNotNone(asset.collider)
-        self.assertEqual(asset.collider.type, "box")
-        self.assertTupleEqual(asset.collider.bounding_box, (1.0, 1.0, 1.0))
+        self.assertTrue(any(isinstance(node, sm.Collider) for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.type == "box") for node in asset.tree_children))
+        self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.bounding_box == (1.0, 1.0, 1.0)) for node in asset.tree_children))
 
     def test_cone(self):
         asset = sm.Cone()
@@ -308,8 +304,6 @@ class ObjectsTest(unittest.TestCase):
                  [-1.0000000e+00, -5.0000000e-01, -1.6576248e-16]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNone(asset.collider)
-
     def test_line(self):
         asset = sm.Line()
         default_faces = np.array([])
@@ -319,8 +313,6 @@ class ObjectsTest(unittest.TestCase):
                  [ 1.,  0.,  0.]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNone(asset.collider)
-
     def test_multiplelines(self):
         asset = sm.MultipleLines()
         default_faces = np.array([])
@@ -329,8 +321,6 @@ class ObjectsTest(unittest.TestCase):
         dafault_mesh = np.array([[-1.,  0.,  0.],
                  [ 1.,  0.,  0.]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
-
-        self.assertIsNone(asset.collider)
 
     def test_tube(self):
         asset = sm.Tube()
@@ -366,8 +356,6 @@ class ObjectsTest(unittest.TestCase):
                  [ 1.0000000e+00,  9.2387950e-01,  3.8268343e-01]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNone(asset.collider)
-
     def test_polygon(self):
         asset = sm.Polygon(points=[[-1.,  0.,  0.], [0.,  0.,  1.],
                  [ 1.,  0.,  0.],
@@ -381,8 +369,6 @@ class ObjectsTest(unittest.TestCase):
                  [ 0.,  0., -1.]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNone(asset.collider)
-
     def test_regular_polygon(self):
         asset = sm.RegularPolygon()
         default_faces = np.array([6, 0, 1, 2, 3, 4, 5])
@@ -395,8 +381,6 @@ class ObjectsTest(unittest.TestCase):
                  [-8.6602539e-01,  0.0000000e+00,  5.0000000e-01],
                  [-8.6602539e-01,  0.0000000e+00, -5.0000000e-01]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
-
-        self.assertIsNone(asset.collider)
 
     def test_ring(self):
         asset = sm.Ring()
@@ -417,8 +401,6 @@ class ObjectsTest(unittest.TestCase):
                  [-1.2500000e-01,  1.3877788e-17, -2.1650635e-01],
                  [-2.5000000e-01,  2.7755576e-17, -4.3301269e-01]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
-
-        self.assertIsNone(asset.collider)
 
     def test_text3d(self):
         asset = sm.Text3D()
@@ -448,8 +430,6 @@ class ObjectsTest(unittest.TestCase):
                  [ 1.84000397e+00, -7.10100010e-02, -2.04281477e-16]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-        self.assertIsNone(asset.collider)
-
     def test_triangle(self):
         asset = sm.Triangle()
         default_faces = np.array([3, 0, 1, 2])
@@ -459,8 +439,6 @@ class ObjectsTest(unittest.TestCase):
                  [1.        , 0.        , 0.        ],
                  [0.5       , 0.70710678, 0.        ]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
-
-        self.assertIsNone(asset.collider)
 
     def test_rectangle(self):
         asset = sm.Rectangle()
@@ -472,8 +450,6 @@ class ObjectsTest(unittest.TestCase):
                  [0., 1., 0.],
                  [0., 0., 0.]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
-
-        self.assertIsNone(asset.collider)
 
     def test_circle(self):
         asset = sm.Circle(resolution=10)
@@ -491,8 +467,6 @@ class ObjectsTest(unittest.TestCase):
                  [ 3.83022222e-01,  4.25240089e-17, -3.21393805e-01],
                  [ 5.00000000e-01,  5.55111512e-17, -1.22464680e-16]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
-
-        self.assertIsNone(asset.collider)
 
     def test_structured_grid(self):
         # let's make a sort of cone
@@ -526,8 +500,6 @@ class ObjectsTest(unittest.TestCase):
                  [ 1.        ,  0.69006556,  1.        ],
                  [ 2.        ,  0.44280744,  1.        ]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
-
-        self.assertIsNone(asset.collider)
 
     def test_procgen_grid(self):
         # TODO (Alicia): add a test for procgen grid
