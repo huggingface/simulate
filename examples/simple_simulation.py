@@ -9,12 +9,19 @@ import simenv as sm
 def create_scene(build_exe=None):
     # Create a scene with Unity engine backend
     scene = sm.Scene(engine="Unity", engine_exe=build_exe)
+    scene += sm.LightSun()
 
     # Add a floor
-    scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-10, 10, -0.1, 0, -10, 10], material=sm.Material.GRAY75)
+    scene += sm.Box(
+        name="floor",
+        position=[0, 0, 0],
+        bounds=[-10, 10, -0.1, 0, -10, 10],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
 
     # Add a cube that will fall
-    cube = sm.Box(name="cube", position=[0, 3, 0], scaling=[1, 1, 1], material=sm.Material.GRAY50)
+    cube = sm.Box(name="cube", position=[0, 3, 0], scaling=[1, 1, 1], material=sm.Material.GRAY50, with_collider=True)
     scene += cube
 
     # Add a RigidBodyComponent to the cube

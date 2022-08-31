@@ -52,6 +52,7 @@ namespace SimEnv.GLTF {
 
             GLTFAsset asset = new GLTFAsset() { generator = "SimEnv-Unity", version = "2.0" };
             GLTFObject gltfObject = new GLTFObject() { asset = asset };
+            MetaData.Export(gltfObject);
             List<GLTFNode.ExportResult> nodes = GLTFNode.Export(gltfObject, root);
             GLTFScene.Export(gltfObject, nodes);
             List<GLTFMesh.ExportResult> meshes = GLTFMesh.Export(gltfObject, nodes, ref bufferData);
