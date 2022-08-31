@@ -18,13 +18,6 @@ namespace SimEnv.RlAgents {
                     agents.Add(node.name, agent);
             }
 
-
-            foreach (Node node in root.GetComponentsInChildren<Node>(true)) {
-                if (node.rewardFunctionData != null) {
-                    Debug.Log("found reward function in child" + node.rewardFunctionData.type);
-                }
-            }
-
         }
 
         public void SetActive(bool active) {
@@ -67,6 +60,15 @@ namespace SimEnv.RlAgents {
             // TODO: Reset initial positions
             foreach (Agent agent in agents.Values)
                 agent.Reset();
+        }
+
+        public void EnableAgentSensors() {
+            foreach (Agent agent in agents.Values)
+                agent.EnableSensors();
+        }
+        public void DisableAgentSensors() {
+            foreach (Agent agent in agents.Values)
+                agent.DisableSensors();
         }
 
         static Bounds GetLocalBoundsForObject(GameObject go) {

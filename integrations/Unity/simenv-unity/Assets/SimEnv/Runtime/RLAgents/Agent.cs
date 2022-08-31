@@ -28,29 +28,6 @@ namespace SimEnv.RlAgents {
             InitSensors();
             InitRewardFunctions();
 
-
-
-
-            // if (node.agentData.box_actions == null && node.agentData.discrete_actions == null) {
-            //     Debug.LogWarning("At least one action space required.");
-            //     return;
-            // }
-            // if (node.agentData.box_actions != null)
-            //     actionSpace = node.actionData.box_actions;
-            // else if (node.agentData.discrete_actions != null)
-            //     actionSpace = node.agentData.discrete_actions;
-
-            // rewardFunctions = new List<RewardFunction>();
-            // if (node.agentData.reward_functions != null) {
-            //     foreach (HFRlAgents.HFRlAgentsReward reward in node.agentData.reward_functions) {
-            //         if (!TryGetRewardFunction(reward, out RewardFunction rewardFunction)) {
-            //             Debug.LogWarning("Failed to get reward function");
-            //             continue;
-            //         }
-            //         rewardFunctions.Add(rewardFunction);
-            //     }
-            // }
-
             Simulator.BeforeIntermediateFrame += HandleIntermediateFrame;
         }
 
@@ -80,25 +57,34 @@ namespace SimEnv.RlAgents {
             // search children for Cameras and add these as camera sensors
             // this is a bit slow but it only runs once at startup
             foreach (Node node2 in Simulator.nodes.Values) {
+                // search children for Cameras and create CameraSensors
                 if (node2.camera != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
                     CameraSensor cameraSensor = new CameraSensor(node2.camera);
                     sensors.Add(cameraSensor);
                 }
+                // search children for StateSensors
                 if (node2.sensor != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
                     sensors.Add(node2.sensor);
                 }
             }
 
-            // search children for StateSensors
-
-
-            // search children for RaycastSensors
+            // TODO: search children for RaycastSensors
 
 
         }
 
         void InitRewardFunctions() {
-
+            Debug.Log("init reward functions");
+            // find reward nodes with reward data
+            var vals = Simulator.nodes.Values;
+            foreach (Node node2 in Simulator.nodes.Values) {
+                if (node2.rewardFunctionData != null
+                && node2.gameObject.transform.IsChildOf(node.gameObject.transform)
+                && node2.gameObject.transform.parent == node.transform) {
+                    RewardFunction rewardFunction = RewardFunctionBuilder.Build(node2);
+                    rewardFunctions.Add(rewardFunction);
+                }
+            }
         }
 
 
@@ -107,6 +93,7 @@ namespace SimEnv.RlAgents {
                 Simulator.BeforeIntermediateFrame -= HandleIntermediateFrame;
                 return;
             }
+            
             if (currentAction != null && node.gameObject.activeSelf)
                 this.ExecuteAction(currentAction);
         }
@@ -209,86 +196,6 @@ namespace SimEnv.RlAgents {
                 }
             }
             return done;
-        }
-
-        public bool TryGetRewardFunction(HFRlAgents.HFRlAgentsReward reward, out RewardFunction rewardFunction) {
-            rewardFunction = null;
-            if (!Simulator.nodes.TryGetValue(reward.entity_a, out Node entity_a)) {
-                Debug.LogWarning($"Failed to find node {reward.entity_a}");
-                return false;
-            }
-            if (!Simulator.nodes.TryGetValue(reward.entity_b, out Node entity_b)) {
-                Debug.LogWarning($"Failed to find node {reward.entity_b}");
-                return false;
-            }
-
-            IDistanceMetric distanceMetric = null; // refactor this to a reward factory?
-            switch (reward.distance_metric) {
-                case "euclidean":
-                    distanceMetric = new EuclideanDistance();
-                    break;
-                case "cosine":
-                    distanceMetric = new CosineDistance();
-                    break;
-                default:
-                    Debug.Assert(false, "incompatable distance metric provided, chose from (euclidean, cosine)");
-                    break;
-            }
-
-            switch (reward.type) {
-                case "dense":
-                    rewardFunction = new DenseRewardFunction(
-                        entity_a, entity_b, distanceMetric, reward.scalar
-                    );
-                    break;
-                case "sparse":
-                    rewardFunction = new SparseRewardFunction(
-                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable, reward.trigger_once);
-                    break;
-                case "timeout":
-                    rewardFunction = new TimeoutRewardFunction(
-                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal, reward.is_collectable, reward.trigger_once);
-                    break;
-                case "and":
-                    if (!TryGetRewardFunction(reward.reward_function_a, out RewardFunction a) || !TryGetRewardFunction(reward.reward_function_b, out RewardFunction b))
-                        return false;
-                    rewardFunction = new RewardFunctionAnd(
-                        a, b, entity_a, entity_b, distanceMetric, reward.is_terminal);
-                    break;
-
-                case "or":
-                    if (!TryGetRewardFunction(reward.reward_function_a, out a) || !TryGetRewardFunction(reward.reward_function_b, out b))
-                        return false;
-                    rewardFunction = new RewardFunctionOr(
-                        a, b, entity_a, entity_b, distanceMetric, reward.is_terminal);
-                    break;
-
-                case "xor":
-                    if (!TryGetRewardFunction(reward.reward_function_a, out a) || !TryGetRewardFunction(reward.reward_function_b, out b))
-                        return false;
-                    rewardFunction = new RewardFunctionXor(
-                        a, b, entity_a, entity_b, distanceMetric, reward.is_terminal);
-                    break;
-
-                case "not":
-                    if (!TryGetRewardFunction(reward.reward_function_a, out a))
-                        return false;
-                    rewardFunction = new RewardFunctionNot(
-                        a, entity_a, entity_b, distanceMetric, reward.is_terminal);
-                    break;
-
-                case "see":
-                    rewardFunction = new SeeRewardFunction(
-                        entity_a, entity_b, distanceMetric, reward.scalar, reward.threshold, reward.is_terminal,
-                        reward.is_collectable, reward.trigger_once);
-                    break;
-
-                default:
-                    Debug.Assert(false, "incompatable distance metric provided, chose from (euclidian, cosine)");
-                    break;
-            }
-
-            return true;
         }
 
         public class Data {
