@@ -100,7 +100,7 @@ namespace SimEnv.RlAgents {
                 magnitude = Mathf.Max(magnitude, mapping.lowerLimit.Value);
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
-            Vector3 move = mapping.axis.normalized * magnitude / MetaData.frameRate;
+            Vector3 move = mapping.axis.normalized * magnitude / MetaData.instance.frameRate;
             actor.node.rigidbody.MovePosition(actor.node.transform.position + move);
         }
 
@@ -112,7 +112,7 @@ namespace SimEnv.RlAgents {
                 magnitude = Mathf.Max(magnitude, mapping.lowerLimit.Value);
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
-            Vector3 move = actor.node.transform.TransformDirection(mapping.axis.normalized) * magnitude / MetaData.frameRate;
+            Vector3 move = actor.node.transform.TransformDirection(mapping.axis.normalized) * magnitude / MetaData.instance.frameRate;
             actor.node.rigidbody.MovePosition(actor.node.transform.position + move);
         }
 
@@ -124,7 +124,7 @@ namespace SimEnv.RlAgents {
                 magnitude = Mathf.Max(magnitude, mapping.lowerLimit.Value);
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
-            Vector3 rotate = mapping.axis.normalized * magnitude / MetaData.frameRate;
+            Vector3 rotate = mapping.axis.normalized * magnitude / MetaData.instance.frameRate;
             actor.node.rigidbody.MoveRotation(actor.node.transform.rotation * Quaternion.Euler(rotate));
         }
 
@@ -136,7 +136,7 @@ namespace SimEnv.RlAgents {
                 magnitude = Mathf.Max(magnitude, mapping.lowerLimit.Value);
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
-            Vector3 rotate = actor.node.transform.TransformDirection(mapping.axis.normalized) * magnitude / MetaData.frameRate;
+            Vector3 rotate = actor.node.transform.TransformDirection(mapping.axis.normalized) * magnitude / MetaData.instance.frameRate;
             actor.node.rigidbody.MoveRotation(actor.node.transform.rotation * Quaternion.Euler(rotate));
         }
     }

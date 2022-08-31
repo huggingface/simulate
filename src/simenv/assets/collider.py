@@ -40,6 +40,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     offset (number[3]) The position offset of the collider relative to the object it's attached to. (Optional, default [0, 0, 0])
     intangible (boolean) Whether the collider should act as an intangible trigger. (Optiona, default False)
     convex (boolean) Whether the collider is convex when using the mesh collider type. (Optional)
+    physic_material (int) Index of the physic material, if any. (Optional)
     """
 
     type: Optional[str] = None

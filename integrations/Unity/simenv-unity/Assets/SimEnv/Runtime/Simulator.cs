@@ -44,8 +44,8 @@ namespace SimEnv {
             LoadCustomAssemblies();
             LoadPlugins();
             // TODO: Option to parse simulation args directly from API
-            GetCommandLineArgs();
-            Client.Initialize("localhost", MetaData.port);
+            GetCommandLineArgs(out int port);
+            Client.Initialize("localhost", port);
         }
 
         private void OnDestroy() {
@@ -53,30 +53,24 @@ namespace SimEnv {
             UnloadPlugins();
         }
 
-        static void GetCommandLineArgs() {
-            int port = 55000;
+        static void GetCommandLineArgs(out int port) {
+            port = 55000;
             string[] args = System.Environment.GetCommandLineArgs();
             for (int i = 0; i < args.Length - 1; i++) {
                 if (args[i] == "port")
                     int.TryParse(args[i + 1], out port);
             }
-            MetaData.port = port;
         }
 
         public static async Task Initialize(string b64bytes, Dictionary<string, object> kwargs) {
             if (root != null)
                 throw new System.Exception("Scene is already initialized. Close before opening a new scene.");
 
-            int frameRate = 30;
-            kwargs.TryParse<int>("frame_rate", out frameRate);
-            MetaData.frameRate = frameRate;
-
-            int frameSkip = 1;
-            kwargs.TryParse<int>("frame_skip", out frameSkip);
-            MetaData.frameSkip = frameSkip;
-
+            // Load scene from bytes
             byte[] bytes = Convert.FromBase64String(b64bytes);
             root = await Importer.LoadFromBytesAsync(bytes);
+
+            // Gather reference to nodes and cameras
             nodes = new Dictionary<string, Node>();
             cameras = new List<RenderCamera>();
             foreach (Node node in root.GetComponentsInChildren<Node>(true)) {
@@ -85,20 +79,20 @@ namespace SimEnv {
                     cameras.Add(node.camera);
                 }
             }
+
+            // Override metadata from kwargs
+            MetaData.instance.Parse(kwargs);
+            MetaData.Apply();
+
+            // Initialize plugins
             foreach (IPlugin plugin in plugins)
                 plugin.OnSceneInitialized(kwargs);
         }
 
         public static IEnumerator StepCoroutine(Dictionary<string, object> kwargs) {
-            // Read step-related kwargs
-            bool readNodeData;
-            kwargs.TryParse<bool>("return_nodes", out readNodeData, MetaData.returnNodes);
-            bool readCameraData;
-            readCameraData = kwargs.TryParse<bool>("return_frames", out readCameraData, MetaData.returnFrames);
-            int frameRate;
-            int frameSkip;
-            kwargs.TryParse<int>("frame_rate", out frameRate, MetaData.frameRate);
-            kwargs.TryParse<int>("frame_skip", out frameSkip, MetaData.frameSkip);
+            // Optionally override return_nodes and return_frames in step
+            kwargs.TryParse<bool>("return_nodes", out bool readNodeData, MetaData.instance.returnNodes);
+            kwargs.TryParse<bool>("return_frames", out bool readCameraData, MetaData.instance.returnFrames);
 
             if (currentEvent == null)
                 yield return ReadEventData(readNodeData, readCameraData);
@@ -110,9 +104,9 @@ namespace SimEnv {
             BeforeStep?.Invoke();
 
             // Perform the actual simulation
-            for (int i = 0; i < frameSkip; i++) {
+            for (int i = 0; i < MetaData.instance.frameSkip; i++) {
                 BeforeIntermediateFrame?.Invoke();
-                Physics.Simulate(1f / frameRate);
+                Physics.Simulate(1f / MetaData.instance.frameRate);
                 AfterIntermediateFrame?.Invoke();
             }
 
@@ -131,7 +125,7 @@ namespace SimEnv {
             currentEvent = new EventData();
             if (readNodeData) {
                 foreach (Node node in nodes.Values) {
-                    if (MetaData.nodeFilter == null || MetaData.nodeFilter.Contains(node.name))
+                    if (MetaData.instance.nodeFilter == null || MetaData.instance.nodeFilter.Contains(node.name))
                         currentEvent.nodes.Add(node.name, node.GetData());
                 }
             }

@@ -76,8 +76,8 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
     angular_drag: Optional[float] = None
     constraints: Optional[List[str]] = None
     use_gravity: Optional[bool] = None
-    collision_detection: Optional[str] = None  # TODO: see if we want to keep this one
-    kinematic: Optional[bool] = None  # TODO: see if we want to keep this one
+    collision_detection: Optional[str] = None
+    kinematic: Optional[bool] = None
 
     def __post_init__(self):
         # Setup all our default values
