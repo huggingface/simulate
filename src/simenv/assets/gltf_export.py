@@ -20,7 +20,7 @@ from typing import Any, ByteString, Dict, List, Optional, Set, Union
 import numpy as np
 import pyvista as pv
 
-from . import Asset, Camera, Light, Material
+from . import Asset, Camera, Collider, Light, Material, Object3D
 from . import gltflib as gl
 from .gltf_extension import GLTF_NODES_EXTENSION_CLASS, process_tree_after_gltf, process_tree_before_gltf
 
@@ -501,7 +501,7 @@ def add_node_to_scene(
         extensions.KHR_lights_punctual = gl.KHRLightsPunctual(light=light_id)
         extension_used.add("KHR_lights_punctual")
 
-    elif getattr(node, "mesh", None) is not None:
+    elif isinstance(node, Object3D):
         # For Object3D and for Collider we can have a mesh
         gl_node.mesh = add_mesh_to_model(
             mesh=node.mesh,
@@ -515,6 +515,18 @@ def add_node_to_scene(
         for cls in GLTF_NODES_EXTENSION_CLASS:
             # One our our special type of nodes (RewardFunction, Sensors, Colliders, etc)
             if isinstance(node, cls):
+                # For the colliders we add the mesh manually
+                if isinstance(node, Collider):
+                    gl_node.mesh = add_mesh_to_model(
+                        mesh=node.mesh,
+                        material=getattr(node, "material", None),
+                        gltf_model=gltf_model,
+                        buffer_data=buffer_data,
+                        buffer_id=buffer_id,
+                        cache=cache,
+                    )
+
+                # If the special node is not cached (here we test only the fields of the dataclass and thus must add te mesh manually above)
                 object_id = is_data_cached(data=node.to_json(), cache=cache)
                 if object_id is None:
                     object_id = node._add_component_to_gltf_model(gltf_model.extensions)

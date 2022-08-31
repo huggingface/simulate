@@ -17,7 +17,6 @@
 import itertools
 from typing import List, Optional, Union
 
-from .actions import Action, ActionMapping
 from .camera import Camera
 from .controller import ActionMapping, Controller
 from .object import Capsule

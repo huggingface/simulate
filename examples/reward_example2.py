@@ -43,8 +43,6 @@ target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.unifor
 scene += target
 
 
-
-
 and_reward = sm.RewardFunction(type="and")
 and_child1 = sm.RewardFunction(type="sparse", entity_a=target, entity_b=actor)
 and_child2 = sm.RewardFunction(type="sparse", entity_a=target, entity_b=target)
@@ -58,7 +56,7 @@ or_child2 += sm.RewardFunction(type="dense", entity_a=target, entity_b=actor)
 or_reward += [or_child1, or_child2]
 scene += or_reward
 
-not_reward =  sm.RewardFunction(type="not")  # By default a dense reward equal to the distance between 2 entities
+not_reward = sm.RewardFunction(type="not")  # By default a dense reward equal to the distance between 2 entities
 not_reward += sm.RewardFunction(type="see", entity_a=target, entity_b=actor)
 scene += not_reward
 
@@ -77,7 +75,7 @@ env = sm.ParallelRLEnvironment(scene)
 
 for i in range(1000):
     obs, reward, done, info = env.step()
-   
+
 
 # # for i in range(1000):
 # #     obs, reward, done, info = env.step()

@@ -57,7 +57,7 @@ env = sm.ParallelRLEnvironment(scene)
 
 for i in range(1000):
     obs, reward, done, info = env.step()
-   
+
 
 # # for i in range(1000):
 # #     obs, reward, done, info = env.step()

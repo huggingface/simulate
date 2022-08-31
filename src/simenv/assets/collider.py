@@ -15,17 +15,20 @@
 # Lint as: python3
 """ A simenv Collider."""
 import itertools
-from dataclasses import InitVar, dataclass
+from dataclasses import InitVar, dataclass, fields
 from typing import Any, ClassVar, List, Optional, Union
+
+import pyvista as pv
 
 from .asset import Asset
 from .gltf_extension import GltfExtensionMixin
+from .physic_material import PhysicMaterial
 
 
 ALLOWED_COLLIDER_TYPES = ["box", "sphere", "capsule", "mesh"]
 
 
-@dataclass
+@dataclass(repr=False)
 class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", object_type="node"):
     """
     A physics collider.
@@ -41,12 +44,13 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
 
     type: Optional[str] = None
     bounding_box: List[float] = None
-    mesh: Optional[Any] = None
     offset: Optional[List[float]] = None
     intangible: Optional[bool] = None
     convex: Optional[bool] = None
 
     name: InitVar[Optional[str]] = None
+    mesh: InitVar[Optional[Union[pv.UnstructuredGrid, pv.PolyData]]] = None
+    material: InitVar[Optional[Any]] = None
     position: InitVar[Optional[List[float]]] = None
     rotation: InitVar[Optional[List[float]]] = None
     scaling: InitVar[Optional[Union[float, List[float]]]] = None
@@ -58,7 +62,17 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     __NEW_ID: ClassVar[Any] = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __post_init__(
-        self, name, position, rotation, scaling, transformation_matrix, parent, children, created_from_file
+        self,
+        name,
+        mesh,
+        material,
+        position,
+        rotation,
+        scaling,
+        transformation_matrix,
+        parent,
+        children,
+        created_from_file,
     ):
         super().__init__(
             name=name,
@@ -71,6 +85,16 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
             created_from_file=created_from_file,
         )
 
+        # Handle mesh and material
+        self.mesh = mesh
+        # Avoid having averaging normals at shared points
+        # (default pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
+        if self.mesh is not None:
+            self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
+        self.material = material
+        if self.material is not None and not isinstance(material, PhysicMaterial):
+            raise TypeError(f"The material given to a Collider must be a PhysicsMaterial and not a {type(material)}")
+
         if self.type is None:
             if self.mesh is not None:
                 self.type = "mesh"
@@ -80,10 +104,68 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
         if self.type not in ALLOWED_COLLIDER_TYPES:
             raise ValueError(f"Collider type {self.type} is not supported.")
 
-        if self.bounding_box is None and self.mesh is None:
-            raise ValueError(
-                "You should provide either a bounding box (for box, sphere and capsule colliders) or a mesh."
-            )
+        # if self.bounding_box is None and self.mesh is None:
+        #     raise ValueError(
+        #         "You should provide either a bounding box (for box, sphere and capsule colliders) or a mesh."
+        #     )
 
         if self.bounding_box is not None and len(self.bounding_box) != 3:
             raise ValueError("Collider bounding_box must be a list of 3 numbers")
+
+    def copy(self, with_children=True, **kwargs):
+        """Copy an Object3D node in a new (returned) object.
+
+        By default mesh and materials are copied in respectively new mesh and material.
+        'share_material' and 'share_mesh' can be set to True to share mesh and/or material
+        between original and copy instead of creating new one.
+        """
+        share_material = kwargs.get("share_material", False)
+        share_mesh = kwargs.get("share_mesh", False)
+
+        mesh_copy = None
+        if self.mesh is not None:
+            if share_mesh:
+                mesh_copy = self.mesh
+            else:
+                mesh_copy = self.mesh.copy()
+
+        material_copy = None
+        if self.material is not None:
+            if share_material:
+                material_copy = self.material
+            else:
+                material_copy = self.material.copy()
+
+        copy_name = self.name + f"_copy{self._n_copies}"
+
+        self._n_copies += 1
+        instance_copy = type(self)(name=copy_name)
+        instance_copy.mesh = mesh_copy
+        instance_copy.material = material_copy
+        instance_copy.position = self.position
+        instance_copy.rotation = self.rotation
+        instance_copy.scaling = self.scaling
+
+        if with_children:
+            copy_children = []
+            for child in self.tree_children:
+                copy_children.append(child.copy(**kwargs))
+            instance_copy.tree_children = copy_children
+            for child in instance_copy.tree_children:
+                child._post_copy()
+
+        return instance_copy
+
+    def __repr__(self):
+        fields_str = ", ".join([f"{f.name}={getattr(self, f.name)}" for f in fields(self)])
+        mesh_str = ""
+        if getattr(self, "mesh", None) is not None:
+            mesh_str = f"Mesh(points={self.mesh.n_points}, cells={self.mesh.n_cells})"
+        material_str = ""
+        if getattr(self, "material", None) is not None:
+            material_str = str(self.material)
+        return f"{self.name}: {self.__class__.__name__}({fields_str}, {mesh_str}, {material_str})"
+
+    def plot(self, **kwargs):
+        if self.mesh is not None:
+            self.mesh.plot(**kwargs)

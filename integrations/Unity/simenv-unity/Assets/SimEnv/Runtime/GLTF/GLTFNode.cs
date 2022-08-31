@@ -142,9 +142,38 @@ namespace SimEnv.GLTF {
                     nodes[i].ApplyMatrix(result[i].transform);
 
                 // Now we add the more complex properties to the nodes (Mesh, Lights, Colliders, Cameras, RL Agents, etc)
-                // Mesh
+                // Colliders and Mesh
                 for (int i = 0; i < result.Length; i++) {
-                    if (nodes[i].mesh.HasValue) {
+                    // Colliders are compnent and not node in Unity so we are taking care of this case
+                    if (nodes[i].extensions != null && nodes[i].extensions.HF_colliders != null) {
+                        int componentId = nodes[i].extensions.HF_colliders.component_id;
+                        if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.components == null || extensions.HF_colliders.components.Count < componentId) {
+                            Debug.LogWarning("Error importing collider");
+                        } else {
+                            HFColliders.GLTFCollider collider = extensions.HF_colliders.components[componentId];
+                            
+                            Mesh mesh = null;
+                            if (nodes[i].mesh.HasValue) {
+                                GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
+                                mesh = meshResult.mesh;
+                            }
+                            PhysicMaterial physicMaterial = null;
+                            if (collider.physicMaterial.HasValue)
+                                physicMaterial = physicMaterialTask.result[collider.physicMaterial.Value].material;
+                            HFColliders.GLTFCollider.ImportResult importResult = new HFColliders.GLTFCollider.ImportResult() {
+                                collider = collider,
+                                mesh = mesh,
+                                physicMaterial = physicMaterial,
+                            };
+
+                            if (result[i].parent == null) {
+                                Debug.LogWarning("Error collider node has no parent");
+                            } else {
+                                result[i].transform.gameObject.SetActive(false);  // We don't need the gameobject since colliders are components on the parent in Unity
+                                result[result[i].parent.Value].node.colliderData = importResult;  // we add the Collider as a component to the parent node
+                            }
+                        }
+                    } else if (nodes[i].mesh.HasValue) {
                         GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
                         if (meshResult == null) continue;
                         Mesh mesh = meshResult.mesh;
@@ -183,28 +212,6 @@ namespace SimEnv.GLTF {
                                 Debug.LogWarning("Error importing light");
                             } else {
                                 result[i].node.lightData = extensions.KHR_lights_punctual.lights[componentId];
-                            }
-                        }
-
-                        // Colliders
-                        if (nodes[i].extensions.HF_colliders != null) {
-                            int componentId = nodes[i].extensions.HF_colliders.component_id;
-                            if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.components == null || extensions.HF_colliders.components.Count < componentId) {
-                                Debug.LogWarning("Error importing collider");
-                            } else {
-                                HFColliders.GLTFCollider collider = extensions.HF_colliders.components[componentId];
-                                Mesh mesh = null;
-                                if (collider.mesh.HasValue)
-                                    mesh = meshTask.result[collider.mesh.Value].mesh;
-                                PhysicMaterial physicMaterial = null;
-                                if (collider.physicMaterial.HasValue)
-                                    physicMaterial = physicMaterialTask.result[collider.physicMaterial.Value].material;
-                                HFColliders.GLTFCollider.ImportResult importResult = new HFColliders.GLTFCollider.ImportResult() {
-                                    collider = collider,
-                                    mesh = mesh,
-                                    physicMaterial = physicMaterial,
-                                };
-                                result[i].node.colliderData = importResult;
                             }
                         }
 

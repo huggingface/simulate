@@ -46,5 +46,5 @@ class RewardsTest(unittest.TestCase):
         self.assertIsInstance(reward, sm.Asset)
         self.assertEqual(len(reward), 2)
 
-        with self.assertRaises(TypeError):
+        with self.assertRaises(sm.assets.anytree.TreeError):
             reward += b

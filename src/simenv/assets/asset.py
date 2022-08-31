@@ -23,8 +23,7 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
-from .actions import Action, ActionDict, ActionTuple
-from .anytree import NodeMixin
+from .anytree import NodeMixin, TreeError
 from .articulated_body import ArticulatedBodyComponent
 from .controller import Controller, ControllerDict, ControllerTuple
 from .rigid_body import RigidBodyComponent
@@ -784,17 +783,26 @@ class Asset(NodeMixin, object):
             if parent.tree_root.engine.auto_update:
                 parent.tree_root.engine.update_asset(self)
 
+        # We have a couple of restrictions on parent/children nodes
+
         # Avoid circular imports (Reward functions are Asset) - unfortunately we cannot do this test on the Reward function side
         # as this would involve calling _post_attaching_childran
+        from .collider import Collider
         from .reward_functions import RewardFunction
 
         if isinstance(parent, RewardFunction):
             if not isinstance(self, RewardFunction):
-                raise TypeError(
+                raise TreeError(
                     f"Reward functions can only have reward function as children. "
                     f"You are trying to make node {self.name} of type {type(self)} "
                     f"a child of node {parent.name} of type {type(parent)}"
                 )
+        elif isinstance(parent, Collider):
+            raise TreeError(
+                f"Colliders can not have children. "
+                f"You are trying to make node {self.name} of type {type(self)} "
+                f"a child of node {parent.name} of type {type(parent)}"
+            )
 
     def _post_detach_parent(self, parent):
         """NodeMixing nethod call after detaching from a `parent`."""

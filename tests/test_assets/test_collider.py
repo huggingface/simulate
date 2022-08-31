@@ -21,7 +21,9 @@ import simenv as sm
 # TODO add more tests on saving/exporting/loading in gltf files
 class ColliderTest(unittest.TestCase):
     def test_create_collider(self):
-        with self.assertRaises(ValueError):
-            sm.Collider()
         collider = sm.Collider(bounding_box=[1, 1, 1])
         self.assertIsInstance(collider, sm.Collider)
+
+        child_asset = sm.Asset()
+        with self.assertRaises(sm.assets.anytree.TreeError):
+            collider += child_asset

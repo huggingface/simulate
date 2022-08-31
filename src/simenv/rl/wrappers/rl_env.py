@@ -50,7 +50,7 @@ class ParallelRLEnvironment(VecEnv):
 
         self.actor = next(iter(self.actors.values()))
 
-        self.action_space = self.scene.action_space # quick workaround while Thom refactors this
+        self.action_space = self.scene.action_space  # quick workaround while Thom refactors this
         self.observation_space = {
             "CameraSensor": self.scene.observation_space
         }  # quick workaround while Thom refactors this

@@ -4,8 +4,6 @@ from typing import Any, ClassVar, List, Optional, Union
 
 from .asset import Asset
 from .gltf_extension import GltfExtensionMixin
-from .utils import camelcase_to_snakecase
-
 
 
 ALLOWED_REWARD_TYPES = ["dense", "sparse", "or", "and", "not", "see", "timeout"]
@@ -52,7 +50,7 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
     is_terminal: Optional[bool] = False
     is_collectable: Optional[bool] = False
     trigger_once: Optional[bool] = True
-    reward_function_a: InitVar[Optional["RewardFunction"]] = None # There are in the tree structure now 
+    reward_function_a: InitVar[Optional["RewardFunction"]] = None  # There are in the tree structure now
     reward_function_b: InitVar[Optional["RewardFunction"]] = None
 
     name: InitVar[Optional[str]] = None
