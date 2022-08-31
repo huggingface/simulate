@@ -75,6 +75,12 @@ namespace SimEnv.RlAgents {
 
         public override IEnumerator OnStepCoroutine(EventData eventData) {
             if (agents.Count == 0) yield return null;
+            for (int i = 0; i < activeMaps.Count; i++) {
+                activeMaps[i].EnableAgentSensors();
+            }
+
+
+
             yield return new WaitForEndOfFrame();
             Dictionary<string, Agent.Data> agentEventData = new Dictionary<string, Agent.Data>();
 
@@ -121,6 +127,10 @@ namespace SimEnv.RlAgents {
                     agentEventData.Add(key, mapEventData[key]);
             }
             eventData.outputKwargs.Add("agents", agentEventData);
+
+            for (int i = 0; i < activeMaps.Count; i++) {
+                activeMaps[i].DisableAgentSensors();
+            }
         }
 
         static void ResetAt(int index) {

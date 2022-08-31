@@ -62,6 +62,15 @@ namespace SimEnv.RlAgents {
                 agent.Reset();
         }
 
+        public void EnableAgentSensors() {
+            foreach (Agent agent in agents.Values)
+                agent.EnableSensors();
+        }
+        public void DisableAgentSensors() {
+            foreach (Agent agent in agents.Values)
+                agent.DisableSensors();
+        }
+
         static Bounds GetLocalBoundsForObject(GameObject go) {
             var referenceTransform = go.transform;
             var b = new Bounds(Vector3.zero, Vector3.zero);

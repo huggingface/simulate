@@ -81,8 +81,6 @@ namespace SimEnv.RlAgents {
                 if (node2.rewardFunctionData != null
                 && node2.gameObject.transform.IsChildOf(node.gameObject.transform)
                 && node2.gameObject.transform.parent == node.transform) {
-                    Debug.Log("Agent reward function " + node2.rewardFunctionData.type);
-
                     RewardFunction rewardFunction = RewardFunctionBuilder.Build(node2);
                     rewardFunctions.Add(rewardFunction);
                 }
@@ -95,6 +93,7 @@ namespace SimEnv.RlAgents {
                 Simulator.BeforeIntermediateFrame -= HandleIntermediateFrame;
                 return;
             }
+            
             if (currentAction != null && node.gameObject.activeSelf)
                 this.ExecuteAction(currentAction);
         }

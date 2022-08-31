@@ -271,7 +271,7 @@ namespace SimEnv.RlAgents {
     public class RewardFunctionAnd : RewardFunctionPredicate {
         public RewardFunctionAnd(RewardFunction rewardFunctionA, RewardFunction rewardFunctionB,
                 bool isTerminal)
-                : base(rewardFunctionA, rewardFunctionB, isTerminal) { Debug.Log("creating AND reward function"); }
+                : base(rewardFunctionA, rewardFunctionB, isTerminal) { }
 
         public override float CalculateReward() {
             float reward = Math.Min(rewardFunctionA.CalculateReward(), rewardFunctionB.CalculateReward());

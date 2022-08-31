@@ -6,6 +6,7 @@ using SimEnv.GLTF;
 namespace SimEnv.RlAgents {
     public static class Actions {
         public static void ExecuteAction(this Agent agent, object action) {
+
             HFControllers.ActionMapping mapping = agent.actionSpace.GetMapping(action);
             List<float> value = new List<float> { 1f }; // TODO refactor when I (Ed) understand what this is
             switch (mapping.action) {
@@ -24,17 +25,17 @@ namespace SimEnv.RlAgents {
                 case "add_force_at_position":
                     agent.AddForceAtPosition(value, mapping);
                     break;
-                case "move_position":
-                    agent.MovePosition(value, mapping);
+                case "change_position":
+                    agent.ChangePosition(value, mapping);
                     break;
-                case "move_relative_position":
-                    agent.MoveRelativePosition(value, mapping);
+                case "change_relative_position":
+                    agent.ChangeRelativePosition(value, mapping);
                     break;
-                case "move_rotation":
-                    agent.MoveRotation(value, mapping);
+                case "change_rotation":
+                    agent.ChangeRotation(value, mapping);
                     break;
-                case "move_relative_rotation":
-                    agent.MoveRelativeRotation(value, mapping);
+                case "change_relative_rotation":
+                    agent.ChangeRelativeRotation(value, mapping);
                     break;
             }
         }
@@ -91,7 +92,7 @@ namespace SimEnv.RlAgents {
             throw new NotImplementedException();
         }
 
-        public static void MovePosition(this Agent agent, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void ChangePosition(this Agent agent, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -103,7 +104,7 @@ namespace SimEnv.RlAgents {
             agent.node.rigidbody.MovePosition(agent.node.transform.position + move);
         }
 
-        public static void MoveRelativePosition(this Agent agent, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void ChangeRelativePosition(this Agent agent, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -112,10 +113,11 @@ namespace SimEnv.RlAgents {
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
             Vector3 move = agent.node.transform.TransformDirection(mapping.axis.normalized) * magnitude / MetaData.frameRate;
+            Debug.Log(move.ToString());
             agent.node.rigidbody.MovePosition(agent.node.transform.position + move);
         }
 
-        public static void MoveRotation(this Agent agent, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void ChangeRotation(this Agent agent, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
@@ -127,7 +129,7 @@ namespace SimEnv.RlAgents {
             agent.node.rigidbody.MoveRotation(agent.node.transform.rotation * Quaternion.Euler(rotate));
         }
 
-        public static void MoveRelativeRotation(this Agent agent, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void ChangeRelativeRotation(this Agent agent, List<float> value, HFControllers.ActionMapping mapping) {
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;

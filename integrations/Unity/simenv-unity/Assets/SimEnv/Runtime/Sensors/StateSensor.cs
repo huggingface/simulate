@@ -17,13 +17,10 @@ namespace SimEnv {
             m_node = node;
             node.sensor = this;
             properties = data.properties;
-
-            Debug.Log("State Sensor finding reference entity " + data.reference_entity);
             referenceEntity = GameObject.Find(data.reference_entity);
             if (referenceEntity != null) {
                 Debug.Log("State Sensor found reference entity " + data.reference_entity);
             }
-            Debug.Log("State Sensor finding target entity " + data.target_entity);
             targetEntity = GameObject.Find(data.target_entity);
             if (targetEntity != null) {
                 Debug.Log("State Sensor found target entity " + data.target_entity);
