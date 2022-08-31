@@ -323,34 +323,45 @@ namespace SimEnv.GLTF {
         public class ExportResult : GLTFMesh {
             [JsonIgnore] public GLTFNode.ExportResult node;
             [JsonIgnore] public Mesh mesh;
+            [JsonIgnore] public int index;
         }
 
         public static List<ExportResult> Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes, ref byte[] bufferData) {
-            List<ExportResult> results = new List<ExportResult>();
+            Dictionary<Mesh, ExportResult> results = new Dictionary<Mesh, ExportResult>();
             for (int i = 0; i < nodes.Count; i++) {
                 if (nodes[i].filter) {
                     Mesh mesh = nodes[i].filter.sharedMesh;
                     if (mesh != null) {
-                        nodes[i].mesh = results.Count;
-                        bool writeTangents = nodes[i].renderer != null && nodes[i].renderer.sharedMaterial != null 
+                        bool writeTangents = nodes[i].renderer != null && nodes[i].renderer.sharedMaterial != null
                             && nodes[i].renderer.sharedMaterial.IsKeywordEnabled("_NORMALMAP");
-                        ExportResult result = Export(gltfObject, mesh, ref bufferData, writeTangents);
-                        result.node = nodes[i];
-                        results.Add(result);
+                        ExportResult result;
+                        if (!results.TryGetValue(mesh, out result)) {
+                            result = Export(gltfObject, mesh, ref bufferData, writeTangents);
+                            result.node = nodes[i];
+                            result.index = results.Count;
+                            results.Add(mesh, result);
+                        }
+                        nodes[i].mesh = result.index;
                     }
                 }
                 if (nodes[i].meshCollider) {
                     Mesh mesh = nodes[i].meshCollider.sharedMesh;
                     if (mesh != null) {
-                        nodes[i].colliderMesh = results.Count;
-                        ExportResult result = Export(gltfObject, mesh, ref bufferData);
-                        result.node = nodes[i];
-                        results.Add(result);
+                        nodes[i].mesh = results.Count;
+                        ExportResult result;
+                        if (!results.TryGetValue(mesh, out result)) {
+                            result = Export(gltfObject, mesh, ref bufferData);
+                            result.node = nodes[i];
+                            result.index = results.Count;
+                            results.Add(mesh, result);
+                        }
+                        nodes[i].mesh = result.index;
                     }
                 }
             }
-            gltfObject.meshes = results.Cast<GLTFMesh>().ToList();
-            return results;
+            List<GLTFMesh.ExportResult> meshes = results.Values.OrderBy(x => x.index).ToList();
+            gltfObject.meshes = meshes.Cast<GLTFMesh>().ToList();
+            return meshes;
         }
 
         public static ExportResult Export(GLTFObject gltfObject, Mesh mesh, ref byte[] bufferData, bool writeTangents = false) {

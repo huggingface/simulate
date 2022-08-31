@@ -2,6 +2,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Reflection;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
@@ -73,6 +74,24 @@ namespace SimEnv {
             RenderTexture.active = active;
             RenderTexture.ReleaseTemporary(renderTexture);
             return tex;
+        }
+
+        public static bool EquivalentTo(this Collider collider, Collider other) {
+            if (collider.GetType() != other.GetType()) return false;
+            if (collider is MeshCollider) {
+                if (((MeshCollider)collider).sharedMesh != ((MeshCollider)other).sharedMesh)
+                    return false;
+                if (((MeshCollider)collider).convex != ((MeshCollider)other).convex)
+                    return false;
+            }
+            if (collider is BoxCollider) {
+                if (((BoxCollider)collider).center != ((BoxCollider)other).center)
+                    return false;
+            }
+            if (collider.bounds != other.bounds) return false;
+            if (collider.isTrigger != other.isTrigger) return false;
+            if (collider.sharedMaterial != other.sharedMaterial) return false;
+            return true;
         }
     }
 }

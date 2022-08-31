@@ -75,7 +75,6 @@ namespace SimEnv {
         }
 
         void InitializeCollider() {
-            Debug.LogWarning($"Initializing a collider");
             HFColliders.GLTFCollider collider = colliderData.collider;
             Collider sharedCollider = null;
             if (collider.type == ColliderType.box) {

@@ -24,6 +24,18 @@ namespace SimEnv.GLTF {
             string filepath = EditorUtility.SaveFilePanel("Export GLTF", "", selection.name, "gltf");
             ExportGLTF(selection, filepath);
         }
+
+        [MenuItem("GameObject/SimEnv/Enforce Unique Names")]
+        public static void EnforceUniqueNamesEditor() {
+            GameObject selection = Selection.activeGameObject;
+            EnforceUniqueNames(selection.transform);
+        }
+
+        [MenuItem("GameObject/SimEnv/Split Colliders")]
+        public static void SplitCollidersEditor() {
+            GameObject selection = Selection.activeGameObject;
+            SplitColliders(selection.transform);
+        }
 #endif
 
         public static void ExportGLB(GameObject root, string filepath) {
@@ -45,6 +57,7 @@ namespace SimEnv.GLTF {
         }
 
         public static GLTFObject CreateGLTFObject(Transform root, string filepath) {
+            SplitColliders(root);
             EnforceUniqueNames(root);
 
             byte[] bufferData = new byte[0];
@@ -68,7 +81,7 @@ namespace SimEnv.GLTF {
             return gltfObject;
         }
 
-        static void EnforceUniqueNames(Transform root) {
+        public static void EnforceUniqueNames(Transform root) {
             Dictionary<string, int> counts = new Dictionary<string, int>();
             Dictionary<Transform, string> names = new Dictionary<Transform, string>();
             foreach (Transform child in root.GetComponentsInChildren<Transform>(true)) {
@@ -82,6 +95,41 @@ namespace SimEnv.GLTF {
                 names[child] = child.name + suffix;
             }
             names.Keys.ToList().ForEach(transform => transform.name = names[transform]);
+        }
+
+        public static void SplitColliders(Transform root) {
+            Dictionary<Transform, List<Collider>> colliders = new Dictionary<Transform, List<Collider>>();
+            foreach (Transform child in root.GetComponentsInChildren<Transform>(true)) {
+                Collider[] cols = child.GetComponents<Collider>();
+                if ((cols.Length > 0 && child.GetComponent<MeshFilter>() != null) || cols.Length > 1)
+                    colliders.Add(child, cols.ToList());
+            }
+            List<Transform> children = new List<Transform>();
+            foreach (Transform transform in colliders.Keys) {
+                children.Clear();
+                for (int i = 0; i < colliders[transform].Count; i++) {
+                    Transform copy = GameObject.Instantiate(transform.gameObject).transform;
+                    foreach (Transform child in copy)
+                        GameObject.DestroyImmediate(child.gameObject);
+                    copy.SetParent(transform);
+                    copy.localPosition = Vector3.zero;
+                    copy.localRotation = Quaternion.identity;
+                    copy.localScale = Vector3.one;
+                    copy.SetParent(null);
+                    children.Add(copy);
+                    string suffix = i > 0 ? i.ToString() : "";
+                    copy.gameObject.name = $"{transform.name}Collider{suffix}";
+                    Debug.Log(copy.gameObject.name);
+                    foreach (Component component in copy.GetComponents<Component>()) {
+                        if (component is Transform) continue;
+                        if (!(component is Collider) || !((Collider)component).EquivalentTo(colliders[transform][i]))
+                            GameObject.DestroyImmediate(component);
+                    }
+                    GameObject.DestroyImmediate(colliders[transform][i]);
+                }
+                foreach (Transform child in children)
+                    child.SetParent(transform);
+            }
         }
 
         public static int WriteVec2(Vector2[] data, GLTFObject gltfObject, ref byte[] bufferData) {

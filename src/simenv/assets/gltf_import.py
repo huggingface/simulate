@@ -264,7 +264,7 @@ def build_node_tree(
             raise ValueError(
                 f"Unrecognized GLTF file light type: {gltf_light.type}, please check that the file is conform with the KHR_lights_punctual specifications"
             )
-    # Is it an Object3D or a Collider
+    # Is it an Object3D
     elif gltf_node.mesh is not None:
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
