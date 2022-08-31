@@ -22,7 +22,7 @@ import numpy as np
 
 try:
     from gym import spaces
-except ImportError:
+except:
     pass
 
 from .asset import Asset

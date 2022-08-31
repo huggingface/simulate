@@ -30,7 +30,10 @@ namespace SimEnv.GLTF {
             public HFCollider HF_colliders;
             public HFArticulatedBody HF_articulated_bodies;
             public HFRlAgent HF_rl_agents;
+            public HFController HF_controllers;
             public HFRigidbody HF_rigid_bodies;
+            public HFStateSensor HF_state_sensors;
+            public HFRewardFunction HF_reward_functions;
             public string[] HF_custom;
         }
 
@@ -42,8 +45,15 @@ namespace SimEnv.GLTF {
         public class HFRlAgent {
             public int component_id;
         }
+        public class HFStateSensor {
+            public int component_id;
+        }
 
         public class HFRigidbody {
+            public int component_id;
+        }
+
+        public class HFController {
             public int component_id;
         }
 
@@ -52,6 +62,9 @@ namespace SimEnv.GLTF {
         }
 
         public class HFCollider {
+            public int component_id;
+        }
+        public class HFRewardFunction {
             public int component_id;
         }
 
@@ -222,6 +235,36 @@ namespace SimEnv.GLTF {
                                 Debug.LogWarning("Error importing agent");
                             } else {
                                 result[i].node.agentData = extensions.HF_rl_agents.components[agentValue];
+                            }
+                        }
+                        // Actor Actions
+                        if (nodes[i].extensions.HF_controllers != null) {
+                            int value = nodes[i].extensions.HF_controllers.component_id;
+                            if (extensions == null || extensions.HF_controllers == null || extensions.HF_controllers.components == null || extensions.HF_controllers.components.Count < value) {
+                                Debug.LogWarning("Error importing actor controller");
+                            } else {
+                                result[i].node.actionData = extensions.HF_controllers.components[value];
+                            }
+                        }
+                        // State Sensor
+                        if (nodes[i].extensions.HF_state_sensors != null) {
+
+                            int sensorValue = nodes[i].extensions.HF_state_sensors.component_id;
+                            if (extensions == null || extensions.HF_state_sensors == null || extensions.HF_state_sensors.components == null || extensions.HF_state_sensors.components.Count < sensorValue) {
+                                Debug.LogWarning("Error importing state sensor");
+                            } else {
+                                result[i].node.stateSensorData = extensions.HF_state_sensors.components[sensorValue];
+                            }
+                        }
+                        // Reward Functions
+                        if (nodes[i].extensions.HF_reward_functions != null) {
+
+                            int rewardValue = nodes[i].extensions.HF_reward_functions.component_id;
+                            if (extensions == null || extensions.HF_reward_functions == null || extensions.HF_reward_functions.components == null || extensions.HF_reward_functions.components.Count < rewardValue) {
+                                Debug.LogWarning("Error importing reward function");
+                            } else {
+                                Debug.Log(extensions.HF_reward_functions.components[rewardValue].type);
+                                result[i].node.rewardFunctionData = extensions.HF_reward_functions.components[rewardValue];
                             }
                         }
 

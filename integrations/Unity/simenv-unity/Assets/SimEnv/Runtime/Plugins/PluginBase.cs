@@ -1,3 +1,4 @@
+using System.Collections;
 using System.Collections.Generic;
 
 namespace SimEnv {
@@ -12,5 +13,8 @@ namespace SimEnv {
         public virtual void OnStep(EventData eventData) { }
         public virtual void OnReset() { }
         public virtual void OnBeforeSceneUnloaded() { }
+        public virtual IEnumerator OnStepCoroutine(EventData eventData) {
+            throw new System.NotImplementedException();
+        }
     }
 }

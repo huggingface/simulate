@@ -15,7 +15,7 @@
 # Lint as: python3
 """ Store a python dataclass as a glTF extension."""
 import copy
-from dataclasses import field, fields, is_dataclass, make_dataclass
+from dataclasses import asdict, field, fields, is_dataclass, make_dataclass
 from typing import TYPE_CHECKING, Any, List, Optional
 
 from dataclasses_json import DataClassJsonMixin, dataclass_json
@@ -69,7 +69,7 @@ class GltfExtensionMixin(DataClassJsonMixin):
             make_dataclass(
                 gltf_extension_name,
                 [
-                    ("objects", Optional[List[cls]], field(default=None)),
+                    ("components", Optional[List[cls]], field(default=None)),
                     ("object_id", Optional[int], field(default=None)),
                     ("name", Optional[str], field(default=None)),
                 ],
@@ -103,16 +103,16 @@ class GltfExtensionMixin(DataClassJsonMixin):
         copy_self = type(self)(**self_dict)
 
         if getattr(gltf_model_extensions, self._gltf_extension_name, None) is None:
-            objects = [copy_self]
+            components = [copy_self]
             # Create a component class to store our component
-            new_extension_component_cls = self._gltf_extension_cls(objects=objects)
+            new_extension_component_cls = self._gltf_extension_cls(components=components)
             if not hasattr(gltf_model_extensions, self._gltf_extension_name):
                 raise ValueError(f"The glTF model extensions does not have the {self._gltf_extension_name} extension.")
             setattr(gltf_model_extensions, self._gltf_extension_name, new_extension_component_cls)
         else:
-            objects = getattr(getattr(gltf_model_extensions, self._gltf_extension_name), "objects")
-            objects.append(copy_self)
-        object_id = len(objects) - 1
+            components = getattr(getattr(gltf_model_extensions, self._gltf_extension_name), "components")
+            components.append(copy_self)
+        object_id = len(components) - 1
         return object_id
 
     def _add_component_to_gltf_node(self, gltf_node_extensions, object_id: int, object_name: str) -> str:

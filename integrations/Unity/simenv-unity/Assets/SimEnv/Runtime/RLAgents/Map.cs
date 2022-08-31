@@ -17,6 +17,14 @@ namespace SimEnv.RlAgents {
                 if (AgentManager.agents.TryGetValue(node.name, out Agent agent))
                     agents.Add(node.name, agent);
             }
+
+
+            foreach (Node node in root.GetComponentsInChildren<Node>(true)) {
+                if (node.rewardFunctionData != null) {
+                    Debug.Log("found reward function in child" + node.rewardFunctionData.type);
+                }
+            }
+
         }
 
         public void SetActive(bool active) {
@@ -39,7 +47,7 @@ namespace SimEnv.RlAgents {
             foreach (string key in agents.Keys) {
                 Agent agent = agents[key];
                 Agent.Data data = agent.GetEventData();
-                done = done || data.done;
+                done = done || data.done; // TODO: this assumes when one agent in the map is done the map should be reset
                 agentEventData.Add(key, data);
                 agent.ZeroReward();
             }

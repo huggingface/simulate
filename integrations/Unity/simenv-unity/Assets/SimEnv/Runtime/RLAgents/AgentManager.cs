@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
@@ -23,8 +24,9 @@ namespace SimEnv.RlAgents {
 
         public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
             foreach (Node node in Simulator.nodes.Values) {
-                if (node.agentData != null)
+                if (node.actionData != null) {
                     agents.Add(node.name, new Agent(node));
+                }
             }
             if (kwargs.TryParse<List<string>>("maps", out List<string> maps)) {
                 Debug.Log("\"maps\" kwarg found, enabling map pooling");
@@ -67,7 +69,13 @@ namespace SimEnv.RlAgents {
         }
 
         public override void OnStep(EventData eventData) {
-            if (agents.Count == 0) return;
+
+            return;
+        }
+
+        public override IEnumerator OnStepCoroutine(EventData eventData) {
+            if (agents.Count == 0) yield return null;
+            yield return new WaitForEndOfFrame();
             Dictionary<string, Agent.Data> agentEventData = new Dictionary<string, Agent.Data>();
 
             // The following code aims to implement the following:
@@ -87,11 +95,13 @@ namespace SimEnv.RlAgents {
             // Unity and python side
 
             for (int i = 0; i < activeMaps.Count; i++) {
+
                 (Dictionary<string, Agent.Data> mapEventData, bool done) = activeMaps[i].Step();
 
                 if (mapEventData == null) continue;
                 if (done) {
                     ResetAt(i);
+                    yield return new WaitForEndOfFrame(); // we have to yield again due to camera being repositioned
                     Dictionary<string, Agent.Data> newMapEventData = activeMaps[i].GetAgentEventData();
                     // now for the hacky part, there are two assumptions here: 
                     // 1. both maps have the same number of agents / keys
@@ -111,21 +121,6 @@ namespace SimEnv.RlAgents {
                     agentEventData.Add(key, mapEventData[key]);
             }
             eventData.outputKwargs.Add("agents", agentEventData);
-            while (doneMaps.Count > 0) {
-                Map map = doneMaps.Pop();
-                int index = activeMaps.IndexOf(map);
-                ResetAt(index);
-            }
-        }
-
-        static void ResetAt(int index) {
-            Map map = activeMaps[index];
-            mapPool.Push(map);
-
-            map = mapPool.Request();
-            map.SetPosition(positions[index]);
-            map.SetActive(true);
-            activeMaps[index] = map;
         }
 
         static void ResetAt(int index) {

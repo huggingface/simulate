@@ -20,7 +20,7 @@ for i in range(1):
     scene += sm.Box(name=f"cube{i}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 
 # Lets add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
-actor = sm.Capsule(name="actor", position=[0.0, 0.0, 0.0], with_collider=True)  # Has a collider
+actor = sm.Capsule(name="actor", position=[0.0, 0.0, 0.0])  # Has a collider
 # Specify the action to control the actor: 3 discrete action to rotate and move forward
 actor.controller = sm.Controller(
     n=3,
@@ -42,9 +42,29 @@ material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0,
 target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
 scene += target
 
-reward = sm.RewardFunction(type="not")  # By default a dense reward equal to the distance between 2 entities
-reward += sm.RewardFunction(entity_a=target, entity_b=actor)
-scene += reward
+
+
+
+and_reward = sm.RewardFunction(type="and")
+and_child1 = sm.RewardFunction(type="sparse", entity_a=target, entity_b=actor)
+and_child2 = sm.RewardFunction(type="sparse", entity_a=target, entity_b=target)
+and_reward += [and_child1, and_child2]
+scene += and_reward
+
+or_reward = sm.RewardFunction(type="or")
+or_child1 = sm.RewardFunction(type="dense", entity_a=target, entity_b=actor)
+or_child2 = sm.RewardFunction(type="not")
+or_child2 += sm.RewardFunction(type="dense", entity_a=target, entity_b=actor)
+or_reward += [or_child1, or_child2]
+scene += or_reward
+
+not_reward =  sm.RewardFunction(type="not")  # By default a dense reward equal to the distance between 2 entities
+not_reward += sm.RewardFunction(type="see", entity_a=target, entity_b=actor)
+scene += not_reward
+
+timeout_reward = sm.RewardFunction(type="timeout")
+scene += timeout_reward
+
 print(scene)
 scene.save("test.gltf")
 
