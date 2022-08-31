@@ -29,7 +29,7 @@ def create_env(dummy_port: int):
     scene += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY)
     scene += sm.Box(name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY)
     collectable = sm.Sphere(position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=sm.Material.GREEN)
-    actor, reward = sm.SimpleActor()
+    actor, reward = sm.EgocentricCameraActor()
     reward = sm.RewardFunction(collectable, actor, is_collectable=True)
     scene += [collectable, actor, reward]
     return scene

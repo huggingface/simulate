@@ -19,7 +19,7 @@ import numpy as np
 from gym import spaces
 
 # Lint as: python3
-from ...scene import Scene
+from simenv.scene import Scene
 
 
 try:
@@ -58,7 +58,7 @@ class ParallelRLEnvironment(VecEnv):
         }  # quick workaround while Thom refactors this
         self.observation_space = spaces.Dict(self.observation_space)
 
-        super(ParallelRLEnvironment, self).__init__(n_show, self.observation_space, self.action_space)
+        super().__init__(n_show, self.observation_space, self.action_space)
 
         # Don't return simulation data, since minimal/faster data will be returned by agent sensors
         # Pass maps kwarg to enable map pooling
@@ -87,12 +87,14 @@ class ParallelRLEnvironment(VecEnv):
         event = self.scene.step(action=action_dict)
 
         # Extract observations, reward, and done from event data
+        # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
         if self.n_actors == 1:
             actor_data = event["actors"][self.actor.name]
             obs = self._extract_sensor_obs(actor_data["observations"])
             reward = actor_data["reward"]
             done = actor_data["done"]
             info = {}
+
         else:
             reward = []
             done = []

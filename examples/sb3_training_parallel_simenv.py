@@ -74,7 +74,7 @@ def generate_map(index):
     collectable = sm.Sphere(name=f"collectable_{index}", position=[2, 0.5, 3.4], radius=0.3, with_collider=True)
     root += collectable
 
-    actor = sm.SimpleActor(name=f"actor_{index}", position=[0.0, 0.0, 0.0])
+    actor = sm.EgocentricCameraActor(name=f"actor_{index}", position=[0.0, 0.0, 0.0])
     root += actor
     actor += sm.RewardFunction(entity_a=actor, entity_b=collectable)
 

@@ -24,7 +24,7 @@ target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.unifor
 scene += target
 
 
-agent = sm.SimpleActor(name="agent", position=[0.0, 0.0, 0.0])
+agent = sm.EgocentricCameraActor(name="agent", position=[0.0, 0.0, 0.0])
 scene += agent
 
 env = sm.ParallelRLEnvironment(scene)

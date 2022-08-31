@@ -24,7 +24,7 @@ def generate_map(index):
     )
     actor_position = [math.floor(maze_width / 2.0) + 0.5, 0.0, math.floor(maze_depth / 2.0) + 0.5]
 
-    actor = sm.SimpleActor(position=actor_position)
+    actor = sm.EgocentricCameraActor(position=actor_position)
     maze += actor
 
     for r in range(n_objects):
@@ -58,6 +58,7 @@ def generate_map(index):
     actor += timeout_reward_function
 
     return maze
+
 
 
 if __name__ == "__main__":
