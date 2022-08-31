@@ -52,6 +52,11 @@ namespace SimEnv.RlAgents {
                 Debug.LogWarning("Error parsing agent action space");
                 return;
             }
+            if (node.rigidbody == null && node.articulatedBody == null) {
+                //  by default, if no rigidbody is present, add a simple character controller
+                CharacterController cc = node.gameObject.AddComponent<CharacterController>();
+                node.characterController = cc;
+            }
         }
         void InitSensors() {
             // search children for Cameras and add these as camera sensors

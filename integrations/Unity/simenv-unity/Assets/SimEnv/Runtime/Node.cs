@@ -18,8 +18,9 @@ namespace SimEnv {
         public new RenderCamera camera { get; private set; }
         public new Light light { get; private set; }
         public new Collider collider { get; private set; }
+        public new CharacterController characterController { get; private set; }
         public new Rigidbody rigidbody { get; private set; }
-        public ArticulationBody articulatedBody { get; private set; }
+        public new ArticulationBody articulatedBody { get; private set; }
         public ISensor sensor;
         public Data initialState { get; private set; }
 

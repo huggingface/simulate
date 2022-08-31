@@ -49,7 +49,14 @@ namespace SimEnv.RlAgents {
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
             Vector3 force = mapping.axis.normalized * magnitude;
-            agent.node.rigidbody.AddForce(force, ForceMode.Impulse);
+
+            if (agent.node.rigidbody != null) {
+                agent.node.rigidbody.AddForce(force, ForceMode.Impulse);
+            } else if (agent.node.articulatedBody != null) {
+                agent.node.articulatedBody.AddForce(force, ForceMode.Impulse);
+            } else if (agent.node.characterController != null) {
+                Debug.LogWarning("add_force not yet implemented for Character controller");
+            }
         }
 
         public static void AddRelativeForce(this Agent agent, List<float> value, HFControllers.ActionMapping mapping) {
