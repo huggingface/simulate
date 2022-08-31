@@ -35,7 +35,7 @@ for i in range(1):
     )
 
 # Lets add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
-actor = sm.Capsule(name="actor", position=[0.0, 0.0, 0.0], with_collider=True)  # Has a collider
+actor = sm.SimpleActor(name="actor", position=[0.0, 0.0, 0.0])  # Has a collider
 # Specify the action to control the actor: 3 discrete action to rotate and move forward
 actor.controller = sm.Controller(
     n=3,
@@ -67,21 +67,19 @@ scene.save("test.gltf")
 
 env = sm.ParallelRLEnvironment(scene)
 
-# plt.ion()
-# fig1, ax1 = plt.subplots()
-# dummy_obs = np.zeros(shape=(actor.camera.height, actor.camera.width, 3), dtype=np.uint8)
-# axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
+plt.ion()
+fig1, ax1 = plt.subplots()
+dummy_obs = np.zeros(shape=(actor.camera.height, actor.camera.width, 3), dtype=np.uint8)
+axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
+
 
 for i in range(1000):
+    print(i)
     obs, reward, done, info = env.step()
+    obs = obs["CameraSensor"].transpose(1, 2, 0)
+    axim1.set_data(obs)
+    fig1.canvas.flush_events()
 
+    plt.pause(0.1)
 
-# # for i in range(1000):
-# #     obs, reward, done, info = env.step()
-# #     obs = obs[actor_camera.name].transpose(1, 2, 0)  # (C,H,W) -> (H,W,C)
-# #     axim1.set_data(obs)
-# #     fig1.canvas.flush_events()
-
-#     plt.pause(0.1)
-
-# scene.close()
+scene.close()

@@ -1,4 +1,5 @@
 import argparse
+from re import A
 
 from stable_baselines3 import PPO
 
@@ -20,13 +21,13 @@ def generate_map(index):
     collectable = sm.Sphere(name=f"collectable_{index}", position=[2, 0.5, 3.4], radius=0.3)
     root += collectable
 
-    agent = sm.SimpleActor(name=f"agent_{index}", position=[0.0, 0.0, 0.0])
-    root += agent
-    root += sm.RewardFunction(entity_a=agent, entity_b=collectable)
+    actor = sm.SimpleActor(name=f"actor_{index}", position=[0.0, 0.0, 0.0])
+    root += actor
+    actor += sm.RewardFunction(entity_a=actor, entity_b=collectable)
 
     sparse_reward = sm.RewardFunction(
         type="sparse",
-        entity_a=agent,
+        entity_a=actor,
         entity_b=collectable,
         distance_metric="euclidean",
         threshold=0.2,
@@ -38,15 +39,13 @@ def generate_map(index):
     timeout = (index % 3) * 50 + 100
     timeout_reward = sm.RewardFunction(
         type="timeout",
-        entity_a=agent,
-        entity_b=agent,
         distance_metric="euclidean",
         threshold=timeout,
         is_terminal=True,
         scalar=-1.0,
     )
-    agent.add_reward_function(sparse_reward)
-    agent.add_reward_function(timeout_reward)
+    actor += sparse_reward
+    actor += timeout_reward
 
     return root
 
@@ -58,11 +57,11 @@ if __name__ == "__main__":
     parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
 
-    env = sm.RLEnvironment(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
+    env = sm.ParallelRLEnvironment(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
 
-    for i in range(1000):
-        obs, reward, done, info = env.step()
-    """ model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
-    model.learn(total_timesteps=100000) """
+    # for i in range(1000):
+    #     obs, reward, done, info = env.step()
+    model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
+    model.learn(total_timesteps=100000)
 
     env.close()
