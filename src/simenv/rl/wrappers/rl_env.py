@@ -13,6 +13,7 @@
 # limitations under the License.
 """Wrapper around SimEnv scene for easier RL training"""
 
+from collections import defaultdict
 import numpy as np
 from gym import spaces
 
@@ -85,35 +86,62 @@ class ParallelRLEnvironment(VecEnv):
         event = self.scene.step(action=action_dict)
 
         # Extract observations, reward, and done from event data
-        obs = None
-        reward = 0
-        done = False
-        info = {}
         if self.n_actors == 1:
-            actor_data = event["agents"][self.actor.name]
-            obs = self._extract_sensor_obs(event["agents"][self.actor.name]["observations"])
+            actor_data = event["actors"][self.actor.name]
+            obs = self._extract_sensor_obs(actor_data["observations"])
             reward = actor_data["reward"]
             done = actor_data["done"]
-
-            return obs, reward, done, info
-
+            info = {}
         else:
             reward = []
             done = []
             info = []
+            obs = []
             for actor_name in event["actors"].keys():
-                actor = self.actors[actor_name]
                 actor_data = event["actors"][actor_name]
-                camera_obs = np.array(actor_data["frames"][actor.camera.name], dtype=np.uint8)
-                obs[actor.camera.name] = camera_obs
+                actor_obs = self._extract_sensor_obs(actor_data["observations"])
+                obs.append(actor_obs)
                 reward.append(actor_data["reward"])
                 done.append(actor_data["done"])
                 info.append({})
+            
+            obs = self._obs_dict_to_tensor2(obs)
+            reward = np.array(reward)
+            done = np.array(done) 
 
-        obs = self._obs_dict_to_tensor(obs)
-        reward = np.array(reward)
-        done = np.array(done)
         return obs, reward, done, info
+
+    def reset(self):
+        self.scene.reset()
+
+        # To extract observations, we do a "fake" step (no actual simulation with frame_skip=0)
+        event = self.scene.step(return_frames=True, frame_skip=0)
+        obs = {}
+        if self.n_actors == 1:
+            actor_data = event["actors"][self.actor.name]
+            obs = self._extract_sensor_obs(actor_data["observations"])
+        else:
+            obs = []
+            for actor_name in event["actors"].keys():
+                actor_data = event["actors"][actor_name]
+                actor_obs = self._extract_sensor_obs(actor_data["observations"])
+                obs.append(actor_obs)
+            
+            obs = self._obs_dict_to_tensor2(obs)
+
+        return obs
+
+    def _obs_dict_to_tensor2(self, obs):
+        out = defaultdict(list)
+
+        for o in obs:
+            for key, value in o.items():
+                out[key].append(value)
+        
+        for k in out.keys():
+            out[key] = np.stack(out[key])
+
+        return out
 
     def _extract_sensor_obs(self, obs):
         sensor_obs = {}
@@ -132,33 +160,17 @@ class ParallelRLEnvironment(VecEnv):
 
         return sensor_obs
 
-    def _obs_dict_to_tensor(self, obs_dict):
-        out = []
-        for val in obs_dict.values():
-            out.append(val)
+    # def _obs_dict_to_tensor(self, obs_dict):
+    #     out = []
+    #     for val in obs_dict.values():
+    #         out.append(val)
 
-        if self.n_agents == 1:
-            return {"CameraSensor": np.stack(out)[0]}  # quick workaround while Thom refactors this
-        else:
-            return {"CameraSensor": np.stack(out)}  # quick workaround while Thom refactors this
+    #     if self.n_agents == 1:
+    #         return {"CameraSensor": np.stack(out)[0]}  # quick workaround while Thom refactors this
+    #     else:
+    #         return {"CameraSensor": np.stack(out)}  # quick workaround while Thom refactors this
 
-    def reset(self):
-        self.scene.reset()
-
-        # To extract observations, we do a "fake" step (no actual simulation with frame_skip=0)
-        event = self.scene.step(return_frames=True, frame_skip=0)
-        obs = {}
-        if self.n_actors == 1:
-            camera_obs = np.array(event["frames"][self.actor.camera.name], dtype=np.uint8)
-            obs[self.actor.camera.name] = camera_obs
-        else:
-            for actor_name in event["actors"].keys():
-                actor = self.actors[actor_name]
-                camera_obs = np.array(event["frames"][actor.camera.name], dtype=np.uint8)
-                obs[actor.camera.name] = camera_obs
-
-        obs = self._obs_dict_to_tensor(obs)
-        return obs
+    
 
     def close(self):
         self.scene.close()
