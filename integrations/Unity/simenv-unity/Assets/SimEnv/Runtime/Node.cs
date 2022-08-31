@@ -10,7 +10,6 @@ namespace SimEnv {
         public HFColliders.GLTFCollider.ImportResult colliderData;
         public HFRigidBodies.GLTFRigidBody rigidBodyData;
         public HFArticulatedBodies.GLTFArticulatedBody articulatedBodyData;
-        public HFRlAgents.HFRlAgentsComponent agentData;
         public HFControllers.HFController actionData;
         public HFStateSensors.HFStateSensor stateSensorData;
         public HFRewardFunctions.HFRewardFunction rewardFunctionData;

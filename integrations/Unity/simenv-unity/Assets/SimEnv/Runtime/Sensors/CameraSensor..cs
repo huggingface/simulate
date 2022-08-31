@@ -14,7 +14,6 @@ namespace SimEnv {
         Node m_node;
 
         public CameraSensor(RenderCamera renderCamera) {
-            Debug.Log("creating CameraSensor");
             m_node = node;
             mRenderCamera = renderCamera;
             renderCamera.camera.enabled = false;
@@ -36,6 +35,7 @@ namespace SimEnv {
         }
         public string GetBufferType() {
             return "uint";
+
         }
         public SensorBuffer GetObs() {
             SensorBuffer buffer = new SensorBuffer(GetSize(), GetShape(), GetSensorType()); // TODO: refactor be not be recreated at every call to GetObs

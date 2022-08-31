@@ -4,7 +4,7 @@ using SimEnv.GLTF;
 using System.Linq;
 
 namespace SimEnv.RlAgents {
-    public class Agent {
+    public class Actor {
         public Node node { get; private set; }
         public HFControllers.ActionSpace actionSpace { get; private set; }
 
@@ -15,14 +15,14 @@ namespace SimEnv.RlAgents {
         float accumReward;
         object currentAction;
 
-        public Agent(Node node) {
+        public Actor(Node node) {
             this.node = node;
-            node.gameObject.tag = "Agent";
+            node.gameObject.tag = "Actor";
             Initialize();
         }
 
         void Initialize() {
-            Debug.Log("initializing agent");
+            Debug.Log("initializing Actor");
 
             InitActions();
             InitSensors();
@@ -33,7 +33,7 @@ namespace SimEnv.RlAgents {
 
         void InitActions() {
             if (node.actionData == null) {
-                Debug.LogWarning("Agent missing action data");
+                Debug.LogWarning("Actor missing action data");
                 return;
             }
             if (node.actionData.n == null && node.actionData.low == null) {
@@ -44,12 +44,12 @@ namespace SimEnv.RlAgents {
             if (node.actionData.n != null) {
                 // Discrete action space
                 actionSpace = new HFControllers.ActionSpace(node.actionData);
-            } else if (node.agentData.discrete_actions != null) {
+            } else if (node.actionData.low != null) {
                 // continuous action space
                 Debug.LogWarning("Continous actions are yet to be implemented");
                 return;
             } else {
-                Debug.LogWarning("Error parsing agent action space");
+                Debug.LogWarning("Error parsing actor action space");
                 return;
             }
         }
@@ -93,7 +93,7 @@ namespace SimEnv.RlAgents {
                 Simulator.BeforeIntermediateFrame -= HandleIntermediateFrame;
                 return;
             }
-            
+
             if (currentAction != null && node.gameObject.activeSelf)
                 this.ExecuteAction(currentAction);
         }
@@ -137,24 +137,8 @@ namespace SimEnv.RlAgents {
             Dictionary<string, SensorBuffer> observations = new Dictionary<string, SensorBuffer>();
             foreach (var sensor in sensors) {
                 observations[sensor.GetName()] = sensor.GetObs();
-
             }
             return observations;
-        }
-
-
-        Dictionary<string, uint[,,]> GetCameraObservations() {
-            Dictionary<string, uint[,,]> cameras = new Dictionary<string, uint[,,]>();
-            foreach (string cameraName in node.agentData.camera_sensors.Select(x => x.camera)) {
-                if (!Simulator.nodes.TryGetValue(cameraName, out Node cameraNode) || cameraNode.camera == null) {
-                    Debug.LogWarning($"Couldn't find camera {cameraName}");
-                    continue;
-                }
-                cameraNode.camera.CopyRenderResultToBuffer(out uint[,,] buffer);
-                cameraNode.camera.camera.enabled = false;
-                cameras.Add(cameraName, buffer);
-            }
-            return cameras;
         }
 
         public void UpdateReward() {
