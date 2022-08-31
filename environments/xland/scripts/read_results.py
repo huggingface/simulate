@@ -13,11 +13,20 @@ if __name__ == "__main__":
     with open(args.metric, "rb") as input_file:
         metrics = pickle.load(input_file)
 
-    mean_rewards_per_slot = metrics["episode_rewards"] / metrics["episodes_per_slot"]
-    mean_reward = np.mean(mean_rewards_per_slot)
-    std_rewards = np.std(mean_rewards_per_slot)
+    mean_rewards_per_slot = np.sum(metrics["episode_rewards"], axis=1) / metrics["episodes_per_slot"]
+
+    mean_reward = np.mean(metrics["episode_rewards"])
+    std_rewards = np.std(metrics["episode_rewards"])
 
     print("Mean reward: ", mean_reward, "; Standard deviation: ", std_rewards)
+
+    mean_rewards_across_slots = np.mean(metrics["episode_rewards"], axis=0)
+    print(
+        "Mean reward with same logic as xland exploration: ",
+        np.mean(mean_rewards_across_slots),
+        "; Standard deviation: ",
+        np.std(mean_rewards_across_slots),
+    )
 
     if args.debug:
         for key, value in metrics.items():
