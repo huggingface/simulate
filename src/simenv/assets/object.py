@@ -721,6 +721,7 @@ class Polygon(Object3D):
         name: Optional[str] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
+        with_collider: bool = False,
         **kwargs,
     ):
         from vtkmodules.vtkCommonDataModel import vtkCellArray, vtkPolyData, vtkPolygon
@@ -746,7 +747,17 @@ class Polygon(Object3D):
 
         mesh = pv.PolyData(polygonPolyData)
 
-        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
+        super().__init__(
+            mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs
+        )
+
+        if with_collider:
+            collider = Collider(
+                name=self.name + "_collider",
+                type="mesh",
+                mesh=mesh,
+            )
+            self.tree_children = (children if children is not None else []) + [collider]
 
 
 class RegularPolygon(Object3D):
