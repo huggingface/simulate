@@ -6,7 +6,6 @@ import time
 from stable_baselines3 import PPO
 
 import simenv as sm
-from simenv import ParallelRLEnvironment
 from simenv.assets.object import ProcGenPrimsMaze3D
 
 

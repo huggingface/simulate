@@ -1,7 +1,6 @@
 import random
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 import simenv as sm
 
@@ -27,7 +26,8 @@ scene += target
 agent = sm.EgocentricCameraActor(name="agent", position=[0.0, 0.0, 0.0])
 scene += agent
 
-env = sm.ParallelRLEnvironment(scene)
+env = sm.RLEnvironment(scene)
+env.show()
 
 for i in range(1000):
     action = agent.rl_component.discrete_actions.sample()
