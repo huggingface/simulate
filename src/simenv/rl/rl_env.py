@@ -11,15 +11,22 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Wrapper around SimEnv scene for easier RL training"""
+
 import numpy as np
 from gym import spaces
 
-# Lint as: python3
 from simenv.scene import Scene
 
 
 class RLEnvironment:
+    """
+    Lightweight wrapper for executing RL experiments with a SimEnv Scene. The key method
+    of this class is .step() which returns obs, reward, done, info following the gym API.
+
+    Args:
+        scene: a pre-built simenv scene with at least one actor and one reward function
+    """
+
     def __init__(self, scene: Scene):
 
         self.scene = scene
@@ -29,6 +36,8 @@ class RLEnvironment:
 
         self.actor = next(iter(self.actors.values()))
 
+        # TODO --> add warning if scene has no actor or reward functions
+        # TODO --> add method for adding reward function post wrap ?
         self.action_space = self.scene.action_space  # quick workaround while Thom refactors this
         self.observation_space = {
             "CameraSensor": self.scene.observation_space

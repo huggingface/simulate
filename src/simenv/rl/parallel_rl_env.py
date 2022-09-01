@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Wrapper around SimEnv scene for easier RL training"""
 
 from collections import defaultdict
 
@@ -31,6 +30,19 @@ except ImportError:
 
 
 class ParallelRLEnvironment(VecEnv):
+    """
+    Parallel RL environment wrapper for SimEnv scene. Uses functionality from the VecEnv in stable baselines 3
+    For more information on VecEnv, see the source
+    https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
+
+    Args:
+        scene_or_map_fn: a generator function for generating instances of the desired environment
+        n_maps: TODO
+        n_show: TODO
+        frame_rate: TODO
+        frame_skip: TODO
+    """
+
     def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, frame_rate=30, frame_skip=4, **engine_kwargs):
 
         if hasattr(scene_or_map_fn, "__call__"):
@@ -44,6 +56,7 @@ class ParallelRLEnvironment(VecEnv):
             self.scene = scene_or_map_fn
             self.map_roots = [self.scene]
 
+        # TODO --> add warning if scene has no actor or reward functions
         self.actors = {actor.name: actor for actor in self.scene.actors}
         self.n_actors = len(self.actors)
         self.n_maps = n_maps
