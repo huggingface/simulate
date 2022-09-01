@@ -108,10 +108,10 @@ def make_lander(engine="Unity", engine_exe=None):
     lander.controller = sm.Controller(
         mapping=[
             sm.ActionMapping("add_relative_force", axis=[1, 0, 0], amplitude=1),
-            # sm.ActionMapping("add_relative_force", axis=[1, 0, 0], amplitude=-1),
-            # sm.ActionMapping("add_relative_force", axis=[0, 1, 0], amplitude=1),
+            sm.ActionMapping("add_relative_force", axis=[1, 0, 0], amplitude=-1),
+            sm.ActionMapping("add_relative_force", axis=[0, 1, 0], amplitude=1),
         ],
-        n=1,
+        n=3,
     )
 
     r_leg_poly_shifted = shift_polygon(LEG_RIGHT_POLY, lander_init_pos)
@@ -122,7 +122,8 @@ def make_lander(engine="Unity", engine_exe=None):
     l_leg = sm.Polygon(points=l_leg_poly_shifted, material=lander_material, parent=lander, name="lander_l_leg")
     l_leg.mesh.extrude((0, 1, 0), capping=True, inplace=True)
 
-    lander.collider = sm.Collider(bounding_box=[2.0, 2.0, 2.0], type="mesh", mesh=0)
+    lander.collider = sm.Collider(type="mesh", convex=True, mesh=lander.mesh)
+    # lander.collider = sm.Collider(bounding_box=[2.0, 2.0, 2.0], type="mesh", convex=True, mesh=None)
 
     # TODO add collider
     land = sm.Polygon(
@@ -131,10 +132,10 @@ def make_lander(engine="Unity", engine_exe=None):
         name="Moon",
     )
     land.mesh.extrude((0, 1, 0), capping=True, inplace=True)
-    land.collider = sm.Collider(bounding_box=[21.0, 1.0, 6.0], type="mesh", mesh=0)
+    land.collider = sm.Collider(type="mesh", convex=True,  mesh=land.mesh)
+    # land.collider = sm.Collider(bounding_box=[21.0, 1.0, 6.0], type="mesh", convex=True,  mesh=None)
+
     sc += lander
-    # sc += r_leg
-    # sc += l_leg
     sc += land
 
     return sc
@@ -169,23 +170,23 @@ if __name__ == "__main__":
             name="cam",
             camera_type="orthographic",
             # TODO Tune position
-            position=[0, 0, 5],
-            rotation=[0, -30, 0],
-            ymag=15,
-            width=256,
-            height=256,
+            position=[10, 12, 3],
+            rotation=[0, -180, 0],
+            ymag=10,
+            width=512,
+            height=512,
         )
 
-        # TODO Add adgent that acts via thrusters (lateral)
-        sc.show()
+        # TODO Add agent that acts via thrusters (lateral)
+        sc.show(show_frames=True)
 
         if args.plt:
             plt.ion()
             fig, ax = plt.subplots()
-            imdata = np.zeros(shape=(256, 256, 3), dtype=np.uint8)
+            imdata = np.zeros(shape=(512, 512, 3), dtype=np.uint8)
             axim = ax.imshow(imdata, vmin=0, vmax=255)
             # env = sm.RLEnvironment(sc)
-        for i in range(1000):
+        for i in range(50):
             print(f"step {i}")
             # action = sc.action_space.sample()
             # event = sc.step(action)
@@ -197,7 +198,7 @@ if __name__ == "__main__":
                 if args.plt:
                     axim.set_data(frame)
                     fig.canvas.flush_events()
-                    plt.pause(0.01)
+                    # plt.pause(0.01)
 #
 # plt.pause(0.5)
 #
