@@ -747,9 +747,7 @@ class Polygon(Object3D):
 
         mesh = pv.PolyData(polygonPolyData)
 
-        super().__init__(
-            mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs
-        )
+        super().__init__(mesh=mesh, name=name, position=position, parent=parent, children=children, **kwargs)
 
         if with_collider:
             collider = Collider(
