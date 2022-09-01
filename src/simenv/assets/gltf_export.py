@@ -20,7 +20,7 @@ from typing import Any, ByteString, Dict, List, Optional, Set, Union
 import numpy as np
 import pyvista as pv
 
-from . import Asset, Camera, Collider, Light, Material, Object3D
+from . import Asset, Camera, Collider, Light, Material, Object3D, PhysicMaterial
 from . import gltflib as gl
 from .gltf_extension import GLTF_NODES_EXTENSION_CLASS, process_tree_after_gltf, process_tree_before_gltf
 
@@ -52,7 +52,7 @@ numpy_to_gltf_shapes_mapping = {
 
 def _get_digest(data: Any) -> bytes:
     """Get a hash digest of the data"""
-    if isinstance(data, Material):
+    if isinstance(data, (Material, PhysicMaterial)):
         digest = str(hash(data)).encode("utf-8")
     else:
         h = hashlib.md5()
@@ -334,7 +334,7 @@ def add_mesh_to_model(
             np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
 
-    if material is not None:
+    if material is not None and isinstance(material, Material):
         # Add a material and/or texture if we want
         material_id = add_material_to_gltf(
             material=material, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
@@ -515,16 +515,27 @@ def add_node_to_scene(
         for cls in GLTF_NODES_EXTENSION_CLASS:
             # One our our special type of nodes (RewardFunction, Sensors, Colliders, etc)
             if isinstance(node, cls):
-                # For the colliders we add the mesh manually
-                if isinstance(node, Collider) and node.mesh is not None:
-                    gl_node.mesh = add_mesh_to_model(
-                        mesh=node.mesh,
-                        material=getattr(node, "material", None),
-                        gltf_model=gltf_model,
-                        buffer_data=buffer_data,
-                        buffer_id=buffer_id,
-                        cache=cache,
-                    )
+                # For the colliders we add the physic material and mesh manually
+                if isinstance(node, Collider):
+                    material = getattr(node, "material", None)
+                    if material is not None:
+                        material_id = is_data_cached(data=material, cache=cache)
+                        if material_id is None:
+                            material_id = material._add_component_to_gltf_model(gltf_model.extensions)
+                            cache_data(data=material.to_json(), data_id=material_id, cache=cache)
+                        node.physic_material = material_id
+                    else:
+                        node.physic_material = None
+
+                    if node.mesh is not None:
+                        gl_node.mesh = add_mesh_to_model(
+                            mesh=node.mesh,
+                            material=None,
+                            gltf_model=gltf_model,
+                            buffer_data=buffer_data,
+                            buffer_id=buffer_id,
+                            cache=cache,
+                        )
 
                 # If the special node is not cached (here we test only the fields of the dataclass and thus must add te mesh manually above)
                 object_id = is_data_cached(data=node.to_json(), cache=cache)

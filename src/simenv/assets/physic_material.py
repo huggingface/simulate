@@ -14,10 +14,13 @@
 
 # Lint as: python3
 """ A simenv Physic Material."""
+import copy
+import itertools
 from dataclasses import dataclass
-from typing import Optional
+from typing import ClassVar, Optional
 
 from .gltf_extension import GltfExtensionMixin
+from .utils import camelcase_to_snakecase
 
 
 @dataclass
@@ -33,6 +36,9 @@ class PhysicMaterial(GltfExtensionMixin, gltf_extension_name="HF_physic_material
     bounce_combine (str) How the bounciness of two surfaces are combined. (Optional, default "average")
     """
 
+    __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
+    name: Optional[str] = None
     dynamic_friction: Optional[float] = None
     static_friction: Optional[float] = None
     bounciness: Optional[float] = None
@@ -46,3 +52,15 @@ class PhysicMaterial(GltfExtensionMixin, gltf_extension_name="HF_physic_material
             self.static_friction = 0.6
         if self.bounciness is None:
             self.bounciness = 0.0
+        if self.name is None:
+            id = next(self.__class__.__NEW_ID)
+            self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+
+    def __hash__(self):
+        return id(self)
+
+    def copy(self):
+        copy_mat = copy.deepcopy(self)
+        id = next(self.__class__.__NEW_ID)
+        self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+        return copy_mat

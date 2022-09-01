@@ -44,7 +44,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     """
 
     type: Optional[str] = None
-    bounding_box: List[float] = None
+    bounding_box: Optional[List[float]] = None
     offset: Optional[List[float]] = None
     intangible: Optional[bool] = None
     convex: Optional[bool] = None
