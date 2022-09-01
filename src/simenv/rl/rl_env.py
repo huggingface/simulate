@@ -43,7 +43,6 @@ class RLEnvironment:
         }  # quick workaround while Thom refactors this
         self.observation_space = spaces.Dict(self.observation_space)
 
-    def show(self):
         maps = [root.name for root in [self.scene]]
         self.scene.show(return_frames=False,
                         return_nodes=False,

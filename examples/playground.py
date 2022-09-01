@@ -94,7 +94,6 @@ if __name__ == "__main__":
     scene.save("test.gltf")
 
     env = sm.RLEnvironment(scene)
-    env.show()
 
     plt.ion()
     fig1, ax1 = plt.subplots()
