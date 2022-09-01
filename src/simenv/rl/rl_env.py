@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+import pdb
 
 import numpy as np
 from gym import spaces
@@ -32,8 +33,6 @@ class RLEnvironment:
         self.scene = scene
 
         self.actors = {actor.name: actor for actor in self.scene.actors}
-        self.n_actors = len(self.actors)
-
         self.actor = next(iter(self.actors.values()))
 
         # TODO --> add warning if scene has no actor or reward functions
@@ -45,7 +44,12 @@ class RLEnvironment:
         self.observation_space = spaces.Dict(self.observation_space)
 
     def show(self):
-        self.scene.show()
+        maps = [root.name for root in [self.scene]]
+        self.scene.show(return_frames=False,
+                        return_nodes=False,
+                        maps=maps,
+                        n_show=1,
+                        )
 
     def step(self, action: np.ndarray = None):
         if action is None:
@@ -56,6 +60,7 @@ class RLEnvironment:
 
         event = self.scene.step(action=action_dict)
 
+        # import ipdb; pdb.set_trace()
         # Extract observations, reward, and done from event data
         actor_data = event["actors"][self.actor.name]
         obs = self._extract_sensor_obs(actor_data["observations"])
