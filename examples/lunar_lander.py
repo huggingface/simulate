@@ -108,10 +108,10 @@ def make_lander(engine="Unity", engine_exe=None):
     lander.controller = sm.Controller(
         mapping=[
             sm.ActionMapping("add_relative_force", axis=[1, 0, 0], amplitude=1),
-            sm.ActionMapping("add_relative_force", axis=[1, 0, 0], amplitude=-1),
-            sm.ActionMapping("add_relative_force", axis=[0, 1, 0], amplitude=1),
+            # sm.ActionMapping("add_relative_force", axis=[1, 0, 0], amplitude=-1),
+            # sm.ActionMapping("add_relative_force", axis=[0, 1, 0], amplitude=1),
         ],
-        n=3,
+        n=1,
     )
 
     r_leg_poly_shifted = shift_polygon(LEG_RIGHT_POLY, lander_init_pos)
@@ -169,11 +169,11 @@ if __name__ == "__main__":
             name="cam",
             camera_type="orthographic",
             # TODO Tune position
-            position=[0, -5, 0],
+            position=[0, 0, 5],
             rotation=[0, -30, 0],
             ymag=15,
             width=256,
-            height=144,
+            height=256,
         )
 
         # TODO Add adgent that acts via thrusters (lateral)
@@ -182,21 +182,22 @@ if __name__ == "__main__":
         if args.plt:
             plt.ion()
             fig, ax = plt.subplots()
-            imdata = np.zeros(shape=(144, 256, 3), dtype=np.uint8)
+            imdata = np.zeros(shape=(256, 256, 3), dtype=np.uint8)
             axim = ax.imshow(imdata, vmin=0, vmax=255)
             # env = sm.RLEnvironment(sc)
         for i in range(1000):
             print(f"step {i}")
-            action = sc.action_space.sample()
-            event = sc.step(action)
+            # action = sc.action_space.sample()
+            # event = sc.step(action)
+            event = sc.step()
             # event, _, _, _ = env.step(action=0)
-            # if "frames" in event and "cam" in event["frames"]:
-            #     frame = np.array(event["frames"]["cam"], dtype=np.uint8)
-            #     frame = frame.transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
-            #     if args.plt:
-            #         axim.set_data(frame)
-            #         fig.canvas.flush_events()
-            #         plt.pause(0.01)
+            if "frames" in event and "cam" in event["frames"]:
+                frame = np.array(event["frames"]["cam"], dtype=np.uint8)
+                frame = frame.transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
+                if args.plt:
+                    axim.set_data(frame)
+                    fig.canvas.flush_events()
+                    plt.pause(0.01)
 #
 # plt.pause(0.5)
 #
