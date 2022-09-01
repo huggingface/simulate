@@ -27,12 +27,12 @@ namespace SimEnv.GLTF {
 
         public class Extensions {
             public KHRLight KHR_lights_punctual;
-            public HFCollider HF_colliders;
-            public HFArticulatedBody HF_articulated_bodies;
-            public HFController HF_controllers;
-            public HFRigidbody HF_rigid_bodies;
-            public HFStateSensor HF_state_sensors;
-            public HFRewardFunction HF_reward_functions;
+            public NodeExtension HF_colliders;
+            public NodeExtension HF_articulated_bodies;
+            public NodeExtension HF_controllers;
+            public NodeExtension HF_rigid_bodies;
+            public NodeExtension HF_state_sensors;
+            public NodeExtension HF_reward_functions;
             public string[] HF_custom;
         }
 
@@ -41,31 +41,14 @@ namespace SimEnv.GLTF {
             public string contents;
         }
 
-        public class HFStateSensor {
-            public int object_id;
-        }
-
-        public class HFRigidbody {
-            public int object_id;
-        }
-
-        public class HFController {
+        public class NodeExtension {
+            public string name;
             public int object_id;
         }
 
         public class KHRLight {
+            public string name;
             public int light;
-        }
-
-        public class HFCollider {
-            public int object_id;
-        }
-        public class HFRewardFunction {
-            public int object_id;
-        }
-
-        public class HFArticulatedBody {
-            public int object_id;
         }
 
         public class ImportResult {
@@ -140,35 +123,10 @@ namespace SimEnv.GLTF {
                 // Now we add the more complex properties to the nodes (Mesh, Lights, Colliders, Cameras, Actor, etc)
                 // Colliders and Mesh
                 for (int i = 0; i < result.Length; i++) {
-                    // Colliders are compnent and not node in Unity so we are taking care of this case
-                    if (nodes[i].extensions != null && nodes[i].extensions.HF_colliders != null) {
-                        int componentId = nodes[i].extensions.HF_colliders.object_id;
-                        if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.objects == null || extensions.HF_colliders.objects.Count < componentId) {
-                            Debug.LogWarning("Error importing collider");
-                        } else {
-                            Debug.LogWarning($"collider with node {i}");
-                            HFColliders.GLTFCollider collider = extensions.HF_colliders.objects[componentId];
+                    if (string.IsNullOrEmpty(result[i].transform.name))
+                        result[i].transform.name = "node" + i;
 
-                            Mesh mesh = null;
-                            if (nodes[i].mesh.HasValue) {
-                                GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
-                                mesh = meshResult.mesh;
-                            }
-                            PhysicMaterial physicMaterial = null;
-                            if (collider.physic_material.HasValue)
-                                physicMaterial = physicMaterialTask.result[collider.physic_material.Value].material;
-
-                            HFColliders.GLTFCollider.ImportResult importResult = new HFColliders.GLTFCollider.ImportResult() {
-                                collider = collider,
-                                mesh = mesh,
-                                physicMaterial = physicMaterial,
-                            };
-
-                            result[result[i].parent.Value].node.colliderData = importResult;  // we add the Collider as a component to the parent node
-                            Debug.LogWarning($"Adding collider to node {result[i].parent.Value}");
-                            Debug.LogWarning($"Data {result[result[i].parent.Value].node.colliderData}");
-                        }
-                    } else if (nodes[i].mesh.HasValue) {
+                    if (nodes[i].mesh.HasValue && (nodes[i].extensions == null || nodes[i].extensions.HF_colliders == null)) {
                         GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
                         if (meshResult == null) continue;
                         Mesh mesh = meshResult.mesh;
@@ -187,11 +145,6 @@ namespace SimEnv.GLTF {
                             renderer = meshRenderer;
                         }
                         renderer.materials = meshResult.materials;
-                        if (string.IsNullOrEmpty(result[i].transform.name))
-                            result[i].transform.name = "node" + i;
-                    } else {
-                        if (string.IsNullOrEmpty(result[i].transform.name))
-                            result[i].transform.name = "node" + i;
                     }
 
                     // Camera
@@ -200,6 +153,34 @@ namespace SimEnv.GLTF {
 
                     // Extensions (lights, colliders, Actor etc)
                     if (nodes[i].extensions != null) {
+                        // Colliders
+                        if (nodes[i].extensions.HF_colliders != null) {
+                            int componentId = nodes[i].extensions.HF_colliders.object_id;
+                            if (extensions == null || extensions.HF_colliders == null || extensions.HF_colliders.objects == null || extensions.HF_colliders.objects.Count < componentId) {
+                                Debug.LogWarning("Error importing collider");
+                            } else {
+                                HFColliders.GLTFCollider collider = extensions.HF_colliders.objects[componentId];
+
+                                Mesh mesh = null;
+                                if (nodes[i].mesh.HasValue) {
+                                    GLTFMesh.ImportResult meshResult = meshTask.result[nodes[i].mesh.Value];
+                                    mesh = meshResult.mesh;
+                                }
+
+                                PhysicMaterial physicMaterial = null;
+                                if (collider.physic_material.HasValue)
+                                    physicMaterial = physicMaterialTask.result[collider.physic_material.Value].material;
+
+                                HFColliders.GLTFCollider.ImportResult importResult = new HFColliders.GLTFCollider.ImportResult() {
+                                    collider = collider,
+                                    mesh = mesh,
+                                    physicMaterial = physicMaterial,
+                                };
+
+                                result[i].node.colliderData = importResult;
+                            }
+                        }
+
                         // Lights
                         if (nodes[i].extensions.KHR_lights_punctual != null) {
                             int componentId = nodes[i].extensions.KHR_lights_punctual.light;
@@ -293,7 +274,6 @@ namespace SimEnv.GLTF {
             [JsonIgnore] public MeshFilter filter;
             [JsonIgnore] public MeshCollider meshCollider;
             [JsonIgnore] public SkinnedMeshRenderer skinnedMeshRenderer;
-            [JsonIgnore] public int? colliderMesh;
         }
 
         public static List<ExportResult> Export(GLTFObject gltfObject, Transform root) {

@@ -16,21 +16,19 @@ namespace SimEnv.GLTF {
             public string name = "";
             [JsonConverter(typeof(EnumConverter))] public ColliderType type = ColliderType.box;
             [JsonConverter(typeof(Vector3Converter))] public Vector3 bounding_box;
-            public int? mesh;
             [JsonConverter(typeof(TranslationConverter))] public Vector3 offset = Vector3.zero;
             public bool intangible = false;
             public bool convex = false;
             public int? physic_material;
 
-            public bool ShouldSerializemesh() { return mesh.HasValue; }
-            public bool ShouldSerializeoffset() { return offset != Vector3.zero; }
-            public bool ShouldSerializeintangible() { return intangible; }
-            public bool ShouldSerializeconvex() { return convex; }
+            public bool ShouldSerializebounding_box() => bounding_box != Vector3.zero;
+            public bool ShouldSerializeoffset() => offset != Vector3.zero;
+            public bool ShouldSerializeintangible() => intangible;
+            public bool ShouldSerializeconvex() => convex;
 
             public override int GetHashCode() {
                 return type.GetHashCode()
                     ^ bounding_box.GetHashCode()
-                    ^ mesh.GetHashCode()
                     ^ offset.GetHashCode()
                     ^ intangible.GetHashCode()
                     ^ convex.GetHashCode()
@@ -42,7 +40,6 @@ namespace SimEnv.GLTF {
                 GLTFCollider other = obj as GLTFCollider;
                 if (type == other.type
                     && bounding_box == other.bounding_box
-                    && mesh == other.mesh
                     && offset == other.offset
                     && intangible == other.intangible
                     && convex == other.convex
@@ -71,7 +68,10 @@ namespace SimEnv.GLTF {
                 if (!objects.Contains(collider))
                     objects.Add(collider);
                 node.extensions ??= new GLTFNode.Extensions();
-                node.extensions.HF_colliders = new GLTFNode.HFCollider() { object_id = objects.IndexOf(collider) };
+                node.extensions.HF_colliders = new GLTFNode.NodeExtension() { 
+                    name = collider.name,
+                    object_id = objects.IndexOf(collider),
+                };
             }
             if (objects.Count == 0) return objects;
             gltfObject.extensionsUsed ??= new List<string>();
@@ -93,6 +93,7 @@ namespace SimEnv.GLTF {
             ExportResult collider = new ExportResult() {
                 node = node,
                 collider = col,
+                intangible = col.isTrigger,
             };
             collider.name = col.name;
             if (col is BoxCollider) {
@@ -111,7 +112,6 @@ namespace SimEnv.GLTF {
             } else if (col is MeshCollider) {
                 collider.type = ColliderType.mesh;
                 MeshCollider meshCollider = col as MeshCollider;
-                collider.mesh = node.colliderMesh;
                 collider.convex = meshCollider.convex;
             } else {
                 Debug.LogWarning($"Collider type {col.GetType()} not implemented");

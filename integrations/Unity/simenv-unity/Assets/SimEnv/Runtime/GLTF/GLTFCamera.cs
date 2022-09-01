@@ -13,11 +13,6 @@ namespace SimEnv.GLTF {
         public int width = 512;
         public int height = 512;
 
-        public GLTFCamera() {
-            orthographic = new Orthographic();
-            perspective = new Perspective();
-        }
-
         public class Orthographic {
             public float xmag = 1f;
             public float ymag = 5f;
