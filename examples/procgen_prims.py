@@ -21,7 +21,7 @@ def generate_map(index):
         material=sm.Material.BLUE,
         with_collider=True,
     )
-    actor_position = [math.floor(maze_width / 2.0) + 0.5, 0.0, math.floor(maze_depth / 2.0) + 0.5]
+    actor_position = [math.floor(maze_width / 2.0) + 0.5, 0.5, math.floor(maze_depth / 2.0) + 0.5]
 
     actor = sm.EgocentricCameraActor(position=actor_position)
     maze += actor
