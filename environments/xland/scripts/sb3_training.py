@@ -23,7 +23,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_maps", default=16, type=int, required=False, help="Total number of maps")
     parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show at once")
     parser.add_argument("--seed", default=10, type=int, required=False, help="Random seed")
-    parser.add_argument("--headless", default=True, type=bool, required=False, help="Headless mode")
+    parser.add_argument("--headless", default=False, type=bool, required=False, help="Headless mode")
     args = parser.parse_args()
 
     np.random.seed(args.seed)
