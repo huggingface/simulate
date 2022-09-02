@@ -45,9 +45,11 @@ class ActionMapping:
             - "add_relative_torque": add a torque to the object in the object's local coordinate system
             - "add_force_at_position": add a force to the object at a position in the object's local coordinate system
             - "change_position": move the object along an axis
-            - "move_position_relative": move the object along an axis in local coordinates
-            - "rotate": rotate the object around an axis
+            - "change_position_relative": move the object along an axis in local coordinates
+            - "change_rotation": rotate the object around an axis
             - "change_relative_rotation": rotate the object along an axis in local coordinates
+            - "set_position": TODO
+            - "set_rotation": TODO
         axis (List[float]): the axis of the action to be applied along or around
         amplitude (float): the amplitude of the action to be applied (see below for details)
         offset (float): the offset of the action to be applied (see below for details)

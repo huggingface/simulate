@@ -20,13 +20,24 @@ import simenv as sm
 
 # TODO add more tests on saving/exporting/loading in gltf files
 class ActorTest(unittest.TestCase):
-    def test_create_agent(self):
-        actor = sm.SimpleActor()
-        self.assertIsInstance(actor, sm.SimpleActor)
+    actor_types = [sm.EgocentricCameraActor, sm.SimpleActor]
+
+    def test_create_actors(self):
+        for ac in self.actor_types:
+            actor = ac()
+
+            self.assertIsInstance(actor.controller, sm.Controller)
+            self.assertIsInstance(actor.physics_component, sm.RigidBodyComponent)
+            self.assertTrue(len(actor), 1)
+
+    def test_egocentric_actor(self):
+        actor = sm.EgocentricCameraActor()
+        self.assertIsInstance(actor.tree_children[0], sm.Camera)
+        self.assertIsInstance(actor, sm.EgocentricCameraActor)
         self.assertIsInstance(actor, sm.Capsule)
 
-        self.assertIsInstance(actor.controller, sm.Controller)
-        self.assertIsInstance(actor.physics_component, sm.RigidBodyComponent)
-
-        self.assertTrue(len(actor), 1)
-        self.assertIsInstance(actor.tree_children[0], sm.Camera)
+    def test_simple_actor(self):
+        actor = sm.SimpleActor()
+        self.assertIsInstance(actor, sm.SimpleActor)
+        self.assertIsInstance(actor, sm.Sphere)
+        self.assertIsInstance(actor.tree_children[0], sm.Collider)

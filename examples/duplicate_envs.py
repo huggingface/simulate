@@ -44,7 +44,7 @@ def generate_map(index):
             name=f"cube{i}_{index}", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material
         )
 
-    agent = sm.SimpleActor(name=f"agent_{index}", position=[0.0, 0.0, 0.0])
+    agent = sm.EgocentricCameraActor(name=f"agent_{index}", position=[0.0, 0.0, 0.0])
     root += agent
     root += RewardFunction(entity_a=agent, entity_b=cube)
     return root

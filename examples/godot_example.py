@@ -1,7 +1,6 @@
 import random
 
 import matplotlib.pyplot as plt
-import numpy as np
 
 import simenv as sm
 
@@ -24,10 +23,11 @@ target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.unifor
 scene += target
 
 
-agent = sm.SimpleActor(name="agent", position=[0.0, 0.0, 0.0])
+agent = sm.EgocentricCameraActor(name="agent", position=[0.0, 0.0, 0.0])
 scene += agent
 
-env = sm.ParallelRLEnvironment(scene)
+env = sm.RLEnvironment(scene)
+env.show()
 
 for i in range(1000):
     action = agent.rl_component.discrete_actions.sample()

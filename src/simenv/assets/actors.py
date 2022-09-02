@@ -19,14 +19,93 @@ from typing import List, Optional, Union
 
 from .camera import Camera
 from .controller import ActionMapping, Controller
-from .object import Capsule
+from .object import Capsule, Sphere
 from .rigid_body import RigidBodyComponent
 
 
-class SimpleActor(Capsule):
-    """Create a Simple RL Actor in the Scene
+class SimpleActor(Sphere):
+    """Creates a barebones RL agent in the scene.
 
-        A simple actor is a capsule asset with:
+    A SimpleActor is a sphere asset with:
+    - basic XYZ positional control (continuous),
+    - mass of 1 (default)
+    - no attached Camera
+
+    """
+
+    dimensionality = 3
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
+    def __init__(
+        self,
+        name=None,
+        position: Optional[List[float]] = None,
+        rotation: Optional[List[float]] = None,
+        scaling: Optional[Union[float, List[float]]] = None,
+        transformation_matrix=None,
+        parent=None,
+        children=None,
+    ):
+
+        if position is None:
+            position = [0, 0, 0]  # at origin
+
+        super().__init__(
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            parent=parent,
+            children=children,
+            transformation_matrix=transformation_matrix,
+            with_collider=True,
+        )
+
+        # Rescale the actor
+        if scaling is not None:
+            self.scale(scaling)
+
+        # Add our physics component =
+        self.physics_component = RigidBodyComponent()
+
+        # Create our action maps to physics engine effects
+        mapping = [
+            ActionMapping("change_relative_position", axis=[1, 0, 0]),
+            ActionMapping("change_relative_position", axis=[0, 1, 0]),
+            ActionMapping("change_relative_position", axis=[0, 0, 1]),
+        ]
+        self.controller = Controller(n=3, mapping=mapping)
+
+    def copy(self, with_children=True, **kwargs) -> "SimpleActor":
+        """Return a copy of the Asset. Parent and children are not attached to the copy."""
+
+        copy_name = self.name + f"_copy{self._n_copies}"
+        self._n_copies += 1
+        instance_copy = type(self)(
+            name=copy_name,
+            position=self.position,
+            rotation=self.rotation,
+            scaling=self.scaling,
+        )
+
+        if with_children:
+            copy_children = []
+            for child in self.tree_children:
+                copy_children.append(child.copy(**kwargs))
+            instance_copy.tree_children = copy_children
+
+            for child in instance_copy.tree_children:
+                child._post_copy()
+
+        instance_copy.physics_component = self.physics_component
+
+        return instance_copy
+
+
+class EgocentricCameraActor(Capsule):
+    """Create an Egocentric RL Actor in the Scene -- essentially a basic first-person agent.
+
+        A egocentric actor is a capsule asset with:
         - a Camera as a child asset for observation device
         - a RigidBodyComponent component with a mass of 1.0
         - a discrete controller
@@ -52,23 +131,19 @@ class SimpleActor(Capsule):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        camera_height: Optional[int] = None,
-        camera_width: Optional[int] = None,
+        camera_height: Optional[int] = 40,
+        camera_width: Optional[int] = 40,
         transformation_matrix=None,
         parent=None,
         children=None,
     ):
 
         if position is None:
-            position = [0, 0.51, 0]  # A bit above the reference plane
+            position = [0, 1.02, 0]  # A bit above the reference plane
 
         camera_name = None
         if name is not None:
             camera_name = f"{name}_camera"
-        if camera_height is None:
-            camera_height = 40
-        if camera_width is None:
-            camera_width = 40
         self.camera = Camera(name=camera_name, width=camera_width, height=camera_height, position=[0, 0.75, 0])
         children = children + self.camera if children is not None else self.camera
 
@@ -87,9 +162,6 @@ class SimpleActor(Capsule):
         if scaling is not None:
             self.scale(scaling)
 
-        # Move our actor a bit higher than the ground
-        self.translate_y(0.51)
-
         # Add our physics component (by default the actor can only rotation along y axis)
         self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
 
@@ -101,7 +173,7 @@ class SimpleActor(Capsule):
         ]
         self.controller = Controller(n=3, mapping=mapping)
 
-    def copy(self, with_children=True, **kwargs) -> "SimpleActor":
+    def copy(self, with_children=True, **kwargs) -> "EgocentricCameraActor":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
 
         copy_name = self.name + f"_copy{self._n_copies}"

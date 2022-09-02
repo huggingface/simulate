@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-"""Wrapper around SimEnv scene for easier RL training"""
 
 from collections import defaultdict
 
@@ -19,7 +18,7 @@ import numpy as np
 from gym import spaces
 
 # Lint as: python3
-from ...scene import Scene
+from simenv.scene import Scene
 
 
 try:
@@ -31,6 +30,19 @@ except ImportError:
 
 
 class ParallelRLEnvironment(VecEnv):
+    """
+    Parallel RL environment wrapper for SimEnv scene. Uses functionality from the VecEnv in stable baselines 3
+    For more information on VecEnv, see the source
+    https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
+
+    Args:
+        scene_or_map_fn: a generator function for generating instances of the desired environment
+        n_maps: TODO
+        n_show: TODO
+        frame_rate: TODO
+        frame_skip: TODO
+    """
+
     def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, frame_rate=30, frame_skip=4, **engine_kwargs):
 
         if hasattr(scene_or_map_fn, "__call__"):
@@ -44,6 +56,7 @@ class ParallelRLEnvironment(VecEnv):
             self.scene = scene_or_map_fn
             self.map_roots = [self.scene]
 
+        # TODO --> add warning if scene has no actor or reward functions
         self.actors = {actor.name: actor for actor in self.scene.actors}
         self.n_actors = len(self.actors)
         self.n_maps = n_maps
@@ -58,7 +71,7 @@ class ParallelRLEnvironment(VecEnv):
         }  # quick workaround while Thom refactors this
         self.observation_space = spaces.Dict(self.observation_space)
 
-        super(ParallelRLEnvironment, self).__init__(n_show, self.observation_space, self.action_space)
+        super().__init__(n_show, self.observation_space, self.action_space)
 
         # Don't return simulation data, since minimal/faster data will be returned by agent sensors
         # Pass maps kwarg to enable map pooling
@@ -87,12 +100,14 @@ class ParallelRLEnvironment(VecEnv):
         event = self.scene.step(action=action_dict)
 
         # Extract observations, reward, and done from event data
+        # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
         if self.n_actors == 1:
             actor_data = event["actors"][self.actor.name]
             obs = self._extract_sensor_obs(actor_data["observations"])
             reward = actor_data["reward"]
             done = actor_data["done"]
             info = {}
+
         else:
             reward = []
             done = []
@@ -144,9 +159,9 @@ class ParallelRLEnvironment(VecEnv):
 
         return out
 
-    def _extract_sensor_obs(self, obs):
+    def _extract_sensor_obs(self, sim_data):
         sensor_obs = {}
-        for sensor_name, sensor_data in obs.items():
+        for sensor_name, sensor_data in sim_data.items():
             if sensor_data["type"] == "uint8":
                 shape = sensor_data["shape"]
                 measurement = np.array(sensor_data["uintBuffer"], dtype=np.uint8).reshape(shape)

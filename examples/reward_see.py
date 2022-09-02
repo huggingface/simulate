@@ -31,7 +31,7 @@ def create_scene(port=55000):
         material=sm.Material.RED,
         physics_component=sm.RigidBodyComponent(mass=mass),
     )
-    scene += sm.SimpleActor(
+    scene += sm.EgocentricCameraActor(
         name="agent",
         camera_width=CAMERA_WIDTH,
         camera_height=CAMERA_HEIGHT,
