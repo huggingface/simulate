@@ -1,5 +1,6 @@
 import argparse
 import random
+
 from stable_baselines3 import PPO
 
 import simenv as sm
@@ -7,11 +8,41 @@ import simenv as sm
 
 def generate_map(index):
     root = sm.Asset(name=f"root_{index}")
-    root += sm.Box(name=f"floor_{index}", position=[0, 0, 0], bounds=[-10, 10, 0, 0.1, -10, 10], material=sm.Material.BLUE, with_collider=True)
-    root += sm.Box(name=f"wall1_{index}", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.GRAY75, with_collider=True)
-    root += sm.Box(name=f"wall2_{index}", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.GRAY75, with_collider=True)
-    root += sm.Box(name=f"wall3_{index}", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY75, with_collider=True)
-    root += sm.Box(name=f"wall4_{index}", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.GRAY75, with_collider=True)
+    root += sm.Box(
+        name=f"floor_{index}",
+        position=[0, 0, 0],
+        bounds=[-10, 10, 0, 0.1, -10, 10],
+        material=sm.Material.BLUE,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall1_{index}",
+        position=[-10, 0, 0],
+        bounds=[0, 0.1, 0, 1, -10, 10],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall2_{index}",
+        position=[10, 0, 0],
+        bounds=[0, 0.1, 0, 1, -10, 10],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall3_{index}",
+        position=[0, 0, 10],
+        bounds=[-10, 10, 0, 1, 0, 0.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall4_{index}",
+        position=[0, 0, -10],
+        bounds=[-10, 10, 0, 1, 0, 0.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
 
     actor = sm.EgocentricCameraActor(position=[0.0, 0.5, 0.0], camera_width=64, camera_height=40)
     root += actor
@@ -47,7 +78,6 @@ def generate_map(index):
         is_terminal=True,
         scalar=-1.0,
     )
-
 
     return root
 

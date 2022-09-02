@@ -1,5 +1,6 @@
 import argparse
 import random
+
 from stable_baselines3 import PPO
 
 import simenv as sm
@@ -117,7 +118,6 @@ def generate_map(index):
     actor += red_yellow_target_reward_single
     actor += green_white_target_reward_single
     actor += and_reward
-
 
     return root
 

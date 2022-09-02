@@ -17,9 +17,11 @@ from collections import defaultdict
 import numpy as np
 from gym import spaces
 
+import simenv as sm
+
 # Lint as: python3
 from simenv.scene import Scene
-import simenv as sm
+
 
 try:
     from stable_baselines3.common.vec_env.base_vec_env import VecEnv
@@ -116,6 +118,8 @@ class ParallelRLEnvironment(VecEnv):
             obs = []
             for actor_name in event["actors"].keys():
                 actor_data = event["actors"][actor_name]
+
+                print(actor_data)
                 actor_obs = self._extract_sensor_obs(actor_data["observations"])
                 obs.append(actor_obs)
                 reward.append(actor_data["reward"])
