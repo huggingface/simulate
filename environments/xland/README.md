@@ -2,9 +2,9 @@
 
 Procedurally generated environments inspired by [XLand](https://arxiv.org/abs/2107.12808) from Deepmind.
 
-<img src="benchmark/media/maps.gif" width="500">
+<img src="benchmark/media/multiple_maps.png" width="500">
 
-For now, we are building the procedural generation using [Wave Function Collapse](https://github.com/mxgmn/WaveFunctionCollapse) (WFC), and our C++ code is mainly based on the implementation [fast-wfc](https://github.com/math-fehr/fast-wfc), which contains a really fast implementation of WFC in C++.
+We use the procedural generation implemented in `simenv` using [Wave Function Collapse](https://github.com/mxgmn/WaveFunctionCollapse) (WFC), and the C++ code there is mainly based on the implementation [fast-wfc](https://github.com/math-fehr/fast-wfc), which contains a really fast implementation of WFC in C++.
 
 ## Installation
 
