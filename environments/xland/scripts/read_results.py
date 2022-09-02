@@ -21,11 +21,14 @@ if __name__ == "__main__":
     print("Mean reward: ", mean_reward, "; Standard deviation: ", std_rewards)
 
     mean_rewards_across_slots = np.mean(metrics["episode_rewards"], axis=0)
+    mean_mean_rewards_across_slots = np.mean(mean_rewards_across_slots)
+    std_mean_rewards_across_slots = np.std(mean_rewards_across_slots)
+
     print(
         "Mean reward with same logic as xland exploration: ",
-        np.mean(mean_rewards_across_slots),
+        mean_mean_rewards_across_slots,
         "; Standard deviation: ",
-        np.std(mean_rewards_across_slots),
+        std_mean_rewards_across_slots,
     )
 
     if args.debug:
