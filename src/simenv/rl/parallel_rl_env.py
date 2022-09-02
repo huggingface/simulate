@@ -19,7 +19,7 @@ from gym import spaces
 
 # Lint as: python3
 from simenv.scene import Scene
-
+import simenv as sm
 
 try:
     from stable_baselines3.common.vec_env.base_vec_env import VecEnv
@@ -47,6 +47,7 @@ class ParallelRLEnvironment(VecEnv):
 
         if hasattr(scene_or_map_fn, "__call__"):
             self.scene = Scene(engine="Unity", **engine_kwargs)
+            self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
             self.map_roots = []
             for i in range(n_maps):
                 map_root = scene_or_map_fn(i)
