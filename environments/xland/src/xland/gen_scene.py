@@ -136,6 +136,8 @@ def create_scene(
                 predicate=predicate,
                 camera_width=camera_width,
                 camera_height=camera_height,
+                n_options=kwargs.pop("n_options", 1),
+                n_conjunctions=kwargs.pop("n_conjunctions", 2),
                 object_type=kwargs.pop("object_type", None),
                 specific_color=kwargs.pop("specific_color", None),
             )
