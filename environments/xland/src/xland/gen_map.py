@@ -64,13 +64,10 @@ def create_map(
 
     seed_env(seed)
 
-    # TODO: choose width and height randomly from a set of predefined values
     # Initialize success and attempt variables
     success = False
     attempt = 0
     nb_attempts = kwargs.get("nb_attempts", 10)
-    camera_width = kwargs.get("camera_width", 96)
-    camera_height = kwargs.get("camera_height", 72)
 
     while not success and attempt < nb_attempts:
 
@@ -117,10 +114,12 @@ def create_map(
                 agent_pos,
                 rank=rank,
                 predicate=predicate,
-                camera_width=camera_width,
-                camera_height=camera_height,
+                camera_width=kwargs.pop("camera_width", 96),
+                camera_height=kwargs.pop("camera_height", 72),
                 object_type=kwargs.pop("object_type", None),
                 specific_color=kwargs.pop("specific_color", None),
+                n_options=kwargs.pop("n_options", 1),
+                n_conjunctions=kwargs.pop("n_conjunctions", 2),
             )
 
         else:
