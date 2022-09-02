@@ -30,7 +30,7 @@ class SimpleActor(Sphere):
     A SimpleActor is a sphere asset with:
     - basic XYZ positional control (continuous),
     - mass of 1 (default)
-    - no Camera
+    - no attached Camera
 
     """
 
@@ -68,7 +68,7 @@ class SimpleActor(Sphere):
             self.scale(scaling)
 
         # Add our physics component =
-        self.physics_component = RigidBodyComponent(mass=0)
+        self.physics_component = RigidBodyComponent()
 
         # Create our action maps to physics engine effects
         mapping = [
@@ -158,6 +158,7 @@ class EgocentricCameraActor(Capsule):
             scaling=scaling,
             parent=parent,
             children=children,
+            collider=collider,
             transformation_matrix=transformation_matrix,
             with_collider=True,
         )
