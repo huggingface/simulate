@@ -33,7 +33,7 @@ if __name__ == "__main__":
     print(inspect.getdoc(sm.SimpleActor))
     print(inspect.signature(sm.SimpleActor))
 
-    agent = sm.SimpleActor(
+    agent = sm.EgocentricCameraActor(
         camera_width=CAMERA_WIDTH,
         camera_height=CAMERA_HEIGHT,
         position=[0.0, 0.0, 0.0],
