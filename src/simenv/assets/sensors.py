@@ -113,15 +113,14 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 
 @dataclass_json
 @dataclass
-class RaycastSensor:
+class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_sensors", object_type="node"):
     """A Raycast sensor: cast a ray to get an observation"""
 
     n_horizontal_rays: int = 1
     n_vertical_rays: int = 1
+    horizontal: float = 0
     vertical_angle: float = 0
-    horizal_angle: float = 0
     ray_length: float = 100
-    axis: Optional[List[float]] = None
 
     name: InitVar[Optional[str]] = None
     position: InitVar[Optional[List[float]]] = None
@@ -147,10 +146,6 @@ class RaycastSensor:
             children=children,
             created_from_file=created_from_file,
         )
-
-
-    def __post_init__(self):
-        raise NotImplementedError
 
     @property
     def observation_space(self):

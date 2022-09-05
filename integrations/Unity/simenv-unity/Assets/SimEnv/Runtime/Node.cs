@@ -12,8 +12,8 @@ namespace SimEnv {
         public HFArticulatedBodies.GLTFArticulatedBody articulatedBodyData;
         public HFControllers.HFController actionData;
         public HFStateSensors.HFStateSensor stateSensorData;
+        public HFRaycastSensors.HFRaycastSensor raycastSensorData;
         public HFRewardFunctions.HFRewardFunction rewardFunctionData;
-
         public new RenderCamera camera { get; private set; }
         public new Light light { get; private set; }
         public new Collider collider { get; private set; }

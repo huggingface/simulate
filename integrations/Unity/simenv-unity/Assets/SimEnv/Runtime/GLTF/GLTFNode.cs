@@ -32,6 +32,7 @@ namespace SimEnv.GLTF {
             public NodeExtension HF_controllers;
             public NodeExtension HF_rigid_bodies;
             public NodeExtension HF_state_sensors;
+            public NodeExtension HF_raycast_sensors;
             public NodeExtension HF_reward_functions;
             public string[] HF_custom;
         }
@@ -227,6 +228,16 @@ namespace SimEnv.GLTF {
                                 Debug.LogWarning("Error importing state sensor");
                             } else {
                                 result[i].node.stateSensorData = extensions.HF_state_sensors.objects[sensorValue];
+                            }
+                        }
+                        // Raycast Sensor
+                        if (nodes[i].extensions.HF_raycast_sensors != null) {
+
+                            int sensorValue = nodes[i].extensions.HF_raycast_sensors.object_id;
+                            if (extensions == null || extensions.HF_raycast_sensors == null || extensions.HF_raycast_sensors.objects == null || extensions.HF_raycast_sensors.objects.Count < sensorValue) {
+                                Debug.LogWarning("Error importing state sensor");
+                            } else {
+                                result[i].node.raycastSensorData = extensions.HF_raycast_sensors.objects[sensorValue];
                             }
                         }
                         // Reward Functions
