@@ -87,6 +87,19 @@ class GltfExtensionMixin(DataClassJsonMixin):
         else:
             GLTF_COMPONENTS_EXTENSION_CLASS.append(cls)
 
+    def copy(self) -> "GltfExtensionMixin":
+        """Create a deep copy of the object with a deep copy of only the dataclass fields.
+
+        In several cases we are modifying this asset and want to create pikable copies (e.g. at importation from GLTF or during the
+        GLTF conversion to replace node pointers with string names)
+
+        We then want to deep copy only the fields of the dataclass, thus we don't
+        use copy.deepcpy since some other properties (renderer, etc) are not picklable
+        """
+        self_dict = {f.name: copy.deepcopy(getattr(self, f.name)) for f in fields(self)}
+        copy_self = type(self)(**self_dict)
+        return copy_self
+
     def _add_component_to_gltf_model(self, gltf_model_extensions) -> int:
         """Add a component to a glTF model.
 
@@ -96,11 +109,7 @@ class GltfExtensionMixin(DataClassJsonMixin):
         Returns:
             The index of the component in the glTF model extensions.
         """
-        # We are modifying the scene during the GLTF conversion to replace node pointers with string names
-        # We want to keep this modifications and thus need to copy the structures
-        # We only want to copy the fields of the dataclass, thus we don't use copy.deepcpy - come other properties (renderer, etc) are not picklable
-        self_dict = {f.name: copy.deepcopy(getattr(self, f.name)) for f in fields(self)}
-        copy_self = type(self)(**self_dict)
+        copy_self = self.copy()  # Create a deep copy of the object keeping only the fields
 
         if getattr(gltf_model_extensions, self._gltf_extension_name, None) is None:
             objects = [copy_self]

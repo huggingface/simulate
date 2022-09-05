@@ -17,6 +17,8 @@ from collections import defaultdict
 import numpy as np
 from gym import spaces
 
+import simenv as sm
+
 # Lint as: python3
 from simenv.scene import Scene
 
@@ -47,6 +49,7 @@ class ParallelRLEnvironment(VecEnv):
 
         if hasattr(scene_or_map_fn, "__call__"):
             self.scene = Scene(engine="Unity", **engine_kwargs)
+            self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
             self.map_roots = []
             for i in range(n_maps):
                 map_root = scene_or_map_fn(i)
@@ -115,6 +118,8 @@ class ParallelRLEnvironment(VecEnv):
             obs = []
             for actor_name in event["actors"].keys():
                 actor_data = event["actors"][actor_name]
+
+                print(actor_data)
                 actor_obs = self._extract_sensor_obs(actor_data["observations"])
                 obs.append(actor_obs)
                 reward.append(actor_data["reward"])

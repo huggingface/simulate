@@ -102,14 +102,14 @@ namespace SimEnv.RlAgents {
             this.currentAction = action;
         }
 
-        public Data GetEventData() {
+        public Data GetEventData(bool forceGetObs = false) {
             UpdateReward();
             bool done = IsDone();
             float reward = GetReward();
             ZeroReward();
             Dictionary<string, SensorBuffer> observations = null;
             // no need to render if the environment is done, frames will be taken from the next map
-            if (!done) {
+            if (!done || forceGetObs) {
                 observations = GetSensorObservations();
             }
             Data data = new Data() {

@@ -1,8 +1,6 @@
 import argparse
-import time
 
-import matplotlib.pyplot as plt
-import numpy as np
+from stable_baselines3 import PPO
 
 import simenv as sm
 
@@ -11,74 +9,82 @@ CAMERA_HEIGHT = 40
 CAMERA_WIDTH = 64
 
 
-def create_scene(port=55000):
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
-    args = parser.parse_args()
+def generate_map(index):
+    root = sm.Asset(name=f"root_{index}")
+    root += sm.Box(
+        name=f"floor_{index}",
+        position=[0, 0, 0],
+        bounds=[-10, 10, 0, 0.1, -10, 10],
+        material=sm.Material.BLUE,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall1_{index}",
+        position=[-10, 0, 0],
+        bounds=[0, 0.1, 0, 1, -10, 10],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall2_{index}",
+        position=[10, 0, 0],
+        bounds=[0, 0.1, 0, 1, -10, 10],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall3_{index}",
+        position=[0, 0, 10],
+        bounds=[-10, 10, 0, 1, 0, 0.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall4_{index}",
+        position=[0, 0, -10],
+        bounds=[-10, 10, 0, 1, 0, 0.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
 
-    scene = sm.Scene(engine="Unity", engine_exe=args.build_exe, frame_skip=10, engine_port=port)
-    scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
-
-    scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material.BLUE)
-    scene += sm.Box(name="wall1", position=[-5, 0, 0], bounds=[0, 0.1, 0, 1, -5, 5], material=sm.Material.RED)
-    scene += sm.Box(name="wall2", position=[5, 0, 0], bounds=[0, 0.1, 0, 1, -5, 5], material=sm.Material.RED)
-    scene += sm.Box(name="wall3", position=[0, 0, 5], bounds=[-5, 5, 0, 1, 0, 0.1], material=sm.Material.RED)
-    scene += sm.Box(name="wall4", position=[0, 0, -5], bounds=[-5, 5, 0, 1, 0, 0.1], material=sm.Material.RED)
+    actor = sm.EgocentricCameraActor(position=[0.0, 0.5, 0.0], camera_width=64, camera_height=40)
+    root += actor
     mass = 0.2
-    scene += sm.Box(
-        name="target",
+    target = sm.Box(
+        name=f"target_{index}",
         position=[-2, 0.5, 2],
         material=sm.Material.RED,
         physics_component=sm.RigidBodyComponent(mass=mass),
     )
-    scene += sm.EgocentricCameraActor(
-        name="agent",
-        camera_width=CAMERA_WIDTH,
-        camera_height=CAMERA_HEIGHT,
-        position=[0.0, 0.0, 0.0],
+    root += target
+    target_reward = sm.RewardFunction(
+        type="see",
+        entity_a=actor,
+        entity_b=target,
+        distance_metric="euclidean",
+        threshold=30.0,
+        is_terminal=True,
+        is_collectable=True,
+        scalar=1.0,
+        trigger_once=True,
     )
+    actor += target_reward
 
-    return scene
-
-
-def run_scene(scene, fixed_action=None):
-    scene.show()
-    plt.ion()
-    fig1, ax1 = plt.subplots()
-    dummy_obs = np.zeros(shape=(CAMERA_HEIGHT, CAMERA_WIDTH, 3), dtype=np.uint8)
-    axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
-
-    scene.reset()
-    for i in range(50):
-        if fixed_action is None:
-            action = scene.action_space.sample()
-        else:
-            action = fixed_action
-        obs, reward, done, info = scene.step(action)
-
-        print(done, reward, info)
-        axim1.set_data(obs["CameraSensor"].transpose(1, 2, 0))
-        fig1.canvas.flush_events()
-
-        time.sleep(0.1)
-
-    scene.close()
-    plt.close()
+    return root
 
 
-scene = create_scene()
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    parser.add_argument("--n_maps", default=12, type=int, required=False, help="Number of maps to spawn")
+    parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
+    args = parser.parse_args()
 
-target_reward = sm.RewardFunction(
-    type="see",
-    entity_a=scene.agent,
-    entity_b=scene.target,
-    distance_metric="euclidean",
-    threshold=30.0,
-    is_terminal=False,
-    is_collectable=True,
-    scalar=1.0,
-    trigger_once=True,
-)
+    env = sm.ParallelRLEnvironment(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
 
-scene.agent.add_reward_function(target_reward)
-run_scene(scene, fixed_action=1)
+    # for i in range(1000):
+    #     obs, reward, done, info = env.step()
+    model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
+    model.learn(total_timesteps=100000)
+
+    env.close()
