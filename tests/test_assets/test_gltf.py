@@ -89,6 +89,8 @@ class GltfTest(unittest.TestCase):
         # Add a camera to the actor
         actor_camera = sm.Camera(name="camera", width=40, height=40, position=[0, 0.75, 0])
         actor += actor_camera
+        actor += sm.StateSensor(actor_camera, actor, "position")
+        actor += sm.RaycastSensor()
 
         # Specify the action to control the actor: 3 discrete action to rotate and move forward
         actor.controller = sm.Controller(
