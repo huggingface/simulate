@@ -1,0 +1,85 @@
+name: Test Unity
+
+on: [pull_request]
+
+env:
+  HF_HOME: ~/hf_cache
+
+jobs:
+  buildTestLinux64:
+    name: Build and Test on Linux64
+    runs-on: ubuntu-latest
+    strategy:
+      # see discussion at https://github.com/pyvista/pyvista/issues/2867
+      matrix:
+        include:
+          - python-version: '3.8'
+            vtk-version: '9.0.3'
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      # - uses: actions/cache@v3
+      #   with:
+      #     path: ~/.cache/pip
+      #     key: Python-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.vtk-version }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements_test.txt') }}
+      #     restore-keys: |
+      #       Python-${{ runner.os }}-${{ matrix.python-version }}
+
+      - name: Caching Unity Library
+        uses: actions/cache@v2
+        with:
+          path: integrations/Unity/simenv-unity/Library
+          key: Library-SimEnv-Linux64
+          restore-keys: |
+            Library-SimEnv-
+            Library-
+
+      - name: Install the library
+        run: |
+          pip install --upgrade pip
+          pip install -e .[test]
+
+      - name: Set up vtk
+        if: ${{ matrix.vtk-version != 'latest' }}
+        run: pip install vtk==${{ matrix.vtk-version }}
+
+      # - name: Install Testing Requirements pyvista
+      #   run: |
+      #     sudo apt-get update
+      #     sudo apt-get install libgl1-mesa-glx xvfb python-tk -y
+      #     mkdir -p ~/.local/share/pyvista/examples
+
+      - name: Software Report
+        run: |
+          xvfb-run python -c "import pyvista; print(pyvista.Report())"
+          xvfb-run python -c "import pyvista; print(pyvista.EXAMPLES_PATH)"
+          which python
+          pip list
+
+      - name: Run the test example
+        run: |
+          python ./examples/end-to-end-test.py
+
+      - name: Build Unity SimEnv
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          targetPlatform: StandaloneLinux64
+          projectPath: integrations/Unity/simenv-unity
+          buildName: StandaloneLinux64
+          buildsPath: integrations/Unity/simenv-unity/builds
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Build-StandaloneLinux64
+          path: integrations/Unity/simenv-unity/builds/StandaloneLinux64
+

@@ -13,8 +13,6 @@ jobs:
       # see discussion at https://github.com/pyvista/pyvista/issues/2867
       matrix:
         include:
-          # - python-version: '3.7'  # Let's drop support for vtk < 9 - people should then use Unity (see how to update that in setup.py)
-          #   vtk-version: '8.1.2'
           - python-version: '3.8'
             vtk-version: '9.0.3'
           - python-version: '3.9'
@@ -36,13 +34,6 @@ jobs:
           key: Python-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.vtk-version }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements_test.txt') }}
           restore-keys: |
             Python-${{ runner.os }}-${{ matrix.python-version }}
-
-      - uses: actions/cache@v3
-        with:
-          path: ~/.local/share/pyvista/examples
-          key: Examples-1-${{ hashFiles('*') }}
-          restore-keys: |
-            Examples-1-
 
       - name: Install the library
         run: |
