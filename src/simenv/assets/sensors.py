@@ -116,8 +116,38 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 class RaycastSensor:
     """A Raycast sensor: cast a ray to get an observation"""
 
-    n_rays: int = 1
+    n_horizontal_rays: int = 1
+    n_vertical_rays: int = 1
+    vertical_angle: float = 0
+    horizal_angle: float = 0
+    ray_length: float = 100
     axis: Optional[List[float]] = None
+
+    name: InitVar[Optional[str]] = None
+    position: InitVar[Optional[List[float]]] = None
+    rotation: InitVar[Optional[List[float]]] = None
+    scaling: InitVar[Optional[Union[float, List[float]]]] = None
+    transformation_matrix: InitVar[Optional[List[float]]] = None
+    parent: InitVar[Optional[Any]] = None
+    children: InitVar[Optional[List[Any]]] = None
+    created_from_file: InitVar[Optional[str]] = None
+
+    __NEW_ID: ClassVar[Any] = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
+    def __post_init__(
+        self, name, position, rotation, scaling, transformation_matrix, parent, children, created_from_file
+    ):
+        super().__init__(
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            transformation_matrix=transformation_matrix,
+            parent=parent,
+            children=children,
+            created_from_file=created_from_file,
+        )
+
 
     def __post_init__(self):
         raise NotImplementedError
