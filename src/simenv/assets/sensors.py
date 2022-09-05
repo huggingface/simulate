@@ -67,7 +67,7 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
             - "distance": the distance to the target asset (default)
     """
 
-    target_entity: Any
+    target_entity: Optional[Any] = None
     reference_entity: Optional[Any] = None
     properties: Optional[List[str]] = None
 
