@@ -90,7 +90,7 @@ class GltfTest(unittest.TestCase):
         actor_camera = sm.Camera(name="camera", width=40, height=40, position=[0, 0.75, 0])
         actor += actor_camera
         actor += sm.StateSensor(actor_camera, actor, "position")
-        actor += sm.RaycastSensor()
+        actor += sm.RaycastSensor(n_horizontal_rays=12, n_vertical_rays=4, horizontal_fov=120, vertical_fov=45)
 
         # Specify the action to control the actor: 3 discrete action to rotate and move forward
         actor.controller = sm.Controller(
@@ -108,7 +108,7 @@ class GltfTest(unittest.TestCase):
         target = sm.Box(name="cube", position=[1, 0.5, 1], material=material)
         scene += target
 
-        scene += sm.RewardFunction(
+        actor += sm.RewardFunction(
             entity_a=target, entity_b=actor
         )  # By default a dense reward equal to the distance between 2 entities
 
