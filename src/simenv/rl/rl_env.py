@@ -58,6 +58,7 @@ class RLEnvironment:
         action_dict["0"] = action
 
         event = self.scene.step(action=action_dict)
+        print("event", event)
 
         # Extract observations, reward, and done from event data
         actor_data = event["actors"][self.actor.name]

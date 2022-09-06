@@ -3,8 +3,6 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-import inspect
-
 import simenv as sm
 
 
@@ -29,35 +27,28 @@ if __name__ == "__main__":
     scene += sm.Box(name="wall7", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1])
     scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
-    print(inspect.getfile(sm.SimpleActor))
-    print(inspect.getdoc(sm.SimpleActor))
-    print(inspect.signature(sm.SimpleActor))
-
-    agent = sm.EgocentricCameraActor(
+    agent = sm.SimpleActor(
         camera_width=CAMERA_WIDTH,
         camera_height=CAMERA_HEIGHT,
         position=[0.0, 0.0, 0.0],
     )
 
     scene += agent
-
-    print(scene)
     scene.show()
+    plt.ion()
+    fig1, ax1 = plt.subplots()
+    dummy_obs = np.zeros(shape=(CAMERA_HEIGHT, CAMERA_WIDTH, 3), dtype=np.uint8)
+    axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
-    scene = sm.RLEnvironment(scene)
-
-    print(scene.actors)
-
-    for i in range(10):
-        print(f"Step {i}")
+    for i in range(1000):
         action = scene.action_space.sample()
         if type(action) == int:  # discrete are ints, continuous are numpy arrays
             action = action
         else:
             action = action.tolist()
-        print
 
         obs, reward, done, info = scene.step(action)
-        print(f"CameraSensor: {obs['CameraSensor'][:5, :5, :5]}")
+        axim1.set_data(obs["CameraSensor"].transpose(1, 2, 0))
+        fig1.canvas.flush_events()
 
     scene.close()
