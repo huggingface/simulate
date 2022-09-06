@@ -1,8 +1,5 @@
 import argparse
 
-import matplotlib.pyplot as plt
-import numpy as np
-
 import simenv as sm
 from simenv.assets.action_mapping import ActionMapping
 
@@ -24,32 +21,18 @@ def add_rl_components_to_scene(scene):
     # Add action mappings, moving left and right
     mapping = [
         ActionMapping("add_force", axis=[1, 0, 0], amplitude=300),
-        ActionMapping("add_force", axis=[-1, 0, 0], amplitude=300)
+        ActionMapping("add_force", axis=[-1, 0, 0], amplitude=300),
     ]
     actor.controller = sm.Controller(mapping=mapping, n=2)
 
     # Add rewards, reaching the top of the right hill
-    reward_entity = sm.Asset(name="reward_entity", position=[40, 21, 0])
+    reward_entity = sm.Asset(name="reward_entity", position=[-40, 21, 0])
     scene += reward_entity
     reward = sm.RewardFunction(entity_a=reward_entity, entity_b=actor)
     actor += reward
 
     # Add state sensor, for position of agent
     actor += sm.StateSensor(target_entity=actor, properties=["position"])
-
-
-def train(scene, n_frames=30):
-    plt.ion()
-    _, ax = plt.subplots()
-    camera = None
-    for _ in range(n_frames):
-        event = scene.step()
-        if camera is None:
-            camera = next(iter(event["frames"].items()))[0]
-        im = np.array(event["frames"][camera], dtype=np.uint8).transpose(1, 2, 0)
-        ax.clear()
-        ax.imshow(im)
-        plt.pause(0.1)
 
 
 if __name__ == "__main__":
@@ -69,7 +52,7 @@ if __name__ == "__main__":
 
     env = sm.RLEnvironment(scene)
 
-    for i in range(1000):
+    for i in range(10000):
         obs, reward, done, info = env.step()
         print(obs)
 
