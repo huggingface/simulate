@@ -67,10 +67,7 @@ namespace SimEnv.RlAgents {
                     sensors.Add(node2.sensor);
                 }
             }
-
             // TODO: search children for RaycastSensors
-
-
         }
 
         void InitRewardFunctions() {
@@ -87,7 +84,6 @@ namespace SimEnv.RlAgents {
             }
         }
 
-
         void HandleIntermediateFrame() {
             if (node == null || node.gameObject == null) {
                 Simulator.BeforeIntermediateFrame -= HandleIntermediateFrame;
@@ -98,26 +94,20 @@ namespace SimEnv.RlAgents {
                 this.ExecuteAction(currentAction);
         }
 
-        public void Step(object action) {
+        public void SetAction(object action) {
             this.currentAction = action;
         }
 
-        public Data GetEventData(bool forceGetObs = false) {
+        public Data GetEventData() {
             UpdateReward();
             bool done = IsDone();
             float reward = GetReward();
             ZeroReward();
-            Dictionary<string, SensorBuffer> observations = null;
-            // no need to render if the environment is done, frames will be taken from the next map
-            if (!done || forceGetObs) {
-                observations = GetSensorObservations();
-            }
+            // Observations not included, as they are read later from the camera
             Data data = new Data() {
                 done = done,
                 reward = reward,
-                observations = observations,
             };
-
             return data;
         }
 
@@ -133,12 +123,12 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        Dictionary<string, SensorBuffer> GetSensorObservations() {
+        public void ReadSensorObservations(Data data) {
             Dictionary<string, SensorBuffer> observations = new Dictionary<string, SensorBuffer>();
             foreach (var sensor in sensors) {
                 observations[sensor.GetName()] = sensor.GetObs();
             }
-            return observations;
+            data.observations = observations;
         }
 
         public void UpdateReward() {

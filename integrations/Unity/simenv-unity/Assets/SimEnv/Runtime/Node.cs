@@ -43,6 +43,10 @@ namespace SimEnv {
         public void ResetState() {
             transform.position = initialState.position;
             transform.rotation = initialState.rotation;
+            if(rigidbody != null) {
+                rigidbody.velocity = Vector3.zero;
+                rigidbody.angularVelocity = Vector3.zero;
+            }
         }
 
         void InitializeCamera() {

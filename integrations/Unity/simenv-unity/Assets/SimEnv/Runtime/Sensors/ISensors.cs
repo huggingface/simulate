@@ -1,9 +1,7 @@
+using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.Events;
-using System.Collections;
 
 namespace SimEnv {
-
     public class SensorBuffer {
         public float[] floatBuffer;
         public uint[] uintBuffer;
@@ -32,20 +30,16 @@ namespace SimEnv {
                 return "";
             }
         }
-
-
-
     }
 
     public interface ISensor {
-
-        public string GetName();
-        public string GetSensorType();
-        public int GetSize();
-        public int[] GetShape();
-        public void Enable();
-        public void Disable();
-        public string GetBufferType();
-        public SensorBuffer GetObs();
+        string GetName();
+        string GetSensorType();
+        int GetSize();
+        int[] GetShape();
+        void Enable();
+        void Disable();
+        string GetBufferType();
+        SensorBuffer GetObs();
     }
 }

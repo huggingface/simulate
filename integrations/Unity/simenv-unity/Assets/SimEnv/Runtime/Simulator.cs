@@ -110,19 +110,30 @@ namespace SimEnv {
                 AfterIntermediateFrame?.Invoke();
             }
 
-            // Collect post-step data
-            yield return ReadEventData(readNodeData, readCameraData);
+            // Perform early post-step functionality
+            currentEvent = new EventData();
+            OnEarlyStepInternal(readCameraData);
+            foreach (IPlugin plugin in plugins)
+                plugin.OnEarlyStep(currentEvent);
 
-            // Execute post-step functionality
+            yield return new WaitForEndOfFrame();
+
+            // Perform post-step functionality
+            OnStepInternal(readNodeData, readCameraData);
             foreach (IPlugin plugin in plugins)
                 plugin.OnStep(currentEvent);
-            foreach (IPlugin plugin in plugins)
-                yield return plugin.OnStepCoroutine(currentEvent);
+
             AfterStep?.Invoke();
         }
 
-        static IEnumerator ReadEventData(bool readNodeData, bool readCameraData) {
-            currentEvent = new EventData();
+        static void OnEarlyStepInternal(bool readCameraData) {
+            if (readCameraData) {
+                foreach (RenderCamera camera in cameras)
+                    camera.camera.enabled = true;
+            }
+        }
+
+        static void OnStepInternal(bool readNodeData, bool readCameraData) {
             if (readNodeData) {
                 foreach (Node node in nodes.Values) {
                     if (MetaData.instance.nodeFilter == null || MetaData.instance.nodeFilter.Contains(node.name))
@@ -130,9 +141,6 @@ namespace SimEnv {
                 }
             }
             if (readCameraData) {
-                foreach (RenderCamera camera in cameras)
-                    camera.camera.enabled = true;
-                yield return new WaitForEndOfFrame();
                 foreach (RenderCamera camera in cameras) {
                     if (camera.readable) {
                         camera.CopyRenderResultToBuffer(out uint[,,] buffer);
@@ -154,7 +162,8 @@ namespace SimEnv {
         public static void Unload() {
             foreach (IPlugin plugin in Simulator.plugins)
                 plugin.OnBeforeSceneUnloaded();
-            GameObject.DestroyImmediate(root);
+            if (root != null)
+                GameObject.DestroyImmediate(root);
         }
 
         private static void LoadCustomAssemblies() {

@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 
 namespace SimEnv {
     public class StateSensor : ISensor {
@@ -29,15 +27,16 @@ namespace SimEnv {
             foreach (var property in properties) {
                 Debug.Log("property: " + property);
             }
-
-
         }
+
         public string GetName() {
             return mName;
         }
+
         public string GetSensorType() {
             return mType;
         }
+
         public int GetSize() {
             Dictionary<string, int> VALID_PROPERTIES = new Dictionary<string, int>();
             VALID_PROPERTIES.Add("position", 3);
@@ -66,12 +65,14 @@ namespace SimEnv {
         public string GetBufferType() {
             return mType;
         }
+
         public SensorBuffer GetObs() {
             SensorBuffer buffer = new SensorBuffer(GetSize(), GetShape(), GetSensorType());
             GetState(buffer);
 
             return buffer;
         }
+
         public void GetState(SensorBuffer buffer) {
             int subIndex = 0;
             Vector3 relative_position;
@@ -133,12 +134,7 @@ namespace SimEnv {
             }
         }
 
-        public void Enable() {
-
-        }
-
-        public void Disable() {
-
-        }
+        public void Enable() { }
+        public void Disable() { }
     }
 }
