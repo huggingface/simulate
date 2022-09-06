@@ -1,4 +1,3 @@
-using System.Collections;
 using UnityEngine;
 
 namespace SimEnv {
@@ -6,14 +5,14 @@ namespace SimEnv {
         public static string mName = "CameraSensor";
         public static string mType = "uint8";
         public Node node => m_node;
-        public RenderCamera renderCamera => mRenderCamera;
+        public RenderCamera renderCamera => m_renderCamera;
         Texture2D tex;
-        RenderCamera mRenderCamera;
+        RenderCamera m_renderCamera;
         Node m_node;
 
         public CameraSensor(RenderCamera renderCamera) {
             m_node = node;
-            mRenderCamera = renderCamera;
+            m_renderCamera = renderCamera;
             renderCamera.camera.enabled = false;
             tex = new Texture2D(renderCamera.camera.targetTexture.width, renderCamera.camera.targetTexture.height);
         }
@@ -38,7 +37,7 @@ namespace SimEnv {
         public string GetBufferType() {
             return "uint";
         }
-        
+
         public SensorBuffer GetObs() {
             SensorBuffer buffer = new SensorBuffer(GetSize(), GetShape(), GetSensorType()); // TODO: refactor be not be recreated at every call to GetObs
             RenderTexture activeRenderTexture = RenderTexture.active;
@@ -54,27 +53,6 @@ namespace SimEnv {
                 buffer.uintBuffer[channelShift * 2 + i] = pixels[i].b;
             }
             return buffer;
-        }
-
-        public IEnumerator GetObs(SensorBuffer buffer, int index) {
-            renderCamera.camera.enabled = true; // Enable camera so that it renders in Unity's internal render loop
-            yield return new WaitForEndOfFrame(); // Wait for Unity to render
-            CopyRenderResultToColorBuffer(buffer, index);
-            renderCamera.camera.enabled = false; // Disable camera for performance
-        }
-
-        private void CopyRenderResultToColorBuffer(SensorBuffer buffer, int index) {
-            RenderTexture activeRenderTexture = RenderTexture.active;
-            RenderTexture.active = renderCamera.camera.targetTexture;
-            tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
-            tex.Apply();
-            Color32[] pixels = tex.GetPixels32();
-            for (int i = 0; i < pixels.Length; i++) {
-                // There are are many cache misses here 
-                buffer.uintBuffer[index + i * 3] = pixels[i].r;
-                buffer.uintBuffer[index + i * 3 + 1] = pixels[i].g;
-                buffer.uintBuffer[index + i * 3 + 2] = pixels[i].b;
-            }
         }
 
         public void Enable() {

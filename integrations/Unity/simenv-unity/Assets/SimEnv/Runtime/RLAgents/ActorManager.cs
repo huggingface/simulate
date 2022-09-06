@@ -9,14 +9,16 @@ namespace SimEnv.RlAgents {
         public static ActorManager instance { get; private set; }
         public static Dictionary<string, Actor> actors { get; private set; }
 
-        static MapPool mapPool;
+        static Dictionary<string, Actor.Data> currentActorEventData;
         static List<Map> activeMaps;
         static List<Vector3> positions;
+        static MapPool mapPool;
         static int poolSize;
 
         public ActorManager() {
             instance = this;
             actors = new Dictionary<string, Actor>();
+            currentActorEventData = new Dictionary<string, Actor.Data>();
             mapPool = new MapPool();
             activeMaps = new List<Map>();
             positions = new List<Vector3>();
@@ -60,6 +62,7 @@ namespace SimEnv.RlAgents {
             }
         }
 
+        // Before Simulator step, set up agent actions
         public override void OnBeforeStep(EventData eventData) {
             if (eventData.inputKwargs.TryParse<Dictionary<string, object>>("action", out Dictionary<string, object> actions)) {
                 for (int i = 0; i < activeMaps.Count; i++) {
@@ -68,66 +71,41 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public override void OnStep(EventData eventData) {
-            return;
-        }
-
-        public override IEnumerator OnStepCoroutine(EventData eventData) {
-            if (actors.Count == 0) yield return null;
+        // After Simulator step, before rendering, check if any maps are done
+        // If so, reset them, and update the map data
+        public override void OnEarlyStep(EventData eventData) {
+            currentActorEventData.Clear();
             for (int i = 0; i < activeMaps.Count; i++) {
-                activeMaps[i].EnableActorSensors();
-            }
-
-            yield return new WaitForEndOfFrame();
-            Dictionary<string, Actor.Data> actorEventData = new Dictionary<string, Actor.Data>();
-
-            // The following code aims to implement the following:
-            // consider the case of a pool of size four with two active maps
-            // in normal interaction the python step() call returns obs, reward, done, info
-            // where obs = {"agent_0": agent_0_obs, "agent_1": agent_1_obs}
-            // where done = {"agent_0": agent_0_done, "agent_1": agent_1_done}
-            // where reward = {"agent_0": agent_0_reward, "agent_1": agent_1_reward}
-            // these are converted to arrays / lists / tensors for the RL learning algorithm
-
-            // however when agent_0's episode ends and the environment resets these are required to be as follows
-            // obs = {"agent_2": agent_2_obs, "agent_1": agent_1_obs}
-            // done = {"agent_2": agent_0_done, "agent_1": agent_1_done}
-            // reward = {"agent_2": agent_0_reward, "agent_1": agent_1_reward}
-
-            // this implementation is hacky, and is forced to be like this due to the use of named agents in both the 
-            // Unity and python side
-
-            for (int i = 0; i < activeMaps.Count; i++) {
-
-                (Dictionary<string, Actor.Data> mapEventData, bool done) = activeMaps[i].Step();
-
-                if (mapEventData == null) continue;
+                Dictionary<string, Actor.Data> mapData = activeMaps[i].GetActorEventData();
+                bool done = false;
+                foreach (Actor.Data data in mapData.Values)
+                    done = done || data.done;
                 if (done) {
                     ResetAt(i);
-                    yield return new WaitForEndOfFrame(); // we have to yield again due to camera being repositioned
-                    Dictionary<string, Actor.Data> newMapEventData = activeMaps[i].GetActorEventData();
-                    // now for the hacky part, there are two assumptions here: 
-                    // 1. both maps have the same number of Actor / keys
-                    // 2. the ordering of the mapEventData keys is the same in both cases
-                    // we copy accross the old values to the new eventData dictionary
-                    string[] oldKeys = mapEventData.Keys.ToArray<string>();
-                    string[] newKeys = newMapEventData.Keys.ToArray<string>();
-                    for (int j = 0; j < newMapEventData.Count; j++) {
-                        newMapEventData[newKeys[j]].done = mapEventData[oldKeys[j]].done;
-                        newMapEventData[newKeys[j]].reward = mapEventData[oldKeys[j]].reward;
+                    Dictionary<string, Actor.Data> newMapData = activeMaps[i].GetActorEventData();
+                    string[] oldKeys = mapData.Keys.ToArray<string>();
+                    string[] newKeys = newMapData.Keys.ToArray<string>();
+                    for (int j = 0; j < mapData.Count; j++) {
+                        newMapData[newKeys[j]].done = mapData[oldKeys[j]].done;
+                        newMapData[newKeys[j]].reward = mapData[oldKeys[j]].reward;
                     }
-                    mapEventData = newMapEventData;
-
-
+                    mapData = newMapData;
                 }
-                foreach (string key in mapEventData.Keys)
-                    actorEventData.Add(key, mapEventData[key]);
+                foreach (string key in mapData.Keys)
+                    currentActorEventData.Add(key, mapData[key]);
             }
-            eventData.outputKwargs.Add("actors", actorEventData);
+            for (int i = 0; i < activeMaps.Count; i++)
+                activeMaps[i].EnableActorSensors();
+        }
 
+        // After Simulator step, record sensor observations
+        public override void OnStep(EventData eventData) {
             for (int i = 0; i < activeMaps.Count; i++) {
-                activeMaps[i].DisableActorSensors();
+                activeMaps[i].GetActorObservations(currentActorEventData);
             }
+            eventData.outputKwargs.Add("actors", currentActorEventData);
+            for (int i = 0; i < activeMaps.Count; i++)
+                activeMaps[i].DisableActorSensors();
         }
 
         static void ResetAt(int index) {

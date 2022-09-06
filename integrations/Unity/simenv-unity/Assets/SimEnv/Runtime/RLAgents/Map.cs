@@ -33,30 +33,24 @@ namespace SimEnv.RlAgents {
 
         public void SetActions(object action) {
             foreach (string key in actors.Keys)
-                actors[key].Step(action);
-        }
-
-        public (Dictionary<string, Actor.Data>, bool) Step() {
-            Dictionary<string, Actor.Data> ActorEventData = new Dictionary<string, Actor.Data>();
-            bool done = false;
-            foreach (string key in actors.Keys) {
-                Actor actor = actors[key];
-                Actor.Data data = actor.GetEventData();
-                done = done || data.done; // TODO: this assumes when one Actor in the map is done the map should be reset
-                ActorEventData.Add(key, data);
-                actor.ZeroReward();
-            }
-            return (ActorEventData, done);
+                actors[key].SetAction(action);
         }
 
         public Dictionary<string, Actor.Data> GetActorEventData() {
-            Dictionary<string, Actor.Data> ActorEventData = new Dictionary<string, Actor.Data>();
+            Dictionary<string, Actor.Data> actorEventData = new Dictionary<string, Actor.Data>();
             foreach (string key in actors.Keys) {
                 Actor actor = actors[key];
                 Actor.Data data = actor.GetEventData();
-                ActorEventData.Add(key, data);
+                actorEventData.Add(key, data);
             }
-            return ActorEventData;
+            return actorEventData;
+        }
+
+        public void GetActorObservations(Dictionary<string, Actor.Data> actorEventData) {
+            foreach (string key in actors.Keys) {
+                Actor actor = actors[key];
+                actor.ReadSensorObservations(actorEventData[key]);
+            }
         }
 
         public void Reset() {
