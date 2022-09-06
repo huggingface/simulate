@@ -43,14 +43,14 @@ namespace SimEnv.RlAgents {
                 if (ActorManager.actors.TryGetValue(node.name, out Actor Actor))
                     actors.Add(node.name, Actor);
             }
-            addChildrenToCache(root.gameObject);
+            AddChildrenToCache(root.gameObject);
         }
 
-        private void addChildrenToCache(GameObject gameObject) {
+        private void AddChildrenToCache(GameObject gameObject) {
             foreach (Transform child in gameObject.transform) {
                 EntityCache entityCache = new EntityCache(child.gameObject);
                 decendants.Add(entityCache);
-                addChildrenToCache(child.gameObject);
+                AddChildrenToCache(child.gameObject);
             }
         }
 
@@ -72,11 +72,11 @@ namespace SimEnv.RlAgents {
             Dictionary<string, Actor.Data> ActorEventData = new Dictionary<string, Actor.Data>();
             bool done = false;
             foreach (string key in actors.Keys) {
-                Actor Actor = actors[key];
-                Actor.Data data = Actor.GetEventData();
+                Actor actor = actors[key];
+                Actor.Data data = actor.GetEventData();
                 done = done || data.done; // TODO: this assumes when one Actor in the map is done the map should be reset
                 ActorEventData.Add(key, data);
-                Actor.ZeroReward();
+                actor.ZeroReward();
             }
             return (ActorEventData, done);
         }
@@ -84,19 +84,18 @@ namespace SimEnv.RlAgents {
         public Dictionary<string, Actor.Data> GetActorEventData() {
             Dictionary<string, Actor.Data> ActorEventData = new Dictionary<string, Actor.Data>();
             foreach (string key in actors.Keys) {
-                Actor Actor = actors[key];
-                Actor.Data data = Actor.GetEventData();
+                Actor actor = actors[key];
+                Actor.Data data = actor.GetEventData();
                 ActorEventData.Add(key, data);
             }
             return ActorEventData;
         }
 
         public void Reset() {
-            foreach (EntityCache entityCache in decendants) {
+            foreach (EntityCache entityCache in decendants)
                 entityCache.Reset();
-            }
-            foreach (Actor Actor in actors.Values)
-                Actor.Reset();
+            foreach (Actor actor in actors.Values)
+                actor.Reset();
         }
 
         public void EnableActorSensors() {

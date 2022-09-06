@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using UnityEngine;
 
 namespace SimEnv {
@@ -32,13 +33,13 @@ namespace SimEnv {
     }
 
     public interface ISensor {
-        public string GetName();
-        public string GetSensorType();
-        public int GetSize();
-        public int[] GetShape();
-        public void Enable();
-        public void Disable();
-        public string GetBufferType();
-        public SensorBuffer GetObs();
+        string GetName();
+        string GetSensorType();
+        int GetSize();
+        int[] GetShape();
+        void Enable();
+        void Disable();
+        string GetBufferType();
+        SensorBuffer GetObs();
     }
 }
