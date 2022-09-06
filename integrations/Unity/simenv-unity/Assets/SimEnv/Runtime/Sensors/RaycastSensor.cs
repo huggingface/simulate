@@ -9,15 +9,47 @@ namespace SimEnv {
         public static string mType = "float";
         public Node node => m_node;
         Node m_node;
-        private GameObject referenceEntity;
-        private GameObject targetEntity;
-        private List<string> properties;
+
+        private List<(float horizontal, float vertical)> raycastAngles;
+        private int nHorizontalRays = -1;
+        private int nVerticalRays = -1;
+
+        private float horizontalAngle = 0;
+        private float verticalAngle = 0;
+        private float rayLength = 0;
+
 
         public RaycastSensor(Node node, SimEnv.GLTF.HFRaycastSensors.HFRaycastSensor data) {
             m_node = node;
             node.sensor = this;
             // calculate ray angles etc
             Debug.Log("instantiating raycast sensor");
+
+            nHorizontalRays = data.n_horizontal_rays;
+            nVerticalRays = data.n_vertical_rays;
+            horizontalAngle = data.horizontal_angle;
+            verticalAngle = data.vertical_angle;
+            rayLength = data.ray_length;
+
+            computeRaycastAngles();
+
+        }
+
+        private void computeRaycastAngles() {
+            raycastAngles = new List<(float horizontal, float vertical)>();
+            float horizontalStep = horizontalAngle / nHorizontalRays;
+            float verticalStep = verticalAngle / nVerticalRays;
+
+            var horizontalStart = (horizontalStep - horizontalAngle) / 2;
+            var verticalStart = (verticalStep - verticalAngle) / 2;
+
+            for (int i = 0; i < nHorizontalRays; i++) {
+                for (int j = 0; j < nVerticalRays; j++) {
+                    var angleH = horizontalStart + i * horizontalStep;
+                    var angleV = verticalStart + j * verticalStep;
+                    raycastAngles.Add((angleH, angleV));
+                }
+            }
 
         }
         public string GetName() {
@@ -27,7 +59,7 @@ namespace SimEnv {
             return mType;
         }
         public int GetSize() {
-            return 1;
+            return raycastAngles.Count;
         }
 
         public int[] GetShape() {
@@ -45,7 +77,28 @@ namespace SimEnv {
             return buffer;
         }
         public void GetState(SensorBuffer buffer) {
+            for (int i = 0; i < raycastAngles.Count; i++) {
+                var angleH = raycastAngles[i].horizontal;
+                var angleV = raycastAngles[i].vertical;
 
+                // transform the direction to the Actors frame of reference
+                Vector3 raycastDir = Quaternion.AngleAxis(angleH, node.transform.up) *
+                Quaternion.AngleAxis(angleV, node.transform.right) * node.transform.forward;
+                RaycastHit raycastHit;
+                var isHit = Physics.Raycast(node.transform.position, raycastDir, out raycastHit, rayLength); // TODO add Raycast layer mask?
+                buffer.floatBuffer[i] = raycastDistance(raycastHit, isHit);
+                if (true) { // TODO: remove this from release version
+                    Debug.DrawRay(node.transform.position, rayLength * raycastDir.normalized);
+                }
+            }
+
+        }
+        private float raycastDistance(RaycastHit raycastHit, bool isHit) {
+            // normalizes the result to range 0-1
+            if (isHit) {
+                return 1.0f - raycastHit.distance / rayLength;
+            }
+            return 0.0f;
         }
         public void Enable() {
 

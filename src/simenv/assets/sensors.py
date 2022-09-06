@@ -118,7 +118,7 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
 
     n_horizontal_rays: int = 1
     n_vertical_rays: int = 1
-    horizontal: float = 0
+    horizontal_angle: float = 0
     vertical_angle: float = 0
     ray_length: float = 100
 
@@ -149,4 +149,4 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
 
     @property
     def observation_space(self):
-        raise NotImplementedError
+        return spaces.Box(low=-inf, high=inf, shape=[self.n_horizontal_rays * self.n_vertical_rays], dtype=np.float32)

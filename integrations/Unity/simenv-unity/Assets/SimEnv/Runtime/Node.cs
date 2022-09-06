@@ -27,6 +27,8 @@ namespace SimEnv {
                 InitializeCamera();
             if (stateSensorData != null)
                 InitializeStateSensor();
+            if (raycastSensorData != null)
+                InitializeRaycastSensor();
             if (lightData != null)
                 InitializeLight();
             if (colliderData != null)
@@ -49,6 +51,9 @@ namespace SimEnv {
 
         void InitializeStateSensor() {
             sensor = new StateSensor(this, stateSensorData);
+        }
+        void InitializeRaycastSensor() {
+            sensor = new RaycastSensor(this, raycastSensorData);
         }
 
         void InitializeLight() {
