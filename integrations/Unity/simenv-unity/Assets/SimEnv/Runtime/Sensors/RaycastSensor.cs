@@ -14,8 +14,8 @@ namespace SimEnv {
         private int nHorizontalRays = -1;
         private int nVerticalRays = -1;
 
-        private float horizontalAngle = 0;
-        private float verticalAngle = 0;
+        private float horizontalFOV = 0;
+        private float verticalFOV = 0;
         private float rayLength = 0;
 
 
@@ -27,8 +27,8 @@ namespace SimEnv {
 
             nHorizontalRays = data.n_horizontal_rays;
             nVerticalRays = data.n_vertical_rays;
-            horizontalAngle = data.horizontal_angle;
-            verticalAngle = data.vertical_angle;
+            horizontalFOV = data.horizontal_fov;
+            verticalFOV = data.vertical_fov;
             rayLength = data.ray_length;
 
             computeRaycastAngles();
@@ -37,11 +37,11 @@ namespace SimEnv {
 
         private void computeRaycastAngles() {
             raycastAngles = new List<(float horizontal, float vertical)>();
-            float horizontalStep = horizontalAngle / nHorizontalRays;
-            float verticalStep = verticalAngle / nVerticalRays;
+            float horizontalStep = horizontalFOV / nHorizontalRays;
+            float verticalStep = verticalFOV / nVerticalRays;
 
-            var horizontalStart = (horizontalStep - horizontalAngle) / 2;
-            var verticalStart = (verticalStep - verticalAngle) / 2;
+            var horizontalStart = (horizontalStep - horizontalFOV) / 2;
+            var verticalStart = (verticalStep - verticalFOV) / 2;
 
             for (int i = 0; i < nHorizontalRays; i++) {
                 for (int j = 0; j < nVerticalRays; j++) {

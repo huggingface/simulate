@@ -118,8 +118,8 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
 
     n_horizontal_rays: int = 1
     n_vertical_rays: int = 1
-    horizontal_angle: float = 0
-    vertical_angle: float = 0
+    horizontal_fov: float = 0
+    vertical_fov: float = 0
     ray_length: float = 100
 
     name: InitVar[Optional[str]] = None
