@@ -69,7 +69,6 @@ namespace SimEnv.RlAgents {
         }
 
         public override void OnStep(EventData eventData) {
-
             return;
         }
 
@@ -78,8 +77,6 @@ namespace SimEnv.RlAgents {
             for (int i = 0; i < activeMaps.Count; i++) {
                 activeMaps[i].EnableActorSensors();
             }
-
-
 
             yield return new WaitForEndOfFrame();
             Dictionary<string, Actor.Data> actorEventData = new Dictionary<string, Actor.Data>();
@@ -183,7 +180,6 @@ namespace SimEnv.RlAgents {
                 }
             }
             Debug.Assert(count == poolSize);
-
         }
     }
 }

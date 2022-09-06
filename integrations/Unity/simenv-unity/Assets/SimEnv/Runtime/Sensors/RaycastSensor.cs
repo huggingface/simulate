@@ -1,7 +1,5 @@
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
-
 
 namespace SimEnv {
     public class RaycastSensor : ISensor {
@@ -31,11 +29,10 @@ namespace SimEnv {
             verticalFOV = data.vertical_fov;
             rayLength = data.ray_length;
 
-            computeRaycastAngles();
-
+            ComputeRaycastAngles();
         }
 
-        private void computeRaycastAngles() {
+        private void ComputeRaycastAngles() {
             raycastAngles = new List<(float horizontal, float vertical)>();
             float horizontalStep = horizontalFOV / nHorizontalRays;
             float verticalStep = verticalFOV / nVerticalRays;
@@ -50,14 +47,16 @@ namespace SimEnv {
                     raycastAngles.Add((angleH, angleV));
                 }
             }
-
         }
+
         public string GetName() {
             return mName;
         }
+
         public string GetSensorType() {
             return mType;
         }
+
         public int GetSize() {
             return raycastAngles.Count;
         }
@@ -70,12 +69,13 @@ namespace SimEnv {
         public string GetBufferType() {
             return mType;
         }
+
         public SensorBuffer GetObs() {
             SensorBuffer buffer = new SensorBuffer(GetSize(), GetShape(), GetSensorType());
             GetState(buffer);
-
             return buffer;
         }
+
         public void GetState(SensorBuffer buffer) {
             for (int i = 0; i < raycastAngles.Count; i++) {
                 var angleH = raycastAngles[i].horizontal;
@@ -91,8 +91,8 @@ namespace SimEnv {
                     Debug.DrawRay(node.transform.position, rayLength * raycastDir.normalized);
                 }
             }
-
         }
+
         private float raycastDistance(RaycastHit raycastHit, bool isHit) {
             // normalizes the result to range 0-1
             if (isHit) {
@@ -100,12 +100,8 @@ namespace SimEnv {
             }
             return 0.0f;
         }
-        public void Enable() {
 
-        }
-
-        public void Disable() {
-
-        }
+        public void Enable() { }
+        public void Disable() { }
     }
 }

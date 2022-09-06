@@ -1,7 +1,5 @@
 using System.Collections;
 using UnityEngine;
-using UnityEngine.Events;
-using UnityEngine.Rendering.Universal;
 
 namespace SimEnv {
     public class CameraSensor : ISensor {
@@ -19,12 +17,15 @@ namespace SimEnv {
             renderCamera.camera.enabled = false;
             tex = new Texture2D(renderCamera.camera.targetTexture.width, renderCamera.camera.targetTexture.height);
         }
+
         public string GetName() {
             return mName;
         }
+
         public string GetSensorType() {
             return mType;
         }
+
         public int GetSize() {
             return renderCamera.camera.targetTexture.width * renderCamera.camera.targetTexture.height * 3;
         }
@@ -33,10 +34,11 @@ namespace SimEnv {
             int[] shape = { 3, renderCamera.camera.targetTexture.height, renderCamera.camera.targetTexture.width };
             return shape;
         }
+
         public string GetBufferType() {
             return "uint";
-
         }
+        
         public SensorBuffer GetObs() {
             SensorBuffer buffer = new SensorBuffer(GetSize(), GetShape(), GetSensorType()); // TODO: refactor be not be recreated at every call to GetObs
             RenderTexture activeRenderTexture = RenderTexture.active;

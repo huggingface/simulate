@@ -67,10 +67,7 @@ namespace SimEnv.RlAgents {
                     sensors.Add(node2.sensor);
                 }
             }
-
             // TODO: search children for RaycastSensors
-
-
         }
 
         void InitRewardFunctions() {
@@ -86,7 +83,6 @@ namespace SimEnv.RlAgents {
                 }
             }
         }
-
 
         void HandleIntermediateFrame() {
             if (node == null || node.gameObject == null) {

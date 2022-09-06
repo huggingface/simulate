@@ -7,12 +7,14 @@ namespace SimEnv.RlAgents {
         private Rigidbody rigidbody;
         private Vector3 entityOriginalPosition;
         private Quaternion entityOriginalRotation;
+
         public EntityCache(GameObject entity) {
             this.entity = entity;
             entityOriginalPosition = entity.transform.localPosition;
             entityOriginalRotation = entity.transform.localRotation;
             rigidbody = entity.GetComponent<Rigidbody>();
         }
+
         public void Reset() {
             entity.transform.localPosition = entityOriginalPosition;
             entity.transform.localRotation = entityOriginalRotation;
@@ -21,10 +23,9 @@ namespace SimEnv.RlAgents {
                 rigidbody.velocity = Vector3.zero;
                 rigidbody.angularVelocity = Vector3.zero;
             }
-
         }
-
     }
+
     public class Map {
         public Bounds bounds { get; private set; }
         public bool active { get; private set; }
@@ -43,8 +44,8 @@ namespace SimEnv.RlAgents {
                     actors.Add(node.name, Actor);
             }
             addChildrenToCache(root.gameObject);
-
         }
+
         private void addChildrenToCache(GameObject gameObject) {
             foreach (Transform child in gameObject.transform) {
                 EntityCache entityCache = new EntityCache(child.gameObject);
@@ -52,6 +53,7 @@ namespace SimEnv.RlAgents {
                 addChildrenToCache(child.gameObject);
             }
         }
+
         public void SetActive(bool active) {
             root.gameObject.SetActive(active);
             this.active = active;
@@ -78,6 +80,7 @@ namespace SimEnv.RlAgents {
             }
             return (ActorEventData, done);
         }
+
         public Dictionary<string, Actor.Data> GetActorEventData() {
             Dictionary<string, Actor.Data> ActorEventData = new Dictionary<string, Actor.Data>();
             foreach (string key in actors.Keys) {
@@ -100,6 +103,7 @@ namespace SimEnv.RlAgents {
             foreach (Actor Actor in actors.Values)
                 Actor.EnableSensors();
         }
+
         public void DisableActorSensors() {
             foreach (Actor Actor in actors.Values)
                 Actor.DisableSensors();

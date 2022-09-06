@@ -1,9 +1,6 @@
 using UnityEngine;
-using UnityEngine.Events;
-using System.Collections;
 
 namespace SimEnv {
-
     public class SensorBuffer {
         public float[] floatBuffer;
         public uint[] uintBuffer;
@@ -32,13 +29,9 @@ namespace SimEnv {
                 return "";
             }
         }
-
-
-
     }
 
     public interface ISensor {
-
         public string GetName();
         public string GetSensorType();
         public int GetSize();

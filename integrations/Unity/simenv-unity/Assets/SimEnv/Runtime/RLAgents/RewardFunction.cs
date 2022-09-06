@@ -19,7 +19,6 @@ namespace SimEnv.RlAgents {
         }
     }
 
-
     public static class RewardFunctionBuilder {
         public static readonly string[] LEAF_REWARD_FUNCTION_TYPES = { "dense", "sparse", "timeout", "see" };
         public static readonly string[] NODE_REWARD_FUNCTION_TYPES = { "and", "or", "not", "see" };

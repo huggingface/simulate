@@ -6,7 +6,6 @@ using SimEnv.GLTF;
 namespace SimEnv.RlAgents {
     public static class Actions {
         public static void ExecuteAction(this Actor actor, object action) {
-
             HFControllers.ActionMapping mapping = actor.actionSpace.GetMapping(action);
             List<float> value = new List<float> { 1f }; // TODO refactor when I (Ed) understand what this is
             switch (mapping.action) {
