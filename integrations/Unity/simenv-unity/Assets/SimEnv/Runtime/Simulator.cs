@@ -95,7 +95,7 @@ namespace SimEnv {
             kwargs.TryParse<bool>("return_frames", out bool readCameraData, MetaData.instance.returnFrames);
 
             if (currentEvent == null)
-                yield return ReadEventData(readNodeData, readCameraData);
+                currentEvent = new EventData();
 
             // Execute pre-step functionality
             currentEvent.inputKwargs = kwargs;
