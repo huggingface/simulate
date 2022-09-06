@@ -3,7 +3,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-import inspect
+import random
 
 import simenv as sm
 
@@ -29,35 +29,26 @@ if __name__ == "__main__":
     scene += sm.Box(name="wall7", position=[3, 0.5, 3.5], scaling=[0.1, 1, 2.1])
     scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
-    print(inspect.getfile(sm.SimpleActor))
-    print(inspect.getdoc(sm.SimpleActor))
-    print(inspect.signature(sm.SimpleActor))
-
-    agent = sm.EgocentricCameraActor(
+    actor = sm.EgocentricCameraActor(
+        name="actor",
         camera_width=CAMERA_WIDTH,
         camera_height=CAMERA_HEIGHT,
         position=[0.0, 0.0, 0.0],
     )
 
-    scene += agent
-
-    print(scene)
-    scene.show()
-
-    scene = sm.RLEnvironment(scene)
+    scene += actor
 
     print(scene.actors)
+    # scene.show()
+
+    env = sm.RLEnvironment(scene)
+
+    print(env.actors)
 
     for i in range(10):
         print(f"Step {i}")
-        action = scene.action_space.sample()
-        if type(action) == int:  # discrete are ints, continuous are numpy arrays
-            action = action
-        else:
-            action = action.tolist()
-        print
 
-        obs, reward, done, info = scene.step(action)
-        print(f"CameraSensor: {obs['CameraSensor'][:5, :5, :5]}")
+        obs, reward, done, info = env.step()
+        # print(f"CameraSensor: {obs['CameraSensor'][:5, :5, :5]}")
 
     scene.close()
