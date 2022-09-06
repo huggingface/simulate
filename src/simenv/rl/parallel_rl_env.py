@@ -118,8 +118,6 @@ class ParallelRLEnvironment(VecEnv):
             obs = []
             for actor_name in event["actors"].keys():
                 actor_data = event["actors"][actor_name]
-
-                print(actor_data)
                 actor_obs = self._extract_sensor_obs(actor_data["observations"])
                 obs.append(actor_obs)
                 reward.append(actor_data["reward"])
