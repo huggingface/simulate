@@ -228,12 +228,13 @@ class Asset(NodeMixin, object):
 
             subfolder = "/".join(splitted_hub_path[2:-1])
 
+            # remove when release with https://github.com/huggingface/huggingface_hub/pull/1021 is out
+            subfolder = subfolder if subfolder else None
+
             file_path = hf_hub_download(
                 repo_id=repo_id,
                 filename=filename,
-                subfolder=subfolder
-                if subfolder
-                else None,  # remove when https://github.com/huggingface/huggingface_hub/issues/1016
+                subfolder=subfolder,
                 revision=revision,
                 repo_type="space",
                 use_auth_token=use_auth_token,
