@@ -87,7 +87,7 @@ class GltfExtensionMixin(DataClassJsonMixin):
         else:
             GLTF_COMPONENTS_EXTENSION_CLASS.append(cls)
 
-    def copy(self) -> "GltfExtensionMixin":
+    def gltf_copy(self) -> "GltfExtensionMixin":
         """Create a deep copy of the object with a deep copy of only the dataclass fields.
 
         In several cases we are modifying this asset and want to create pikable copies (e.g. at importation from GLTF or during the
@@ -109,7 +109,7 @@ class GltfExtensionMixin(DataClassJsonMixin):
         Returns:
             The index of the component in the glTF model extensions.
         """
-        copy_self = self.copy()  # Create a deep copy of the object keeping only the fields
+        copy_self = self.gltf_copy()  # Create a deep copy of the object keeping only the fields
 
         if getattr(gltf_model_extensions, self._gltf_extension_name, None) is None:
             objects = [copy_self]

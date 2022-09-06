@@ -203,7 +203,9 @@ def build_node_tree(
                 object_id = node_extension.object_id
                 component_name = node_extension.name
                 model_extension = getattr(gltf_model.extensions, extension_name, None)
-                component = model_extension.objects[object_id].copy()  # Our GltfExtension mixing have a copy method
+                component = model_extension.objects[
+                    object_id
+                ].gltf_copy()  # Our GltfExtension mixing have a copy method
 
                 # Is it a node or component
                 if type(component) in GLTF_NODES_EXTENSION_CLASS:
