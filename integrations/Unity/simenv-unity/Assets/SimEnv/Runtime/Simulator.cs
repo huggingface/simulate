@@ -162,7 +162,8 @@ namespace SimEnv {
         public static void Unload() {
             foreach (IPlugin plugin in Simulator.plugins)
                 plugin.OnBeforeSceneUnloaded();
-            GameObject.DestroyImmediate(root);
+            if (root != null)
+                GameObject.DestroyImmediate(root);
         }
 
         private static void LoadCustomAssemblies() {

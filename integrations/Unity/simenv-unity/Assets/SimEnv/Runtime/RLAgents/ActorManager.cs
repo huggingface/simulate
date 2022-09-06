@@ -37,7 +37,10 @@ namespace SimEnv.RlAgents {
                     Debug.LogWarning("Keyword \"n_show\" not provided, defaulting to 1");
                 InitializeMapPool(maps);
             } else if (actors.Count > 0) {
-                Debug.LogWarning("Found agents but no maps provided. Pass a list of map root names with the \"maps\" kwarg");
+                Debug.Log("Found agents but no maps provided. Defaulting to root as single map.");
+                poolSize = 1;
+                maps = new List<string> { Simulator.root.name };
+                InitializeMapPool(maps);
             }
         }
 
