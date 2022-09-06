@@ -65,7 +65,7 @@ def make_scene(build_exe, camera_width, camera_height):
     actor_camera = sm.Camera(name="camera", width=camera_width, height=camera_height, position=[0, 0.75, 0])
     actor += actor_camera
     actor += sm.StateSensor(target_entity=actor, reference_entity=actor_camera, properties="position")
-
+    actor += sm.RaycastSensor(n_horizontal_rays=12, n_vertical_rays=4, horizontal_fov=120, vertical_fov=45)
     # # Let's add a target and a reward function
     material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
     target = sm.Box(
@@ -78,7 +78,7 @@ def make_scene(build_exe, camera_width, camera_height):
 
     reward = sm.RewardFunction(type="not")  # By default a dense reward equal to the distance between 2 entities
     reward += sm.RewardFunction(entity_a=target, entity_b=actor)
-    scene += reward
+    actor += reward
     return scene
 
 
@@ -101,7 +101,6 @@ if __name__ == "__main__":
     axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
     for i in range(100):
-        print(i)
         obs, reward, done, info = env.step()
         obs = obs["CameraSensor"].transpose(1, 2, 0)
         axim1.set_data(obs)
