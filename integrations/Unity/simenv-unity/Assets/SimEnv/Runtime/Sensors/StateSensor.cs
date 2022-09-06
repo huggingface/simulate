@@ -74,9 +74,15 @@ namespace SimEnv {
         }
         public void GetState(SensorBuffer buffer) {
             int subIndex = 0;
-            // TODO: these should be transformed into the frame of reference of the reference entity
-            Vector3 relative_position = targetEntity.transform.position - referenceEntity.transform.position;
-            Vector3 rotation = targetEntity.transform.eulerAngles;
+            Vector3 relative_position;
+            Quaternion rotation;
+            if (referenceEntity != null) {
+                relative_position = referenceEntity.transform.TransformPoint(targetEntity.transform.position);
+                rotation = Quaternion.Inverse(referenceEntity.transform.rotation) * targetEntity.transform.rotation;
+            } else {
+                relative_position = targetEntity.transform.position;
+                rotation = targetEntity.transform.rotation;
+            }
 
             foreach (var property in properties) {
                 switch (property) {

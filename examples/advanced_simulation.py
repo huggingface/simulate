@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 import simenv as sm
+from simenv.assets.action_mapping import ActionMapping
 
 
 def create_scene(build_exe=None, gltf_path=None):
@@ -13,12 +14,31 @@ def create_scene(build_exe=None, gltf_path=None):
         print(e)
         print("Failed to load from hub, loading from path: " + gltf_path)
         scene = sm.Scene.create_from(gltf_path, engine="Unity", engine_exe=build_exe)
-    scene.show()
 
     return scene
 
 
-def simulate(scene, n_frames=30):
+def add_rl_components_to_scene(scene):
+    actor = scene.Cart
+
+    # Add action mappings, moving left and right
+    mapping = [
+        ActionMapping("add_force", axis=[1, 0, 0], amplitude=300),
+        ActionMapping("add_force", axis=[-1, 0, 0], amplitude=300)
+    ]
+    actor.controller = sm.Controller(mapping=mapping, n=2)
+
+    # Add rewards, reaching the top of the right hill
+    reward_entity = sm.Asset(name="reward_entity", position=[40, 21, 0])
+    scene += reward_entity
+    reward = sm.RewardFunction(entity_a=reward_entity, entity_b=actor)
+    actor += reward
+
+    # Add state sensor, for position of agent
+    actor += sm.StateSensor(target_entity=actor, properties=["position"])
+
+
+def train(scene, n_frames=30):
     plt.ion()
     _, ax = plt.subplots()
     camera = None
@@ -45,6 +65,12 @@ if __name__ == "__main__":
     args = parser.parse_args()
 
     scene = create_scene(args.build_exe, args.gltf_path)
-    simulate(scene, args.n_frames)
+    add_rl_components_to_scene(scene)
+
+    env = sm.RLEnvironment(scene)
+
+    for i in range(1000):
+        obs, reward, done, info = env.step()
+        print(obs)
 
     input("Press enter to continue...")
