@@ -81,4 +81,4 @@ jobs:
 
       - name: Run the test example
         run: |
-          python ./examples/end-to-end-test.py --build_exe ./integrations/Unity/builds/simenv_unity.x86_64.app/Contents/MacOS/SimEnv
+          python ./examples/end-to-end-test.py --build_exe ./integrations/Unity/simenv-unity/builds/StandaloneLinux64/UnityPlayer.so
