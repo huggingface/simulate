@@ -119,7 +119,7 @@ class Scene(Asset):
             if len(sensors) == 1:
                 return sensors[0].observation_space
             elif sensors:
-                return spaces.Dict({sensor.name: sensor.observation_space for sensor in sensors})
+                return spaces.Dict({sensor.SENSOR_NAME: sensor.observation_space for sensor in sensors})
         return None
 
     def close(self):

@@ -15,8 +15,6 @@
 from collections import defaultdict
 
 import numpy as np
-from gym import spaces
-
 import simenv as sm
 
 # Lint as: python3
@@ -68,11 +66,8 @@ class ParallelRLEnvironment(VecEnv):
 
         self.actor = next(iter(self.actors.values()))
 
-        self.action_space = self.scene.action_space  # quick workaround while Thom refactors this
-        self.observation_space = {
-            "CameraSensor": self.scene.observation_space
-        }  # quick workaround while Thom refactors this
-        self.observation_space = spaces.Dict(self.observation_space)
+        self.action_space = self.scene.action_space  
+        self.observation_space = self.scene.observation_space
 
         super().__init__(n_show, self.observation_space, self.action_space)
 
