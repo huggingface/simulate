@@ -12,57 +12,116 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-import numpy as np
-from gym import spaces
+from collections import defaultdict
 
+import numpy as np
+import simenv as sm
+
+# Lint as: python3
 from simenv.scene import Scene
 
 
-class RLEnvironment:
+try:
+    from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+except ImportError:
+
+    class VecEnv:
+        pass  # Dummy class if SB3 is not installed
+
+
+class RLEnvironment(VecEnv):
     """
-    Lightweight wrapper for executing RL experiments with a SimEnv Scene. The key method
-    of this class is .step() which returns obs, reward, done, info following the gym API.
+    RL environment wrapper for SimEnv scene. Uses functionality from the VecEnv in stable baselines 3
+    For more information on VecEnv, see the source
+    https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
 
     Args:
-        scene: a pre-built simenv scene with at least one actor and one reward function
+        scene_or_map_fn: a generator function for generating instances of the desired environment
+        n_maps: TODO
+        n_show: TODO
+        frame_rate: TODO
+        frame_skip: TODO
     """
 
-    def __init__(self, scene: Scene):
+    def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, frame_rate=30, frame_skip=4, **engine_kwargs):
 
-        self.scene = scene
-
-        self.actors = {actor.name: actor for actor in self.scene.actors}
-        self.actor = next(iter(self.actors.values()))
+        if hasattr(scene_or_map_fn, "__call__"):
+            self.scene = Scene(engine="Unity", **engine_kwargs)
+            self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+            self.map_roots = []
+            for i in range(n_maps):
+                map_root = scene_or_map_fn(i)
+                self.scene += map_root
+                self.map_roots.append(map_root)
+        else:
+            self.scene = scene_or_map_fn
+            self.map_roots = [self.scene]
 
         # TODO --> add warning if scene has no actor or reward functions
-        # TODO --> add method for adding reward function post wrap ?
-        self.action_space = self.scene.action_space  # quick workaround while Thom refactors this
-        self.observation_space = {
-            "CameraSensor": self.scene.observation_space
-        }  # quick workaround while Thom refactors this
-        self.observation_space = spaces.Dict(self.observation_space)
+        self.actors = {actor.name: actor for actor in self.scene.actors}
+        self.n_actors = len(self.actors)
+        self.n_maps = n_maps
+        self.n_show = n_show
+        self.n_actors_per_map = self.n_actors // self.n_maps
 
+        self.actor = next(iter(self.actors.values()))
+
+        self.action_space = self.scene.action_space  
+        self.observation_space = self.scene.observation_space
+
+        super().__init__(n_show, self.observation_space, self.action_space)
+
+        # Don't return simulation data, since minimal/faster data will be returned by agent sensors
+        # Pass maps kwarg to enable map pooling
+        maps = [root.name for root in self.map_roots]
         self.scene.show(
+            frame_rate=frame_rate,
+            frame_skip=frame_skip,
             return_frames=False,
             return_nodes=False,
-            n_show=1,
+            maps=maps,
+            n_show=n_show,
         )
 
-    def step(self, action: np.ndarray = None):
-        if action is None:
-            action = self.action_space.sample()
+    def step(self, action=None):
         action_dict = {}
-
-        action_dict["0"] = action
+        # TODO: adapt this to multiagent setting
+        if action is None:
+            for i in range(self.n_show):
+                action_dict[str(i)] = int(self.action_space.sample())
+        elif isinstance(action, np.int64):
+            action_dict["0"] = int(action)
+        else:
+            for i in range(self.n_show):
+                action_dict[str(i)] = int(action[i])
 
         event = self.scene.step(action=action_dict)
 
         # Extract observations, reward, and done from event data
-        actor_data = event["actors"][self.actor.name]
-        obs = self._extract_sensor_obs(actor_data["observations"])
-        reward = actor_data["reward"]
-        done = actor_data["done"]
-        info = {}
+        # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
+        if self.n_actors == 1:
+            actor_data = event["actors"][self.actor.name]
+            obs = self._extract_sensor_obs(actor_data["observations"])
+            reward = actor_data["reward"]
+            done = actor_data["done"]
+            info = {}
+
+        else:
+            reward = []
+            done = []
+            info = []
+            obs = []
+            for actor_name in event["actors"].keys():
+                actor_data = event["actors"][actor_name]
+                actor_obs = self._extract_sensor_obs(actor_data["observations"])
+                obs.append(actor_obs)
+                reward.append(actor_data["reward"])
+                done.append(actor_data["done"])
+                info.append({})
+
+            obs = self._obs_dict_to_tensor2(obs)
+            reward = np.array(reward)
+            done = np.array(done)
 
         return obs, reward, done, info
 
@@ -71,10 +130,32 @@ class RLEnvironment:
 
         # To extract observations, we do a "fake" step (no actual simulation with frame_skip=0)
         event = self.scene.step(return_frames=True, frame_skip=0)
+        obs = {}
+        if self.n_actors == 1:
+            actor_data = event["actors"][self.actor.name]
+            obs = self._extract_sensor_obs(actor_data["observations"])
+        else:
+            obs = []
+            for actor_name in event["actors"].keys():
+                actor_data = event["actors"][actor_name]
+                actor_obs = self._extract_sensor_obs(actor_data["observations"])
+                obs.append(actor_obs)
 
-        actor_data = event["actors"][self.actor.name]
-        obs = self._extract_sensor_obs(actor_data["observations"])
+            obs = self._obs_dict_to_tensor2(obs)
+
         return obs
+
+    def _obs_dict_to_tensor2(self, obs):
+        out = defaultdict(list)
+
+        for o in obs:
+            for key, value in o.items():
+                out[key].append(value)
+
+        for k in out.keys():
+            out[key] = np.stack(out[key])
+
+        return out
 
     def _extract_sensor_obs(self, sim_data):
         sensor_obs = {}
@@ -93,5 +174,43 @@ class RLEnvironment:
 
         return sensor_obs
 
+    # def _obs_dict_to_tensor(self, obs_dict):
+    #     out = []
+    #     for val in obs_dict.values():
+    #         out.append(val)
+
+    #     if self.n_agents == 1:
+    #         return {"CameraSensor": np.stack(out)[0]}  # quick workaround while Thom refactors this
+    #     else:
+    #         return {"CameraSensor": np.stack(out)}  # quick workaround while Thom refactors this
+
     def close(self):
         self.scene.close()
+
+    def env_is_wrapped(self):
+        return [False] * self.n_agents * self.n_parallel
+
+    # required abstract methods
+
+    def step_async(self, actions: np.ndarray) -> None:
+        raise NotImplementedError()
+
+    def env_method(self):
+        raise NotImplementedError()
+
+    def get_attr(self):
+        raise NotImplementedError()
+
+    def seed(self, value):
+        # this should be done when the env is initialized
+        return
+        # raise NotImplementedError()
+
+    def set_attr(self):
+        raise NotImplementedError()
+
+    def step_send(self):
+        raise NotImplementedError()
+
+    def step_wait(self):
+        raise NotImplementedError()
