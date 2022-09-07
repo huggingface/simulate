@@ -51,11 +51,10 @@ jobs:
         if: ${{ matrix.vtk-version != 'latest' }}
         run: pip install vtk==${{ matrix.vtk-version }}
 
-      # - name: Install Testing Requirements pyvista
-      #   run: |
-      #     sudo apt-get update
-      #     sudo apt-get install libgl1-mesa-glx xvfb python-tk -y
-      #     mkdir -p ~/.local/share/pyvista/examples
+      - name: Install graphics Requirements pyvista/Unity
+        run: |
+          sudo apt-get update
+          sudo apt-get install libglu1 libxcursor1 libgl1-mesa-glx xvfb python-tk -y
 
       - name: Software Report
         run: |
@@ -81,4 +80,4 @@ jobs:
 
       - name: Run the test example
         run: |
-          python ./examples/end-to-end-test.py --build_exe ./integrations/Unity/simenv-unity/builds/StandaloneLinux64/UnityPlayer.so
+          xvfb-run --auto-servernum --server-args='-screen 0 640x480x24:32' python ./examples/end-to-end-test.py --build_exe ./integrations/Unity/simenv-unity/builds/StandaloneLinux64/UnityPlayer.so
