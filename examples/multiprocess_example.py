@@ -2,16 +2,20 @@ import argparse
 import math
 import random
 import time
+from collections import defaultdict
 
+import numpy as np
 from stable_baselines3 import PPO
 
 import simenv as sm
 from simenv.assets.object import ProcGenPrimsMaze3D
 from simenv.assets.sensors import RaycastSensor, StateSensor
 
+# Lint as: python3
+from simenv.scene import Scene
+
 
 def generate_map(index):
-
     maze_width = 3
     maze_depth = 3
     n_objects = 1
@@ -63,16 +67,22 @@ def generate_map(index):
     return maze
 
 
-if __name__ == "__main__":
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
-    parser.add_argument("--n_maps", default=12, type=int, required=False, help="Number of maps to spawn")
-    parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
-    args = parser.parse_args()
+def generate_env(port):
+    env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, engine_port=port)
 
-    env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
-    time.sleep(2.0)
-    model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=2)
-    model.learn(total_timesteps=100000)
+    return env
 
-    env.close()
+
+parser = argparse.ArgumentParser()
+parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+parser.add_argument("--n_maps", default=12, type=int, required=False, help="Number of maps to spawn")
+parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
+args = parser.parse_args()
+args.build_exe = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
+env = sm.ParallelRLEnv(generate_env, 4)
+
+time.sleep(2.0)
+model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=2)
+model.learn(total_timesteps=100000)
+
+env.close()

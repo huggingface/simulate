@@ -80,6 +80,12 @@ class UnityEngine(Engine):
     def step(self, **kwargs):
         return self.run_command("Step", **kwargs)
 
+    def step_send_async(self, **kwargs):
+        self.run_command_async("Step", **kwargs)
+
+    def step_recv_async(self):
+        return self.get_response_async()
+
     def reset(self):
         return self.run_command("Reset")
 

@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace SimEnv {
     public class RaycastSensor : ISensor {
-        public static string mName = "StateSensor";
+        public static string mName = "RaycastSensor";
         public static string mType = "float";
         public Node node => m_node;
         Node m_node;
