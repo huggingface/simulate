@@ -48,7 +48,7 @@ class Camera(Asset):
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-
+    SENSOR_NAME="CameraSensor"
     def __init__(
         self,
         width=256,
