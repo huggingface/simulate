@@ -17,7 +17,7 @@ if __name__ == "__main__":
     CAMERA_WIDTH = 64
 
     print("before creating scene")
-    scene = sm.Scene(engine="pyvista")  # , engine_exe=args.build_exe)
+    scene = sm.Scene(engine="unity", engine_exe=args.build_exe)
     print("after creating scene")
 
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
