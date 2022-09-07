@@ -12,6 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from typing import Union, Callable, Optional
 from collections import defaultdict
 
 import numpy as np
@@ -29,7 +30,7 @@ except ImportError:
         pass  # Dummy class if SB3 is not installed
 
 
-class RLEnvironment(VecEnv):
+class RLEnv(VecEnv):
     """
     RL environment wrapper for SimEnv scene. Uses functionality from the VecEnv in stable baselines 3
     For more information on VecEnv, see the source
@@ -43,7 +44,7 @@ class RLEnvironment(VecEnv):
         frame_skip: TODO
     """
 
-    def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, frame_rate=30, frame_skip=4, **engine_kwargs):
+    def __init__(self, scene_or_map_fn : Union[Callable, sm.Scene], n_maps : int=1, n_show : int=1, frame_rate:int=30, frame_skip:int=4, **engine_kwargs):
 
         if hasattr(scene_or_map_fn, "__call__"):
             self.scene = Scene(engine="Unity", **engine_kwargs)
@@ -83,7 +84,11 @@ class RLEnvironment(VecEnv):
             n_show=n_show,
         )
 
-    def step(self, action=None):
+    def step(self, action: Optional[list]=None):
+        self.step_send_async(action=action)
+        return self.step_recv_async()
+
+    def step_send_async(self, action=None):
         action_dict = {}
         # TODO: adapt this to multiagent setting
         if action is None:
@@ -95,7 +100,10 @@ class RLEnvironment(VecEnv):
             for i in range(self.n_show):
                 action_dict[str(i)] = int(action[i])
 
-        event = self.scene.step(action=action_dict)
+        self.scene.engine.step_send_async(action=action_dict)
+
+    def step_recv_async(self):
+        event = self.scene.engine.step_recv_async()
 
         # Extract observations, reward, and done from event data
         # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
@@ -119,7 +127,7 @@ class RLEnvironment(VecEnv):
                 done.append(actor_data["done"])
                 info.append({})
 
-            obs = self._obs_dict_to_tensor2(obs)
+            obs = self._obs_dict_to_tensor(obs)
             reward = np.array(reward)
             done = np.array(done)
 
@@ -141,18 +149,19 @@ class RLEnvironment(VecEnv):
                 actor_obs = self._extract_sensor_obs(actor_data["observations"])
                 obs.append(actor_obs)
 
-            obs = self._obs_dict_to_tensor2(obs)
+            obs = self._obs_dict_to_tensor(obs)
 
         return obs
 
-    def _obs_dict_to_tensor2(self, obs):
+
+    def _obs_dict_to_tensor(self, obs):
         out = defaultdict(list)
 
         for o in obs:
             for key, value in o.items():
                 out[key].append(value)
 
-        for k in out.keys():
+        for key in out.keys():
             out[key] = np.stack(out[key])
 
         return out
@@ -173,16 +182,6 @@ class RLEnvironment(VecEnv):
                 raise TypeError
 
         return sensor_obs
-
-    # def _obs_dict_to_tensor(self, obs_dict):
-    #     out = []
-    #     for val in obs_dict.values():
-    #         out.append(val)
-
-    #     if self.n_agents == 1:
-    #         return {"CameraSensor": np.stack(out)[0]}  # quick workaround while Thom refactors this
-    #     else:
-    #         return {"CameraSensor": np.stack(out)}  # quick workaround while Thom refactors this
 
     def close(self):
         self.scene.close()
