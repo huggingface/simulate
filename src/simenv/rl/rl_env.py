@@ -47,7 +47,7 @@ class RLEnv(VecEnv):
 
     def __init__(
         self,
-        scene_or_map_fn: Union[Callable, sm.Scene],
+        scene_or_map_fn: Union[Callable, Scene],
         n_maps: int = 1,
         n_show: int = 1,
         frame_rate: int = 30,
