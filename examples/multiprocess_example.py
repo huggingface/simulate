@@ -16,7 +16,6 @@ from simenv.scene import Scene
 
 
 def generate_map(index):
-
     maze_width = 3
     maze_depth = 3
     n_objects = 1
@@ -80,7 +79,7 @@ parser.add_argument("--n_maps", default=12, type=int, required=False, help="Numb
 parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
 args = parser.parse_args()
 args.build_exe = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
-env = sm.MultiprocessRLEnv(generate_env, 4)
+env = sm.ParallelRLEnv(generate_env, 4)
 
 time.sleep(2.0)
 model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=2)

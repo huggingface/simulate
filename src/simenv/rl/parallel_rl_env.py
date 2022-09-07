@@ -25,7 +25,7 @@ except ImportError:
         pass  # Dummy class if SB3 is not installed
 
 
-class MultiprocessRLEnv(VecEnv):
+class ParallelRLEnv(VecEnv):
     def __init__(self, env_fn, n_parallel: int, starting_port: int = 55000):
         self.n_parallel = n_parallel
         self.envs = []
