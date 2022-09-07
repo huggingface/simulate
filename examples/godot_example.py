@@ -26,7 +26,7 @@ scene += target
 agent = sm.EgocentricCameraActor(name="agent", position=[0.0, 0.0, 0.0])
 scene += agent
 
-env = sm.RLEnvironment(scene)
+env = sm.RLEnv(scene)
 env.show()
 
 for i in range(1000):

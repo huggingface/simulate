@@ -50,7 +50,7 @@ if __name__ == "__main__":
     scene = create_scene(args.build_exe, args.gltf_path)
     add_rl_components_to_scene(scene)
 
-    env = sm.RLEnvironment(scene)
+    env = sm.RLEnv(scene)
 
     for i in range(10000):
         obs, reward, done, info = env.step()

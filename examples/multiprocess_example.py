@@ -65,7 +65,7 @@ def generate_map(index):
     return maze
 
 def generate_env(port):
-    env = sm.RLEnvironment(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, engine_port=port)
+    env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, engine_port=port)
 
     return env
 
@@ -75,7 +75,7 @@ parser.add_argument("--n_maps", default=12, type=int, required=False, help="Numb
 parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
 args = parser.parse_args()
 args.build_exe = "/home/edward/work/simenv/integrations/Unity/builds/simenv_unity.x86_64"
-env = sm.MultiprocessRLEnvironment(generate_env, 4)
+env = sm.MultiprocessRLEnv(generate_env, 4)
 
 time.sleep(2.0)
 model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=2)
