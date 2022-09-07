@@ -12,10 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Union, Callable, Optional
 from collections import defaultdict
+from typing import Callable, Optional, Union
 
 import numpy as np
+
 import simenv as sm
 
 # Lint as: python3
@@ -44,7 +45,15 @@ class RLEnv(VecEnv):
         frame_skip: TODO
     """
 
-    def __init__(self, scene_or_map_fn : Union[Callable, sm.Scene], n_maps : int=1, n_show : int=1, frame_rate:int=30, frame_skip:int=4, **engine_kwargs):
+    def __init__(
+        self,
+        scene_or_map_fn: Union[Callable, sm.Scene],
+        n_maps: int = 1,
+        n_show: int = 1,
+        frame_rate: int = 30,
+        frame_skip: int = 4,
+        **engine_kwargs,
+    ):
 
         if hasattr(scene_or_map_fn, "__call__"):
             self.scene = Scene(engine="Unity", **engine_kwargs)
@@ -67,7 +76,7 @@ class RLEnv(VecEnv):
 
         self.actor = next(iter(self.actors.values()))
 
-        self.action_space = self.scene.action_space  
+        self.action_space = self.scene.action_space
         self.observation_space = self.scene.observation_space
 
         super().__init__(n_show, self.observation_space, self.action_space)
@@ -84,7 +93,7 @@ class RLEnv(VecEnv):
             n_show=n_show,
         )
 
-    def step(self, action: Optional[list]=None):
+    def step(self, action: Optional[list] = None):
         self.step_send_async(action=action)
         return self.step_recv_async()
 
@@ -152,7 +161,6 @@ class RLEnv(VecEnv):
             obs = self._obs_dict_to_tensor(obs)
 
         return obs
-
 
     def _obs_dict_to_tensor(self, obs):
         out = defaultdict(list)

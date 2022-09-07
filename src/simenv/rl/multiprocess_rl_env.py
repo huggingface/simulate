@@ -12,11 +12,13 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
+from collections import defaultdict
 from typing import Optional, Union
 
-from collections import defaultdict
 import numpy as np
 from stable_baselines3 import PPO
+
+
 try:
     from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 except ImportError:
@@ -24,24 +26,24 @@ except ImportError:
     class VecEnv:
         pass  # Dummy class if SB3 is not installed
 
+
 class MultiprocessRLEnv(VecEnv):
-    def __init__(self, env_fn, n_parallel: int, starting_port : int =55000):
-            self.n_parallel = n_parallel
-            self.envs = []
-            # create the environments
-            for i in range(n_parallel):
-                env = env_fn(starting_port + i)
-                self.n_show = env.n_show
-                
-                observation_space = env.observation_space
-                action_space = env.action_space
+    def __init__(self, env_fn, n_parallel: int, starting_port: int = 55000):
+        self.n_parallel = n_parallel
+        self.envs = []
+        # create the environments
+        for i in range(n_parallel):
+            env = env_fn(starting_port + i)
+            self.n_show = env.n_show
 
-                self.envs.append(env)
-            num_envs = self.n_show * self.n_parallel
-            super().__init__(num_envs, observation_space, action_space)
+            observation_space = env.observation_space
+            action_space = env.action_space
 
+            self.envs.append(env)
+        num_envs = self.n_show * self.n_parallel
+        super().__init__(num_envs, observation_space, action_space)
 
-    def step(self, actions : Optional[np.array]=None):
+    def step(self, actions: Optional[np.array] = None):
         for i in range(self.n_parallel):
             action = actions[i * self.n_show : (i + 1) * self.n_show].tolist() if actions is not None else None
             self.envs[i].step_send_async(action)
@@ -51,14 +53,14 @@ class MultiprocessRLEnv(VecEnv):
         all_done = []
         all_info = []
 
-        for i in range(self.n_parallel): 
+        for i in range(self.n_parallel):
             obs, reward, done, info = self.envs[i].step_recv_async()
 
             all_obs.append(obs)
             all_reward.extend(reward)
             all_done.extend(done)
             all_info.extend(info)
-        
+
         all_obs = self._combine_obs(all_obs)
         all_reward = np.array(all_reward)
         all_done = np.array(all_done)

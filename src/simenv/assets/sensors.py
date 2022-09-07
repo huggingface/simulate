@@ -81,8 +81,8 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
     created_from_file: InitVar[Optional[str]] = None
 
     __NEW_ID: ClassVar[Any] = itertools.count()  # Singleton to count instances of the classes for automatic naming
-    SENSOR_NAME="StateSensor"
-    
+    SENSOR_NAME = "StateSensor"
+
     def __post_init__(
         self, name, position, rotation, scaling, transformation_matrix, parent, children, created_from_file
     ):
@@ -133,7 +133,7 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
     created_from_file: InitVar[Optional[str]] = None
 
     __NEW_ID: ClassVar[Any] = itertools.count()  # Singleton to count instances of the classes for automatic naming
-    SENSOR_NAME="RaycastSensor"
+    SENSOR_NAME = "RaycastSensor"
 
     def __post_init__(
         self, name, position, rotation, scaling, transformation_matrix, parent, children, created_from_file

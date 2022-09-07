@@ -1,16 +1,19 @@
-
-from collections import defaultdict
 import argparse
 import math
 import random
 import time
+from collections import defaultdict
+
 import numpy as np
+from stable_baselines3 import PPO
+
 import simenv as sm
 from simenv.assets.object import ProcGenPrimsMaze3D
 from simenv.assets.sensors import RaycastSensor, StateSensor
-from stable_baselines3 import PPO
+
 # Lint as: python3
 from simenv.scene import Scene
+
 
 def generate_map(index):
 
@@ -64,10 +67,12 @@ def generate_map(index):
 
     return maze
 
+
 def generate_env(port):
     env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, engine_port=port)
 
     return env
+
 
 parser = argparse.ArgumentParser()
 parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
