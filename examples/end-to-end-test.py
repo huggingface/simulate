@@ -17,7 +17,7 @@ if __name__ == "__main__":
     CAMERA_WIDTH = 64
 
     print("before creating scene")
-    scene = sm.Scene(engine="unity", engine_exe=args.build_exe)
+    scene = sm.Scene(engine="unity", engine_exe=args.build_exe, engine_headless=True)
     print("after creating scene")
 
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
@@ -47,10 +47,12 @@ if __name__ == "__main__":
 
     print(env.actors)
 
-    for i in range(10):
-        print(f"Step {i}")
+    obs, reward, done, info = env.step()
 
-        obs, reward, done, info = env.step()
-        # print(f"CameraSensor: {obs['CameraSensor'][:5, :5, :5]}")
+    # for i in range(10):
+    #     print(f"Step {i}")
+
+    #     obs, reward, done, info = env.step()
+    #     # print(f"CameraSensor: {obs['CameraSensor'][:5, :5, :5]}")
 
     scene.close()
