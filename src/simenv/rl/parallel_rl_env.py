@@ -17,13 +17,7 @@ from typing import Optional
 
 import numpy as np
 
-
-try:
-    from stable_baselines3.common.vec_env.base_vec_env import VecEnv
-except ImportError:
-
-    class VecEnv:
-        pass  # Dummy class if SB3 is not installed
+from . import VecEnv
 
 
 class ParallelRLEnv(VecEnv):
