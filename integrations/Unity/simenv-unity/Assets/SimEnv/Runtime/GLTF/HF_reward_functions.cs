@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using UnityEngine;
 
 namespace SimEnv.GLTF {
     public class HFRewardFunctions {
@@ -10,6 +11,7 @@ namespace SimEnv.GLTF {
             [JsonProperty(Required = Required.Always)] public string type;
             public string entity_a;
             public string entity_b;
+            [JsonProperty(Required = Required.Always), JsonConverter(typeof(Vector3Converter))] public Vector3 direction;
             public string distance_metric;
             public float scalar = 1f;
             public float threshold = 1f;
