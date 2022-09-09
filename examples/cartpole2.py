@@ -1,56 +1,94 @@
+from cmath import pi
 from matplotlib import use
 import matplotlib.pyplot as plt
 import numpy as np
 
 import simenv as sm
+from simenv.assets import material
+from simenv.assets.reward_functions import RewardFunction
 
 
 scene = sm.Scene(engine="Unity")
 
-cart_width = 5
-cart_height = 3
-pole_radius = 0.15
-pole_height = 7
+cart_depth = 0.3
+cart_width = 0.5
+cart_height = 0.2
+pole_radius = 0.05
+pole_height = 1.0
 
 scene += sm.LightSun()
 scene += sm.Camera(
     name="cam", camera_type="orthographic", ymag=15, position=[0, cart_height, -10], width=256, height=144
 )
 
-cart = sm.Box(name="cart", bounds=[cart_width, cart_height, 1])
-cart.physics_component = sm.RigidBodyComponent(mass=1.0, constraints=["freeze_rotation_x", "freeze_rotation_x", "freeze_rotation_z", "freeze_position_y", "freeze_position_z",], use_gravity=False)
+base = sm.Cylinder(name="base", direction=(1, 0, 0), radius=0.05, height=30, material=material.Material.GRAY50)
+base.physics_component = sm.ArticulatedBodyComponent(
+    "prismatic", immovable=True, use_gravity=False
+)  # note for the base the joint type is ignored
 
+
+cart = sm.Box(name="cart", bounds=[cart_width, cart_height, cart_depth])
+
+cart.physics_component = sm.ArticulatedBodyComponent("prismatic", immovable=False, use_gravity=True)
 mapping = [
-    sm.ActionMapping("change_relative_position", axis=[1, 0, 0], amplitude=2.0),
-    sm.ActionMapping("change_relative_position", axis=[-1, 0, 0], amplitude=2.0),
+    sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10.0),
+    sm.ActionMapping("add_force", axis=[-1, 0, 0], amplitude=10.0),
 ]
 cart.controller = sm.Controller(n=2, mapping=mapping)
-
-pivot = sm.Box(name="pivot", position=[0,cart_height/2, 0], bounds=[0.1,0.1,0.1])
-
-# for more information on Articulation bodies in Unity https://docs.unity3d.com/Manual/physics-articulations.html
-pivot.physics_component = sm.ArticulatedBodyComponent("revolute")
-cart += pivot
-pole = sm.Box(
-    name="pole",
-    position=[0, cart_height / 2.0 + pole_height / 2.0, 0],
-    bounds=[pole_radius, pole_height, pole_radius],
-    rotation=[10, 0, 0],
+cart += sm.RewardFunction(
+    type="timeout",
+    distance_metric="euclidean",
+    threshold=100,
+    is_terminal=True,
+    scalar=-1.0,
 )
-pole.physics_component = sm.ArticulatedBodyComponent("revolute",anchor_position=[0,-pole_height/2, 0])
-pivot += pole
+base += cart
+# for more information on Articulation bodies in Unity https://docs.unity3d.com/Manual/physics-articulations.html
+
+pole = sm.Cylinder(
+    name="pole",
+    position=[0, pole_height / 2.0 + cart_height / 2.0, 0],
+    radius=pole_radius,
+    height=pole_height,
+    rotation=[0, 0, 0],
+)
+pole.physics_component = sm.ArticulatedBodyComponent(
+    "revolute", anchor_position=[0, -pole_height / 2, 0], anchor_rotation=[0, 1, 0, 1]
+)
+cart += pole
 cart += sm.StateSensor(pole, cart, "position")
 
+# not_reward = sm.RewardFunction("not", is_terminal=True)
+cart += sm.RewardFunction(
+    type="angle_to",
+    entity_a=pole,
+    entity_b=cart,
+    direction=[1, 0, 0],
+    distance_metric="euclidean",
+    threshold=60,
+    is_terminal=True,
+    scalar=1.0,
+)
+cart += sm.RewardFunction(
+    type="angle_to",
+    entity_a=pole,
+    entity_b=cart,
+    direction=[-1, 0, 0],
+    distance_metric="euclidean",
+    threshold=60,
+    is_terminal=True,
+    scalar=1.0,
+)
 
-scene += cart
-env = sm.RLEnv(scene)
+scene += base
+env = sm.RLEnv(scene, frame_skip=1)
 
 
 # plt.ion()
 # fig, ax = plt.subplots()
 # imdata = np.zeros(shape=(144, 256, 3), dtype=np.uint8)
 # axim = ax.imshow(imdata, vmin=0, vmax=255)
-for i in range(300):
+for i in range(10000):
     env.step()
     # if "frames" in event and "cam" in event["frames"]:
     #     frame = np.array(event["frames"]["cam"], dtype=np.uint8)
