@@ -382,7 +382,7 @@ class NodeMixin(object):
         return self.__repr__()
 
     def __repr__(self):
-        node_str = self._get_one_line_repr() + "\n" if self.tree_children else ""
+        node_str = self._get_one_line_repr() + ("\n" if self.tree_children else "")
         return f"{node_str}{RenderTree(self).print_tree()}"
 
     def tree_filtered_descendants(self, filter_fn: Callable, stop=None, maxlevel=None):
