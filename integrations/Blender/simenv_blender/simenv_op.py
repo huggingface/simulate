@@ -1,5 +1,5 @@
-import bpy
 from bpy.types import Operator
+
 from .simulator import Simulator
 
 
@@ -13,5 +13,5 @@ class SIMENV_OT_ImportScene(Operator):
         return True
 
     def execute(self, context):
-        simulator = Simulator()
-        return {'FINISHED'}
+        _ = Simulator()
+        return {"FINISHED"}

@@ -1,31 +1,38 @@
-from operator import is_
-import unittest
 import os
+
 import pytest
 
 import simenv as sm
 
+
 # sm.ActionMapping("add_force_at_position", axis=[1, 0, 0], position=[0, 0, 0], amplitude=10, is_impulse=True),
-# sm.ActionMapping("change_position", axis=[2, 0, 0], amplitude=1),
 # sm.ActionMapping("change_rotation", axis=[2, 0, 0], amplitude=-90),
 # sm.ActionMapping("set_position", position=[1, 0, 1], use_local_coordinates=False),
 # sm.ActionMapping("set_rotation", axis=[1, 0, 0], use_local_coordinates=False),
 
+
 def test_no_action(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add a 1 kg cube as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     # Can only move along the x axis
     actor.physics_component = sm.RigidBodyComponent(
-            mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_rotation_y",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
     # One action to apply force along  the x axis
-    actor.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=True))
+    actor.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=True)
+    )
     scene += actor
 
     # Create the scene
@@ -58,23 +65,30 @@ def test_no_action(build_exe):
 
 
 def test_add_force(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add a 1 kg cube as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     # Can only move along the x axis
     actor.physics_component = sm.RigidBodyComponent(
-            mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_rotation_y",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # One action to apply force along  the x axis without impulse
-    actor.actuator = sm.Actuator(n=1,
-        # Apply a force of 10 N along the x axis during one frame 
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False))
+    actor.actuator = sm.Actuator(
+        n=1,
+        # Apply a force of 10 N along the x axis during one frame
+        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False),
+    )
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -123,29 +137,37 @@ def test_add_force(build_exe):
     # Our new position should be P = P0 + 0.5*F/m*t^2 = 0.0 + 0.5*10/1*0.2*0.2 = 0.2 m
     # Or in discretized version: P = P0 + sum(Vi*dt) = 0.0 + sum(0.02*i*0.2 for i in range(11)) = 0.22 m
     assert new_velocity[0] == pytest.approx(2, abs=1e-3)
-    assert new_position[0] == pytest.approx(original_position[0] + sum(0.02*i*0.2 for i in range(11)), abs=1e-3)
+    assert new_position[0] == pytest.approx(original_position[0] + sum(0.02 * i * 0.2 for i in range(11)), abs=1e-3)
 
     scene.close()
 
+
 def test_add_force_frame_rate(build_exe):
-    """ Changing the framerate of the test_add_force test to 100 frame per second """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Changing the framerate of the test_add_force test to 100 frame per second"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add a 1 kg cube as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     # Can only move along the x axis
     actor.physics_component = sm.RigidBodyComponent(
-            mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_rotation_y",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # One action to apply force along  the x axis without impulse
-    actor.actuator = sm.Actuator(n=1,
-        # Apply a force of 10 N along the x axis during one frame 
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False))
+    actor.actuator = sm.Actuator(
+        n=1,
+        # Apply a force of 10 N along the x axis during one frame
+        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False),
+    )
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 100 physics steps per second (0.01 second per step)
@@ -168,24 +190,31 @@ def test_add_force_frame_rate(build_exe):
 
 
 def test_add_force_frame_skip(build_exe):
-    """ Changing the frameskip of the test_add_force_frame_rate test to skip every 5 frames observations """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Changing the frameskip of the test_add_force_frame_rate test to skip every 5 frames observations"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add a 1 kg cube as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     # Can only move along the x axis
     actor.physics_component = sm.RigidBodyComponent(
-            mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_rotation_y",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # One action to apply force along  the x axis without impulse
-    actor.actuator = sm.Actuator(n=1,
-        # Apply a force of 10 N along the x axis during one frame 
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False))
+    actor.actuator = sm.Actuator(
+        n=1,
+        # Apply a force of 10 N along the x axis during one frame
+        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False),
+    )
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 100 physics steps per second (0.01 second per step)

@@ -1,5 +1,5 @@
-import bpy
 from bpy.types import Panel
+
 
 class SIMENV_PT_Panel(Panel):
     bl_space_type = "VIEW_3D"

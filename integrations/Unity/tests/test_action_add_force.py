@@ -1,28 +1,36 @@
-from operator import is_
-import time
 import os
+import time
+
 import pytest
 
 import simenv as sm
 
+
 def test_add_force(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add a 1 kg cube as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     # Can only move along the x axis
     actor.physics_component = sm.RigidBodyComponent(
-            mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_rotation_y",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # One action to apply force along  the x axis without impulse
-    actor.actuator = sm.Actuator(n=1,
-        # Apply a force of 10 N along the x axis during one frame 
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False))
+    actor.actuator = sm.Actuator(
+        n=1,
+        # Apply a force of 10 N along the x axis during one frame
+        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False),
+    )
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -71,39 +79,52 @@ def test_add_force(build_exe):
     # Our new position should be P = P0 + 0.5*F/m*t^2 = 0.0 + 0.5*10/1*0.2*0.2 = 0.2 m
     # Or in discretized version: P = P0 + sum(Vi*dt) = 0.0 + sum(0.02*i*0.2 for i in range(11)) = 0.22 m
     assert new_velocity[0] == pytest.approx(2, abs=1e-3)
-    assert new_position[0] == pytest.approx(original_position[0] + sum(0.02*i*0.2 for i in range(11)), abs=1e-3)
+    assert new_position[0] == pytest.approx(original_position[0] + sum(0.02 * i * 0.2 for i in range(11)), abs=1e-3)
 
     scene.close()
 
     time.sleep(2)
 
+
 def test_add_force_is_impulse(build_exe):
-    """ Comparing two objects under an action with and without impulse """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two objects under an action with and without impulse"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the x axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y",
-                         "freeze_position_z"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_rotation_y",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_rotation_y",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # The first one has an action which apply a force of 10 N along the x axis during one frame (without impulse mode)
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False))
+    actor.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False)
+    )
     # The first one has an action which apply a force of 10 N second along the x axis during one frame (with impulse mode)
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=True))
+    actor2.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=True)
+    )
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -135,30 +156,30 @@ def test_add_force_is_impulse(build_exe):
 
 
 def test_add_force_local_coordinates(build_exe):
-    """ Comparing two rotated objects under an action with different local coordinates """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two rotated objects under an action with different local coordinates"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
 
     # The first one has an action which apply a force of 10 N along the x axis in world coordinates
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, use_local_coordinates=False))
+    actor.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, use_local_coordinates=False)
+    )
     # The first one has an action which apply a force of 10 N along the x axis in local coordinates
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, use_local_coordinates=True))
+    actor2.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, use_local_coordinates=True)
+    )
     scene += [actor, actor2]
 
     # Let's rotate both objects to have local coordinates different than world coordinates
@@ -195,30 +216,26 @@ def test_add_force_local_coordinates(build_exe):
 
 
 def test_add_force_amplitude(build_exe):
-    """ Comparing two objects under an action with different amplitude """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two objects under an action with different amplitude"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
 
     # The first one has an action which apply a force of 10 N along the x axis
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10))
+    actor.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10))
     # The first one has an action which apply a force of 5 N along the x axis
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=5))
+    actor2.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=5))
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -251,30 +268,26 @@ def test_add_force_amplitude(build_exe):
 
 
 def test_add_force_offset(build_exe):
-    """ Comparing two objects under an action with different offsets """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two objects under an action with different offsets"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
 
     # The first one has an action which apply a force of 10 N along the x axis
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, offset=0.))
+    actor.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, offset=0.0))
     # The first one has an action which apply a force of 5 N along the x axis
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, offset=2.))
+    actor2.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, offset=2.0))
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -307,30 +320,30 @@ def test_add_force_offset(build_exe):
 
 
 def test_add_force_max_velocity(build_exe):
-    """ Comparing two objects under an action with different max velocities """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two objects under an action with different max velocities"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
 
     # The first one has an action which apply a force of 10 N along the x axis
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, max_velocity_threshold=None))
+    actor.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, max_velocity_threshold=None)
+    )
     # The first one has an action which apply a force of 10 N along the x axis with max velocity of 1.
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, max_velocity_threshold=1.0))
+    actor2.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, max_velocity_threshold=1.0)
+    )
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)

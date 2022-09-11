@@ -1,3 +1,4 @@
+# flake8: noqa
 # This program is free software; you can redistribute it and/or modify
 # it under the terms of the GNU General Public License as published by
 # the Free Software Foundation; either version 3 of the License, or
@@ -12,25 +13,29 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name" : "simenv",
-    "author" : "Hugging Face",
-    "description" : "",
-    "blender" : (3, 2, 0),
-    "version" : (0, 0, 1),
-    "location" : "View3D",
-    "warning" : "",
-    "category" : "Simulation"
+    "name": "simenv",
+    "author": "Hugging Face",
+    "description": "",
+    "blender": (3, 2, 0),
+    "version": (0, 0, 1),
+    "location": "View3D",
+    "warning": "",
+    "category": "Simulation",
 }
 
 import bpy
+
 from .simenv_op import SIMENV_OT_ImportScene
 from .simenv_pnl import SIMENV_PT_Panel
 
+
 classes = (SIMENV_OT_ImportScene, SIMENV_PT_Panel)
+
 
 def register():
     for c in classes:
         bpy.utils.register_class(c)
+
 
 def unregister():
     for c in classes:

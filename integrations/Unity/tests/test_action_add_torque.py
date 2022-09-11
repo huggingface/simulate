@@ -1,28 +1,35 @@
-from operator import is_
-import time
-import os
 import pytest
 
 import simenv as sm
 
+
 def test_add_torque(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add a 1 kg sphere as actor
-    actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])  # Using a cylinder to compute more easily our equations
+    actor = sm.Cylinder(
+        name="actor", position=[0.0, 0.5, 0.0]
+    )  # Using a cylinder to compute more easily our equations
     # Can only rotate along the y axis
     actor.physics_component = sm.RigidBodyComponent(
-            mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # One action to apply torque along the y axis without impulse
-    actor.actuator = sm.Actuator(n=1,
-        # Apply a torque of 1 N.m along the y axis during one frame 
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, is_impulse=False))
+    actor.actuator = sm.Actuator(
+        n=1,
+        # Apply a torque of 1 N.m along the y axis during one frame
+        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, is_impulse=False),
+    )
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -77,32 +84,44 @@ def test_add_torque(build_exe):
 
 
 def test_add_torque_is_impulse(build_exe):
-    """ Comparing two objects under an action with and without impulse """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two objects under an action with and without impulse"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add two 1 kg cylinders as actor
     actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Cylinder(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the y axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # The first one has an action which apply a torque of 10 N.m along the y axis during one frame (without impulse mode)
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, is_impulse=False))
+    actor.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, is_impulse=False)
+    )
     # The first one has an action which apply a torque of 10 N.m second along the y axis during one frame (with impulse mode)
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, is_impulse=True))
+    actor2.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, is_impulse=True)
+    )
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -134,32 +153,44 @@ def test_add_torque_is_impulse(build_exe):
 
 
 def test_add_torque_local_coordinates(build_exe):
-    """ Comparing two rotated objects under an action with different local coordinates """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two rotated objects under an action with different local coordinates"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add two 1 kg cylinders as actor
     actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Cylinder(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the y axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # The first one has an action which apply a torque of 1 N.m along the y axis in global coord
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, use_local_coordinates=False))
+    actor.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, use_local_coordinates=False)
+    )
     # The first one has an action which apply a torque of 1 N.m second along the y axis in local coord
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, use_local_coordinates=True))
+    actor2.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, use_local_coordinates=True)
+    )
     scene += [actor, actor2]
 
     # Let's rotate the second object to have local coordinates different than world coordinates
@@ -197,32 +228,40 @@ def test_add_torque_local_coordinates(build_exe):
 
 
 def test_add_torque_amplitude(build_exe):
-    """ Comparing two objects under an action with different amplitude """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two objects under an action with different amplitude"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
-   # Add two 1 kg cylinders as actor
+    # Add two 1 kg cylinders as actor
     actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Cylinder(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the y axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # The first one has an action which apply a torque of 1 N.m along the y axis
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1))
+    actor.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1))
     # The first one has an action which apply a torque of 0.2 N.m second along the y axis
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=0.2))
+    actor2.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=0.2))
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -254,32 +293,40 @@ def test_add_torque_amplitude(build_exe):
 
 
 def test_add_torque_offset(build_exe):
-    """ Comparing two objects under an action with different offsets """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two objects under an action with different offsets"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
-   # Add two 1 kg cylinders as actor
+    # Add two 1 kg cylinders as actor
     actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Cylinder(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the y axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # The first one has an action which apply a torque of 1 N.m along the y axis
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, offset=0))
+    actor.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, offset=0))
     # The first one has an action which apply a torque of -1 N.m second along the y axis
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, offset=2.))
+    actor2.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, offset=2.0))
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -311,32 +358,44 @@ def test_add_torque_offset(build_exe):
 
 
 def test_add_torque_max_velocity(build_exe):
-    """ Comparing two objects under an action with different max velocities """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two objects under an action with different max velocities"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
-   # Add two 1 kg cylinders as actor
+    # Add two 1 kg cylinders as actor
     actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Cylinder(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the y axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_position_x",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_position_x",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # The first one has an action which apply a torque of 1 N.m along the y axis
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, max_velocity_threshold=None))
+    actor.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, max_velocity_threshold=None)
+    )
     # The first one has an action which apply a torque of -1 N.m second along the y axis
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, max_velocity_threshold=0.01))
+    actor2.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("add_torque", axis=[0, 1, 0], amplitude=1, max_velocity_threshold=0.01)
+    )
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)

@@ -1,27 +1,29 @@
-from operator import is_
-import time
-import os
 import pytest
 
 import simenv as sm
 
+
 def test_change_position(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add a 1 kg cube as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     # Can only move along the x axis
     actor.physics_component = sm.RigidBodyComponent(
-            mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y",
-                         "freeze_position_z"])
+        mass=1,
+        constraints=[
+            "freeze_rotation_x",
+            "freeze_rotation_z",
+            "freeze_rotation_y",
+            "freeze_position_y",
+            "freeze_position_z",
+        ],
+    )
 
     # One action to change (teleport) position along the x axis
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=1))
+    actor.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=1))
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -71,30 +73,30 @@ def test_change_position(build_exe):
 
 
 def test_change_position_local_coordinates(build_exe):
-    """ Comparing two rotated objects under an action with different local coordinates """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two rotated objects under an action with different local coordinates"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
 
     # One action to change (teleport) position along the x axis in world coordinates
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=1, use_local_coordinates=False))
+    actor.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=1, use_local_coordinates=False)
+    )
     # One action to change (teleport) position along the x axis in local coordinates
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=1, use_local_coordinates=True))
+    actor2.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=1, use_local_coordinates=True)
+    )
     scene += [actor, actor2]
 
     # Let's rotate both objects to have local coordinates different than world coordinates
@@ -123,30 +125,26 @@ def test_change_position_local_coordinates(build_exe):
 
 
 def test_change_position_amplitude(build_exe):
-    """ Comparing two objects under an action with different amplitude """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two objects under an action with different amplitude"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
 
     # One action to change (teleport) position along the x axis of 10
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=10))
+    actor.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=10))
     # One action to change (teleport) position along the x axis of 5
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=5))
+    actor2.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=5))
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
@@ -167,30 +165,30 @@ def test_change_position_amplitude(build_exe):
 
 
 def test_change_position_offset(build_exe):
-    """ Comparing two objects under an action with different offsets """
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+    """Comparing two objects under an action with different offsets"""
+    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+        name="sun", position=[0, 20, 0], intensity=0.9
+    )
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
-    actor.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
-    actor2.physics_component = sm.RigidBodyComponent(mass=1,
-            constraints=["freeze_rotation_x",
-                         "freeze_rotation_z",
-                         "freeze_rotation_y",
-                         "freeze_position_y"])
+    actor.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
+    actor2.physics_component = sm.RigidBodyComponent(
+        mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
+    )
 
     # One action to change (teleport) position along the x axis of 10
-    actor.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=10, offset=0.))
+    actor.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=10, offset=0.0)
+    )
     # One action to change (teleport) position along the x axis of -10
-    actor2.actuator = sm.Actuator(n=1,
-        mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=10, offset=2.))
+    actor2.actuator = sm.Actuator(
+        n=1, mapping=sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=10, offset=2.0)
+    )
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
