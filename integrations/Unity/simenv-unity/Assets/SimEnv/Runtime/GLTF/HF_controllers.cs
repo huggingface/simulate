@@ -22,12 +22,30 @@ namespace SimEnv.GLTF {
         }
 
         public class ActionMapping {
-            [JsonProperty(Required = Required.Always)] public string action;
-            [JsonProperty(Required = Required.Always), JsonConverter(typeof(Vector3Converter))] public Vector3 axis;
-            [JsonProperty(Required = Required.Always)] public float amplitude = 1;
-            [JsonProperty(Required = Required.Always)] public float offset = 0;
-            public float? upperLimit;
-            public float? lowerLimit;
+            [JsonProperty(Required = Required.Always)]
+            public string action;
+
+            [JsonProperty(Required = Required.Always)]
+            public float amplitude = 1;
+
+            [JsonProperty(Required = Required.Always)]
+            public float offset = 0;
+
+            [JsonConverter(typeof(Vector3Converter))]
+            public Vector3? axis;
+
+            [JsonConverter(typeof(Vector3Converter))]
+            public Vector3? position;
+
+            [JsonProperty("use_local_coordinates")]
+            public bool useLocalCoordinates = true;
+
+            [JsonProperty("is_impulse")]
+            public bool isImpulse = false;
+
+            [JsonProperty("max_velocity_threshold")]
+            public float? maxVelocityThreshold;
+
         }
 
         public class ActionSpace {

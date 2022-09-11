@@ -17,3 +17,6 @@ style:
 
 test:
 	python -m pytest -n auto --dist=loadfile -s -v  --ignore=tests/test_gltflib/ ./tests/
+
+unity-test:
+	python -m pytest -s -v  ./integrations/Unity/tests/ --build_exe $(BUILD_EXE)

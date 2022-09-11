@@ -1,14 +1,13 @@
 from dataclasses import dataclass
 from typing import List, Optional
 
-from dataclasses_json import dataclass_json
+from .assets.gltf_extension import GltfExtensionMixin
 
 
-@dataclass_json
 @dataclass
-class Metadata:
+class Config(GltfExtensionMixin, gltf_extension_name="HF_config", object_type="scene"):
     """
-    A serialization of initialization metadata. These parameters can be overridden as keywords in show().
+    A scene simulation configuration object.
 
     Attributes:
         frame_rate: Number of frames per second to use for simulation. (Optional, default 30)

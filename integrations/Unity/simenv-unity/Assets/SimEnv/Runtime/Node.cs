@@ -9,7 +9,7 @@ namespace SimEnv {
         public KHRLightsPunctual.GLTFLight lightData;
         public HFColliders.GLTFCollider.ImportResult colliderData;
         public HFRigidBodies.GLTFRigidBody rigidBodyData;
-        public HFArticulatedBodies.GLTFArticulatedBody articulatedBodyData;
+        public HFarticulationBodies.GLTFArticulationBody articulationBodyData;
         public HFControllers.HFController actionData;
         public HFStateSensors.HFStateSensor stateSensorData;
         public HFRaycastSensors.HFRaycastSensor raycastSensorData;
@@ -18,7 +18,7 @@ namespace SimEnv {
         public new Light light { get; private set; }
         public new Collider collider { get; private set; }
         public new Rigidbody rigidbody { get; private set; }
-        public ArticulationBody articulatedBody { get; private set; }
+        public ArticulationBody articulationBody { get; private set; }
         public ISensor sensor;
         public Data initialState { get; private set; }
 
@@ -35,17 +35,37 @@ namespace SimEnv {
                 InitializeCollider();
             if (rigidBodyData != null)
                 InitializeRigidBody();
-            if (articulatedBodyData != null)
-                InitializeArticulatedBody();
+            if (articulationBodyData != null)
+                InitializeArticulationBody();
             initialState = GetData();
         }
 
         public void ResetState() {
-            transform.position = initialState.position;
-            transform.rotation = initialState.rotation;
-            if (rigidbody != null) {
+            if(articulationBody == null) {
+                // you cannot teleport articulation bodies so simply (see below)
+                transform.position = initialState.position;
+                transform.rotation = initialState.rotation;
+            }
+            if(rigidbody != null) {
                 rigidbody.velocity = Vector3.zero;
                 rigidbody.angularVelocity = Vector3.zero;
+            }
+
+            if(articulationBody != null) {
+                articulationBody.velocity = Vector3.zero;
+                articulationBody.angularVelocity = Vector3.zero;
+
+                articulationBody.jointPosition = new ArticulationReducedSpace(0f, 0f, 0f);
+                articulationBody.jointAcceleration = new ArticulationReducedSpace(0f, 0f, 0f);
+                articulationBody.jointForce = new ArticulationReducedSpace(0f, 0f, 0f);
+                articulationBody.jointVelocity = new ArticulationReducedSpace(0f, 0f, 0f);
+
+                if (articulationBody.isRoot) {
+                    articulationBody.TeleportRoot(initialState.position, initialState.rotation);
+                }
+
+                // TODO probably also ened to reset the drive
+                // https://forum.unity.com/threads/reset-pos-rot-of-articulation-bodies-manually-without-a-cacophony-of-derp.958741/
             }
         }
 
@@ -161,9 +181,9 @@ namespace SimEnv {
             rigidbody = rb;
         }
 
-        void InitializeArticulatedBody() {
+        void InitializeArticulationBody() {
             ArticulationBody ab = gameObject.AddComponent<ArticulationBody>();
-            switch (articulatedBodyData.joint_type) {
+            switch (articulationBodyData.joint_type) {
                 case "fixed":
                     ab.jointType = ArticulationJointType.FixedJoint;
                     break;
@@ -174,41 +194,57 @@ namespace SimEnv {
                     ab.jointType = ArticulationJointType.RevoluteJoint;
                     break;
                 default:
-                    Debug.LogWarning(string.Format("Joint type {0} not implemented", articulatedBodyData.joint_type));
+                    Debug.LogWarning(string.Format("Joint type {0} not implemented", articulationBodyData.joint_type));
                     break;
             }
-            ab.anchorPosition = articulatedBodyData.anchor_position;
-            ab.anchorRotation = articulatedBodyData.anchor_rotation;
-            if (articulatedBodyData.immovable) {
+            ab.anchorPosition = articulationBodyData.anchor_position;
+            ab.anchorRotation = articulationBodyData.anchor_rotation;
+            if (articulationBodyData.immovable) {
                 // we should only try and set this property if we are the root in a chain of articulated bodies
-                ab.immovable = articulatedBodyData.immovable;
+                ab.immovable = articulationBodyData.immovable;
             }
 
-            ab.linearDamping = articulatedBodyData.linear_damping;
-            ab.angularDamping = articulatedBodyData.angular_damping;
-            ab.jointFriction = articulatedBodyData.joint_friction;
-            ab.mass = articulatedBodyData.mass;
-            ab.centerOfMass = articulatedBodyData.center_of_mass;
-            if (articulatedBodyData.inertia_tensor != null) {
-                ab.inertiaTensor = articulatedBodyData.inertia_tensor.Value;
+            ab.linearDamping = articulationBodyData.linear_damping;
+            ab.angularDamping = articulationBodyData.angular_damping;
+            ab.jointFriction = articulationBodyData.joint_friction;
+            ab.mass = articulationBodyData.mass;
+            ab.centerOfMass = articulationBodyData.center_of_mass;
+            if (articulationBodyData.inertia_tensor != null) {
+                ab.inertiaTensor = articulationBodyData.inertia_tensor.Value;
             }
 
             ArticulationDrive xDrive = new ArticulationDrive() {
-                stiffness = articulatedBodyData.drive_stifness,
-                forceLimit = articulatedBodyData.drive_force_limit,
-                damping = articulatedBodyData.drive_damping,
-                lowerLimit = articulatedBodyData.lower_limit,
-                upperLimit = articulatedBodyData.upper_limit
+                stiffness = articulationBodyData.drive_stifness,
+                forceLimit = articulationBodyData.drive_force_limit,
+                damping = articulationBodyData.drive_damping,
+                lowerLimit = articulationBodyData.lower_limit,
+                upperLimit = articulationBodyData.upper_limit
             };
             ab.xDrive = xDrive;
-            articulatedBody = ab;
+            articulationBody = ab;
         }
 
         public Data GetData() {
+            Vector3? velocity = null;
+            Vector3? angularVelocity = null; 
+            Rigidbody rb = gameObject.GetComponent<Rigidbody>();
+            if (rb != null) {
+                velocity = rb.velocity;
+                angularVelocity = rb.angularVelocity;
+            } else {
+                ArticulationBody ab = gameObject.GetComponent<ArticulationBody>();
+                if (ab != null) {
+                    velocity = ab.velocity;
+                    angularVelocity = ab.angularVelocity;
+                }
+            }
+
             return new Data() {
                 name = gameObject.name,
                 position = transform.position,
                 rotation = transform.rotation,
+                velocity = velocity,
+                angular_velocity = angularVelocity
             };
         }
 
@@ -216,6 +252,8 @@ namespace SimEnv {
             public string name;
             [JsonConverter(typeof(Vector3Converter))] public Vector3 position;
             [JsonConverter(typeof(QuaternionConverter))] public Quaternion rotation;
+            [JsonConverter(typeof(Vector3Converter))] public Vector3? velocity;
+            [JsonConverter(typeof(Vector3Converter))] public Vector3? angular_velocity;
         }
     }
 }

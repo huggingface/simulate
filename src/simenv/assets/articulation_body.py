@@ -25,11 +25,11 @@ ALLOWED_JOINT_TYPES = ["fixed", "prismatic", "revolute"]
 
 
 @dataclass()
-class ArticulatedBodyComponent(
-    GltfExtensionMixin, gltf_extension_name="HF_articulated_bodies", object_type="component"
+class ArticulationBodyComponent(
+    GltfExtensionMixin, gltf_extension_name="HF_articulation_bodies", object_type="component"
 ):
     """
-    An articulated body will model the physics of an articulated body connecting together an asset
+    An articulation body will model the physics of an articulation body connecting together an asset
     with its parent in the hierarchy.
 
     Parameters

@@ -24,7 +24,7 @@ import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
 from .anytree import NodeMixin, TreeError
-from .articulated_body import ArticulatedBodyComponent
+from .articulation_body import ArticulationBodyComponent
 from .controller import Controller, ControllerDict, ControllerTuple
 from .rigid_body import RigidBodyComponent
 from .utils import (
@@ -64,7 +64,7 @@ class Asset(NodeMixin, object):
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
         controller: Optional[Union[Controller, ControllerDict, ControllerTuple]] = None,
-        physics_component: Union[None, RigidBodyComponent, ArticulatedBodyComponent] = None,
+        physics_component: Union[None, RigidBodyComponent, ArticulationBodyComponent] = None,
         parent=None,
         children=None,
         created_from_file=None,
@@ -136,7 +136,7 @@ class Asset(NodeMixin, object):
         return self._physics_component
 
     @physics_component.setter
-    def physics_component(self, physics_component: Union[None, RigidBodyComponent, ArticulatedBodyComponent]):
+    def physics_component(self, physics_component: Union[None, RigidBodyComponent, ArticulationBodyComponent]):
         self._physics_component = physics_component
 
     def __len__(self):

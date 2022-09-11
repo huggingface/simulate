@@ -28,7 +28,7 @@ namespace SimEnv.GLTF {
         public class Extensions {
             public KHRLight KHR_lights_punctual;
             public NodeExtension HF_colliders;
-            public NodeExtension HF_articulated_bodies;
+            public NodeExtension HF_articulation_bodies;
             public NodeExtension HF_controllers;
             public NodeExtension HF_rigid_bodies;
             public NodeExtension HF_state_sensors;
@@ -192,13 +192,13 @@ namespace SimEnv.GLTF {
                             }
                         }
 
-                        // Articulated body
-                        if (nodes[i].extensions.HF_articulated_bodies != null) {
-                            int componentId = nodes[i].extensions.HF_articulated_bodies.object_id;
-                            if (extensions == null || extensions.HF_articulated_bodies == null || extensions.HF_articulated_bodies.objects == null || extensions.HF_articulated_bodies.objects.Count < componentId) {
-                                Debug.LogWarning("Error importing articulated body");
+                        // Articulation body
+                        if (nodes[i].extensions.HF_articulation_bodies != null) {
+                            int componentId = nodes[i].extensions.HF_articulation_bodies.object_id;
+                            if (extensions == null || extensions.HF_articulation_bodies == null || extensions.HF_articulation_bodies.objects == null || extensions.HF_articulation_bodies.objects.Count < componentId) {
+                                Debug.LogWarning("Error importing articulation body");
                             } else {
-                                result[i].node.articulatedBodyData = extensions.HF_articulated_bodies.objects[componentId];
+                                result[i].node.articulationBodyData = extensions.HF_articulation_bodies.objects[componentId];
                             }
                         }
 

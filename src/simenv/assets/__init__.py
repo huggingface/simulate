@@ -1,6 +1,6 @@
 from .action_mapping import *
 from .actors import *
-from .articulated_body import *
+from .articulation_body import *
 from .asset import Asset
 from .camera import *
 from .collider import *

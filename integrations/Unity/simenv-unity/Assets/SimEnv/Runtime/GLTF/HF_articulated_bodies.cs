@@ -4,14 +4,14 @@ using UnityEngine;
 using System.Collections.Generic;
 
 namespace SimEnv.GLTF {
-    public class HFArticulatedBodies {
-        public List<GLTFArticulatedBody> objects;
+    public class HFarticulationBodies {
+        public List<GLTFArticulationBody> objects;
 
-        public HFArticulatedBodies() {
-            objects = new List<GLTFArticulatedBody>();
+        public HFarticulationBodies() {
+            objects = new List<GLTFArticulationBody>();
         }
 
-        public class GLTFArticulatedBody {
+        public class GLTFArticulationBody {
             public string joint_type = "";
             [JsonConverter(typeof(QuaternionConverter))] public Quaternion anchor_rotation = Quaternion.identity;
             [JsonConverter(typeof(TranslationConverter))] public Vector3 anchor_position = Vector3.zero;

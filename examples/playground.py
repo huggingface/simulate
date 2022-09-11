@@ -54,9 +54,9 @@ def make_scene(build_exe, camera_width, camera_height):
     actor.controller = sm.Controller(
         n=3,
         mapping=[
-            sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=-90),
-            sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=90),
-            sm.ActionMapping("change_relative_position", axis=[1, 0, 0], amplitude=2.0),
+            sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),
+            sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
+            sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
         ],
     )
     scene += actor

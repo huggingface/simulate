@@ -72,10 +72,10 @@ class Controller(GltfExtensionMixin, gltf_extension_name="HF_controllers", objec
     seed: Optional[int] = None
 
     def __post_init__(self):
-        if not all(isinstance(a, ActionMapping) for a in self.mapping):
-            raise ValueError("All the action mapping must be ActionMapping classes")
         if isinstance(self.mapping, ActionMapping):
             self.mapping = [self.mapping]
+        if not all(isinstance(a, ActionMapping) for a in self.mapping):
+            raise ValueError("All the action mapping must be ActionMapping classes")
 
         if all((self.n is None, self.low is None, self.high is None, self.shape is None)):
             raise ValueError("At least one of n, high, low, shape should be defined")
@@ -95,6 +95,11 @@ class Controller(GltfExtensionMixin, gltf_extension_name="HF_controllers", objec
                 raise ValueError(
                     "For continuous actions (one of high, low, shape is defined), n should be set to None."
                 )
+            else:
+                if self.low is None and self.high is None and self.shape is None:
+                    raise ValueError(
+                        "Action space unspecified: you should specify `n` (for discrete action space) or at least one of `high`, `low`, `shape` (for continous action space)."
+                    )
             dtype = np.dtype(self.dtype)
             self.space = spaces.Box(low=self.low, high=self.high, shape=self.shape, dtype=dtype, seed=self.seed)
 
