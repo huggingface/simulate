@@ -1,6 +1,6 @@
 name: Build Unity
 
-on: []
+on: [pull_request]
 
 jobs:
   buildForAllSupportedPlatforms:
@@ -20,18 +20,26 @@ jobs:
         with:
           fetch-depth: 0
           lfs: true
-      - uses: actions/cache@v2
+
+      - name: Caching Unity Library
+        uses: actions/cache@v2
         with:
-          path: Library
-          key: Library-${{ matrix.targetPlatform }}
-          restore-keys: Library-
-      - uses: game-ci/unity-builder@v2
+          path: integrations/Unity/simenv-unity/Library
+          key: Library-SimEnv
+          restore-keys: |
+            Library-SimEnv-
+            Library-
+
+      - name: Build Unity SimEnv
+        uses: game-ci/unity-builder@v2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
           projectPath: integrations/Unity/simenv-unity
+          buildsPath: integrations/Unity/simenv-unity/builds
+
       - uses: actions/upload-artifact@v2
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: build/${{ matrix.targetPlatform }}
+          path: integrations/Unity/simenv-unity/builds/${{ matrix.targetPlatform }}
