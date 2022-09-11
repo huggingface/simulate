@@ -3,8 +3,13 @@ import base64
 import json
 import socket
 import subprocess
+import time
 
 from .engine import Engine
+
+
+NUM_BIND_RETRIES = 5
+BIND_RETRIES_DELAY = 1.0
 
 
 class UnityEngine(Engine):
@@ -44,8 +49,20 @@ class UnityEngine(Engine):
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        self.socket.bind((self.host, self.port))
+
         print("Server started. Waiting for connection...")
+        try:
+            self.socket.bind((self.host, self.port))
+        except OSError:
+            for n in range(NUM_BIND_RETRIES):
+                time.sleep(BIND_RETRIES_DELAY)
+                try:
+                    self.socket.bind((self.host, self.port))
+                    break
+                except OSError:
+                    print(f"port {self.port} is still in use, trying again")
+            raise Exception(f"Could not bind to port {self.port}")
+
         self.socket.listen()
         self.client, self.client_address = self.socket.accept()
         print(f"Connection from {self.client_address}")
@@ -117,11 +134,12 @@ class UnityEngine(Engine):
 
     def close(self):
         try:
-            self.run_command("Close")
+            _ = self.run_command("Close")
         except Exception as e:
             print("exception sending close message", e)
 
         # print("closing client")
+        # self.client.shutdown(socket.SHUT_RDWR)
         self.client.close()
 
         try:

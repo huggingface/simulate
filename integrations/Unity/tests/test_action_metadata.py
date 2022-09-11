@@ -5,8 +5,6 @@ import pytest
 
 import simenv as sm
 
-# sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=True),
-# sm.ActionMapping("add_torque", axis=[1, 0, 0], amplitude=10, is_impulse=True),
 # sm.ActionMapping("add_force_at_position", axis=[1, 0, 0], position=[0, 0, 0], amplitude=10, is_impulse=True),
 # sm.ActionMapping("change_position", axis=[2, 0, 0], amplitude=1),
 # sm.ActionMapping("change_rotation", axis=[2, 0, 0], amplitude=-90),

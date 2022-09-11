@@ -1,5 +1,5 @@
 from operator import is_
-import unittest
+import time
 import os
 import pytest
 
@@ -74,6 +74,8 @@ def test_add_force(build_exe):
     assert new_position[0] == pytest.approx(original_position[0] + sum(0.02*i*0.2 for i in range(11)), abs=1e-3)
 
     scene.close()
+
+    time.sleep(2)
 
 def test_add_force_is_impulse(build_exe):
     """ Comparing two objects under an action with and without impulse """
@@ -363,3 +365,5 @@ if __name__ == "__main__":
     if not build_exe:
         build_exe = None
     test_add_force_max_velocity(build_exe)
+
+    test_add_force_is_impulse(build_exe)
