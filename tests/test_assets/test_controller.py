@@ -15,7 +15,7 @@
 # Lint as: python3
 import unittest
 
-from simenv.assets.controller import ActionMapping, Controller
+from simenv.assets.actuator import ActionMapping, Actuator
 
 
 # TODO add more tests on saving/exporting/loading in gltf files
@@ -25,23 +25,23 @@ class ActionTest(unittest.TestCase):
             ActionMapping("change_position", axis=[1, 0, 0]),
             ActionMapping("change_position", axis=[0, 1, 0]),
         ]
-        action = Controller(low=-1.0, high=2.0, shape=(2,), mapping=mapping)
-        self.assertIsInstance(action, Controller)
+        action = Actuator(low=-1.0, high=2.0, shape=(2,), mapping=mapping)
+        self.assertIsInstance(action, Actuator)
         self.assertIsInstance(action.mapping, list)
         self.assertIsInstance(action.mapping[0], ActionMapping)
 
         with self.assertRaises(ValueError):
-            Controller(low=1.0, high=2.0, mapping=[mapping, mapping])
+            Actuator(low=1.0, high=2.0, mapping=[mapping, mapping])
 
     def test_create_mappeddiscrete(self):
         mapping = [
             ActionMapping("change_position", axis=[1, 0, 0], amplitude=1),
             ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=10),
         ]
-        action = Controller(n=2, mapping=mapping)
-        self.assertIsInstance(action, Controller)
+        action = Actuator(n=2, mapping=mapping)
+        self.assertIsInstance(action, Actuator)
         self.assertIsInstance(action.mapping, list)
         self.assertIsInstance(action.mapping[0], ActionMapping)
 
         with self.assertRaises(ValueError):
-            action = Controller(n=3, mapping=mapping)
+            action = Actuator(n=3, mapping=mapping)

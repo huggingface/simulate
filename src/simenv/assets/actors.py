@@ -17,8 +17,8 @@
 import itertools
 from typing import List, Optional, Union
 
+from .actuator import ActionMapping, Actuator
 from .camera import Camera
-from .controller import ActionMapping, Controller
 from .object import Capsule, Sphere
 from .rigid_body import RigidBodyComponent
 
@@ -74,7 +74,7 @@ class SimpleActor(Sphere):
             ActionMapping("change_position", axis=[0, 1, 0]),
             ActionMapping("change_position", axis=[0, 0, 1]),
         ]
-        self.controller = Controller(n=3, mapping=mapping)
+        self.actuator = Actuator(n=3, mapping=mapping)
 
     def copy(self, with_children=True, **kwargs) -> "SimpleActor":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
@@ -108,7 +108,7 @@ class EgocentricCameraActor(Capsule):
         A egocentric actor is a capsule asset with:
         - a Camera as a child asset for observation device
         - a RigidBodyComponent component with a mass of 1.0
-        - a discrete controller
+        - a discrete actuator
 
     Parameters
     ----------
@@ -173,7 +173,7 @@ class EgocentricCameraActor(Capsule):
             ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
             ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
         ]
-        self.controller = Controller(n=3, mapping=mapping)
+        self.actuator = Actuator(n=3, mapping=mapping)
 
     def copy(self, with_children=True, **kwargs) -> "EgocentricCameraActor":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""

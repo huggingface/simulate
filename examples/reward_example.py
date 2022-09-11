@@ -38,7 +38,7 @@ for i in range(1):
 actor = sm.Capsule(name="actor", position=[0.0, 0.7, 0.0], with_collider=True)  # Has a collider
 actor.physics_component = sm.RigidBodyComponent(constraints=["freeze_rotation_x", "freeze_rotation_z"])
 # Specify the action to control the actor: 3 discrete action to rotate and move forward
-actor.controller = sm.Controller(
+actor.actuator = sm.Actuator(
     n=3,
     mapping=[
         sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),

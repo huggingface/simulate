@@ -4,14 +4,14 @@ using Newtonsoft.Json;
 using UnityEngine;
 
 namespace SimEnv.GLTF {
-    public class HFControllers {
-        public List<HFController> objects;
+    public class HFActuators {
+        public List<HFActuator> objects;
 
-        public HFControllers() {
-            objects = new List<HFController>();
+        public HFActuators() {
+            objects = new List<HFActuator>();
         }
 
-        public class HFController {
+        public class HFActuator {
             [JsonProperty(Required = Required.Always)] public List<ActionMapping> mapping;
             public List<float> low;
             public List<float> high;
@@ -49,7 +49,7 @@ namespace SimEnv.GLTF {
         }
 
         public class ActionSpace {
-            public ActionSpace(HFController actionData) {
+            public ActionSpace(HFActuator actionData) {
                 this.actionMap = actionData.mapping;
             }
             public List<ActionMapping> actionMap;

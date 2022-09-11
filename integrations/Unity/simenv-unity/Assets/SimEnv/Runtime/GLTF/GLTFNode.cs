@@ -29,7 +29,7 @@ namespace SimEnv.GLTF {
             public KHRLight KHR_lights_punctual;
             public NodeExtension HF_colliders;
             public NodeExtension HF_articulation_bodies;
-            public NodeExtension HF_controllers;
+            public NodeExtension HF_actuators;
             public NodeExtension HF_rigid_bodies;
             public NodeExtension HF_state_sensors;
             public NodeExtension HF_raycast_sensors;
@@ -212,12 +212,12 @@ namespace SimEnv.GLTF {
                             }
                         }
                         // Actor Actions
-                        if (nodes[i].extensions.HF_controllers != null) {
-                            int value = nodes[i].extensions.HF_controllers.object_id;
-                            if (extensions == null || extensions.HF_controllers == null || extensions.HF_controllers.objects == null || extensions.HF_controllers.objects.Count < value) {
-                                Debug.LogWarning("Error importing actor controller");
+                        if (nodes[i].extensions.HF_actuators != null) {
+                            int value = nodes[i].extensions.HF_actuators.object_id;
+                            if (extensions == null || extensions.HF_actuators == null || extensions.HF_actuators.objects == null || extensions.HF_actuators.objects.Count < value) {
+                                Debug.LogWarning("Error importing actor actuator");
                             } else {
-                                result[i].node.actionData = extensions.HF_controllers.objects[value];
+                                result[i].node.actionData = extensions.HF_actuators.objects[value];
                             }
                         }
                         // State Sensor

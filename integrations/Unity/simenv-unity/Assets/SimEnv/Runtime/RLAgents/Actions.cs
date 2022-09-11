@@ -6,7 +6,7 @@ using SimEnv.GLTF;
 namespace SimEnv.RlAgents {
     public static class Actions {
         public static void ExecuteAction(this Actor actor, object action) {
-            HFControllers.ActionMapping mapping = actor.actionSpace.GetMapping(action);
+            HFActuators.ActionMapping mapping = actor.actionSpace.GetMapping(action);
             List<float> value = new List<float> { 1f }; // TODO refactor when I (Ed) understand what this is
             switch (mapping.action) {
                 case "add_force":
@@ -33,7 +33,7 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public static void AddForce(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void AddForce(this Actor actor, List<float> value, HFActuators.ActionMapping mapping) {
             if (!mapping.axis.HasValue)
                 throw new System.Exception("You need to provide an axis to use the 'Add Force' action.");
             if (value == null || value.Count != 1)
@@ -71,7 +71,7 @@ namespace SimEnv.RlAgents {
 
         }
 
-        public static void AddTorque(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void AddTorque(this Actor actor, List<float> value, HFActuators.ActionMapping mapping) {
             if (!mapping.axis.HasValue)
                 throw new System.Exception("You need to provide an axis to use the 'Add Torque' action.");
             if (value == null || value.Count != 1)
@@ -107,7 +107,7 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public static void AddForceAtPosition(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void AddForceAtPosition(this Actor actor, List<float> value, HFActuators.ActionMapping mapping) {
             if (!mapping.position.HasValue)
                 throw new System.Exception("You need to provide a position to use the 'Add Force at Position' action.");
             if (!mapping.axis.HasValue)
@@ -137,7 +137,7 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public static void ChangePosition(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void ChangePosition(this Actor actor, List<float> value, HFActuators.ActionMapping mapping) {
             if (!mapping.axis.HasValue)
                 throw new System.Exception("You need to provide an axis to use the 'Change Position' action.");
             if (value == null || value.Count != 1)
@@ -157,7 +157,7 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public static void ChangeRotation(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void ChangeRotation(this Actor actor, List<float> value, HFActuators.ActionMapping mapping) {
             if (!mapping.axis.HasValue)
                 throw new System.Exception("You need to provide an axis to use the 'Change Rotation' action.");
             if (value == null || value.Count != 1)
@@ -179,7 +179,7 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public static void SetPosition(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void SetPosition(this Actor actor, List<float> value, HFActuators.ActionMapping mapping) {
             if (!mapping.position.HasValue)
                 throw new System.Exception("You need to provide a position to use the 'Set Position' action.");
             if (value == null || value.Count != 1)
@@ -201,7 +201,7 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public static void SetRotation(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
+        public static void SetRotation(this Actor actor, List<float> value, HFActuators.ActionMapping mapping) {
             if (!mapping.axis.HasValue)
                 throw new System.Exception("You need to provide an axis to use the 'Set Rotation' action.");
             if (value == null || value.Count != 1)

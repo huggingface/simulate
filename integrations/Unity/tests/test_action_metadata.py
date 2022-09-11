@@ -27,7 +27,7 @@ def test_no_action(build_exe):
                          "freeze_position_y",
                          "freeze_position_z"])
     # One action to apply force along  the x axis
-    actor.controller = sm.Controller(n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=True))
+    actor.actuator = sm.Actuator(n=1, mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=True))
     scene += actor
 
     # Create the scene
@@ -74,7 +74,7 @@ def test_add_force(build_exe):
                          "freeze_position_z"])
 
     # One action to apply force along  the x axis without impulse
-    actor.controller = sm.Controller(n=1,
+    actor.actuator = sm.Actuator(n=1,
         # Apply a force of 10 N along the x axis during one frame 
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False))
     scene += actor
@@ -145,7 +145,7 @@ def test_add_force_frame_rate(build_exe):
                          "freeze_position_z"])
 
     # One action to apply force along  the x axis without impulse
-    actor.controller = sm.Controller(n=1,
+    actor.actuator = sm.Actuator(n=1,
         # Apply a force of 10 N along the x axis during one frame 
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False))
     scene += actor
@@ -185,7 +185,7 @@ def test_add_force_frame_skip(build_exe):
                          "freeze_position_z"])
 
     # One action to apply force along  the x axis without impulse
-    actor.controller = sm.Controller(n=1,
+    actor.actuator = sm.Actuator(n=1,
         # Apply a force of 10 N along the x axis during one frame 
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False))
     scene += actor

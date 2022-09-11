@@ -20,7 +20,7 @@ def test_add_force(build_exe):
                          "freeze_position_z"])
 
     # One action to apply force along  the x axis without impulse
-    actor.controller = sm.Controller(n=1,
+    actor.actuator = sm.Actuator(n=1,
         # Apply a force of 10 N along the x axis during one frame 
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False))
     scene += actor
@@ -97,10 +97,10 @@ def test_add_force_is_impulse(build_exe):
                          "freeze_position_z"])
 
     # The first one has an action which apply a force of 10 N along the x axis during one frame (without impulse mode)
-    actor.controller = sm.Controller(n=1,
+    actor.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=False))
     # The first one has an action which apply a force of 10 N second along the x axis during one frame (with impulse mode)
-    actor2.controller = sm.Controller(n=1,
+    actor2.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=True))
     scene += [actor, actor2]
 
@@ -152,10 +152,10 @@ def test_add_force_local_coordinates(build_exe):
                          "freeze_position_y"])
 
     # The first one has an action which apply a force of 10 N along the x axis in world coordinates
-    actor.controller = sm.Controller(n=1,
+    actor.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, use_local_coordinates=False))
     # The first one has an action which apply a force of 10 N along the x axis in local coordinates
-    actor2.controller = sm.Controller(n=1,
+    actor2.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, use_local_coordinates=True))
     scene += [actor, actor2]
 
@@ -212,10 +212,10 @@ def test_add_force_amplitude(build_exe):
                          "freeze_position_y"])
 
     # The first one has an action which apply a force of 10 N along the x axis
-    actor.controller = sm.Controller(n=1,
+    actor.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10))
     # The first one has an action which apply a force of 5 N along the x axis
-    actor2.controller = sm.Controller(n=1,
+    actor2.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=5))
     scene += [actor, actor2]
 
@@ -268,10 +268,10 @@ def test_add_force_offset(build_exe):
                          "freeze_position_y"])
 
     # The first one has an action which apply a force of 10 N along the x axis
-    actor.controller = sm.Controller(n=1,
+    actor.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, offset=0.))
     # The first one has an action which apply a force of 5 N along the x axis
-    actor2.controller = sm.Controller(n=1,
+    actor2.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, offset=2.))
     scene += [actor, actor2]
 
@@ -324,10 +324,10 @@ def test_add_force_max_velocity(build_exe):
                          "freeze_position_y"])
 
     # The first one has an action which apply a force of 10 N along the x axis
-    actor.controller = sm.Controller(n=1,
+    actor.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, max_velocity_threshold=None))
     # The first one has an action which apply a force of 10 N along the x axis with max velocity of 1.
-    actor2.controller = sm.Controller(n=1,
+    actor2.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, max_velocity_threshold=1.0))
     scene += [actor, actor2]
 

@@ -158,4 +158,4 @@ class Scene(Asset):
 
     @property
     def actors(self) -> Tuple[Asset]:
-        return self.tree_filtered_descendants(lambda node: node.controller is not None)
+        return self.tree_filtered_descendants(lambda node: node.actuator is not None)

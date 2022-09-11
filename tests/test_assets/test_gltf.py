@@ -93,7 +93,7 @@ class GltfTest(unittest.TestCase):
         actor += sm.RaycastSensor(n_horizontal_rays=12, n_vertical_rays=4, horizontal_fov=120, vertical_fov=45)
 
         # Specify the action to control the actor: 3 discrete action to rotate and move forward
-        actor.controller = sm.Controller(
+        actor.actuator = sm.Actuator(
             n=3,
             mapping=[
                 sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),

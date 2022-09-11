@@ -23,7 +23,7 @@ def add_rl_components_to_scene(scene):
         ActionMapping("add_force", axis=[1, 0, 0], amplitude=300),
         ActionMapping("add_force", axis=[-1, 0, 0], amplitude=300),
     ]
-    actor.controller = sm.Controller(mapping=mapping, n=2)
+    actor.actuator = sm.Actuator(mapping=mapping, n=2)
 
     # Add rewards, reaching the top of the right hill
     reward_entity = sm.Asset(name="reward_entity", position=[-40, 21, 0])

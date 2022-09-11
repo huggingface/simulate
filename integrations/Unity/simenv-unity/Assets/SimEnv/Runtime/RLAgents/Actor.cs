@@ -6,7 +6,7 @@ using System.Linq;
 namespace SimEnv.RlAgents {
     public class Actor {
         public Node node { get; private set; }
-        public HFControllers.ActionSpace actionSpace { get; private set; }
+        public HFActuators.ActionSpace actionSpace { get; private set; }
 
         private Dictionary<string, object> observations = new Dictionary<string, object>();
 
@@ -43,7 +43,7 @@ namespace SimEnv.RlAgents {
 
             if (node.actionData.n != null) {
                 // Discrete action space
-                actionSpace = new HFControllers.ActionSpace(node.actionData);
+                actionSpace = new HFActuators.ActionSpace(node.actionData);
             } else if (node.actionData.low != null) {
                 // continuous action space
                 Debug.LogWarning("Continous actions are yet to be implemented");

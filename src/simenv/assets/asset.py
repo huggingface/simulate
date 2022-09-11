@@ -23,9 +23,9 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
+from .actuator import Actuator, ActuatorDict, ActuatorTuple
 from .anytree import NodeMixin, TreeError
 from .articulation_body import ArticulationBodyComponent
-from .controller import Controller, ControllerDict, ControllerTuple
 from .rigid_body import RigidBodyComponent
 from .utils import (
     camelcase_to_snakecase,
@@ -36,7 +36,7 @@ from .utils import (
 )
 
 
-ALLOWED_COMPONENTS_ATTRIBUTES = ["actuator", "physics_component", "controller"]
+ALLOWED_COMPONENTS_ATTRIBUTES = ["actuator", "physics_component", "actuator"]
 
 
 class Asset(NodeMixin, object):
@@ -63,7 +63,7 @@ class Asset(NodeMixin, object):
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
-        controller: Optional[Union[Controller, ControllerDict, ControllerTuple]] = None,
+        actuator: Optional[Union[Actuator, ActuatorDict, ActuatorTuple]] = None,
         physics_component: Union[None, RigidBodyComponent, ArticulationBodyComponent] = None,
         parent=None,
         children=None,
@@ -90,7 +90,7 @@ class Asset(NodeMixin, object):
             self.transformation_matrix = transformation_matrix
 
         # Extensions for physics/RL
-        self.controller = controller
+        self.actuator = actuator
         self.physics_component = physics_component
 
         self._n_copies = 0
@@ -118,17 +118,17 @@ class Asset(NodeMixin, object):
 
     # Actions and action_space
     @property
-    def controller(self):
-        return self._controller
+    def actuator(self):
+        return self._actuator
 
-    @controller.setter
-    def controller(self, controller: Union[Controller, ControllerTuple, ControllerDict]):
-        self._controller = controller
+    @actuator.setter
+    def actuator(self, actuator: Union[Actuator, ActuatorTuple, ActuatorDict]):
+        self._actuator = actuator
 
     @property
     def action_space(self):
-        if self.controller is not None:
-            return self.controller.space
+        if self.actuator is not None:
+            return self.actuator.space
         return None
 
     @property

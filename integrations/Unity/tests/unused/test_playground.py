@@ -31,7 +31,7 @@ def make_scene(build_exe, camera_width, camera_height):
     # Lets add an actor in the scene, a box mesh with associated actions and a camera as observation device
     actor = sm.EgocentricCameraActor(name="actor", position=[0.0, 0.5, 0.0])
     # Specify the action to control the actor: 3 discrete action to rotate and move forward
-    actor.controller = sm.Controller(
+    actor.actuator = sm.Actuator(
         n=7,
         mapping=[
             sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10, is_impulse=True),
@@ -70,14 +70,14 @@ def test_add_force(build_exe):
 
     actor = sm.Box(name="actor", position=[0.0, 0.5, 0.0])
     # Specify the action to control the actor: 3 discrete action to rotate and move forward
-    actor.controller = sm.Controller(n=1,
+    actor.actuator = sm.Actuator(n=1,
         mapping=sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10),
     )
     scene += actor
 
     event = scene.step()
 
-    for i in range(scene.actor.controller.n):
+    for i in range(scene.actor.actuator.n):
         event = scene.step(action={"0": 0})
         print(event["nodes"]["actor"]["position"])
 
