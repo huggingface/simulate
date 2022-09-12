@@ -22,8 +22,8 @@ import simenv as sm
 # Lint as: python3
 from simenv.scene import Scene
 
-from .vec_env import VecEnv
-
+#from .vec_env import VecEnv
+from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 
 class RLEnv(VecEnv):
     """
