@@ -6,7 +6,7 @@ from .asset import Asset
 from .gltf_extension import GltfExtensionMixin
 
 
-ALLOWED_REWARD_TYPES = ["dense", "sparse", "or", "and", "not", "see", "timeout"]
+ALLOWED_REWARD_TYPES = ["dense", "sparse", "or", "and", "not", "see", "timeout", "angle_to"]
 ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO(Ed) other metrics?
 
 
@@ -45,6 +45,7 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
     entity_a: Optional[Any] = None
     entity_b: Optional[Any] = None
     distance_metric: Optional[str] = None
+    direction: Optional[List[float]] = None
     scalar: Optional[float] = 1.0
     threshold: Optional[float] = 1.0
     is_terminal: Optional[bool] = False
@@ -103,6 +104,8 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
             raise ValueError(
                 f"Invalid distance metric: {self.distance_metric}. Must be one of: {ALLOWED_REWARD_DISTANCE_METRICS}"
             )
+        if self.direction is None:
+            self.direction = [1.0, 0.0, 0.0]
 
     def _post_attach_children(self, children):
         """Method call after attaching `children`.

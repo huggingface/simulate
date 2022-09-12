@@ -48,7 +48,12 @@ namespace SimEnv.RlAgents {
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
             Vector3 force = mapping.axis.normalized * magnitude * Time.fixedDeltaTime;
-            actor.node.rigidbody.AddForce(force, ForceMode.Acceleration);
+            if (actor.node.rigidbody != null) {
+                actor.node.rigidbody.AddForce(force, ForceMode.Acceleration);
+            }
+            if (actor.node.articulatedBody != null) {
+                actor.node.articulatedBody.AddForce(force, ForceMode.Acceleration);
+            }
         }
 
         public static void AddRelativeForce(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {
@@ -60,7 +65,12 @@ namespace SimEnv.RlAgents {
             if (mapping.upperLimit.HasValue)
                 magnitude = Mathf.Min(magnitude, mapping.upperLimit.Value);
             Vector3 force = mapping.axis.normalized * magnitude * Time.fixedDeltaTime;
-            actor.node.rigidbody.AddRelativeForce(force, ForceMode.Acceleration);
+            if (actor.node.rigidbody != null) {
+                actor.node.rigidbody.AddRelativeForce(force, ForceMode.Acceleration);
+            }
+            if (actor.node.articulatedBody != null) {
+                actor.node.articulatedBody.AddRelativeForce(force, ForceMode.Acceleration);
+            }
         }
 
         public static void AddTorque(this Actor actor, List<float> value, HFControllers.ActionMapping mapping) {

@@ -22,13 +22,7 @@ import simenv as sm
 # Lint as: python3
 from simenv.scene import Scene
 
-
-try:
-    from stable_baselines3.common.vec_env.base_vec_env import VecEnv
-except ImportError:
-
-    class VecEnv:
-        pass  # Dummy class if SB3 is not installed
+from .vec_env import VecEnv
 
 
 class RLEnv(VecEnv):
@@ -39,10 +33,10 @@ class RLEnv(VecEnv):
 
     Args:
         scene_or_map_fn: a generator function for generating instances of the desired environment
-        n_maps: TODO
-        n_show: TODO
-        frame_rate: TODO
-        frame_skip: TODO
+        n_maps: the number of map instances to create, defualt 1
+        n_show: optionally show a subset of the maps during training and dequeue a new map at the end of each episode
+        frame_rate: the physics framerate of the environment
+        frame_skip: the number of times an action is repeated before the next observation is returned
     """
 
     def __init__(

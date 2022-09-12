@@ -43,7 +43,7 @@ namespace SimEnv {
         public void ResetState() {
             transform.position = initialState.position;
             transform.rotation = initialState.rotation;
-            if(rigidbody != null) {
+            if (rigidbody != null) {
                 rigidbody.velocity = Vector3.zero;
                 rigidbody.angularVelocity = Vector3.zero;
             }
@@ -179,6 +179,11 @@ namespace SimEnv {
             }
             ab.anchorPosition = articulatedBodyData.anchor_position;
             ab.anchorRotation = articulatedBodyData.anchor_rotation;
+            if (articulatedBodyData.immovable) {
+                // we should only try and set this property if we are the root in a chain of articulated bodies
+                ab.immovable = articulatedBodyData.immovable;
+            }
+
             ab.linearDamping = articulatedBodyData.linear_damping;
             ab.angularDamping = articulatedBodyData.angular_damping;
             ab.jointFriction = articulatedBodyData.joint_friction;

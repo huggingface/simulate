@@ -56,6 +56,7 @@ class ArticulatedBodyComponent(
     joint_type: str
     anchor_rotation: List[float] = None
     anchor_position: Optional[List[float]] = None
+    immovable: Optional[bool] = None
     linear_damping: Optional[float] = 0.0
     angular_damping: Optional[float] = 0.0
     joint_friction: Optional[float] = 0.0
@@ -88,6 +89,9 @@ class ArticulatedBodyComponent(
             self.anchor_position = [0.0, 0.0, 0.0]
         if len(self.anchor_position) != 3:
             raise ValueError("anchor_position must be a list of 3 floats")
+
+        if self.immovable is None:
+            self.immovable = False
 
         if self.linear_damping is None:
             self.linear_damping = 0.0
