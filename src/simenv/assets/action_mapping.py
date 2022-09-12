@@ -24,6 +24,7 @@ ALLOWED_PHYSICAL_ACTION_TYPES = [
     "add_force_at_position",
     "change_position",
     "change_rotation",
+    "do_nothing",
     "set_position",
     "set_rotation",
 ]
@@ -54,6 +55,7 @@ class ActionMapping:
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.MovePosition.html)
             - "change_rotation": teleport the object around an axis
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.MoveRotation.html)
+            - "do_nothing": step the environment with no external input.
             - "set_position": teleport the object's position to 'position'
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.MovePosition.html)
             - "set_rotation": teleport the object's rotation to 'rotation'
