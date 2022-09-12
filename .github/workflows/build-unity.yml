@@ -1,0 +1,45 @@
+name: Build Unity
+
+on: [pull_request]
+
+jobs:
+  buildForAllSupportedPlatforms:
+    name: Build ${{ matrix.targetPlatform }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          - StandaloneWindows # Build a Windows standalone.
+          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+          - StandaloneLinux64 # Build a Linux 64-bit standalone.
+          - WebGL # WebGL.
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Caching Unity Library
+        uses: actions/cache@v2
+        with:
+          path: integrations/Unity/simenv-unity/Library
+          key: Library-SimEnv
+          restore-keys: |
+            Library-SimEnv-
+            Library-
+
+      - name: Build Unity SimEnv
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          projectPath: integrations/Unity/simenv-unity
+          buildsPath: integrations/Unity/simenv-unity/builds
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: integrations/Unity/simenv-unity/builds/${{ matrix.targetPlatform }}
