@@ -17,7 +17,7 @@ from typing import Optional
 
 import numpy as np
 
-from . import VecEnv
+from .vec_env import VecEnv
 
 
 class ParallelRLEnv(VecEnv):

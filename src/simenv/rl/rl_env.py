@@ -22,7 +22,7 @@ import simenv as sm
 # Lint as: python3
 from simenv.scene import Scene
 
-from . import VecEnv
+from .vec_env import VecEnv
 
 
 class RLEnv(VecEnv):
