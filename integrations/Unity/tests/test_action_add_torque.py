@@ -3,8 +3,8 @@ import pytest
 import simenv as sm
 
 
-def test_add_torque(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_add_torque(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -83,9 +83,8 @@ def test_add_torque(build_exe):
     scene.close()
 
 
-def test_add_torque_is_impulse(build_exe):
-    """Comparing two objects under an action with and without impulse"""
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_add_torque_is_impulse(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -152,9 +151,8 @@ def test_add_torque_is_impulse(build_exe):
     scene.close()
 
 
-def test_add_torque_local_coordinates(build_exe):
-    """Comparing two rotated objects under an action with different local coordinates"""
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_add_torque_local_coordinates(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -227,9 +225,8 @@ def test_add_torque_local_coordinates(build_exe):
     scene.close()
 
 
-def test_add_torque_amplitude(build_exe):
-    """Comparing two objects under an action with different amplitude"""
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_add_torque_amplitude(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -292,9 +289,8 @@ def test_add_torque_amplitude(build_exe):
     scene.close()
 
 
-def test_add_torque_offset(build_exe):
-    """Comparing two objects under an action with different offsets"""
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_add_torque_offset(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -357,9 +353,8 @@ def test_add_torque_offset(build_exe):
     scene.close()
 
 
-def test_add_torque_max_velocity(build_exe):
-    """Comparing two objects under an action with different max velocities"""
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_add_torque_max_velocity(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 

@@ -19,4 +19,4 @@ test:
 	python -m pytest -n auto --dist=loadfile -s -v  --ignore=tests/test_gltflib/ ./tests/
 
 unity-test:
-	python -m pytest -n 1 -s -v  ./integrations/Unity/tests/ --build_exe $(BUILD_EXE)
+	python -m pytest -n auto -s -v  ./integrations/Unity/tests/ --build_exe $(BUILD_EXE)

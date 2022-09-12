@@ -3,8 +3,8 @@ import pytest
 import simenv as sm
 
 
-def test_change_position(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_change_position(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -72,9 +72,8 @@ def test_change_position(build_exe):
     scene.close()
 
 
-def test_change_position_local_coordinates(build_exe):
-    """Comparing two rotated objects under an action with different local coordinates"""
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_change_position_local_coordinates(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -124,9 +123,8 @@ def test_change_position_local_coordinates(build_exe):
     scene.close()
 
 
-def test_change_position_amplitude(build_exe):
-    """Comparing two objects under an action with different amplitude"""
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_change_position_amplitude(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -164,9 +162,8 @@ def test_change_position_amplitude(build_exe):
     scene.close()
 
 
-def test_change_position_offset(build_exe):
-    """Comparing two objects under an action with different offsets"""
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_change_position_offset(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
