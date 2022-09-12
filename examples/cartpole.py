@@ -23,19 +23,19 @@ scene += sm.Camera(
 )
 
 base = sm.Cylinder(name="base", direction=(1, 0, 0), radius=0.05, height=30, material=material.Material.GRAY50)
-base.physics_component = sm.ArticulatedBodyComponent(
+base.physics_component = sm.ArticulationBodyComponent(
     "prismatic", immovable=True, use_gravity=False
 )  # note for the base the joint type is ignored
 
 
 cart = sm.Box(name="cart", bounds=[cart_width, cart_height, cart_depth])
 
-cart.physics_component = sm.ArticulatedBodyComponent("prismatic", immovable=False, use_gravity=True)
+cart.physics_component = sm.ArticulationBodyComponent("prismatic", immovable=False, use_gravity=True)
 mapping = [
     sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10.0),
     sm.ActionMapping("add_force", axis=[-1, 0, 0], amplitude=10.0),
 ]
-cart.controller = sm.Controller(n=2, mapping=mapping)
+cart.actuator = sm.Actuator(n=2, mapping=mapping)
 cart += sm.RewardFunction(
     type="timeout",
     distance_metric="euclidean",
@@ -53,7 +53,7 @@ pole = sm.Cylinder(
     height=pole_height,
     rotation=[0, 0, 0],
 )
-pole.physics_component = sm.ArticulatedBodyComponent(
+pole.physics_component = sm.ArticulationBodyComponent(
     "revolute", anchor_position=[0, -pole_height / 2, 0], anchor_rotation=[0, 1, 0, 1]
 )
 cart += pole

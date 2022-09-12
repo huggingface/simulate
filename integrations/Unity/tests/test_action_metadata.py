@@ -11,8 +11,8 @@ import simenv as sm
 # sm.ActionMapping("set_rotation", axis=[1, 0, 0], use_local_coordinates=False),
 
 
-def test_no_action(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_no_action(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -63,9 +63,11 @@ def test_no_action(build_exe):
     assert new_velocity == original_velocity
     assert new_angular_velocity == original_angular_velocity
 
+    scene.close()
 
-def test_add_force(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+
+def test_add_force(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -142,9 +144,8 @@ def test_add_force(build_exe):
     scene.close()
 
 
-def test_add_force_time_step(build_exe):
-    """Changing the framerate of the test_add_force test to 100 frame per second"""
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_add_force_time_step(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 
@@ -189,9 +190,8 @@ def test_add_force_time_step(build_exe):
     scene.close()
 
 
-def test_add_force_frame_skip(build_exe):
-    """Changing the frameskip of the test_add_force_time_step test to skip every 5 frames observations"""
-    scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
+def test_add_force_frame_skip(build_exe, port_number):
+    scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
 

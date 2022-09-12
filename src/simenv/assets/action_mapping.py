@@ -50,13 +50,13 @@ class ActionMapping:
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.AddRelativeTorque.html)
             - "add_force_at_position": add a force to the object at a position in the object's local coordinate system
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.AddForceAtPosition.html)
-            - "change_position": move the object along an axis
+            - "change_position": teleport the object along an axis
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.MovePosition.html)
-            - "change_rotation": rotate the object around an axis
+            - "change_rotation": teleport the object around an axis
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.MoveRotation.html)
-            - "set_position": Set the object's position to 'position'
+            - "set_position": teleport the object's position to 'position'
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.MovePosition.html)
-            - "set_rotation": Set the object's rotation to 'rotation'
+            - "set_rotation": teleport the object's rotation to 'rotation'
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.MoveRotation.html)
         axis (List[float] Vector3): the axis of the action to be applied along or around
         amplitude (float): the amplitude of the action to be applied (see below for details)
@@ -75,6 +75,7 @@ class ActionMapping:
     "max_velocity_threshold" can be used to limit the max resulting velocity or angular velocity after the action was applied :
         - max final velocity for "add_force" actions (in m/s) – only apply the action if the current velocity is below this value
         - max angular velocity for "add_torque" actions (in rad/s) - only apply the action if the current angular velocity is below this value
+        Long discussion on Unity here: https://forum.unity.com/threads/terminal-velocity.34667/
     """
 
     action: str
