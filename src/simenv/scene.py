@@ -19,7 +19,7 @@ from typing import List, Optional, Tuple, Union
 
 from .assets import Asset, Camera, Light, Object3D, RaycastSensor, RewardFunction, StateSensor
 from .assets.anytree import RenderTree
-from .assets.gltflib.models.extensions import Metadata
+from .config import Config
 from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
 
 
@@ -48,12 +48,12 @@ class Scene(Asset):
     def __init__(
         self,
         engine: Optional[str] = "pyvista",
+        config: Optional[Config] = None,
         name: Optional[str] = None,
         created_from_file: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        metadata: Optional[Metadata] = None,
         transformation_matrix=None,
         children=None,
         **kwargs,
@@ -67,7 +67,8 @@ class Scene(Asset):
             children=children,
             created_from_file=created_from_file,
         )
-        self.metadata = metadata if metadata is not None else Metadata()
+        self.config = config if config is not None else Config()
+
         self.engine = None
         if engine is not None:
             engine = engine.lower()
@@ -157,4 +158,4 @@ class Scene(Asset):
 
     @property
     def actors(self) -> Tuple[Asset]:
-        return self.tree_filtered_descendants(lambda node: node.controller is not None)
+        return self.tree_filtered_descendants(lambda node: node.actuator is not None)

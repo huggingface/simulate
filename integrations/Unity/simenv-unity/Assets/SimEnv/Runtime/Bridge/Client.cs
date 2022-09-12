@@ -13,6 +13,7 @@ namespace SimEnv {
     public class Client : Singleton<Client> {
         public static string host;
         public static int port;
+        private static bool isOpen = false;
 
         static TcpClient _client;
         static TcpClient client {
@@ -39,6 +40,7 @@ namespace SimEnv {
             Client.host = host;
             Client.port = port;
             LoadCommands();
+            isOpen = true;
             if (listenCoroutine == null)
                 listenCoroutine = ListenCoroutine().RunCoroutine();
         }
@@ -60,7 +62,7 @@ namespace SimEnv {
         private static IEnumerator ListenCoroutine() {
             int chunkSize = 1024;
             byte[] buffer = new byte[chunkSize];
-            while (true) {
+            while (isOpen) {
                 NetworkStream stream = client.GetStream();
                 if (stream.DataAvailable) {
                     byte[] lengthBuffer = new byte[4];
@@ -86,7 +88,7 @@ namespace SimEnv {
         /// </summary>
         /// <param name="message"></param>
         public static void WriteMessage(string message) {
-            if (client == null) return;
+            if (client == null || !isOpen) return;
             try {
                 NetworkStream stream = client.GetStream();
                 if (stream.CanWrite) {
@@ -106,6 +108,7 @@ namespace SimEnv {
         /// Close the client.
         /// </summary>
         public static void Close() {
+            isOpen = false;
             if (client != null && client.Connected)
                 client.Close();
         }

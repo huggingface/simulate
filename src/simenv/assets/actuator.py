@@ -42,10 +42,10 @@ except ImportError:
 
 
 @dataclass
-class Controller(GltfExtensionMixin, gltf_extension_name="HF_controllers", object_type="component"):
-    r"""An Asset Controller can be used to move an asset in the scene.
+class Actuator(GltfExtensionMixin, gltf_extension_name="HF_actuators", object_type="component"):
+    r"""An Asset Actuator can be used to move an asset in the scene.
 
-    The controller is designed to be a part of an Actor that manipulates a scene.
+    The actuator is designed to be a part of an Actor that manipulates a scene.
 
     We define:
     - the space were the actions operate (discrete, continuous), it's similar to gym spaces in RL,
@@ -72,10 +72,10 @@ class Controller(GltfExtensionMixin, gltf_extension_name="HF_controllers", objec
     seed: Optional[int] = None
 
     def __post_init__(self):
-        if not all(isinstance(a, ActionMapping) for a in self.mapping):
-            raise ValueError("All the action mapping must be ActionMapping classes")
         if isinstance(self.mapping, ActionMapping):
             self.mapping = [self.mapping]
+        if not all(isinstance(a, ActionMapping) for a in self.mapping):
+            raise ValueError("All the action mapping must be ActionMapping classes")
 
         if all((self.n is None, self.low is None, self.high is None, self.shape is None)):
             raise ValueError("At least one of n, high, low, shape should be defined")
@@ -95,41 +95,44 @@ class Controller(GltfExtensionMixin, gltf_extension_name="HF_controllers", objec
                 raise ValueError(
                     "For continuous actions (one of high, low, shape is defined), n should be set to None."
                 )
+            else:
+                if self.low is None and self.high is None and self.shape is None:
+                    raise ValueError(
+                        "Action space unspecified: you should specify `n` (for discrete action space) or at least one of `high`, `low`, `shape` (for continous action space)."
+                    )
             dtype = np.dtype(self.dtype)
             self.space = spaces.Box(low=self.low, high=self.high, shape=self.shape, dtype=dtype, seed=self.seed)
 
 
 @dataclass
-class ControllerTuple(GltfExtensionMixin, gltf_extension_name="HF_controllers_tuples", object_type="component"):
-    r"""Store a tuple of controllers/ActionSpaces. Associated to a gym Tuple action space
+class ActuatorTuple(GltfExtensionMixin, gltf_extension_name="HF_actuators_tuples", object_type="component"):
+    r"""Store a tuple of actuators/ActionSpaces. Associated to a gym Tuple action space
 
     Attributes:
-        - controllers: Tuple/list of the actions
+        - actuators: Tuple/list of the actions
         - mapping: Tuple/list of the mappings of the actions
         - space: Tuple/list of thespacegs of the actions
     """
-    controllers: List[Controller]
+    actuators: List[Actuator]
     seed: Optional[Union[int, List[int], np.random.Generator]] = None
 
     def __post_init__(self):
-        self.mapping = (controller.mapping for controller in self.controllers)
-        self.space = spaces.Tuple((controller.space for controller in self.controllers), seed=self.seed)
+        self.mapping = (actuator.mapping for actuator in self.actuators)
+        self.space = spaces.Tuple((actuator.space for actuator in self.actuators), seed=self.seed)
 
 
 @dataclass
-class ControllerDict(GltfExtensionMixin, gltf_extension_name="HF_controllers_dicts", object_type="component"):
-    r"""Store a dictionary of controllers/ActionSpaces. Associated to a gym Dict action space
+class ActuatorDict(GltfExtensionMixin, gltf_extension_name="HF_actuators_dicts", object_type="component"):
+    r"""Store a dictionary of actuators/ActionSpaces. Associated to a gym Dict action space
 
     Attributes:
-        - controllers: Dict of the actions
+        - actuators: Dict of the actions
         - mapping: Dict of the mappings of the actions
         - space: Dict of thespacegs of the actions
     """
-    controllers: Dict[str, Controller]
+    actuators: Dict[str, Actuator]
     seed: Optional[Union[dict, int, np.random.Generator]] = None
 
     def __post_init__(self):
-        self.mapping = {key: controller.mapping for key, controller in self.controllers.items()}
-        self.space = spaces.Dict(
-            {key: controller.space for key, controller in self.controllers.items()}, seed=self.seed
-        )
+        self.mapping = {key: actuator.mapping for key, actuator in self.actuators.items()}
+        self.space = spaces.Dict({key: actuator.space for key, actuator in self.actuators.items()}, seed=self.seed)

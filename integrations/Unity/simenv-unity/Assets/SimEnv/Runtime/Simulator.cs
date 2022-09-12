@@ -90,9 +90,13 @@ namespace SimEnv {
         }
 
         public static IEnumerator StepCoroutine(Dictionary<string, object> kwargs) {
+            if (root == null)
+                throw new System.Exception("Scene is not initialized. Call `show()` to initialize the scene before stepping.");
+
             // Optionally override return_nodes and return_frames in step
-            kwargs.TryParse<bool>("return_nodes", out bool readNodeData, MetaData.instance.returnNodes);
-            kwargs.TryParse<bool>("return_frames", out bool readCameraData, MetaData.instance.returnFrames);
+            MetaData.instance.Parse(kwargs);
+            // kwargs.TryParse<bool>("return_nodes", out bool readNodeData, MetaData.instance.returnNodes);
+            // kwargs.TryParse<bool>("return_frames", out bool readCameraData, MetaData.instance.returnFrames);
 
             if (currentEvent == null)
                 currentEvent = new EventData();
@@ -104,6 +108,11 @@ namespace SimEnv {
             BeforeStep?.Invoke();
 
             // Perform the actual simulation
+            Debug.Log($"Frame skip is {MetaData.instance.frameSkip}");
+            Debug.Log($"Frame rate is {MetaData.instance.frameRate}");
+            Debug.Log($"returnFrames is {MetaData.instance.returnFrames}");
+            Debug.Log($"returnNodes is {MetaData.instance.returnNodes}");
+
             for (int i = 0; i < MetaData.instance.frameSkip; i++) {
                 BeforeIntermediateFrame?.Invoke();
                 Physics.Simulate(1f / MetaData.instance.frameRate);
@@ -112,14 +121,14 @@ namespace SimEnv {
 
             // Perform early post-step functionality
             currentEvent = new EventData();
-            OnEarlyStepInternal(readCameraData);
+            OnEarlyStepInternal(MetaData.instance.returnFrames);
             foreach (IPlugin plugin in plugins)
                 plugin.OnEarlyStep(currentEvent);
 
             yield return new WaitForEndOfFrame();
 
             // Perform post-step functionality
-            OnStepInternal(readNodeData, readCameraData);
+            OnStepInternal(MetaData.instance.returnNodes, MetaData.instance.returnFrames);
             foreach (IPlugin plugin in plugins)
                 plugin.OnStep(currentEvent);
 
@@ -205,6 +214,7 @@ namespace SimEnv {
 
         public static void Close() {
             Unload();
+            Client.Close();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else

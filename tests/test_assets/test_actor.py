@@ -26,7 +26,7 @@ class ActorTest(unittest.TestCase):
         for ac in self.actor_types:
             actor = ac()
 
-            self.assertIsInstance(actor.controller, sm.Controller)
+            self.assertIsInstance(actor.actuator, sm.Actuator)
             self.assertIsInstance(actor.physics_component, sm.RigidBodyComponent)
             self.assertTrue(len(actor), 1)
 

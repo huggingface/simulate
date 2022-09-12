@@ -20,6 +20,7 @@ from typing import Any, ByteString, Dict, List, Optional, Set, Union
 import numpy as np
 import pyvista as pv
 
+from ..config import Config
 from . import Asset, Camera, Collider, Light, Material, Object3D, PhysicMaterial
 from . import gltflib as gl
 from .gltf_extension import GLTF_NODES_EXTENSION_CLASS, process_tree_after_gltf, process_tree_before_gltf
@@ -616,9 +617,16 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
 
     process_tree_before_gltf(root_node)
 
+    # Add all the nodes and get back all the extensions used
     extension_used = add_node_to_scene(
         node=root_node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=0, cache=cache
     )
+
+    # Add scene-level extensions - only config metadata for now
+    config: Optional[Config] = getattr(root_node, "config", None)
+    if config is not None:
+        new_extension_used = config._add_component_to_gltf_scene(gltf_model.extensions)
+        extension_used.add(new_extension_used)
 
     process_tree_after_gltf(root_node)
 

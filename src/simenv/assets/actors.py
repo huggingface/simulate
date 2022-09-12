@@ -17,8 +17,8 @@
 import itertools
 from typing import List, Optional, Union
 
+from .actuator import ActionMapping, Actuator
 from .camera import Camera
-from .controller import ActionMapping, Controller
 from .object import Capsule, Sphere
 from .rigid_body import RigidBodyComponent
 
@@ -70,11 +70,11 @@ class SimpleActor(Sphere):
 
         # Create our action maps to physics engine effects
         mapping = [
-            ActionMapping("change_relative_position", axis=[1, 0, 0]),
-            ActionMapping("change_relative_position", axis=[0, 1, 0]),
-            ActionMapping("change_relative_position", axis=[0, 0, 1]),
+            ActionMapping("change_position", axis=[1, 0, 0]),
+            ActionMapping("change_position", axis=[0, 1, 0]),
+            ActionMapping("change_position", axis=[0, 0, 1]),
         ]
-        self.controller = Controller(n=3, mapping=mapping)
+        self.actuator = Actuator(n=3, mapping=mapping)
 
     def copy(self, with_children=True, **kwargs) -> "SimpleActor":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
@@ -108,7 +108,7 @@ class EgocentricCameraActor(Capsule):
         A egocentric actor is a capsule asset with:
         - a Camera as a child asset for observation device
         - a RigidBodyComponent component with a mass of 1.0
-        - a discrete controller
+        - a discrete actuator
 
     Parameters
     ----------
@@ -139,7 +139,7 @@ class EgocentricCameraActor(Capsule):
     ):
 
         if position is None:
-            position = [0, 1.02, 0]  # A bit above the reference plane
+            position = [0, 1.05, 0]  # A bit above the reference plane
 
         camera_name = None
         if name is not None:
@@ -163,15 +163,17 @@ class EgocentricCameraActor(Capsule):
             self.scale(scaling)
 
         # Add our physics component (by default the actor can only rotation along y axis)
-        self.physics_component = RigidBodyComponent(mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z"])
+        self.physics_component = RigidBodyComponent(
+            mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_position_z"]
+        )
 
         # Create our action maps to physics engine effects
         mapping = [
-            ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=-90),
-            ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=90),
-            ActionMapping("change_relative_position", axis=[1, 0, 0], amplitude=2.0),
+            ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),
+            ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
+            ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
         ]
-        self.controller = Controller(n=3, mapping=mapping)
+        self.actuator = Actuator(n=3, mapping=mapping)
 
     def copy(self, with_children=True, **kwargs) -> "EgocentricCameraActor":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""

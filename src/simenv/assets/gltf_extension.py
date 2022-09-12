@@ -27,6 +27,9 @@ if TYPE_CHECKING:
 # We use this to define all the extension fields to have in the extension
 GLTF_EXTENSIONS_REGISTER = []
 
+# We use this to define all the scene level class in our scene which are defined as GLTF extensions
+GLTF_SCENE_EXTENSION_CLASS = []
+
 # We use this to define all the nodes class in our scene which are defined as GLTF extensions
 GLTF_NODES_EXTENSION_CLASS = []
 
@@ -60,21 +63,41 @@ class GltfExtensionMixin(DataClassJsonMixin):
         super().__init_subclass__(**kwargs)
         if not gltf_extension_name:
             raise ValueError("A glTF extension name must be provided.")
-        if object_type not in ["node", "component"]:
-            raise ValueError("The type of the object must be one of 'node' or 'component'.")
+        if object_type not in ["scene", "node", "component"]:
+            raise ValueError("The type of the object must be one of 'scene', 'node' or 'component'.")
 
         cls._gltf_extension_name = gltf_extension_name
 
-        cls._gltf_extension_cls = dataclass_json(
-            make_dataclass(
-                gltf_extension_name,
-                [
-                    ("objects", Optional[List[cls]], field(default=None)),
-                    ("object_id", Optional[int], field(default=None)),
-                    ("name", Optional[str], field(default=None)),
-                ],
+        if object_type == "scene":
+            gltf_extension_cls = cls  # We directly use the dataclass as the glTF extension
+        elif object_type == "node":
+            gltf_extension_cls = dataclass_json(
+                make_dataclass(
+                    gltf_extension_name,
+                    [
+                        ("objects", Optional[List[cls]], field(default=None)),
+                        ("object_id", Optional[int], field(default=None)),
+                        ("name", Optional[str], field(default=None)),
+                    ],
+                )
             )
-        )
+        elif object_type == "component":
+            gltf_extension_cls = dataclass_json(
+                make_dataclass(
+                    gltf_extension_name,
+                    [
+                        (
+                            "objects",
+                            Optional[List[cls]],
+                            field(default=None),
+                        ),  # TODO change this to "components" at some point
+                        ("object_id", Optional[int], field(default=None)),
+                        ("name", Optional[str], field(default=None)),
+                    ],
+                )
+            )
+
+        cls._gltf_extension_cls = gltf_extension_cls
 
         # register the component to the glTF model extensions
         for (ext_name, _, _) in GLTF_EXTENSIONS_REGISTER:
@@ -82,10 +105,14 @@ class GltfExtensionMixin(DataClassJsonMixin):
                 raise ValueError(f"The glTF extension {gltf_extension_name} is already registered.")
         GLTF_EXTENSIONS_REGISTER.append((gltf_extension_name, Optional[cls._gltf_extension_cls], field(default=None)))
 
-        if object_type == "node":
+        if object_type == "scene":
+            GLTF_SCENE_EXTENSION_CLASS.append(cls)
+        elif object_type == "node":
             GLTF_NODES_EXTENSION_CLASS.append(cls)
-        else:
+        elif object_type == "component":
             GLTF_COMPONENTS_EXTENSION_CLASS.append(cls)
+        else:
+            raise ValueError(f"The object type {object_type} is not supported.")
 
     def gltf_copy(self) -> "GltfExtensionMixin":
         """Create a deep copy of the object with a deep copy of only the dataclass fields.
@@ -99,6 +126,26 @@ class GltfExtensionMixin(DataClassJsonMixin):
         self_dict = {f.name: copy.deepcopy(getattr(self, f.name)) for f in fields(self)}
         copy_self = type(self)(**self_dict)
         return copy_self
+
+    def _add_component_to_gltf_scene(self, gltf_model_extensions) -> str:
+        """Add a scene level object to a glTF scene (e.g. metadata).
+            Only one object of each such type can be added to a scene.
+
+        Args:
+            gltf_model_extensions: The glTF model extensions.
+
+        Returns:
+            The name of the glTF extension.
+        """
+        copy_self = self.gltf_copy()  # Create a deep copy of the object keeping only the fields
+
+        if getattr(gltf_model_extensions, self._gltf_extension_name, None) is None:
+            if not hasattr(gltf_model_extensions, self._gltf_extension_name):
+                raise ValueError(f"The glTF model extensions does not have the {self._gltf_extension_name} extension.")
+            setattr(gltf_model_extensions, self._gltf_extension_name, copy_self)
+        else:
+            raise ValueError(f"The glTF model extensions already has the {self._gltf_extension_name} extension.")
+        return self._gltf_extension_name
 
     def _add_component_to_gltf_model(self, gltf_model_extensions) -> int:
         """Add a component to a glTF model.

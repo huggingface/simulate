@@ -4,7 +4,6 @@ from typing import Any, List, Optional
 from dataclasses_json import dataclass_json
 
 from ...gltf_extension import GLTF_EXTENSIONS_REGISTER
-from .extensions.hf_metadata import Metadata
 from .extensions.khr_lights_ponctual import KHRLightsPunctual
 
 
@@ -16,7 +15,6 @@ class OldExtensions:
     """
 
     KHR_lights_punctual: Optional[KHRLightsPunctual] = None
-    HF_metadata: Optional[Metadata] = None
     HF_custom: Optional[List[str]] = None
 
 

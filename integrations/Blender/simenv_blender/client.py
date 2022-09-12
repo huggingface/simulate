@@ -1,6 +1,4 @@
 import socket
-import json
-import base64
 
 
 class Client:
@@ -16,14 +14,14 @@ class Client:
     def listen(self, callback):
         chunk_size = 1024
         while True:
-            msg_length = int.from_bytes(self.socket.recv(4), 'little')
+            msg_length = int.from_bytes(self.socket.recv(4), "little")
             if msg_length:
                 data = ""
                 while len(data) < msg_length:
                     data += self.socket.recv(min(chunk_size, msg_length - len(data))).decode()
                 callback(data)
                 break
-                
+
     def send_bytes(self, data):
         self.socket.sendall(data)
 
