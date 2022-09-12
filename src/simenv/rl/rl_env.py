@@ -16,10 +16,13 @@ from collections import defaultdict
 from typing import Callable, Optional, Union
 
 import numpy as np
-from . import VecEnv
+
 import simenv as sm
+
 # Lint as: python3
 from simenv.scene import Scene
+
+from . import VecEnv
 
 
 class RLEnv(VecEnv):

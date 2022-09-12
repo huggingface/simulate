@@ -24,6 +24,7 @@ import cloudpickle
 import gym
 import numpy as np
 
+
 # Define type aliases here to avoid circular import
 # Used when we want to access one or more VecEnv
 VecEnvIndices = Union[None, int, Iterable[int]]

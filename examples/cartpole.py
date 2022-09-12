@@ -1,7 +1,8 @@
 from cmath import pi
-from matplotlib import use
+
 import matplotlib.pyplot as plt
 import numpy as np
+from matplotlib import use
 
 import simenv as sm
 from simenv.assets import material
