@@ -109,13 +109,13 @@ namespace SimEnv {
 
             // Perform the actual simulation
             Debug.Log($"Frame skip is {Config.instance.frameSkip}");
-            Debug.Log($"Frame rate is {Config.instance.frameRate}");
+            Debug.Log($"Time step is {Config.instance.timeStep}");
             Debug.Log($"returnFrames is {Config.instance.returnFrames}");
             Debug.Log($"returnNodes is {Config.instance.returnNodes}");
 
             for (int i = 0; i < Config.instance.frameSkip; i++) {
                 BeforeIntermediateFrame?.Invoke();
-                Physics.Simulate(1f / Config.instance.frameRate);
+                Physics.Simulate(Config.instance.timeStep);
                 AfterIntermediateFrame?.Invoke();
             }
 

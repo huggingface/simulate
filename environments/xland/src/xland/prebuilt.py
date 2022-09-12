@@ -130,7 +130,7 @@ def gen_hard_args(xland_folder=""):
 DEFAULT_ARGS = {
     "engine": "Unity",
     "frame_skip": 4,
-    "frame_rate": 20,
+    "time_step": 0.05,
 }
 
 TASK_ARGS = {

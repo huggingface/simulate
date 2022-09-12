@@ -9,11 +9,11 @@ from .engine import Engine
 class BlenderEngine(Engine):
     """API for the Blender integration"""
 
-    def __init__(self, scene, auto_update=True, start_frame=0, end_frame=500, frame_rate=24):
+    def __init__(self, scene, auto_update=True, start_frame=0, end_frame=500, time_step=1 / 24.):
         super().__init__(scene=scene, auto_update=auto_update)
         self.start_frame = start_frame
         self.end_frame = end_frame
-        self.frame_rate = frame_rate
+        self.time_step = time_step
 
         self.host = "127.0.0.1"
         self.port = 55000

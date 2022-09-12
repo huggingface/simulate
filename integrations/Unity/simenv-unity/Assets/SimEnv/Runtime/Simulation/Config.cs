@@ -14,7 +14,7 @@ namespace SimEnv {
             }
         }
 
-        public int frameRate = 30;
+        public float timeStep = .02f;
         public int frameSkip = 1;
         public bool returnNodes = true;
         public bool returnFrames = true;
@@ -23,7 +23,7 @@ namespace SimEnv {
         [JsonConverter(typeof(ColorRGBConverter))] public Color ambientColor = Color.gray;
         [JsonConverter(typeof(Vector3Converter))] public Vector3 gravity = Vector3.down * 9.81f;
 
-        public bool ShouldSerializeframeRate() => frameRate != 30;
+        public bool ShouldSerializetimeStep() => timeStep != .02f;
         public bool ShouldSerializeframeSkip() => frameSkip != 1;
         public bool ShouldSerializereturnNodes() => !returnNodes;
         public bool ShouldSerializereturnFrames() => !returnFrames;
@@ -37,7 +37,7 @@ namespace SimEnv {
         }
 
         public void Parse(Dictionary<string, object> kwargs) {
-            kwargs.TryParse<int>("frame_rate", out frameRate, frameRate);
+            kwargs.TryParse<float>("time_step", out timeStep, timeStep);
             kwargs.TryParse<int>("frame_skip", out frameSkip, frameSkip);
             kwargs.TryParse<bool>("return_nodes", out returnNodes, returnNodes);
             kwargs.TryParse<bool>("return_frames", out returnFrames, returnFrames);

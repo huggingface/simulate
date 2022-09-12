@@ -10,7 +10,7 @@ class Config(GltfExtensionMixin, gltf_extension_name="HF_config", object_type="s
     A scene simulation configuration object.
 
     Attributes:
-        frame_rate: Number of frames per second to use for simulation. (Optional, default 30)
+        time_step: The amount of time in seconds to simulate per frame. (Optional, default 0.02)
         frame_skip: The number of frames to simulate per step(). (Optional, default 1)
         return_nodes: Whether to return node data by default from step(). (Optional, default True)
         return_frames: Whether to return camera rendering by default from step(). (Optional, default True)
@@ -20,7 +20,7 @@ class Config(GltfExtensionMixin, gltf_extension_name="HF_config", object_type="s
         gravity: The 3-dimensional vector to use for gravity. (Optional, default [0, -9.81, 0])
     """
 
-    frame_rate: Optional[int] = None
+    time_step: Optional[float] = None
     frame_skip: Optional[int] = None
     return_nodes: Optional[bool] = None
     return_frames: Optional[bool] = None
