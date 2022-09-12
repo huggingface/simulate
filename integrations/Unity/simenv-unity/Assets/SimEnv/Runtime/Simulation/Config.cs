@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using SimEnv.GLTF;
 using UnityEngine;
 
@@ -32,6 +33,8 @@ namespace SimEnv {
         public bool ShouldSerializeambientColor() => ambientColor != Color.gray;
         public bool ShouldSerializegravity() => gravity != Vector3.down * 9.81f;
 
+        static JObject cached;
+
         public Config() {
             m_instance = this;
         }
@@ -47,6 +50,15 @@ namespace SimEnv {
                 new float[] { ambientColor.r, ambientColor.g, ambientColor.b });
             ambientColor = new Color(ambientColorBuffer[0], ambientColorBuffer[1], ambientColorBuffer[2]);
             kwargs.TryParse<Vector3>("gravity", out gravity, gravity);
+        }
+
+        public static void Cache() {
+            cached = JObject.FromObject(instance);
+        }
+
+        public static void Restore() {
+            if (cached == null) return;
+            m_instance = cached.ToObject<Config>();
         }
 
         public static void Export(GLTFObject gltfObject) {

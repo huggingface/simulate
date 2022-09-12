@@ -93,10 +93,11 @@ namespace SimEnv {
             if (root == null)
                 throw new System.Exception("Scene is not initialized. Call `show()` to initialize the scene before stepping.");
 
-            // Optionally override return_nodes and return_frames in step
-            Config.instance.Parse(kwargs);
-            // kwargs.TryParse<bool>("return_nodes", out bool readNodeData, MetaData.instance.returnNodes);
-            // kwargs.TryParse<bool>("return_frames", out bool readCameraData, MetaData.instance.returnFrames);
+            // Optionally override kwargs for one frame
+            if (kwargs.Count > 0) {
+                Config.Cache();
+                Config.instance.Parse(kwargs);
+            }
 
             if (currentEvent == null)
                 currentEvent = new EventData();
@@ -133,6 +134,10 @@ namespace SimEnv {
                 plugin.OnStep(currentEvent);
 
             AfterStep?.Invoke();
+
+            // Restore config
+            if (kwargs.Count > 0)
+                Config.Restore();
         }
 
         static void OnEarlyStepInternal(bool readCameraData) {
