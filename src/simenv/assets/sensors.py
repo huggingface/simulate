@@ -37,10 +37,18 @@ ALLOWED_STATE_SENSOR_PROPERTIES = {
     "position.x": 1,
     "position.y": 1,
     "position.z": 1,
+    "velocity": 3,
+    "velocity.x": 1,
+    "velocity.y": 1,
+    "velocity.z": 1,
     "rotation": 3,
     "rotation.x": 1,
     "rotation.y": 1,
     "rotation.z": 1,
+    "angular_velocity" : 3 ,
+    "angular_velocity.x" : 1,
+    "angular_velocity.y" : 1,
+    "angular_velocity.z" : 1,
     "distance": 1,
 }
 
