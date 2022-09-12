@@ -1,101 +1,133 @@
+# Copyright 2022 The HuggingFace Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+
+import argparse
 from cmath import pi
 
-import matplotlib.pyplot as plt
-import numpy as np
-from matplotlib import use
+from stable_baselines3 import PPO
 
 import simenv as sm
-from simenv.assets import material
-from simenv.assets.reward_functions import RewardFunction
+
+def generate_map(index):
+    cart_depth = 0.3
+    cart_width = 0.5
+    cart_height = 0.2
+    pole_radius = 0.05
+    pole_height = 1.0
+
+    root = sm.Asset(name=f"root_{index}")
+    root +=   sm.Box(
+        position=[0, 0, 0],
+        bounds=[10,0.1,10],
+        material=sm.Material.BLUE,
+        with_collider=False,
+    )
+
+    base = sm.Cylinder(direction=(1, 0, 0), radius=0.05, height=10, material=sm.Material.GRAY50)
+    base.physics_component = sm.ArticulatedBodyComponent(
+        "prismatic", immovable=True, use_gravity=False
+    )  # note for the base the joint type is ignored
 
 
-scene = sm.Scene(engine="Unity")
+    cart = sm.Box(bounds=[cart_width, cart_height, cart_depth])
 
-cart_depth = 0.3
-cart_width = 0.5
-cart_height = 0.2
-pole_radius = 0.05
-pole_height = 1.0
+    cart.physics_component = sm.ArticulatedBodyComponent("prismatic", immovable=False, use_gravity=True)
+    mapping = [
+        sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10.0),
+        sm.ActionMapping("add_force", axis=[-1, 0, 0], amplitude=10.0),
+    ]
+    cart.controller = sm.Controller(n=2, mapping=mapping)
+    cart += sm.RewardFunction(
+        type="timeout",
+        distance_metric="euclidean",
+        threshold=100,
+        is_terminal=True,
+        scalar=-1.0,
+    )
+    base += cart
+    # for more information on Articulation bodies in Unity https://docs.unity3d.com/Manual/physics-articulations.html
 
-scene += sm.LightSun()
-scene += sm.Camera(
-    name="cam", camera_type="orthographic", ymag=15, position=[0, cart_height, -10], width=256, height=144
-)
+    pole = sm.Cylinder(
+        position=[0, pole_height / 2.0 + cart_height / 2.0, 0],
+        radius=pole_radius,
+        height=pole_height,
+        rotation=[0, 0, 0],
+    )
+    pole.physics_component = sm.ArticulatedBodyComponent(
+        "revolute", anchor_position=[0, -pole_height / 2, 0], anchor_rotation=[0, 1, 0, 1]
+    )
+    cart += pole
+    cart += sm.StateSensor(pole, base, ["position.x", "velocity.x", "rotation.z", "angular_velocity.z"])
 
-base = sm.Cylinder(name="base", direction=(1, 0, 0), radius=0.05, height=30, material=material.Material.GRAY50)
-base.physics_component = sm.ArticulationBodyComponent(
-    "prismatic", immovable=True, use_gravity=False
-)  # note for the base the joint type is ignored
+    # End episode if the pole tips more than 30 degrees from the vertical (implemented as 60 degrees from the horizontal)
+    cart += sm.RewardFunction(
+        type="angle_to",
+        entity_a=pole,
+        entity_b=cart,
+        direction=[1, 0, 0],
+        distance_metric="euclidean",
+        threshold=60,
+        is_terminal=True,
+        scalar=1.0,
+    )
+    cart += sm.RewardFunction(
+        type="angle_to",
+        entity_a=pole,
+        entity_b=cart,
+        direction=[-1, 0, 0],
+        distance_metric="euclidean",
+        threshold=60,
+        is_terminal=True,
+        scalar=1.0,
+    )
 
+    # a positve reward of +1 for each timestep, for a maximim of 200 steps
+    cart += sm.RewardFunction("timeout", scalar=1.0, threshold=200, is_terminal=True)
 
-cart = sm.Box(name="cart", bounds=[cart_width, cart_height, cart_depth])
+    # # restrict the cart's distance from origin to be at most 10 metres
+    not_near = sm.RewardFunction("not", is_terminal=True, scalar=0.0)
+    not_near += sm.RewardFunction(
+        type="sparse",
+        entity_a=cart,
+        entity_b=base,
+        distance_metric="euclidean",
+        threshold=5,
+        is_terminal=False,
+        trigger_once=False,
+        scalar=2.0,
+    )
+    cart += not_near
 
-cart.physics_component = sm.ArticulationBodyComponent("prismatic", immovable=False, use_gravity=True)
-mapping = [
-    sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10.0),
-    sm.ActionMapping("add_force", axis=[-1, 0, 0], amplitude=10.0),
-]
-cart.actuator = sm.Actuator(n=2, mapping=mapping)
-cart += sm.RewardFunction(
-    type="timeout",
-    distance_metric="euclidean",
-    threshold=100,
-    is_terminal=True,
-    scalar=-1.0,
-)
-base += cart
-# for more information on Articulation bodies in Unity https://docs.unity3d.com/Manual/physics-articulations.html
+    root += base
 
-pole = sm.Cylinder(
-    name="pole",
-    position=[0, pole_height / 2.0 + cart_height / 2.0, 0],
-    radius=pole_radius,
-    height=pole_height,
-    rotation=[0, 0, 0],
-)
-pole.physics_component = sm.ArticulationBodyComponent(
-    "revolute", anchor_position=[0, -pole_height / 2, 0], anchor_rotation=[0, 1, 0, 1]
-)
-cart += pole
-cart += sm.StateSensor(pole, cart, "position")
-
-# not_reward = sm.RewardFunction("not", is_terminal=True)
-cart += sm.RewardFunction(
-    type="angle_to",
-    entity_a=pole,
-    entity_b=cart,
-    direction=[1, 0, 0],
-    distance_metric="euclidean",
-    threshold=60,
-    is_terminal=True,
-    scalar=1.0,
-)
-cart += sm.RewardFunction(
-    type="angle_to",
-    entity_a=pole,
-    entity_b=cart,
-    direction=[-1, 0, 0],
-    distance_metric="euclidean",
-    threshold=60,
-    is_terminal=True,
-    scalar=1.0,
-)
-
-scene += base
-env = sm.RLEnv(scene, frame_skip=1)
+    return root
 
 
-# plt.ion()
-# fig, ax = plt.subplots()
-# imdata = np.zeros(shape=(144, 256, 3), dtype=np.uint8)
-# axim = ax.imshow(imdata, vmin=0, vmax=255)
-for i in range(10000):
-    env.step()
-    # if "frames" in event and "cam" in event["frames"]:
-    #     frame = np.array(event["frames"]["cam"], dtype=np.uint8)
-    #     frame = frame.transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
-#         axim.set_data(frame)
-#         fig.canvas.flush_events()
-#         plt.pause(0.1)
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    parser.add_argument("--n_maps", default=20, type=int, required=False, help="Number of maps to spawn")
+    parser.add_argument("--n_show", default=16, type=int, required=False, help="Number of maps to show")
+    args = parser.parse_args()
 
-# plt.pause(0.5)
+    env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, frame_skip=1)
+    obs = env.reset()
+    obs, reward, done, info = env.step()
+    # for i in range(1000):
+    #     obs, reward, done, info = env.step()
+    model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
+    model.learn(total_timesteps=100000)
+
+    env.close()
