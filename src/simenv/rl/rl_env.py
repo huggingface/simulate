@@ -44,7 +44,7 @@ class RLEnv(VecEnv):
         scene_or_map_fn: Union[Callable, Scene],
         n_maps: int = 1,
         n_show: int = 1,
-        time_step: float = 1 / 30.,
+        time_step: float = 1 / 30.0,
         frame_skip: int = 4,
         **engine_kwargs,
     ):
