@@ -1,5 +1,4 @@
 import argparse
-import pdb
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -205,6 +204,7 @@ if __name__ == "__main__":
                     axim.set_data(frame[::-1])
                     fig.canvas.flush_events()
                     plt.pause(0.01)
+
 #
 # plt.pause(0.5)
 #
