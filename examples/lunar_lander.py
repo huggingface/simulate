@@ -1,4 +1,5 @@
 import argparse
+import pdb
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -105,11 +106,11 @@ def make_lander(engine="Unity", engine_exe=None):
         ),
     )
     lander.mesh.extrude((0, 1, 0), capping=True, inplace=True)
-    lander.controller = sm.Controller(
+    lander.actuator = sm.Actuator(
         mapping=[
-            sm.ActionMapping("add_relative_force", axis=[1, 0, 0], amplitude=1),
-            sm.ActionMapping("add_relative_force", axis=[1, 0, 0], amplitude=-1),
-            sm.ActionMapping("add_relative_force", axis=[0, 1, 0], amplitude=1),
+            sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=1/SCALE),
+            sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=-1/SCALE),
+            sm.ActionMapping("add_force", axis=[0, 1, 0], amplitude=1/SCALE),
         ],
         n=3,
     )
@@ -155,7 +156,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_steps", default=100, type=int, required=False, help="number of steps to run the simulator"
     )
-    parser.add_argument("--plt", default=False, type=bool, required=False, help="show camera in matplotlib")
+    parser.add_argument("--plot", default=False, type=bool, required=False, help="show camera in matplotlib")
 
     args = parser.parse_args()
 
@@ -166,7 +167,7 @@ if __name__ == "__main__":
     else:
         sc = make_lander(engine="Unity", engine_exe=args.build_exe)
         sc += sm.LightSun()
-        sc += sm.Camera(
+        sc.lunar_lander += sm.Camera(
             name="cam",
             camera_type="orthographic",
             # TODO Tune position
@@ -180,25 +181,30 @@ if __name__ == "__main__":
         # TODO Add agent that acts via thrusters (lateral)
         sc.show(show_frames=True)
 
-        if args.plt:
+        if args.plot:
             plt.ion()
             fig, ax = plt.subplots()
             imdata = np.zeros(shape=(512, 512, 3), dtype=np.uint8)
             axim = ax.imshow(imdata, vmin=0, vmax=255)
-            # env = sm.RLEnvironment(sc)
+            env = sm.RLEnv(sc)
+
         for i in range(50):
             print(f"step {i}")
-            # action = sc.action_space.sample()
-            # event = sc.step(action)
-            event = sc.step()
+            action = 0 #sc.action_space.sample()
+            print(action)
+            # event = env.step([action])
+            obs, reward, done, info = env.step([action])
+            # event = sc.step()
+            # import ipdb; pdb.set_trace()
+
             # event, _, _, _ = env.step(action=0)
-            if "frames" in event and "cam" in event["frames"]:
-                frame = np.array(event["frames"]["cam"], dtype=np.uint8)
+            if "CameraSensor" in obs:
+                frame = np.array(obs["CameraSensor"], dtype=np.uint8)
                 frame = frame.transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
-                if args.plt:
-                    axim.set_data(frame)
+                if args.plot:
+                    axim.set_data(frame[::-1])
                     fig.canvas.flush_events()
-                    # plt.pause(0.01)
+                    plt.pause(0.01)
 #
 # plt.pause(0.5)
 #
