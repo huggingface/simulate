@@ -214,6 +214,7 @@ namespace SimEnv {
 
         public static void Close() {
             Unload();
+            Client.Close();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else

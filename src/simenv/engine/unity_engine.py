@@ -8,8 +8,8 @@ import time
 from .engine import Engine
 
 
-NUM_BIND_RETRIES = 5
-BIND_RETRIES_DELAY = 1.0
+NUM_BIND_RETRIES = 20
+BIND_RETRIES_DELAY = 2.0
 
 
 class UnityEngine(Engine):
@@ -50,7 +50,7 @@ class UnityEngine(Engine):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        print("Server started. Waiting for connection...")
+        print(f"Server started. Waiting for connection on {self.host} {self.port}...")
         try:
             self.socket.bind((self.host, self.port))
         except OSError:
@@ -106,15 +106,16 @@ class UnityEngine(Engine):
     def reset(self):
         return self.run_command("Reset")
 
-    def run_command(self, command, **kwargs):
+    def run_command(self, command, wait_for_response=True, **kwargs):
         message = json.dumps({"type": command, **kwargs})
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         self.client.sendall(message_bytes)
-        response = self._get_response()
-        try:
-            return json.loads(response)
-        except Exception:
-            return response
+        if wait_for_response:
+            response = self._get_response()
+            try:
+                return json.loads(response)
+            except Exception:
+                return response
 
     def run_command_async(self, command, **kwargs):
         message = json.dumps({"type": command, **kwargs})
@@ -134,13 +135,14 @@ class UnityEngine(Engine):
 
     def close(self):
         try:
-            _ = self.run_command("Close")
+            self.run_command("Close", wait_for_response=False)
         except Exception as e:
             print("exception sending close message", e)
 
         # print("closing client")
         # self.client.shutdown(socket.SHUT_RDWR)
         self.client.close()
+        self.socket.close()
 
         try:
             atexit.unregister(self._close)
