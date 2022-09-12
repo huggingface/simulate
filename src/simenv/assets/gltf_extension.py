@@ -128,7 +128,7 @@ class GltfExtensionMixin(DataClassJsonMixin):
         return copy_self
 
     def _add_component_to_gltf_scene(self, gltf_model_extensions) -> str:
-        """Add a scene level object to a glTF scene (e.g. metadata).
+        """Add a scene level object to a glTF scene (e.g. config).
             Only one object of each such type can be added to a scene.
 
         Args:

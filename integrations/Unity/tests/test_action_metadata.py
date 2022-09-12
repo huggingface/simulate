@@ -92,7 +92,7 @@ def test_add_force(build_exe):
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(frame_rate=50, frame_skip=1)
+    scene.show(time_step=0.02, frame_skip=1)
     event = scene.step()
     original_position = event["nodes"]["actor"]["position"]
     original_rotation = event["nodes"]["actor"]["rotation"]
@@ -142,7 +142,7 @@ def test_add_force(build_exe):
     scene.close()
 
 
-def test_add_force_frame_rate(build_exe):
+def test_add_force_time_step(build_exe):
     """Changing the framerate of the test_add_force test to 100 frame per second"""
     scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
@@ -171,7 +171,7 @@ def test_add_force_frame_rate(build_exe):
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 100 physics steps per second (0.01 second per step)
-    scene.show(frame_rate=100, frame_skip=1)
+    scene.show(time_step=0.01, frame_skip=1)
     # Apply 20 times a force of 10 N to an object of 1 kg along the x axis during 0.01 second
     for i in range(19):
         scene.step(action={"0": 0})
@@ -190,7 +190,7 @@ def test_add_force_frame_rate(build_exe):
 
 
 def test_add_force_frame_skip(build_exe):
-    """Changing the frameskip of the test_add_force_frame_rate test to skip every 5 frames observations"""
+    """Changing the frameskip of the test_add_force_time_step test to skip every 5 frames observations"""
     scene = sm.Scene(engine="unity", engine_exe=build_exe) + sm.LightSun(
         name="sun", position=[0, 20, 0], intensity=0.9
     )
@@ -218,7 +218,7 @@ def test_add_force_frame_skip(build_exe):
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 100 physics steps per second (0.01 second per step)
-    scene.show(frame_rate=100, frame_skip=5)
+    scene.show(time_step=0.01, frame_skip=5)
     # Apply 20 times a force of 10 N to an object of 1 kg along the x axis during 0.01 second
     for i in range(3):
         scene.step(action={"0": 0})

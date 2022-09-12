@@ -6,6 +6,7 @@ from simenv.assets.action_mapping import ActionMapping
 
 def create_scene(build_exe=None, gltf_path=None):
     try:
+        raise Exception
         scene = sm.Scene.create_from("simenv-tests/MountainCar/MountainCar.gltf")
     except Exception as e:
         print(e)

@@ -45,8 +45,8 @@ namespace SimEnv {
             cameraData.renderPostProcessing = false;
             cameraData.antialiasing = AntialiasingMode.None;
             camera.enabled = false;
-            readable = MetaData.instance.returnFrames
-                && (MetaData.instance.cameraFilter == null || MetaData.instance.cameraFilter.Contains(node.name));
+            readable = Config.instance.returnFrames
+                && (Config.instance.cameraFilter == null || Config.instance.cameraFilter.Contains(node.name));
             tex = new Texture2D(camera.targetTexture.width, camera.targetTexture.height);
         }
 

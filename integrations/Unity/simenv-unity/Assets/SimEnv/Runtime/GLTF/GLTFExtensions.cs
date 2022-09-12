@@ -9,6 +9,6 @@ namespace SimEnv.GLTF {
         public HFStateSensors HF_state_sensors;
         public HFRaycastSensors HF_raycast_sensors;
         public HFRewardFunctions HF_reward_functions;
-        public MetaData HF_metadata;
+        public Config HF_config;
     }
 }

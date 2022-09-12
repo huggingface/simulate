@@ -23,6 +23,7 @@ from huggingface_hub import logging
 
 from .assets import *
 from .assets.utils import *
+from .config import Config
 from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
 from .rl import *
 from .scene import Scene

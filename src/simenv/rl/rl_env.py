@@ -35,7 +35,7 @@ class RLEnv(VecEnv):
         scene_or_map_fn: a generator function for generating instances of the desired environment
         n_maps: the number of map instances to create, defualt 1
         n_show: optionally show a subset of the maps during training and dequeue a new map at the end of each episode
-        frame_rate: the physics framerate of the environment
+        time_step: the physics timestep of the environment
         frame_skip: the number of times an action is repeated before the next observation is returned
     """
 
@@ -44,7 +44,7 @@ class RLEnv(VecEnv):
         scene_or_map_fn: Union[Callable, Scene],
         n_maps: int = 1,
         n_show: int = 1,
-        frame_rate: int = 30,
+        time_step: float = 1 / 30.0,
         frame_skip: int = 4,
         **engine_kwargs,
     ):
@@ -79,7 +79,7 @@ class RLEnv(VecEnv):
         # Pass maps kwarg to enable map pooling
         maps = [root.name for root in self.map_roots]
         self.scene.show(
-            frame_rate=frame_rate,
+            time_step=time_step,
             frame_skip=frame_skip,
             return_frames=False,
             return_nodes=False,

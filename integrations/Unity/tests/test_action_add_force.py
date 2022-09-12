@@ -34,7 +34,7 @@ def test_add_force(build_exe):
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(frame_rate=50, frame_skip=1)
+    scene.show(time_step=0.02, frame_skip=1)
     event = scene.step()
     original_position = event["nodes"]["actor"]["position"]
     original_rotation = event["nodes"]["actor"]["rotation"]
@@ -128,7 +128,7 @@ def test_add_force_is_impulse(build_exe):
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(frame_rate=50, frame_skip=1)
+    scene.show(time_step=0.02, frame_skip=1)
     # Apply 10 times the actions
     for i in range(9):
         scene.step(action={"0": 0, "1": 0})
@@ -187,7 +187,7 @@ def test_add_force_local_coordinates(build_exe):
     scene.actor2.rotate_y(90)
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(frame_rate=50, frame_skip=1)
+    scene.show(time_step=0.02, frame_skip=1)
     # Apply 10 times the actions
     for i in range(9):
         scene.step(action={"0": 0, "1": 0})
@@ -239,7 +239,7 @@ def test_add_force_amplitude(build_exe):
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(frame_rate=50, frame_skip=1)
+    scene.show(time_step=0.02, frame_skip=1)
     # Apply 10 times the actions
     for i in range(9):
         scene.step(action={"0": 0, "1": 0})
@@ -291,7 +291,7 @@ def test_add_force_offset(build_exe):
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(frame_rate=50, frame_skip=1)
+    scene.show(time_step=0.02, frame_skip=1)
     # Apply 10 times the actions
     for i in range(9):
         scene.step(action={"0": 0, "1": 0})
@@ -347,7 +347,7 @@ def test_add_force_max_velocity(build_exe):
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(frame_rate=50, frame_skip=1)
+    scene.show(time_step=0.02, frame_skip=1)
     # Apply 10 times the actions
     for i in range(9):
         scene.step(action={"0": 0, "1": 0})
