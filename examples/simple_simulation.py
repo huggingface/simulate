@@ -10,6 +10,7 @@ def create_scene(build_exe=None):
     # Create a scene with Unity engine backend
     scene = sm.Scene(engine="Unity", engine_exe=build_exe)
     scene += sm.LightSun()
+    # scene.config = sm.Config(gravity=[0, 1, 0])
 
     # Add a floor
     scene += sm.Box(

@@ -80,9 +80,9 @@ namespace SimEnv {
                 }
             }
 
-            // Override metadata from kwargs
-            MetaData.instance.Parse(kwargs);
-            MetaData.Apply();
+            // Override config from kwargs
+            Config.instance.Parse(kwargs);
+            Config.Apply();
 
             // Initialize plugins
             foreach (IPlugin plugin in plugins)
@@ -94,7 +94,7 @@ namespace SimEnv {
                 throw new System.Exception("Scene is not initialized. Call `show()` to initialize the scene before stepping.");
 
             // Optionally override return_nodes and return_frames in step
-            MetaData.instance.Parse(kwargs);
+            Config.instance.Parse(kwargs);
             // kwargs.TryParse<bool>("return_nodes", out bool readNodeData, MetaData.instance.returnNodes);
             // kwargs.TryParse<bool>("return_frames", out bool readCameraData, MetaData.instance.returnFrames);
 
@@ -108,27 +108,27 @@ namespace SimEnv {
             BeforeStep?.Invoke();
 
             // Perform the actual simulation
-            Debug.Log($"Frame skip is {MetaData.instance.frameSkip}");
-            Debug.Log($"Frame rate is {MetaData.instance.frameRate}");
-            Debug.Log($"returnFrames is {MetaData.instance.returnFrames}");
-            Debug.Log($"returnNodes is {MetaData.instance.returnNodes}");
+            Debug.Log($"Frame skip is {Config.instance.frameSkip}");
+            Debug.Log($"Frame rate is {Config.instance.frameRate}");
+            Debug.Log($"returnFrames is {Config.instance.returnFrames}");
+            Debug.Log($"returnNodes is {Config.instance.returnNodes}");
 
-            for (int i = 0; i < MetaData.instance.frameSkip; i++) {
+            for (int i = 0; i < Config.instance.frameSkip; i++) {
                 BeforeIntermediateFrame?.Invoke();
-                Physics.Simulate(1f / MetaData.instance.frameRate);
+                Physics.Simulate(1f / Config.instance.frameRate);
                 AfterIntermediateFrame?.Invoke();
             }
 
             // Perform early post-step functionality
             currentEvent = new EventData();
-            OnEarlyStepInternal(MetaData.instance.returnFrames);
+            OnEarlyStepInternal(Config.instance.returnFrames);
             foreach (IPlugin plugin in plugins)
                 plugin.OnEarlyStep(currentEvent);
 
             yield return new WaitForEndOfFrame();
 
             // Perform post-step functionality
-            OnStepInternal(MetaData.instance.returnNodes, MetaData.instance.returnFrames);
+            OnStepInternal(Config.instance.returnNodes, Config.instance.returnFrames);
             foreach (IPlugin plugin in plugins)
                 plugin.OnStep(currentEvent);
 
@@ -145,7 +145,7 @@ namespace SimEnv {
         static void OnStepInternal(bool readNodeData, bool readCameraData) {
             if (readNodeData) {
                 foreach (Node node in nodes.Values) {
-                    if (MetaData.instance.nodeFilter == null || MetaData.instance.nodeFilter.Contains(node.name))
+                    if (Config.instance.nodeFilter == null || Config.instance.nodeFilter.Contains(node.name))
                         currentEvent.nodes.Add(node.name, node.GetData());
                 }
             }

@@ -26,6 +26,7 @@ from .assets.utils import *
 from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
 from .rl import *
 from .scene import Scene
+from .config import Config
 
 
 # Set Hugging Face hub debug verbosity (TODO remove)

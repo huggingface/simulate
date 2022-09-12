@@ -4,12 +4,12 @@ using SimEnv.GLTF;
 using UnityEngine;
 
 namespace SimEnv {
-    public class MetaData {
-        static MetaData m_instance;
-        public static MetaData instance {
+    public class Config {
+        static Config m_instance;
+        public static Config instance {
             get {
                 if (m_instance == null)
-                    m_instance = new MetaData();
+                    m_instance = new Config();
                 return m_instance;
             }
         }
@@ -21,6 +21,7 @@ namespace SimEnv {
         public List<string> nodeFilter;
         public List<string> cameraFilter;
         [JsonConverter(typeof(ColorRGBConverter))] public Color ambientColor = Color.gray;
+        [JsonConverter(typeof(Vector3Converter))] public Vector3 gravity = Vector3.down * 9.81f;
 
         public bool ShouldSerializeframeRate() => frameRate != 30;
         public bool ShouldSerializeframeSkip() => frameSkip != 1;
@@ -29,8 +30,9 @@ namespace SimEnv {
         public bool ShouldSerializenodeFilter() => nodeFilter != null && nodeFilter.Count > 0;
         public bool ShouldSerializecameraFilter() => cameraFilter != null && cameraFilter.Count > 0;
         public bool ShouldSerializeambientColor() => ambientColor != Color.gray;
+        public bool ShouldSerializegravity() => gravity != Vector3.down * 9.81f;
 
-        public MetaData() {
+        public Config() {
             m_instance = this;
         }
 
@@ -44,17 +46,19 @@ namespace SimEnv {
             kwargs.TryParse<float[]>("ambient_color", out float[] ambientColorBuffer,
                 new float[] { ambientColor.r, ambientColor.g, ambientColor.b });
             ambientColor = new Color(ambientColorBuffer[0], ambientColorBuffer[1], ambientColorBuffer[2]);
+            kwargs.TryParse<Vector3>("gravity", out gravity, gravity);
         }
 
         public static void Export(GLTFObject gltfObject) {
             gltfObject.extensionsUsed ??= new List<string>();
-            gltfObject.extensionsUsed.Add("HF_metadata");
+            gltfObject.extensionsUsed.Add("HF_config");
             gltfObject.extensions ??= new GLTFExtensions();
-            gltfObject.extensions.HF_metadata = instance;
+            gltfObject.extensions.HF_config = instance;
         }
 
         public static void Apply() {
             RenderSettings.ambientLight = instance.ambientColor;
+            Physics.gravity = instance.gravity;
         }
     }
 }
