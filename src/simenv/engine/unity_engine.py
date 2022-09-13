@@ -4,6 +4,7 @@ import json
 import socket
 import subprocess
 import time
+import signal
 
 from .engine import Engine
 
@@ -31,6 +32,8 @@ class UnityEngine(Engine):
 
         self._initialize_server()
         atexit.register(self._close)
+        signal.signal(signal.SIGTERM, self._close)
+        signal.signal(signal.SIGINT, self._close)
 
         self._map_pool = False
 

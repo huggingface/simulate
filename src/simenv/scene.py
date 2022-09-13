@@ -94,13 +94,21 @@ class Scene(Asset):
         """Render the Scene using the engine."""
         self.engine.show(**engine_kwargs)
 
-    def step(self, **engine_kwargs):
+    def step(self, time_step=None, frame_skip=None, return_nodes=None, return_frames=None, **engine_kwargs):
         """Step the Scene"""
+        if time_step is not None:
+            engine_kwargs.update({"time_step": time_step})
+        if frame_skip is not None:
+            engine_kwargs.update({"frame_skip": frame_skip})
+        if return_nodes is not None:
+            engine_kwargs.update({"return_nodes": return_nodes})
+        if return_frames is not None:
+            engine_kwargs.update({"return_frames": return_frames})
         return self.engine.step(**engine_kwargs)
 
-    def reset(self, **engine_kwargs):
+    def reset(self):
         """Reset the Scene"""
-        return self.engine.reset(**engine_kwargs)
+        return self.engine.reset()
 
     @property
     def action_space(self):

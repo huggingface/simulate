@@ -33,7 +33,9 @@ def test_add_torque(build_exe, port_number):
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(time_step=0.02, frame_skip=1)
+    scene.config.time_step = 0.02
+    scene.config.frame_skip = 1
+    scene.show()
     event = scene.step()
     original_position = event["nodes"]["actor"]["position"]
     original_rotation = event["nodes"]["actor"]["rotation"]
@@ -124,7 +126,9 @@ def test_add_torque_is_impulse(build_exe, port_number):
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(time_step=0.02, frame_skip=1)
+    scene.config.time_step = 0.02
+    scene.config.frame_skip = 1
+    scene.show()
     # Apply 5 times the actions
     # Be careful, if you apply for too many steps you should check the inertia of the object
     for i in range(4):
@@ -195,7 +199,9 @@ def test_add_torque_local_coordinates(build_exe, port_number):
     scene.actor2.rotate_x(90)
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(time_step=0.02, frame_skip=1)
+    scene.config.time_step = 0.02
+    scene.config.frame_skip = 1
+    scene.show()
     # Apply 5 times the actions
     # Be careful, if you apply for too many steps you should check the inertia of the object
     for i in range(4):
@@ -262,7 +268,9 @@ def test_add_torque_amplitude(build_exe, port_number):
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(time_step=0.02, frame_skip=1)
+    scene.config.time_step = 0.02
+    scene.config.frame_skip = 1
+    scene.show()
     # Apply 5 times the actions
     # Be careful, if you apply for too many steps you should check the inertia of the object
     for i in range(4):
@@ -326,7 +334,9 @@ def test_add_torque_offset(build_exe, port_number):
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(time_step=0.02, frame_skip=1)
+    scene.config.time_step = 0.02
+    scene.config.frame_skip = 1
+    scene.show()
     # Apply 5 times the actions
     # Be careful, if you apply for too many steps you should check the inertia of the object
     for i in range(4):
@@ -394,7 +404,9 @@ def test_add_torque_max_velocity(build_exe, port_number):
     scene += [actor, actor2]
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(time_step=0.02, frame_skip=1)
+    scene.config.time_step = 0.02
+    scene.config.frame_skip = 1
+    scene.show()
     # Apply 5 times the actions
     # Be careful, if you apply for too many steps you should check the inertia of the object
     for i in range(4):
