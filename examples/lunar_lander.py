@@ -17,7 +17,7 @@ SIDE_ENGINE_POWER = 0.6
 
 INITIAL_RANDOM = 1000.0  # Set 1500 to make game harder
 
-LANDER_POLY = np.array([(-14, +17, 0), (-17, 0, 0), (-17, -10, 0), (+17, -10, 0), (+17, 0, 0), (+14, +17, 0)]) / SCALE
+LANDER_POLY = np.array([(-17, -10, 0), (-17, 0, 0), (-14, 17, 0), (14, 17, 0), (17, 0, 0), (17, -10, 0)])[::-1] / SCALE
 LEG_AWAY = 20
 LEG_DOWN = -7
 LEG_ANGLE = 0.25  # radions
@@ -112,28 +112,28 @@ def make_lander(engine="Unity", engine_exe=None):
         ],
         n=3,
     )
+    lander += sm.Collider(type="mesh", mesh=lander.mesh, convex=True)
 
     # TODO add lander state sensors for state-based RL
 
     r_leg = sm.Polygon(points=LEG_RIGHT_POLY, material=lander_material, parent=lander, name="lander_r_leg")
     r_leg.mesh.extrude((0, 0, -1), capping=True, inplace=True)
-    r_leg.collider = sm.Collider(type="mesh", convex=True, mesh=r_leg.mesh)
+    r_leg += sm.Collider(type="mesh", mesh=r_leg.mesh, convex=True)
 
     l_leg = sm.Polygon(
         points=LEG_LEFT_POLY, material=lander_material, parent=lander, name="lander_l_leg"  # l_leg_poly_shifted,
     )
     l_leg.mesh.extrude((0, 0, -1), capping=True, inplace=True)
-    l_leg.collider = sm.Collider(type="mesh", convex=True, mesh=l_leg.mesh)
+    l_leg += sm.Collider(type="mesh", mesh=l_leg.mesh, convex=True)
 
-    lander.collider = sm.Collider(type="mesh", convex=True, mesh=lander.mesh)
     # TODO verify collider
     land = sm.Polygon(
         points=LAND_POLY[::-1],  # Reversing vertex order so the normal faces the right direction
         material=sm.Material.GRAY,
         name="Moon",
-        with_collider=True
     )
     land.mesh.extrude((0, 0, -1), capping=True, inplace=True)
+    land += sm.Collider(type="mesh", mesh=land.mesh, convex=True)
 
     lander += sm.Camera(
         name="cam",
@@ -159,7 +159,7 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_steps", default=100, type=int, required=False, help="number of steps to run the simulator"
     )
-    parser.add_argument("--plot", default=False, type=bool, required=False, help="show camera in matplotlib")
+    parser.add_argument("--plot", default=True, type=bool, required=False, help="show camera in matplotlib")
 
     args = parser.parse_args()
 
