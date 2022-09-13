@@ -76,13 +76,14 @@ class RLEnv(VecEnv):
         super().__init__(n_show, self.observation_space, self.action_space)
 
         # Don't return simulation data, since minimal/faster data will be returned by agent sensors
+        self.scene.config.time_step = time_step
+        self.scene.config.frame_skip = frame_skip
+        self.scene.config.return_frames = False
+        self.scene.config.return_nodes = False
+
         # Pass maps kwarg to enable map pooling
         maps = [root.name for root in self.map_roots]
         self.scene.show(
-            time_step=time_step,
-            frame_skip=frame_skip,
-            return_frames=False,
-            return_nodes=False,
             maps=maps,
             n_show=n_show,
         )

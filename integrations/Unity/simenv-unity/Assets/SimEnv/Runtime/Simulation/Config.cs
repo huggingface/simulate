@@ -71,6 +71,7 @@ namespace SimEnv {
         public static void Apply() {
             RenderSettings.ambientLight = instance.ambientColor;
             Physics.gravity = instance.gravity;
+            Time.fixedDeltaTime = instance.timeStep;
         }
     }
 }
