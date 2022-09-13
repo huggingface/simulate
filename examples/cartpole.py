@@ -28,27 +28,21 @@ def generate_map(index):
     pole_height = 1.0
 
     root = sm.Asset(name=f"root_{index}")
-    root +=   sm.Box(
-        position=[0, 0, 0],
-        bounds=[10,0.1,10],
-        material=sm.Material.BLUE,
-        with_collider=False,
-    )
 
     base = sm.Cylinder(direction=(1, 0, 0), radius=0.05, height=10, material=sm.Material.GRAY50)
-    base.physics_component = sm.ArticulatedBodyComponent(
+    base.physics_component = sm.ArticulationBodyComponent(
         "prismatic", immovable=True, use_gravity=False
     )  # note for the base the joint type is ignored
 
 
-    cart = sm.Box(bounds=[cart_width, cart_height, cart_depth])
+    cart = sm.Box(bounds=[cart_width, cart_height, cart_depth], with_collider=False)
 
-    cart.physics_component = sm.ArticulatedBodyComponent("prismatic", immovable=False, use_gravity=True)
+    cart.physics_component = sm.ArticulationBodyComponent("prismatic")
     mapping = [
-        sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10.0),
-        sm.ActionMapping("add_force", axis=[-1, 0, 0], amplitude=10.0),
+        sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=1.0),
+        sm.ActionMapping("add_force", axis=[-1, 0, 0], amplitude=1.0),
     ]
-    cart.controller = sm.Controller(n=2, mapping=mapping)
+    cart.actuator = sm.Actuator(n=2, mapping=mapping)
     cart += sm.RewardFunction(
         type="timeout",
         distance_metric="euclidean",
@@ -65,7 +59,7 @@ def generate_map(index):
         height=pole_height,
         rotation=[0, 0, 0],
     )
-    pole.physics_component = sm.ArticulatedBodyComponent(
+    pole.physics_component = sm.ArticulationBodyComponent(
         "revolute", anchor_position=[0, -pole_height / 2, 0], anchor_rotation=[0, 1, 0, 1]
     )
     cart += pole
@@ -118,16 +112,16 @@ def generate_map(index):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
-    parser.add_argument("--n_maps", default=20, type=int, required=False, help="Number of maps to spawn")
-    parser.add_argument("--n_show", default=16, type=int, required=False, help="Number of maps to show")
+    parser.add_argument("--n_maps", default=1, type=int, required=False, help="Number of maps to spawn")
+    parser.add_argument("--n_show", default=1, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
 
     env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, frame_skip=1)
     obs = env.reset()
     obs, reward, done, info = env.step()
-    # for i in range(1000):
-    #     obs, reward, done, info = env.step()
-    model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
-    model.learn(total_timesteps=100000)
+    for i in range(4000):
+        obs, reward, done, info = env.step()
+    # model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
+    # model.learn(total_timesteps=100000)
 
     env.close()

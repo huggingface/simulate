@@ -41,17 +41,17 @@ namespace SimEnv {
         }
 
         public void ResetState() {
-            if(articulationBody == null) {
+            if (articulationBody == null) {
                 // you cannot teleport articulation bodies so simply (see below)
                 transform.position = initialState.position;
                 transform.rotation = initialState.rotation;
             }
-            if(rigidbody != null) {
+            if (rigidbody != null) {
                 rigidbody.velocity = Vector3.zero;
                 rigidbody.angularVelocity = Vector3.zero;
             }
 
-            if(articulationBody != null) {
+            if (articulationBody != null) {
                 articulationBody.velocity = Vector3.zero;
                 articulationBody.angularVelocity = Vector3.zero;
 
@@ -59,6 +59,10 @@ namespace SimEnv {
                 articulationBody.jointAcceleration = new ArticulationReducedSpace(0f, 0f, 0f);
                 articulationBody.jointForce = new ArticulationReducedSpace(0f, 0f, 0f);
                 articulationBody.jointVelocity = new ArticulationReducedSpace(0f, 0f, 0f);
+
+                var drive = articulationBody.xDrive;
+                drive.target = 0f;
+                articulationBody.xDrive = drive;
 
                 if (articulationBody.isRoot) {
                     articulationBody.TeleportRoot(initialState.position, initialState.rotation);
@@ -226,7 +230,7 @@ namespace SimEnv {
 
         public Data GetData() {
             Vector3? velocity = null;
-            Vector3? angularVelocity = null; 
+            Vector3? angularVelocity = null;
             Rigidbody rb = gameObject.GetComponent<Rigidbody>();
             if (rb != null) {
                 velocity = rb.velocity;

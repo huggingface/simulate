@@ -38,20 +38,20 @@ namespace SimEnv.RlAgents {
                 throw new System.Exception("You need to provide an axis to use the 'Add Force' action.");
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
-            
+
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
             if (mapping.maxVelocityThreshold.HasValue)
                 if (actor.node.rigidbody.velocity.magnitude > mapping.maxVelocityThreshold.Value)
                     return;
-            
+
             Vector3 force = mapping.axis.Value.normalized * magnitude;
-            
+
             ForceMode forceMode = ForceMode.Force;
             if (mapping.isImpulse)
                 forceMode = ForceMode.Impulse;
-            
-            Debug.Log("AddForce, force: " + force + " relative:"
-                + mapping.useLocalCoordinates + " isImpulse:" + mapping.isImpulse);
+
+            // Debug.Log("AddForce, force: " + force + " relative:"
+            //     + mapping.useLocalCoordinates + " isImpulse:" + mapping.isImpulse);
 
             if (actor.node.rigidbody != null) {
                 if (mapping.useLocalCoordinates) {
@@ -90,7 +90,7 @@ namespace SimEnv.RlAgents {
             ForceMode forceMode = ForceMode.Force;
             if (mapping.isImpulse)
                 forceMode = ForceMode.Impulse;
-            
+
             if (actor.node.rigidbody != null) {
                 if (mapping.useLocalCoordinates) {
                     actor.node.rigidbody.AddRelativeTorque(torque, forceMode);
@@ -128,7 +128,7 @@ namespace SimEnv.RlAgents {
             ForceMode forceMode = ForceMode.Force;
             if (mapping.isImpulse)
                 forceMode = ForceMode.Impulse;
-            
+
             if (actor.node.rigidbody != null) {
                 actor.node.rigidbody.AddForceAtPosition(force, mapping.position.Value, forceMode);
             }
@@ -187,7 +187,7 @@ namespace SimEnv.RlAgents {
 
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
 
-            Vector3 position = mapping.position.Value *  magnitude;
+            Vector3 position = mapping.position.Value * magnitude;
             if (mapping.useLocalCoordinates) {
                 position = actor.node.transform.TransformPoint(mapping.position.Value);
             }
@@ -206,7 +206,7 @@ namespace SimEnv.RlAgents {
                 throw new System.Exception("You need to provide an axis to use the 'Set Rotation' action.");
             if (value == null || value.Count != 1)
                 throw new NotImplementedException();
-        
+
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
 
             Vector3 axis = mapping.axis.Value;
