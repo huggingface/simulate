@@ -164,14 +164,14 @@ class EgocentricCameraActor(Capsule):
 
         # Add our physics component (by default the actor can only rotation along y axis)
         self.physics_component = RigidBodyComponent(
-            mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_position_z"]
+            mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_position_y"]
         )
 
         # Create our action maps to physics engine effects
         mapping = [
-            ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),
-            ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
-            ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
+            ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-3),
+            ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=3),
+            ActionMapping("change_position", axis=[1, 0, 0], amplitude=0.05),
         ]
         self.actuator = Actuator(n=3, mapping=mapping)
 
