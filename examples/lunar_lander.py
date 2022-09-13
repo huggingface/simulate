@@ -113,6 +113,8 @@ def make_lander(engine="Unity", engine_exe=None):
         n=3,
     )
 
+    # TODO add lander state sensors for state-based RL
+
     r_leg = sm.Polygon(points=LEG_RIGHT_POLY, material=lander_material, parent=lander, name="lander_r_leg")
     r_leg.mesh.extrude((0, 0, 1), capping=True, inplace=True)
     r_leg.collider = sm.Collider(type="mesh", convex=True, mesh=r_leg.mesh)
