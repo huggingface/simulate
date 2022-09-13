@@ -1,10 +1,10 @@
 import atexit
 import base64
 import json
+import signal
 import socket
 import subprocess
 import time
-import signal
 
 from .engine import Engine
 

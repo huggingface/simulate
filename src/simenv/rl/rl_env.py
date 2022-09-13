@@ -80,7 +80,7 @@ class RLEnv(VecEnv):
         self.scene.config.frame_skip = frame_skip
         self.scene.config.return_frames = False
         self.scene.config.return_nodes = False
-        
+
         # Pass maps kwarg to enable map pooling
         maps = [root.name for root in self.map_roots]
         self.scene.show(
