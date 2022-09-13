@@ -63,7 +63,7 @@ LEG_RIGHT_POLY = (
     / SCALE
 )
 
-LEG_LEFT_POLY = [[-x, y, z] for x, y, z in LEG_RIGHT_POLY]
+LEG_LEFT_POLY = [[-x, y, z] for x, y, z in LEG_RIGHT_POLY][::-1]
 
 LAND_POLY = (
     [[CHUNK_X[0], SMOOTH_Y[0] - 3, 0]]
@@ -103,7 +103,7 @@ def make_lander(engine="Unity", engine_exe=None):
             mass=1,
         ),
     )
-    lander.mesh.extrude((0, 0, 1), capping=True, inplace=True)
+    lander.mesh.extrude((0, 0, -1), capping=True, inplace=True)
     lander.actuator = sm.Actuator(
         mapping=[
             sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=1),
@@ -116,24 +116,24 @@ def make_lander(engine="Unity", engine_exe=None):
     # TODO add lander state sensors for state-based RL
 
     r_leg = sm.Polygon(points=LEG_RIGHT_POLY, material=lander_material, parent=lander, name="lander_r_leg")
-    r_leg.mesh.extrude((0, 0, 1), capping=True, inplace=True)
+    r_leg.mesh.extrude((0, 0, -1), capping=True, inplace=True)
     r_leg.collider = sm.Collider(type="mesh", convex=True, mesh=r_leg.mesh)
 
     l_leg = sm.Polygon(
         points=LEG_LEFT_POLY, material=lander_material, parent=lander, name="lander_l_leg"  # l_leg_poly_shifted,
     )
-    l_leg.mesh.extrude((0, 0, 1), capping=True, inplace=True)
+    l_leg.mesh.extrude((0, 0, -1), capping=True, inplace=True)
     l_leg.collider = sm.Collider(type="mesh", convex=True, mesh=l_leg.mesh)
 
     lander.collider = sm.Collider(type="mesh", convex=True, mesh=lander.mesh)
     # TODO verify collider
     land = sm.Polygon(
-        points=LAND_POLY,
+        points=LAND_POLY[::-1],  # Reversing vertex order so the normal faces the right direction
         material=sm.Material.GRAY,
         name="Moon",
+        with_collider=True
     )
-    land.mesh.extrude((0, 0, 1), capping=True, inplace=True)
-    land.collider = sm.Collider(type="mesh", convex=True, mesh=land.mesh)
+    land.mesh.extrude((0, 0, -1), capping=True, inplace=True)
 
     lander += sm.Camera(
         name="cam",
