@@ -54,7 +54,7 @@ namespace SimEnv {
             return mName;
         }
 
-        public string GetSensorType() {
+        public string GetSensorBufferType() {
             return mType;
         }
 
@@ -67,17 +67,19 @@ namespace SimEnv {
             return shape;
         }
 
-        public string GetBufferType() {
-            return mType;
+        // public string GetBufferType() {
+        //     return mType;
+        // }
+
+        public Buffer GetObs(Buffer buffer, int mapIndex, int actorIndex) {
+            Buffer oldBuffer = new Buffer(GetSize(), GetShape(), GetSensorBufferType());
+            GetState(oldBuffer, buffer, mapIndex, actorIndex);
+            return oldBuffer;
         }
 
-        public SensorBuffer GetObs() {
-            SensorBuffer buffer = new SensorBuffer(GetSize(), GetShape(), GetSensorType());
-            GetState(buffer);
-            return buffer;
-        }
+        public void GetState(Buffer oldBuffer, Buffer buffer, int mapIndex, int actorIndex) {
+            int startingIndex = mapIndex * actorIndex * GetSize();
 
-        public void GetState(SensorBuffer buffer) {
             for (int i = 0; i < raycastAngles.Count; i++) {
                 var angleH = raycastAngles[i].horizontal;
                 var angleV = raycastAngles[i].vertical;
@@ -87,7 +89,8 @@ namespace SimEnv {
                 Quaternion.AngleAxis(angleV, node.transform.right) * node.transform.forward;
                 RaycastHit raycastHit;
                 var isHit = Physics.Raycast(node.transform.position, raycastDir, out raycastHit, rayLength); // TODO add Raycast layer mask?
-                buffer.floatBuffer[i] = raycastDistance(raycastHit, isHit);
+                oldBuffer.floatBuffer[i] = raycastDistance(raycastHit, isHit);
+                buffer.floatBuffer[i + startingIndex] = raycastDistance(raycastHit, isHit);
                 if (true) { // TODO: remove this from release version
                     Debug.DrawRay(node.transform.position, rayLength * raycastDir.normalized);
                 }

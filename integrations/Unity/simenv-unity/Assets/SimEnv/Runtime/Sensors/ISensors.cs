@@ -2,15 +2,18 @@ using Newtonsoft.Json;
 using UnityEngine;
 
 namespace SimEnv {
-    public class SensorBuffer {
+    public class Buffer {
         public float[] floatBuffer;
         public uint[] uintBuffer;
         public string type;
         public int[] shape;
 
-        public SensorBuffer(int size, int[] shape, string type) {
+        public int size;
+
+        public Buffer(int size, int[] shape, string type) {
             this.type = type;
             this.shape = shape;
+            this.size = size;
             if (type == "float") {
                 floatBuffer = new float[size];
             } else if (type == "uint8") {
@@ -26,7 +29,7 @@ namespace SimEnv {
             } else if (type == "uint8") {
                 return JsonHelper.ToJson(uintBuffer, shape, name);
             } else {
-                Debug.Log("trying to create SensorBuffer with unknown type " + type);
+                Debug.Log("trying to parse SensorBuffer with unknown type " + type);
                 return "";
             }
         }
@@ -34,12 +37,12 @@ namespace SimEnv {
 
     public interface ISensor {
         string GetName();
-        string GetSensorType();
+        string GetSensorBufferType();
         int GetSize();
         int[] GetShape();
         void Enable();
         void Disable();
-        string GetBufferType();
-        SensorBuffer GetObs();
+        //string GetBufferType();
+        Buffer GetObs(Buffer buffer, int mapIndex, int actorIndex);
     }
 }

@@ -21,7 +21,7 @@ namespace SimEnv {
             return mName;
         }
 
-        public string GetSensorType() {
+        public string GetSensorBufferType() {
             return mType;
         }
 
@@ -34,12 +34,13 @@ namespace SimEnv {
             return shape;
         }
 
-        public string GetBufferType() {
-            return "uint";
-        }
+        // public string GetBufferType() {
+        //     return mType;
+        // }
 
-        public SensorBuffer GetObs() {
-            SensorBuffer buffer = new SensorBuffer(GetSize(), GetShape(), GetSensorType()); // TODO: refactor be not be recreated at every call to GetObs
+        public Buffer GetObs(Buffer buffer, int mapIndex, int actorIndex) {
+            int startingIndex = mapIndex * actorIndex * GetSize();
+            Buffer oldBuffer = new Buffer(GetSize(), GetShape(), GetSensorBufferType()); // TODO: refactor be not be recreated at every call to GetObs
             RenderTexture activeRenderTexture = RenderTexture.active;
             RenderTexture.active = renderCamera.camera.targetTexture;
             tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
@@ -48,11 +49,14 @@ namespace SimEnv {
             int channelShift = GetSize() / 3; // so we have RRRGGGBBB C,H,W order
 
             for (int i = 0; i < pixels.Length; i++) {
-                buffer.uintBuffer[channelShift * 0 + i] = pixels[i].r;
-                buffer.uintBuffer[channelShift * 1 + i] = pixels[i].g;
-                buffer.uintBuffer[channelShift * 2 + i] = pixels[i].b;
+                oldBuffer.uintBuffer[channelShift * 0 + i] = pixels[i].r;
+                oldBuffer.uintBuffer[channelShift * 1 + i] = pixels[i].g;
+                oldBuffer.uintBuffer[channelShift * 2 + i] = pixels[i].b;
+                buffer.uintBuffer[startingIndex + channelShift * 0 + i] = pixels[i].r;
+                buffer.uintBuffer[startingIndex + channelShift * 1 + i] = pixels[i].g;
+                buffer.uintBuffer[startingIndex + channelShift * 2 + i] = pixels[i].b;
             }
-            return buffer;
+            return oldBuffer;
         }
 
         public void Enable() {

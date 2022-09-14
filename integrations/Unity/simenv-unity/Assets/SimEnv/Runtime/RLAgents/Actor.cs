@@ -10,7 +10,7 @@ namespace SimEnv.RlAgents {
 
         private Dictionary<string, object> observations = new Dictionary<string, object>();
 
-        private List<ISensor> sensors = new List<ISensor>();
+        public List<ISensor> sensors = new List<ISensor>();
         List<RewardFunction> rewardFunctions = new List<RewardFunction>();
         float accumReward;
         object currentAction;
@@ -123,10 +123,10 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public void ReadSensorObservations(Data data) {
-            Dictionary<string, SensorBuffer> observations = new Dictionary<string, SensorBuffer>();
+        public void ReadSensorObservations(Data data, Dictionary<string, Buffer> sensorBuffers, int mapIndex, int actorIndex) {
+            Dictionary<string, Buffer> observations = new Dictionary<string, Buffer>();
             foreach (var sensor in sensors) {
-                observations[sensor.GetName()] = sensor.GetObs();
+                observations[sensor.GetName()] = sensor.GetObs(sensorBuffers[sensor.GetName()], mapIndex, actorIndex);
             }
             data.observations = observations;
         }
@@ -175,7 +175,7 @@ namespace SimEnv.RlAgents {
         public class Data {
             public bool done;
             public float reward;
-            public Dictionary<string, SensorBuffer> observations;
+            public Dictionary<string, Buffer> observations;
         }
     }
 }

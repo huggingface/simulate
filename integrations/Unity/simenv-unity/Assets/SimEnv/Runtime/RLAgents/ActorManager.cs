@@ -14,6 +14,10 @@ namespace SimEnv.RlAgents {
         static List<Vector3> positions;
         static MapPool mapPool;
         static int poolSize;
+        static int maxActorsPerMap = 0;
+        static Dictionary<string, Buffer> sensorBuffers;
+        static Buffer doneBuffer;
+        static Buffer rewardBuffer;
 
         public ActorManager() {
             instance = this;
@@ -22,6 +26,7 @@ namespace SimEnv.RlAgents {
             mapPool = new MapPool();
             activeMaps = new List<Map>();
             positions = new List<Vector3>();
+            sensorBuffers = new Dictionary<string, Buffer>();
         }
 
         public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
@@ -42,6 +47,38 @@ namespace SimEnv.RlAgents {
                 maps = new List<string> { Simulator.root.name };
                 InitializeMapPool(maps);
             }
+
+            InitializeBuffers();
+
+        }
+        static void InitializeBuffers() {
+
+            Debug.Log("intializing buffers");
+            // Creates buffers that hold the sensor measurements for all Actors
+            // find the number of maps
+            int nActiveMaps = activeMaps.Count;
+            // find the maximum number of agents
+            int nActors = maxActorsPerMap;
+            // get the names and shapes of all the sensors, we assume all agents have the same sensors (for now)
+            foreach (var sensor in activeMaps[0].actors.Values.First<Actor>().sensors) {
+                List<int> bufferShape = new List<int>();
+                bufferShape.Add(nActiveMaps);
+                bufferShape.Add(nActors);
+                bufferShape.AddRange(sensor.GetShape());
+                Buffer sensorBuffer = new Buffer(
+                    nActiveMaps * nActors * sensor.GetSize(),
+                    bufferShape.ToArray(),
+                    sensor.GetSensorBufferType()
+                );
+                sensorBuffers.Add(sensor.GetName(), sensorBuffer);
+            }
+            int[] shape = { nActiveMaps, nActors, 1 };
+            doneBuffer = new Buffer(nActiveMaps * nActors, shape, "float"); // we send bools as floats for now
+            Debug.Log("intializing buffers done buffer");
+            rewardBuffer = new Buffer(nActiveMaps * nActors, shape, "float");
+            Debug.Log("intializing buffers reward buffer");
+
+
         }
 
         static void InitializeMapPool(List<string> names) {
@@ -51,6 +88,7 @@ namespace SimEnv.RlAgents {
                     continue;
                 }
                 Map map = new Map(root);
+                maxActorsPerMap = Math.Max(map.actors.Count, maxActorsPerMap);
                 mapPool.Push(map);
             }
             CreatePositionPool();
@@ -81,9 +119,16 @@ namespace SimEnv.RlAgents {
             for (int i = 0; i < activeMaps.Count; i++) {
                 Dictionary<string, Actor.Data> mapData = activeMaps[i].GetActorEventData();
                 bool done = false;
-                foreach (Actor.Data data in mapData.Values)
+                int count = 0;
+                foreach (Actor.Data data in mapData.Values) {
                     done = done || data.done;
-                if (done) {
+                    doneBuffer.floatBuffer[i * maxActorsPerMap + count] = Convert.ToSingle(data.done);
+                    rewardBuffer.floatBuffer[i * maxActorsPerMap + count] = data.reward;
+                    count++;
+                }
+
+
+                if (done) { // TODO: (Ed), should we reset when only one agent is done in a multiagent setting?
                     ResetAt(i);
                     Dictionary<string, Actor.Data> newMapData = activeMaps[i].GetActorEventData();
                     string[] oldKeys = mapData.Keys.ToArray<string>();
@@ -97,6 +142,10 @@ namespace SimEnv.RlAgents {
                 foreach (string key in mapData.Keys)
                     currentActorEventData.Add(key, mapData[key]);
             }
+
+            eventData.outputKwargs.Add("actor_done_buffer", doneBuffer);
+            eventData.outputKwargs.Add("actor_reward_buffer", rewardBuffer);
+
             for (int i = 0; i < activeMaps.Count; i++)
                 activeMaps[i].EnableActorSensors();
         }
@@ -104,9 +153,10 @@ namespace SimEnv.RlAgents {
         // After Simulator step, record sensor observations
         public override void OnStep(EventData eventData) {
             for (int i = 0; i < activeMaps.Count; i++) {
-                activeMaps[i].GetActorObservations(currentActorEventData);
+                activeMaps[i].GetActorObservations(currentActorEventData, sensorBuffers, i);
             }
             eventData.outputKwargs.Add("actors", currentActorEventData);
+            eventData.outputKwargs.Add("actor_sensor_buffers", sensorBuffers);
             for (int i = 0; i < activeMaps.Count; i++)
                 activeMaps[i].DisableActorSensors();
         }

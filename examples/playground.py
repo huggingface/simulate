@@ -51,20 +51,20 @@ def make_scene(build_exe, camera_width, camera_height):
     # Lets add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
     actor = sm.EgocentricCameraActor(name="actor", position=[0.0, 0.5, 0.0])  # Has a collider
     # Specify the action to control the actor: 3 discrete action to rotate and move forward
-    actor.actuator = sm.Actuator(
-        n=3,
-        mapping=[
-            sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),
-            sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
-            sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
-        ],
-    )
+    # actor.actuator = sm.Actuator(
+    #     n=3,
+    #     mapping=[
+    #         sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),
+    #         sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
+    #         sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
+    #     ],
+    # )
     scene += actor
 
     # Add a camera located on the actor
-    actor_camera = sm.Camera(name="camera", width=camera_width, height=camera_height, position=[0, 0.75, 0])
-    actor += actor_camera
-    actor += sm.StateSensor(target_entity=actor, reference_entity=actor_camera, properties="position")
+    # actor_camera = sm.Camera(name="camera", width=camera_width, height=camera_height, position=[0, 0.75, 0])
+    # actor += actor_camera
+    actor += sm.StateSensor(target_entity=actor, reference_entity=scene.floor, properties="position")
     actor += sm.RaycastSensor(n_horizontal_rays=12, n_vertical_rays=4, horizontal_fov=120, vertical_fov=45)
     # # Let's add a target and a reward function
     material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
@@ -94,6 +94,7 @@ if __name__ == "__main__":
     scene.save("test.gltf")
 
     env = sm.RLEnv(scene)
+    env.reset()
 
     plt.ion()
     fig1, ax1 = plt.subplots()
@@ -102,7 +103,7 @@ if __name__ == "__main__":
 
     for i in range(100):
         obs, reward, done, info = env.step()
-        obs = obs["CameraSensor"].transpose(1, 2, 0)
+        obs = obs["CameraSensor"].reshape(3, camera_height, camera_width).transpose(1, 2, 0)
         axim1.set_data(obs)
         fig1.canvas.flush_events()
 

@@ -111,6 +111,12 @@ class RLEnv(VecEnv):
 
         # Extract observations, reward, and done from event data
         # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
+        obs = self._extract_sensor_obs(event["actor_sensor_buffers"])
+        reward = self._convert_to_numpy(event["actor_reward_buffer"])
+        done = self._convert_to_numpy(event["actor_done_buffer"])
+
+        return obs, reward, done, [{}]*len(done)
+
         if self.n_actors == 1:
             actor_data = event["actors"][self.actor.name]
             obs = self._extract_sensor_obs(actor_data["observations"])
@@ -142,6 +148,9 @@ class RLEnv(VecEnv):
 
         # To extract observations, we do a "fake" step (no actual simulation with frame_skip=0)
         event = self.scene.step(return_frames=True, frame_skip=0)
+        obs = self._extract_sensor_obs(event["actor_sensor_buffers"])
+        return obs
+
         obs = {}
         if self.n_actors == 1:
             actor_data = event["actors"][self.actor.name]
@@ -169,21 +178,21 @@ class RLEnv(VecEnv):
 
         return out
 
-    def _extract_sensor_obs(self, sim_data):
-        sensor_obs = {}
-        for sensor_name, sensor_data in sim_data.items():
-            if sensor_data["type"] == "uint8":
-                shape = sensor_data["shape"]
-                measurement = np.array(sensor_data["uintBuffer"], dtype=np.uint8).reshape(shape)
-                sensor_obs[sensor_name] = measurement
-                pass
-            elif sensor_data["type"] == "float":
-                shape = sensor_data["shape"]
-                measurement = np.array(sensor_data["floatBuffer"], dtype=np.float32).reshape(shape)
-                sensor_obs[sensor_name] = measurement
-            else:
-                raise TypeError
 
+    def _convert_to_numpy(self, event_data):
+        if event_data["type"] == "uint8":
+            shape = event_data["shape"]
+            return  np.array(event_data["uintBuffer"], dtype=np.uint8).reshape(shape)
+        elif event_data["type"] == "float":
+            shape = event_data["shape"]
+            return np.array(event_data["floatBuffer"], dtype=np.float32).reshape(shape)
+        else:
+            raise TypeError
+
+    def _extract_sensor_obs(self, sim_event_data):
+        sensor_obs = {}
+        for sensor_name, sensor_data in sim_event_data.items():
+            sensor_obs[sensor_name] = self._convert_to_numpy(sensor_data)
         return sensor_obs
 
     def close(self):

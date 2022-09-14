@@ -7,7 +7,7 @@ namespace SimEnv.RlAgents {
         public bool active { get; private set; }
 
         Node root;
-        Dictionary<string, Actor> actors;
+        public Dictionary<string, Actor> actors;
         List<Node> children;
 
         public Map(Node root) {
@@ -46,10 +46,12 @@ namespace SimEnv.RlAgents {
             return actorEventData;
         }
 
-        public void GetActorObservations(Dictionary<string, Actor.Data> actorEventData) {
+        public void GetActorObservations(Dictionary<string, Actor.Data> actorEventData, Dictionary<string, Buffer> sensorBuffers, int mapIndex) {
+            int actorIndex = 0;
             foreach (string key in actors.Keys) {
                 Actor actor = actors[key];
-                actor.ReadSensorObservations(actorEventData[key]);
+                actor.ReadSensorObservations(actorEventData[key], sensorBuffers, mapIndex, actorIndex);
+                actorIndex++;
             }
         }
 
