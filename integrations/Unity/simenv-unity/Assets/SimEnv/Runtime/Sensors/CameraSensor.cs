@@ -10,9 +10,10 @@ namespace SimEnv {
         RenderCamera m_renderCamera;
         Node m_node;
 
-        public CameraSensor(RenderCamera renderCamera) {
+        public CameraSensor(RenderCamera renderCamera, string sensorName) {
             m_node = node;
             m_renderCamera = renderCamera;
+            mName = sensorName;
             renderCamera.camera.enabled = false;
             tex = new Texture2D(renderCamera.camera.targetTexture.width, renderCamera.camera.targetTexture.height);
         }

@@ -59,7 +59,7 @@ namespace SimEnv.RlAgents {
             foreach (Node node2 in Simulator.nodes.Values) {
                 // search children for Cameras and create CameraSensors
                 if (node2.camera != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
-                    CameraSensor cameraSensor = new CameraSensor(node2.camera);
+                    CameraSensor cameraSensor = new CameraSensor(node2.camera, node2.cameraData.sensor_name);
                     sensors.Add(cameraSensor);
                 }
                 // search children for StateSensors

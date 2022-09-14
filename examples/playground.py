@@ -48,6 +48,8 @@ def make_scene(build_exe, camera_width, camera_height):
             with_collider=True,
         )
 
+    scene += sm.Camera(sensor_name="SecurityCamera", position=[0,32,0], rotation=[90,0,0])
+
     # Lets add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
     actor = sm.EgocentricCameraActor(name="actor", position=[0.0, 0.5, 0.0])  # Has a collider
     # Specify the action to control the actor: 3 discrete action to rotate and move forward
@@ -101,11 +103,17 @@ if __name__ == "__main__":
     dummy_obs = np.zeros(shape=(camera_height, camera_width, 3), dtype=np.uint8)
     axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
+    # security camera
+    fig2, ax2 = plt.subplots()
+    dummy_obs2 = np.zeros(shape=(256, 256, 3), dtype=np.uint8)
+    axim2 = ax2.imshow(dummy_obs2, vmin=0, vmax=255)
+
     for i in range(100):
         obs, reward, done, info = env.step()
-        obs = obs["CameraSensor"].reshape(3, camera_height, camera_width).transpose(1, 2, 0)
-        axim1.set_data(obs)
+        axim1.set_data(obs["CameraSensor"].reshape(3, camera_height, camera_width).transpose(1, 2, 0))
         fig1.canvas.flush_events()
+        axim2.set_data(obs["SecurityCamera"].reshape(3, 256, 256).transpose(1, 2, 0))
+        fig2.canvas.flush_events()
 
         plt.pause(0.1)
 

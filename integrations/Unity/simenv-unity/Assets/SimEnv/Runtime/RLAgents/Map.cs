@@ -20,6 +20,44 @@ namespace SimEnv.RlAgents {
                     actors.Add(node.name, Actor);
                 children.Add(node);
             }
+            initMapSensors();
+        }
+
+        private void initMapSensors() {
+            // finds sensors that are children of the map, but not of the actors (in this map)
+            // these sensors are considered to be "global" sensors that are static relative to a particular
+            // agent
+            foreach (Node node2 in Simulator.nodes.Values) {
+                if (node2.camera != null && node2.gameObject.transform.IsChildOf(root.gameObject.transform)) {
+                    TryAddCameraToActors(node2);
+                }
+                // search children for StateSensors
+                if (node2.sensor != null && node2.gameObject.transform.IsChildOf(root.gameObject.transform)) {
+                    TryAddSensorToActors(node2);
+                }
+            }
+        }
+
+        private void TryAddCameraToActors(Node node) {
+            foreach (var actor in actors.Values) {
+                if (node.gameObject.transform.IsChildOf(actor.node.gameObject.transform)) {
+                    return;
+                }
+            }
+            CameraSensor cameraSensor = new CameraSensor(node.camera, node.cameraData.sensor_name); // same instance shared across actors
+            foreach (var actor in actors.Values) {
+                actor.sensors.Add(cameraSensor);
+            }
+        }
+        private void TryAddSensorToActors(Node node) {
+            foreach (var actor in actors.Values) {
+                if (node.gameObject.transform.IsChildOf(actor.node.gameObject.transform)) {
+                    return;
+                }
+            }
+            foreach (var actor in actors.Values) {
+                actor.sensors.Add(node.sensor);
+            }
         }
 
         public void SetActive(bool active) {

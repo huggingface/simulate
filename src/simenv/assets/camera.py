@@ -151,6 +151,7 @@ class CameraDistant(Camera):
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,
         name: Optional[str] = None,
+        sensor_name: Optional[str] = "CameraSensor",
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
@@ -165,6 +166,7 @@ class CameraDistant(Camera):
 
         super().__init__(
             name=name,
+            sensor_name=sensor_name,
             position=position,
             rotation=rotation,
             scaling=scaling,
