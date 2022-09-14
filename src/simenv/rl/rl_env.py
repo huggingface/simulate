@@ -12,17 +12,18 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
 from typing import Callable, Optional, Union
 
 import numpy as np
 
-# from .vec_env import VecEnv
-from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+try:
+    from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+except ImportError:
+
+    class VecEnv:
+        pass  # Dummy class if SB3 is not installed
 
 import simenv as sm
-from simenv.assets.gltflib.models import scene
-
 # Lint as: python3
 from simenv.scene import Scene
 

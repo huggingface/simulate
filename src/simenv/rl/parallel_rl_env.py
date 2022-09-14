@@ -16,7 +16,12 @@ from collections import defaultdict
 from typing import Optional
 
 import numpy as np
-from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+try:
+    from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+except ImportError:
+
+    class VecEnv:
+        pass  # Dummy class if SB3 is not installed
 
 
 class ParallelRLEnv(VecEnv):
