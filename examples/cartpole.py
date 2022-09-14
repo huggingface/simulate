@@ -20,6 +20,7 @@ from stable_baselines3 import PPO
 
 import simenv as sm
 
+
 def generate_map(index):
     cart_depth = 0.3
     cart_width = 0.5
@@ -33,7 +34,6 @@ def generate_map(index):
     base.physics_component = sm.ArticulationBodyComponent(
         "prismatic", immovable=True, use_gravity=False
     )  # note for the base the joint type is ignored
-
 
     cart = sm.Box(bounds=[cart_width, cart_height, cart_depth], with_collider=False)
 
@@ -63,8 +63,12 @@ def generate_map(index):
         "revolute", anchor_position=[0, -pole_height / 2, 0], anchor_rotation=[0, 1, 0, 1]
     )
     cart += pole
-    cart += sm.StateSensor(pole, base, ["position.x", "velocity.x", "rotation.z", "angular_velocity.z"], sensor_name="StateSensor1")
-    cart += sm.StateSensor(pole, base, ["position.x", "velocity.x", "rotation.z", "angular_velocity.z"], sensor_name="StateSensor2")
+    cart += sm.StateSensor(
+        pole, base, ["position.x", "velocity.x", "rotation.z", "angular_velocity.z"], sensor_name="StateSensor1"
+    )
+    cart += sm.StateSensor(
+        pole, base, ["position.x", "velocity.x", "rotation.z", "angular_velocity.z"], sensor_name="StateSensor2"
+    )
 
     # End episode if the pole tips more than 30 degrees from the vertical (implemented as 60 degrees from the horizontal)
     cart += sm.RewardFunction(
@@ -122,7 +126,7 @@ if __name__ == "__main__":
     obs, reward, done, info = env.step()
     for i in range(4000):
         obs, reward, done, info = env.step()
-        #print(obs)
+        # print(obs)
     # model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
     # model.learn(total_timesteps=100000)
 

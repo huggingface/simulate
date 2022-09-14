@@ -16,7 +16,6 @@ from collections import defaultdict
 from typing import Optional
 
 import numpy as np
-
 from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 
 

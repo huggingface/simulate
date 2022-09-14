@@ -48,24 +48,12 @@ def make_scene(build_exe, camera_width, camera_height):
             with_collider=True,
         )
 
-    scene += sm.Camera(sensor_name="SecurityCamera", position=[0,32,0], rotation=[90,0,0])
+    scene += sm.Camera(sensor_name="SecurityCamera", position=[0, 32, 0], rotation=[90, 0, 0])
 
     # Lets add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
     actor = sm.EgocentricCameraActor(name="actor", position=[0.0, 0.5, 0.0])  # Has a collider
-    # Specify the action to control the actor: 3 discrete action to rotate and move forward
-    # actor.actuator = sm.Actuator(
-    #     n=3,
-    #     mapping=[
-    #         sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),
-    #         sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
-    #         sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
-    #     ],
-    # )
-    scene += actor
 
-    # Add a camera located on the actor
-    # actor_camera = sm.Camera(name="camera", width=camera_width, height=camera_height, position=[0, 0.75, 0])
-    # actor += actor_camera
+    scene += actor
     actor += sm.StateSensor(target_entity=actor, reference_entity=scene.floor, properties="position")
     actor += sm.RaycastSensor(n_horizontal_rays=12, n_vertical_rays=4, horizontal_fov=120, vertical_fov=45)
     # # Let's add a target and a reward function

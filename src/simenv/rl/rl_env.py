@@ -17,14 +17,15 @@ from typing import Callable, Optional, Union
 
 import numpy as np
 
+# from .vec_env import VecEnv
+from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+
 import simenv as sm
 from simenv.assets.gltflib.models import scene
 
 # Lint as: python3
 from simenv.scene import Scene
 
-#from .vec_env import VecEnv
-from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 
 class RLEnv(VecEnv):
     """
@@ -124,11 +125,11 @@ class RLEnv(VecEnv):
 
         obs = self._squeeze_actor_dimension(obs)
 
-        return obs, reward, done, [{}]*len(done)
+        return obs, reward, done, [{}] * len(done)
 
     def _squeeze_actor_dimension(self, obs):
-        for k,v in obs.items():
-            obs[k] = obs[k].reshape((self.n_show*self.n_actors_per_map, *obs[k].shape[2:]))
+        for k, v in obs.items():
+            obs[k] = obs[k].reshape((self.n_show * self.n_actors_per_map, *obs[k].shape[2:]))
         return obs
 
     def reset(self):
@@ -143,7 +144,7 @@ class RLEnv(VecEnv):
     def _convert_to_numpy(self, event_data):
         if event_data["type"] == "uint8":
             shape = event_data["shape"]
-            return  np.array(event_data["uintBuffer"], dtype=np.uint8).reshape(shape)
+            return np.array(event_data["uintBuffer"], dtype=np.uint8).reshape(shape)
         elif event_data["type"] == "float":
             shape = event_data["shape"]
             return np.array(event_data["floatBuffer"], dtype=np.float32).reshape(shape)
