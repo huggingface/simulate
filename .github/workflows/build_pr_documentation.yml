@@ -15,3 +15,5 @@ jobs:
       pr_number: ${{ github.event.number }}
       package: simenv
       install_libgl1: true
+    secrets:
+      token: ${{ secrets.HUGGINGFACE_PUSH }}
