@@ -10,6 +10,10 @@ namespace SimEnv {
         RenderCamera m_renderCamera;
         Node m_node;
 
+        bool cached = false;
+
+        Color32[] pixels;
+
         public CameraSensor(RenderCamera renderCamera, string sensorName) {
             m_node = node;
             m_renderCamera = renderCamera;
@@ -37,19 +41,21 @@ namespace SimEnv {
 
         public void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex) {
             int startingIndex = mapIndex * actorIndex * GetSize();
+            if (!cached) {
+                RenderTexture activeRenderTexture = RenderTexture.active;
+                RenderTexture.active = renderCamera.camera.targetTexture;
+                tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+                tex.Apply();
+                pixels = tex.GetPixels32();
+            }
 
-            RenderTexture activeRenderTexture = RenderTexture.active;
-            RenderTexture.active = renderCamera.camera.targetTexture;
-            tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
-            tex.Apply();
-            Color32[] pixels = tex.GetPixels32();
             int channelShift = GetSize() / 3; // so we have RRRGGGBBB C,H,W order
-
             for (int i = 0; i < pixels.Length; i++) {
                 buffer.uintBuffer[startingIndex + channelShift * 0 + i] = pixels[i].r;
                 buffer.uintBuffer[startingIndex + channelShift * 1 + i] = pixels[i].g;
                 buffer.uintBuffer[startingIndex + channelShift * 2 + i] = pixels[i].b;
             }
+            cached = true;
         }
 
         public void Enable() {
@@ -58,6 +64,7 @@ namespace SimEnv {
 
         public void Disable() {
             renderCamera.camera.enabled = false;
+            cached = false;
         }
     }
 }
