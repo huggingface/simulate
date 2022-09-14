@@ -169,9 +169,9 @@ class EgocentricCameraActor(Capsule):
 
         # Create our action maps to physics engine effects
         mapping = [
-            ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-3),
-            ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=3),
-            ActionMapping("change_position", axis=[1, 0, 0], amplitude=0.05),
+            ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-10),
+            ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=10),
+            ActionMapping("change_position", axis=[1, 0, 0], amplitude=0.1),
         ]
         self.actuator = Actuator(n=3, mapping=mapping)
 

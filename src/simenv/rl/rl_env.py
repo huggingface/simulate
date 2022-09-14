@@ -18,6 +18,7 @@ from typing import Callable, Optional, Union
 import numpy as np
 
 import simenv as sm
+from simenv.assets.gltflib.models import scene
 
 # Lint as: python3
 from simenv.scene import Scene
@@ -50,7 +51,13 @@ class RLEnv(VecEnv):
     ):
 
         if hasattr(scene_or_map_fn, "__call__"):
-            self.scene = Scene(engine="Unity", **engine_kwargs)
+            scene_config = sm.Config(
+                time_step=time_step,
+                frame_skip=frame_skip,
+                return_frames=False,
+                return_nodes=False,
+            )
+            self.scene = Scene(engine="Unity", config=scene_config, **engine_kwargs)
             self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
             self.map_roots = []
             for i in range(n_maps):
