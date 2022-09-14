@@ -1,4 +1,5 @@
 import argparse
+import pdb
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,6 +16,7 @@ SCALE = 30.0  # affects how fast-paced the game is, forces should be adjusted as
 MAIN_ENGINE_POWER = 13.0
 SIDE_ENGINE_POWER = 0.6
 
+# TODO integrate
 INITIAL_RANDOM = 1000.0  # Set 1500 to make game harder
 
 LANDER_POLY = np.array([(-17, -10, 0), (-17, 0, 0), (-14, 17, 0), (14, 17, 0), (17, 0, 0), (17, -10, 0)])[::-1] / SCALE
@@ -24,8 +26,8 @@ LEG_ANGLE = 0.25  # radions
 LEG_W, LEG_H = 2, 8
 LEG_SPRING_TORQUE = 40
 
-SIDE_ENGINE_HEIGHT = 14.0
-SIDE_ENGINE_AWAY = 12.0
+SIDE_ENGINE_HEIGHT = 14.0 # TODO integrate
+SIDE_ENGINE_AWAY = 12.0 # TODO integrate
 
 VIEWPORT_W = 600
 VIEWPORT_H = 400
@@ -82,23 +84,24 @@ def make_lander(engine="Unity", engine_exe=None):
     # Add sm scene
     sc = sm.Scene(engine=engine, engine_exe=engine_exe)
 
-    lander_init_pos = (10, 10, 0) + np.random.uniform(0, 5, 3)
+    # initial lander position
+    lander_init_pos = (10, 6, 0) + np.random.uniform(2, 4, 3)
     lander_init_pos[2] = 0.0
 
-    lander_poly_shifted = shift_polygon(LANDER_POLY, lander_init_pos)
     lander_material = sm.Material(base_color=LANDER_COLOR)
+    invisible_material = sm.Material.TRANSPARENT #f or colliders
 
-    # TODO Add Collider
+    # TODO Debug Collider
     lander = sm.Polygon(
-        points=LANDER_POLY,  # lander_poly_shifted,
+        points=LANDER_POLY,
         material=lander_material,
         position=lander_init_pos,
         name="lunar_lander",
         physics_component=sm.RigidBodyComponent(
             use_gravity=True,
             constraints=[
-                "freeze_rotation_y",
                 "freeze_rotation_z",
+                "freeze_position_z"
             ],
             mass=1,
         ),
@@ -108,23 +111,29 @@ def make_lander(engine="Unity", engine_exe=None):
         mapping=[
             sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=1),
             sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=-1),
-            sm.ActionMapping("add_force", axis=[0, 1, 0], amplitude=0.3),
+            sm.ActionMapping("add_force", axis=[0, 1, 0], amplitude=-0.3),
         ],
         n=3,
     )
-    lander += sm.Collider(type="mesh", mesh=lander.mesh, convex=True)
+    lander += sm.Box(position=[0, LEG_DOWN/SCALE, -0.5],
+                         direction=[0, 1, 0],
+                         bounds=[0.01, 2*LEG_AWAY/SCALE, 1],
+                         # material=invisible_material,
+                         material=lander_material,
+                         rotation=[0, 90, 0],  # to fix an off by 90 degree error for flat boxes,
+                         with_collider=True,
+                         name="lander_collider_box",
+                     )
 
     # TODO add lander state sensors for state-based RL
 
-    r_leg = sm.Polygon(points=LEG_RIGHT_POLY, material=lander_material, parent=lander, name="lander_r_leg")
+    r_leg = sm.Polygon(points=LEG_RIGHT_POLY, material=lander_material, parent=lander, name="lander_r_leg",         with_collider=True,)
     r_leg.mesh.extrude((0, 0, -1), capping=True, inplace=True)
-    r_leg += sm.Collider(type="mesh", mesh=r_leg.mesh, convex=True)
 
     l_leg = sm.Polygon(
-        points=LEG_LEFT_POLY, material=lander_material, parent=lander, name="lander_l_leg"  # l_leg_poly_shifted,
+        points=LEG_LEFT_POLY, material=lander_material, parent=lander, name="lander_l_leg",         with_collider=True,
     )
     l_leg.mesh.extrude((0, 0, -1), capping=True, inplace=True)
-    l_leg += sm.Collider(type="mesh", mesh=l_leg.mesh, convex=True)
 
     # TODO verify collider
     land = sm.Polygon(
@@ -133,7 +142,26 @@ def make_lander(engine="Unity", engine_exe=None):
         name="Moon",
     )
     land.mesh.extrude((0, 0, -1), capping=True, inplace=True)
-    land += sm.Collider(type="mesh", mesh=land.mesh, convex=True)
+
+    # Create collider blocks for the land (non-convex meshes are TODO)
+    for i in range(len(CHUNK_X)-1):
+        x1, x2 = CHUNK_X[i], CHUNK_X[i+1]
+        y1, y2 = SMOOTH_Y[i], SMOOTH_Y[i+1]
+        normal = [(y2-y1), -(x2-x1), 0]
+        if y1==y2:
+            rotation = [0, 90, 0]
+        else:
+            rotation = [0,0,0]
+
+        block_i = sm.Box(position=[(x1+x2)/2, (y1+y2)/2, -0.5],
+                         direction=normal,
+                         bounds=[0.01, np.sqrt((x2-x1)**2 + (y2-y1)**2), 1],
+                         material=sm.Material.GRAY,
+                         rotation=rotation,
+                         with_collider=True,
+                         name="land_collider_"+str(i))
+        sc += block_i
+
 
     lander += sm.Camera(
         name="cam",
@@ -145,6 +173,8 @@ def make_lander(engine="Unity", engine_exe=None):
         width=256,
         height=256,
     )
+
+    ## apply initial force & rotation to lander
 
     sc += lander
     sc += land
