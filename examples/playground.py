@@ -48,23 +48,13 @@ def make_scene(build_exe, camera_width, camera_height):
             with_collider=True,
         )
 
+    scene += sm.Camera(sensor_name="SecurityCamera", position=[0, 32, 0], rotation=[90, 0, 0])
+
     # Lets add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
     actor = sm.EgocentricCameraActor(name="actor", position=[0.0, 0.5, 0.0])  # Has a collider
-    # Specify the action to control the actor: 3 discrete action to rotate and move forward
-    actor.actuator = sm.Actuator(
-        n=3,
-        mapping=[
-            sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),
-            sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
-            sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
-        ],
-    )
-    scene += actor
 
-    # Add a camera located on the actor
-    actor_camera = sm.Camera(name="camera", width=camera_width, height=camera_height, position=[0, 0.75, 0])
-    actor += actor_camera
-    actor += sm.StateSensor(target_entity=actor, reference_entity=actor_camera, properties="position")
+    scene += actor
+    actor += sm.StateSensor(target_entity=actor, reference_entity=scene.floor, properties="position")
     actor += sm.RaycastSensor(n_horizontal_rays=12, n_vertical_rays=4, horizontal_fov=120, vertical_fov=45)
     # # Let's add a target and a reward function
     material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
@@ -94,17 +84,24 @@ if __name__ == "__main__":
     scene.save("test.gltf")
 
     env = sm.RLEnv(scene)
+    env.reset()
 
     plt.ion()
     fig1, ax1 = plt.subplots()
     dummy_obs = np.zeros(shape=(camera_height, camera_width, 3), dtype=np.uint8)
     axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
+    # security camera
+    fig2, ax2 = plt.subplots()
+    dummy_obs2 = np.zeros(shape=(256, 256, 3), dtype=np.uint8)
+    axim2 = ax2.imshow(dummy_obs2, vmin=0, vmax=255)
+
     for i in range(100):
         obs, reward, done, info = env.step()
-        obs = obs["CameraSensor"].transpose(1, 2, 0)
-        axim1.set_data(obs)
+        axim1.set_data(obs["CameraSensor"].reshape(3, camera_height, camera_width).transpose(1, 2, 0))
         fig1.canvas.flush_events()
+        axim2.set_data(obs["SecurityCamera"].reshape(3, 256, 256).transpose(1, 2, 0))
+        fig2.canvas.flush_events()
 
         plt.pause(0.1)
 

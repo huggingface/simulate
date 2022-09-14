@@ -150,7 +150,7 @@ namespace SimEnv.GLTF {
             accessor.min = min;
             accessor.max = max;
             byte[] bytes = new byte[floatArray.Length * sizeof(float)];
-            Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
+            System.Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
             accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, BufferViewTarget.ARRAY_BUFFER);
             gltfObject.accessors ??= new List<GLTFAccessor>();
@@ -181,7 +181,7 @@ namespace SimEnv.GLTF {
             accessor.min = min;
             accessor.max = max;
             byte[] bytes = new byte[floatArray.Length * sizeof(float)];
-            Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
+            System.Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
             accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, BufferViewTarget.ARRAY_BUFFER);
             gltfObject.accessors ??= new List<GLTFAccessor>();
@@ -215,7 +215,7 @@ namespace SimEnv.GLTF {
             accessor.min = min;
             accessor.max = max;
             byte[] bytes = new byte[floatArray.Length * sizeof(float)];
-            Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
+            System.Buffer.BlockCopy(floatArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
             accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, BufferViewTarget.ARRAY_BUFFER);
             gltfObject.accessors ??= new List<GLTFAccessor>();
@@ -233,7 +233,7 @@ namespace SimEnv.GLTF {
             accessor.max = new float[] { data.Max() };
             byte[] bytes = new byte[data.Length * sizeof(ushort)];
             ushort[] shortArray = Array.ConvertAll(data, x => checked((ushort)x));
-            Buffer.BlockCopy(shortArray, 0, bytes, 0, bytes.Length);
+            System.Buffer.BlockCopy(shortArray, 0, bytes, 0, bytes.Length);
             PadBuffer(accessor.type, accessor.componentType, ref bufferData);
             accessor.bufferView = WriteToBuffer(bytes, gltfObject, ref bufferData, bufferViewTarget);
             gltfObject.accessors ??= new List<GLTFAccessor>();

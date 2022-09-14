@@ -403,7 +403,9 @@ def add_mesh_to_model(
 def add_camera_to_model(
     camera: Camera, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
-    gl_camera = gl.Camera(type=camera.camera_type, width=camera.width, height=camera.height)
+    gl_camera = gl.Camera(
+        type=camera.camera_type, width=camera.width, height=camera.height, sensor_name=camera.sensor_name
+    )
 
     if camera.camera_type == "perspective":
         gl_camera.perspective = gl.PerspectiveCameraInfo(

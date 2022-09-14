@@ -10,6 +10,7 @@ namespace SimEnv.GLTF {
         public Perspective perspective;
         [JsonProperty(Required = Required.Always), JsonConverter(typeof(EnumConverter))] public CameraType type;
         public string name;
+        public string sensor_name; // we should refactor this to be a HF_Camera or HF_CameraSensor 
         public int width = 512;
         public int height = 512;
 

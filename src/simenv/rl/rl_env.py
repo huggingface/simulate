@@ -12,17 +12,23 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from collections import defaultdict
 from typing import Callable, Optional, Union
 
 import numpy as np
+
+
+try:
+    from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+except ImportError:
+
+    class VecEnv:
+        pass  # Dummy class if SB3 is not installed
+
 
 import simenv as sm
 
 # Lint as: python3
 from simenv.scene import Scene
-
-from .vec_env import VecEnv
 
 
 class RLEnv(VecEnv):
@@ -50,7 +56,13 @@ class RLEnv(VecEnv):
     ):
 
         if hasattr(scene_or_map_fn, "__call__"):
-            self.scene = Scene(engine="Unity", **engine_kwargs)
+            scene_config = sm.Config(
+                time_step=time_step,
+                frame_skip=frame_skip,
+                return_frames=False,
+                return_nodes=False,
+            )
+            self.scene = Scene(engine="Unity", config=scene_config, **engine_kwargs)
             self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
             self.map_roots = []
             for i in range(n_maps):
@@ -111,79 +123,42 @@ class RLEnv(VecEnv):
 
         # Extract observations, reward, and done from event data
         # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
-        if self.n_actors == 1:
-            actor_data = event["actors"][self.actor.name]
-            obs = self._extract_sensor_obs(actor_data["observations"])
-            reward = actor_data["reward"]
-            done = actor_data["done"]
-            info = {}
+        obs = self._extract_sensor_obs(event["actor_sensor_buffers"])
+        reward = self._convert_to_numpy(event["actor_reward_buffer"]).flatten()
+        done = self._convert_to_numpy(event["actor_done_buffer"]).flatten()
 
-        else:
-            reward = []
-            done = []
-            info = []
-            obs = []
-            for actor_name in event["actors"].keys():
-                actor_data = event["actors"][actor_name]
-                actor_obs = self._extract_sensor_obs(actor_data["observations"])
-                obs.append(actor_obs)
-                reward.append(actor_data["reward"])
-                done.append(actor_data["done"])
-                info.append({})
+        obs = self._squeeze_actor_dimension(obs)
 
-            obs = self._obs_dict_to_tensor(obs)
-            reward = np.array(reward)
-            done = np.array(done)
+        return obs, reward, done, [{}] * len(done)
 
-        return obs, reward, done, info
+    def _squeeze_actor_dimension(self, obs):
+        for k, v in obs.items():
+            obs[k] = obs[k].reshape((self.n_show * self.n_actors_per_map, *obs[k].shape[2:]))
+        return obs
 
     def reset(self):
         self.scene.reset()
 
         # To extract observations, we do a "fake" step (no actual simulation with frame_skip=0)
         event = self.scene.step(return_frames=True, frame_skip=0)
-        obs = {}
-        if self.n_actors == 1:
-            actor_data = event["actors"][self.actor.name]
-            obs = self._extract_sensor_obs(actor_data["observations"])
-        else:
-            obs = []
-            for actor_name in event["actors"].keys():
-                actor_data = event["actors"][actor_name]
-                actor_obs = self._extract_sensor_obs(actor_data["observations"])
-                obs.append(actor_obs)
-
-            obs = self._obs_dict_to_tensor(obs)
-
+        obs = self._extract_sensor_obs(event["actor_sensor_buffers"])
+        obs = self._squeeze_actor_dimension(obs)
         return obs
 
-    def _obs_dict_to_tensor(self, obs):
-        out = defaultdict(list)
+    def _convert_to_numpy(self, event_data):
+        if event_data["type"] == "uint8":
+            shape = event_data["shape"]
+            return np.array(event_data["uintBuffer"], dtype=np.uint8).reshape(shape)
+        elif event_data["type"] == "float":
+            shape = event_data["shape"]
+            return np.array(event_data["floatBuffer"], dtype=np.float32).reshape(shape)
+        else:
+            raise TypeError
 
-        for o in obs:
-            for key, value in o.items():
-                out[key].append(value)
-
-        for key in out.keys():
-            out[key] = np.stack(out[key])
-
-        return out
-
-    def _extract_sensor_obs(self, sim_data):
+    def _extract_sensor_obs(self, sim_event_data):
         sensor_obs = {}
-        for sensor_name, sensor_data in sim_data.items():
-            if sensor_data["type"] == "uint8":
-                shape = sensor_data["shape"]
-                measurement = np.array(sensor_data["uintBuffer"], dtype=np.uint8).reshape(shape)
-                sensor_obs[sensor_name] = measurement
-                pass
-            elif sensor_data["type"] == "float":
-                shape = sensor_data["shape"]
-                measurement = np.array(sensor_data["floatBuffer"], dtype=np.float32).reshape(shape)
-                sensor_obs[sensor_name] = measurement
-            else:
-                raise TypeError
-
+        for sensor_name, sensor_data in sim_event_data.items():
+            sensor_obs[sensor_name] = self._convert_to_numpy(sensor_data)
         return sensor_obs
 
     def close(self):
