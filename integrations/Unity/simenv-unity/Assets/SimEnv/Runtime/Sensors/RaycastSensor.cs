@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace SimEnv {
     public class RaycastSensor : ISensor {
-        public static string mName = "RaycastSensor";
+        public string mName = "RaycastSensor";
         public static string mType = "float";
         public Node node => m_node;
         Node m_node;
@@ -20,6 +20,7 @@ namespace SimEnv {
         public RaycastSensor(Node node, SimEnv.GLTF.HFRaycastSensors.HFRaycastSensor data) {
             m_node = node;
             node.sensor = this;
+            mName = data.sensor_name;
             // calculate ray angles etc
             Debug.Log("instantiating raycast sensor");
 

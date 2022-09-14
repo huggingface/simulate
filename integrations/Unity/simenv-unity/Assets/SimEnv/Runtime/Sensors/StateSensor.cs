@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace SimEnv {
     public class StateSensor : ISensor {
-        public static string mName = "StateSensor";
+        public string mName = "StateSensor";
         public static string mType = "float";
         public Node node => m_node;
         Node m_node;
@@ -14,6 +14,7 @@ namespace SimEnv {
         public StateSensor(Node node, SimEnv.GLTF.HFStateSensors.HFStateSensor data) {
             m_node = node;
             node.sensor = this;
+            mName = data.sensor_name;
             properties = data.properties;
             referenceEntity = GameObject.Find(data.reference_entity);
             if (referenceEntity != null) {

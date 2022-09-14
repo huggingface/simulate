@@ -125,7 +125,7 @@ class Scene(Asset):
             sensors = actor.tree_filtered_descendants(
                 lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor))
             )
-            return spaces.Dict({sensor.SENSOR_NAME: sensor.observation_space for sensor in sensors})
+            return spaces.Dict({sensor.sensor_name: sensor.observation_space for sensor in sensors})
         return None
 
     def close(self):

@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace SimEnv {
     public class CameraSensor : ISensor {
-        public static string mName = "CameraSensor";
+        public string mName = "CameraSensor";
         public static string mType = "uint8";
         public Node node => m_node;
         public RenderCamera renderCamera => m_renderCamera;
