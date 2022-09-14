@@ -80,8 +80,7 @@ namespace SimEnv {
                 }
             }
 
-            // Override config from kwargs
-            Config.instance.Parse(kwargs);
+            // Apply configuration, such as ambient lighting
             Config.Apply();
 
             // Initialize plugins
@@ -93,11 +92,15 @@ namespace SimEnv {
             if (root == null)
                 throw new System.Exception("Scene is not initialized. Call `show()` to initialize the scene before stepping.");
 
-            // Optionally override kwargs for one frame
-            if (kwargs.Count > 0) {
-                Config.Cache();
-                Config.instance.Parse(kwargs);
-            }
+            // If config overrides found, cache and apply
+            int frameSkip = Config.instance.frameSkip;
+            float timeStep = Config.instance.timeStep;
+            bool returnNodes = Config.instance.returnNodes;
+            bool returnFrames = Config.instance.returnFrames;
+            kwargs.TryParse("frame_skip", out Config.instance.frameSkip, frameSkip);
+            kwargs.TryParse("time_step", out Config.instance.timeStep, timeStep);
+            kwargs.TryParse("return_nodes", out Config.instance.returnNodes, returnNodes);
+            kwargs.TryParse("return_frames", out Config.instance.returnFrames, returnFrames);
 
             if (currentEvent == null)
                 currentEvent = new EventData();
@@ -109,10 +112,10 @@ namespace SimEnv {
             BeforeStep?.Invoke();
 
             // Perform the actual simulation
-            Debug.Log($"Frame skip is {Config.instance.frameSkip}");
-            Debug.Log($"Time step is {Config.instance.timeStep}");
-            Debug.Log($"returnFrames is {Config.instance.returnFrames}");
-            Debug.Log($"returnNodes is {Config.instance.returnNodes}");
+            // Debug.Log($"Frame skip is {Config.instance.frameSkip}");
+            // Debug.Log($"Time step is {Config.instance.timeStep}");
+            // Debug.Log($"returnFrames is {Config.instance.returnFrames}");
+            // Debug.Log($"returnNodes is {Config.instance.returnNodes}");
 
             for (int i = 0; i < Config.instance.frameSkip; i++) {
                 BeforeIntermediateFrame?.Invoke();
@@ -135,9 +138,11 @@ namespace SimEnv {
 
             AfterStep?.Invoke();
 
-            // Restore config
-            if (kwargs.Count > 0)
-                Config.Restore();
+            // Revert config overrides
+            Config.instance.frameSkip = frameSkip;
+            Config.instance.timeStep = timeStep;
+            Config.instance.returnFrames = returnFrames;
+            Config.instance.returnNodes = returnNodes;
         }
 
         static void OnEarlyStepInternal(bool readCameraData) {

@@ -48,7 +48,6 @@ class Camera(Asset):
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
-    SENSOR_NAME = "CameraSensor"
 
     def __init__(
         self,
@@ -62,6 +61,7 @@ class Camera(Asset):
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,
         name: Optional[str] = None,
+        sensor_name: Optional[str] = "CameraSensor",
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
@@ -80,6 +80,7 @@ class Camera(Asset):
         self.height = height
 
         self.camera_type = camera_type
+        self.sensor_name = sensor_name
         if camera_type not in ALLOWED_CAMERA_TYPES:
             raise ValueError(f"Camera type {camera_type} is not allowed. Allowed types are: {ALLOWED_CAMERA_TYPES}")
         if camera_type == "perspective":
@@ -150,6 +151,7 @@ class CameraDistant(Camera):
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,
         name: Optional[str] = None,
+        sensor_name: Optional[str] = "CameraSensor",
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
@@ -164,6 +166,7 @@ class CameraDistant(Camera):
 
         super().__init__(
             name=name,
+            sensor_name=sensor_name,
             position=position,
             rotation=rotation,
             scaling=scaling,

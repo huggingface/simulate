@@ -10,7 +10,7 @@ namespace SimEnv.RlAgents {
 
         private Dictionary<string, object> observations = new Dictionary<string, object>();
 
-        private List<ISensor> sensors = new List<ISensor>();
+        public List<ISensor> sensors = new List<ISensor>();
         List<RewardFunction> rewardFunctions = new List<RewardFunction>();
         float accumReward;
         object currentAction;
@@ -59,7 +59,7 @@ namespace SimEnv.RlAgents {
             foreach (Node node2 in Simulator.nodes.Values) {
                 // search children for Cameras and create CameraSensors
                 if (node2.camera != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
-                    CameraSensor cameraSensor = new CameraSensor(node2.camera);
+                    CameraSensor cameraSensor = new CameraSensor(node2.camera, node2.cameraData.sensor_name);
                     sensors.Add(cameraSensor);
                 }
                 // search children for StateSensors
@@ -98,17 +98,13 @@ namespace SimEnv.RlAgents {
             this.currentAction = action;
         }
 
-        public Data GetEventData() {
+        public (float, bool) GetRewardDone() {
             UpdateReward();
             bool done = IsDone();
             float reward = GetReward();
             ZeroReward();
             // Observations not included, as they are read later from the camera
-            Data data = new Data() {
-                done = done,
-                reward = reward,
-            };
-            return data;
+            return (reward, done);
         }
 
         public void EnableSensors() {
@@ -123,12 +119,10 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public void ReadSensorObservations(Data data) {
-            Dictionary<string, SensorBuffer> observations = new Dictionary<string, SensorBuffer>();
+        public void ReadSensorObservations(Dictionary<string, Buffer> sensorBuffers, int mapIndex, int actorIndex) {
             foreach (var sensor in sensors) {
-                observations[sensor.GetName()] = sensor.GetObs();
+                sensor.AddObsToBuffer(sensorBuffers[sensor.GetName()], mapIndex, actorIndex);
             }
-            data.observations = observations;
         }
 
         public void UpdateReward() {
@@ -172,10 +166,10 @@ namespace SimEnv.RlAgents {
             return done;
         }
 
-        public class Data {
-            public bool done;
-            public float reward;
-            public Dictionary<string, SensorBuffer> observations;
-        }
+        // public class Data {
+        //     public bool done;
+        //     public float reward;
+        //     public Dictionary<string, Buffer> observations;
+        // }
     }
 }

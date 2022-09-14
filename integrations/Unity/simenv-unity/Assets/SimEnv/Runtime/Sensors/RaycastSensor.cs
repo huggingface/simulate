@@ -3,7 +3,7 @@ using UnityEngine;
 
 namespace SimEnv {
     public class RaycastSensor : ISensor {
-        public static string mName = "RaycastSensor";
+        public string mName = "RaycastSensor";
         public static string mType = "float";
         public Node node => m_node;
         Node m_node;
@@ -20,6 +20,7 @@ namespace SimEnv {
         public RaycastSensor(Node node, SimEnv.GLTF.HFRaycastSensors.HFRaycastSensor data) {
             m_node = node;
             node.sensor = this;
+            mName = data.sensor_name;
             // calculate ray angles etc
             Debug.Log("instantiating raycast sensor");
 
@@ -53,7 +54,7 @@ namespace SimEnv {
             return mName;
         }
 
-        public string GetSensorType() {
+        public string GetSensorBufferType() {
             return mType;
         }
 
@@ -66,17 +67,13 @@ namespace SimEnv {
             return shape;
         }
 
-        public string GetBufferType() {
-            return mType;
+        public void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex) {
+            GetState(buffer, mapIndex, actorIndex);
         }
 
-        public SensorBuffer GetObs() {
-            SensorBuffer buffer = new SensorBuffer(GetSize(), GetShape(), GetSensorType());
-            GetState(buffer);
-            return buffer;
-        }
+        public void GetState(Buffer buffer, int mapIndex, int actorIndex) {
+            int startingIndex = mapIndex * actorIndex * GetSize();
 
-        public void GetState(SensorBuffer buffer) {
             for (int i = 0; i < raycastAngles.Count; i++) {
                 var angleH = raycastAngles[i].horizontal;
                 var angleV = raycastAngles[i].vertical;
@@ -86,8 +83,8 @@ namespace SimEnv {
                 Quaternion.AngleAxis(angleV, node.transform.right) * node.transform.forward;
                 RaycastHit raycastHit;
                 var isHit = Physics.Raycast(node.transform.position, raycastDir, out raycastHit, rayLength); // TODO add Raycast layer mask?
-                buffer.floatBuffer[i] = raycastDistance(raycastHit, isHit);
-                if (true) { // TODO: remove this from release version
+                buffer.floatBuffer[i + startingIndex] = raycastDistance(raycastHit, isHit);
+                if (false) { // TODO: remove this from release version
                     Debug.DrawRay(node.transform.position, rayLength * raycastDir.normalized);
                 }
             }

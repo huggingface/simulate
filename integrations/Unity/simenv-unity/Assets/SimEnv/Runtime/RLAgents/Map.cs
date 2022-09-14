@@ -7,7 +7,7 @@ namespace SimEnv.RlAgents {
         public bool active { get; private set; }
 
         Node root;
-        Dictionary<string, Actor> actors;
+        public Dictionary<string, Actor> actors;
         List<Node> children;
 
         public Map(Node root) {
@@ -19,6 +19,44 @@ namespace SimEnv.RlAgents {
                 if (ActorManager.actors.TryGetValue(node.name, out Actor Actor))
                     actors.Add(node.name, Actor);
                 children.Add(node);
+            }
+            initMapSensors();
+        }
+
+        private void initMapSensors() {
+            // finds sensors that are children of the map, but not of the actors (in this map)
+            // these sensors are considered to be "global" sensors that are static relative to a particular
+            // agent
+            foreach (Node node2 in Simulator.nodes.Values) {
+                if (node2.camera != null && node2.gameObject.transform.IsChildOf(root.gameObject.transform)) {
+                    TryAddCameraToActors(node2);
+                }
+                // search children for StateSensors
+                if (node2.sensor != null && node2.gameObject.transform.IsChildOf(root.gameObject.transform)) {
+                    TryAddSensorToActors(node2);
+                }
+            }
+        }
+
+        private void TryAddCameraToActors(Node node) {
+            foreach (var actor in actors.Values) {
+                if (node.gameObject.transform.IsChildOf(actor.node.gameObject.transform)) {
+                    return;
+                }
+            }
+            CameraSensor cameraSensor = new CameraSensor(node.camera, node.cameraData.sensor_name); // same instance shared across actors
+            foreach (var actor in actors.Values) {
+                actor.sensors.Add(cameraSensor);
+            }
+        }
+        private void TryAddSensorToActors(Node node) {
+            foreach (var actor in actors.Values) {
+                if (node.gameObject.transform.IsChildOf(actor.node.gameObject.transform)) {
+                    return;
+                }
+            }
+            foreach (var actor in actors.Values) {
+                actor.sensors.Add(node.sensor);
             }
         }
 
@@ -36,20 +74,24 @@ namespace SimEnv.RlAgents {
                 actors[key].SetAction(action);
         }
 
-        public Dictionary<string, Actor.Data> GetActorEventData() {
-            Dictionary<string, Actor.Data> actorEventData = new Dictionary<string, Actor.Data>();
+        public List<(float, bool)> GetActorRewardDones() {
+            List<(float, bool)> rewardDones = new List<(float, bool)>();
+            //Dictionary<string, Actor.Data> actorEventData = new Dictionary<string, Actor.Data>();
+
             foreach (string key in actors.Keys) {
                 Actor actor = actors[key];
-                Actor.Data data = actor.GetEventData();
-                actorEventData.Add(key, data);
+                var doneReward = actor.GetRewardDone();
+                rewardDones.Add(doneReward);
             }
-            return actorEventData;
+            return rewardDones;
         }
 
-        public void GetActorObservations(Dictionary<string, Actor.Data> actorEventData) {
+        public void GetActorObservations(Dictionary<string, Buffer> sensorBuffers, int mapIndex) {
+            int actorIndex = 0;
             foreach (string key in actors.Keys) {
                 Actor actor = actors[key];
-                actor.ReadSensorObservations(actorEventData[key]);
+                actor.ReadSensorObservations(sensorBuffers, mapIndex, actorIndex);
+                actorIndex++;
             }
         }
 

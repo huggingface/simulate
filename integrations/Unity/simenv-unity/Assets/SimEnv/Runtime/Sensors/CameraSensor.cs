@@ -2,7 +2,7 @@ using UnityEngine;
 
 namespace SimEnv {
     public class CameraSensor : ISensor {
-        public static string mName = "CameraSensor";
+        public string mName = "CameraSensor";
         public static string mType = "uint8";
         public Node node => m_node;
         public RenderCamera renderCamera => m_renderCamera;
@@ -10,9 +10,14 @@ namespace SimEnv {
         RenderCamera m_renderCamera;
         Node m_node;
 
-        public CameraSensor(RenderCamera renderCamera) {
+        bool cached = false;
+
+        Color32[] pixels;
+
+        public CameraSensor(RenderCamera renderCamera, string sensorName) {
             m_node = node;
             m_renderCamera = renderCamera;
+            mName = sensorName;
             renderCamera.camera.enabled = false;
             tex = new Texture2D(renderCamera.camera.targetTexture.width, renderCamera.camera.targetTexture.height);
         }
@@ -21,7 +26,7 @@ namespace SimEnv {
             return mName;
         }
 
-        public string GetSensorType() {
+        public string GetSensorBufferType() {
             return mType;
         }
 
@@ -34,25 +39,23 @@ namespace SimEnv {
             return shape;
         }
 
-        public string GetBufferType() {
-            return "uint";
-        }
-
-        public SensorBuffer GetObs() {
-            SensorBuffer buffer = new SensorBuffer(GetSize(), GetShape(), GetSensorType()); // TODO: refactor be not be recreated at every call to GetObs
-            RenderTexture activeRenderTexture = RenderTexture.active;
-            RenderTexture.active = renderCamera.camera.targetTexture;
-            tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
-            tex.Apply();
-            Color32[] pixels = tex.GetPixels32();
-            int channelShift = GetSize() / 3; // so we have RRRGGGBBB C,H,W order
-
-            for (int i = 0; i < pixels.Length; i++) {
-                buffer.uintBuffer[channelShift * 0 + i] = pixels[i].r;
-                buffer.uintBuffer[channelShift * 1 + i] = pixels[i].g;
-                buffer.uintBuffer[channelShift * 2 + i] = pixels[i].b;
+        public void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex) {
+            int startingIndex = mapIndex * actorIndex * GetSize();
+            if (!cached) {
+                RenderTexture activeRenderTexture = RenderTexture.active;
+                RenderTexture.active = renderCamera.camera.targetTexture;
+                tex.ReadPixels(new Rect(0, 0, tex.width, tex.height), 0, 0);
+                tex.Apply();
+                pixels = tex.GetPixels32();
             }
-            return buffer;
+
+            int channelShift = GetSize() / 3; // so we have RRRGGGBBB C,H,W order
+            for (int i = 0; i < pixels.Length; i++) {
+                buffer.uintBuffer[startingIndex + channelShift * 0 + i] = pixels[i].r;
+                buffer.uintBuffer[startingIndex + channelShift * 1 + i] = pixels[i].g;
+                buffer.uintBuffer[startingIndex + channelShift * 2 + i] = pixels[i].b;
+            }
+            cached = true;
         }
 
         public void Enable() {
@@ -61,6 +64,7 @@ namespace SimEnv {
 
         public void Disable() {
             renderCamera.camera.enabled = false;
+            cached = false;
         }
     }
 }

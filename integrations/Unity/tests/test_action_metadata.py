@@ -94,7 +94,9 @@ def test_add_force(build_exe, port_number):
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 50 physics steps per second (0.02 second per step)
-    scene.show(time_step=0.02, frame_skip=1)
+    scene.config.time_step = 0.02
+    scene.config.frame_skip = 1
+    scene.show()
     event = scene.step()
     original_position = event["nodes"]["actor"]["position"]
     original_rotation = event["nodes"]["actor"]["rotation"]
@@ -172,7 +174,9 @@ def test_add_force_time_step(build_exe, port_number):
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 100 physics steps per second (0.01 second per step)
-    scene.show(time_step=0.01, frame_skip=1)
+    scene.config.time_step = 0.01
+    scene.config.frame_skip = 1
+    scene.show()
     # Apply 20 times a force of 10 N to an object of 1 kg along the x axis during 0.01 second
     for i in range(19):
         scene.step(action={"0": 0})
@@ -218,7 +222,9 @@ def test_add_force_frame_skip(build_exe, port_number):
     scene += actor
 
     # Create the scene with 1 observation step per simulation step with 100 physics steps per second (0.01 second per step)
-    scene.show(time_step=0.01, frame_skip=5)
+    scene.config.time_step = 0.01
+    scene.config.frame_skip = 5
+    scene.show()
     # Apply 20 times a force of 10 N to an object of 1 kg along the x axis during 0.01 second
     for i in range(3):
         scene.step(action={"0": 0})
