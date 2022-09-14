@@ -112,36 +112,17 @@ class RLEnv(VecEnv):
         # Extract observations, reward, and done from event data
         # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
         obs = self._extract_sensor_obs(event["actor_sensor_buffers"])
-        reward = self._convert_to_numpy(event["actor_reward_buffer"])
-        done = self._convert_to_numpy(event["actor_done_buffer"])
+        reward = self._convert_to_numpy(event["actor_reward_buffer"]).flatten()
+        done = self._convert_to_numpy(event["actor_done_buffer"]).flatten()
+
+        obs = self._squeeze_actor_dimension(obs)
 
         return obs, reward, done, [{}]*len(done)
 
-        if self.n_actors == 1:
-            actor_data = event["actors"][self.actor.name]
-            obs = self._extract_sensor_obs(actor_data["observations"])
-            reward = actor_data["reward"]
-            done = actor_data["done"]
-            info = {}
-
-        else:
-            reward = []
-            done = []
-            info = []
-            obs = []
-            for actor_name in event["actors"].keys():
-                actor_data = event["actors"][actor_name]
-                actor_obs = self._extract_sensor_obs(actor_data["observations"])
-                obs.append(actor_obs)
-                reward.append(actor_data["reward"])
-                done.append(actor_data["done"])
-                info.append({})
-
-            obs = self._obs_dict_to_tensor(obs)
-            reward = np.array(reward)
-            done = np.array(done)
-
-        return obs, reward, done, info
+    def _squeeze_actor_dimension(self, obs):
+        for k,v in obs.items():
+            obs[k] = obs[k].reshape((self.n_show*self.n_actors_per_map, *obs[k].shape[2:]))
+        return obs
 
     def reset(self):
         self.scene.reset()
@@ -149,35 +130,8 @@ class RLEnv(VecEnv):
         # To extract observations, we do a "fake" step (no actual simulation with frame_skip=0)
         event = self.scene.step(return_frames=True, frame_skip=0)
         obs = self._extract_sensor_obs(event["actor_sensor_buffers"])
+        obs = self._squeeze_actor_dimension(obs)
         return obs
-
-        obs = {}
-        if self.n_actors == 1:
-            actor_data = event["actors"][self.actor.name]
-            obs = self._extract_sensor_obs(actor_data["observations"])
-        else:
-            obs = []
-            for actor_name in event["actors"].keys():
-                actor_data = event["actors"][actor_name]
-                actor_obs = self._extract_sensor_obs(actor_data["observations"])
-                obs.append(actor_obs)
-
-            obs = self._obs_dict_to_tensor(obs)
-
-        return obs
-
-    def _obs_dict_to_tensor(self, obs):
-        out = defaultdict(list)
-
-        for o in obs:
-            for key, value in o.items():
-                out[key].append(value)
-
-        for key in out.keys():
-            out[key] = np.stack(out[key])
-
-        return out
-
 
     def _convert_to_numpy(self, event_data):
         if event_data["type"] == "uint8":
