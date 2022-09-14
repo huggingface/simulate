@@ -495,7 +495,9 @@ class Box(Object3D):
         if direction is not None:
             pv.translate(mesh, (0, 0, 0), direction)
 
-        super().__init__(mesh=mesh, name=name, position=position, rotation=rotation, parent=parent, children=children, **kwargs)
+        super().__init__(
+            mesh=mesh, name=name, position=position, rotation=rotation, parent=parent, children=children, **kwargs
+        )
 
         if with_collider:
             bounding_box = (bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
