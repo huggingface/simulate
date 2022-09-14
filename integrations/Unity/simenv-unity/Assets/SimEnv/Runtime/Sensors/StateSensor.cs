@@ -71,18 +71,11 @@ namespace SimEnv {
             return shape;
         }
 
-        // public string GetBufferType() {
-        //     return mType;
-        // }
-
-        public Buffer GetObs(Buffer buffer, int mapIndex, int actorIndex) {
-            Buffer oldBuffer = new Buffer(GetSize(), GetShape(), GetSensorBufferType());
-            GetState(oldBuffer, buffer, mapIndex, actorIndex);
-
-            return oldBuffer;
+        public void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex) {
+            GetState(buffer, mapIndex, actorIndex);
         }
 
-        public void GetState(Buffer oldBuffer, Buffer buffer, int mapIndex, int actorIndex) {
+        public void GetState(Buffer buffer, int mapIndex, int actorIndex) {
             int count = 0;
             int startingIndex = mapIndex * actorIndex * GetSize();
             Vector3 relativePosition;
@@ -134,82 +127,60 @@ namespace SimEnv {
             foreach (var property in properties) {
                 switch (property) {
                     case "position":
-                        oldBuffer.floatBuffer[count] = relativePosition.x;
-                        oldBuffer.floatBuffer[count + 1] = relativePosition.y;
-                        oldBuffer.floatBuffer[count + 2] = relativePosition.z;
                         buffer.floatBuffer[count + startingIndex] = relativePosition.x;
                         buffer.floatBuffer[count + startingIndex + 1] = relativePosition.y;
                         buffer.floatBuffer[count + startingIndex + 2] = relativePosition.z;
                         count += 3;
                         break;
                     case "position.x":
-                        oldBuffer.floatBuffer[count] = relativePosition.x;
                         buffer.floatBuffer[count + startingIndex] = relativePosition.x;
                         count += 1;
                         break;
                     case "position.y":
-                        oldBuffer.floatBuffer[count] = relativePosition.y;
                         buffer.floatBuffer[count + startingIndex] = relativePosition.y;
                         count += 1;
                         break;
                     case "position.z":
-                        oldBuffer.floatBuffer[count] = relativePosition.z;
                         buffer.floatBuffer[count + startingIndex] = relativePosition.z;
                         count += 1;
                         break;
                     case "velocity":
-                        oldBuffer.floatBuffer[count] = relativeVelocity.x;
-                        oldBuffer.floatBuffer[count + 1] = relativeVelocity.y;
-                        oldBuffer.floatBuffer[count + 2] = relativeVelocity.z;
                         buffer.floatBuffer[count + startingIndex] = relativeVelocity.x;
                         buffer.floatBuffer[count + startingIndex + 1] = relativeVelocity.y;
                         buffer.floatBuffer[count + startingIndex + 2] = relativeVelocity.z;
                         count += 3;
                         break;
                     case "velocity.x":
-                        oldBuffer.floatBuffer[count] = relativeVelocity.x;
                         buffer.floatBuffer[count + startingIndex] = relativeVelocity.x;
                         count += 1;
                         break;
                     case "velocity.y":
-                        oldBuffer.floatBuffer[count] = relativeVelocity.y;
                         buffer.floatBuffer[count + startingIndex] = relativeVelocity.y;
                         count += 1;
                         break;
                     case "velocity.z":
-                        oldBuffer.floatBuffer[count] = relativeVelocity.z;
                         buffer.floatBuffer[count + startingIndex] = relativeVelocity.z;
                         count += 1;
                         break;
                     case "rotation":
-                        oldBuffer.floatBuffer[count] = rotation.x;
-                        oldBuffer.floatBuffer[count + 1] = rotation.y;
-                        oldBuffer.floatBuffer[count + 2] = rotation.z;
-
                         buffer.floatBuffer[count + startingIndex] = rotation.x;
                         buffer.floatBuffer[count + startingIndex + 1] = rotation.y;
                         buffer.floatBuffer[count + startingIndex + 2] = rotation.z;
                         count += 3;
                         break;
                     case "rotation.x":
-                        oldBuffer.floatBuffer[count] = rotation.x;
                         buffer.floatBuffer[count + startingIndex] = rotation.x;
                         count += 1;
                         break;
                     case "rotation.y":
-                        oldBuffer.floatBuffer[count] = rotation.y;
                         buffer.floatBuffer[count + startingIndex] = rotation.y;
                         count += 1;
                         break;
                     case "rotation.z":
-                        oldBuffer.floatBuffer[count] = rotation.z;
                         buffer.floatBuffer[count + startingIndex] = rotation.z;
                         count += 1;
                         break;
                     case "angular_velocity":
-                        oldBuffer.floatBuffer[count] = relativeAngularRotation.x;
-                        oldBuffer.floatBuffer[count + 1] = relativeAngularRotation.y;
-                        oldBuffer.floatBuffer[count + 2] = relativeAngularRotation.z;
                         buffer.floatBuffer[count + startingIndex] = relativeAngularRotation.x;
                         buffer.floatBuffer[count + startingIndex + 1] = relativeAngularRotation.y;
                         buffer.floatBuffer[count + startingIndex + 2] = relativeAngularRotation.z;
@@ -217,22 +188,18 @@ namespace SimEnv {
                         count += 3;
                         break;
                     case "angular_velocity.x":
-                        oldBuffer.floatBuffer[count] = relativeAngularRotation.x;
                         buffer.floatBuffer[count + startingIndex] = relativeAngularRotation.x;
                         count += 1;
                         break;
                     case "angular_velocity.y":
-                        oldBuffer.floatBuffer[count] = relativeAngularRotation.y;
                         buffer.floatBuffer[count + startingIndex] = relativeAngularRotation.y;
                         count += 1;
                         break;
                     case "angular_velocity.z":
-                        oldBuffer.floatBuffer[count] = relativeAngularRotation.z;
                         buffer.floatBuffer[count + startingIndex] = relativeAngularRotation.z;
                         count += 1;
                         break;
                     case "distance":
-                        oldBuffer.floatBuffer[count] = relativePosition.magnitude;
                         buffer.floatBuffer[count + startingIndex] = relativePosition.magnitude;
                         count += 1;
                         break;

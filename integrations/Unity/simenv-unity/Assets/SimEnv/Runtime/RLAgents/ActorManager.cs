@@ -8,8 +8,6 @@ namespace SimEnv.RlAgents {
     public class ActorManager : PluginBase {
         public static ActorManager instance { get; private set; }
         public static Dictionary<string, Actor> actors { get; private set; }
-
-        static Dictionary<string, Actor.Data> currentActorEventData;
         static List<Map> activeMaps;
         static List<Vector3> positions;
         static MapPool mapPool;
@@ -22,7 +20,6 @@ namespace SimEnv.RlAgents {
         public ActorManager() {
             instance = this;
             actors = new Dictionary<string, Actor>();
-            currentActorEventData = new Dictionary<string, Actor.Data>();
             mapPool = new MapPool();
             activeMaps = new List<Map>();
             positions = new List<Vector3>();
@@ -115,32 +112,21 @@ namespace SimEnv.RlAgents {
         // After Simulator step, before rendering, check if any maps are done
         // If so, reset them, and update the map data
         public override void OnEarlyStep(EventData eventData) {
-            currentActorEventData.Clear();
+
             for (int i = 0; i < activeMaps.Count; i++) {
-                Dictionary<string, Actor.Data> mapData = activeMaps[i].GetActorEventData();
+
+                List<(float reward, bool done)> rewardDones = activeMaps[i].GetActorRewardDones();
                 bool done = false;
                 int count = 0;
-                foreach (Actor.Data data in mapData.Values) {
-                    done = done || data.done;
-                    doneBuffer.floatBuffer[i * maxActorsPerMap + count] = Convert.ToSingle(data.done);
-                    rewardBuffer.floatBuffer[i * maxActorsPerMap + count] = data.reward;
+                foreach (var rewardDone in rewardDones) {
+                    done = done || rewardDone.done;
+                    doneBuffer.floatBuffer[i * maxActorsPerMap + count] = Convert.ToSingle(rewardDone.done);
+                    rewardBuffer.floatBuffer[i * maxActorsPerMap + count] = rewardDone.reward;
                     count++;
                 }
 
-
-                if (done) { // TODO: (Ed), should we reset when only one agent is done in a multiagent setting?
-                    ResetAt(i);
-                    Dictionary<string, Actor.Data> newMapData = activeMaps[i].GetActorEventData();
-                    string[] oldKeys = mapData.Keys.ToArray<string>();
-                    string[] newKeys = newMapData.Keys.ToArray<string>();
-                    for (int j = 0; j < mapData.Count; j++) {
-                        newMapData[newKeys[j]].done = mapData[oldKeys[j]].done;
-                        newMapData[newKeys[j]].reward = mapData[oldKeys[j]].reward;
-                    }
-                    mapData = newMapData;
-                }
-                foreach (string key in mapData.Keys)
-                    currentActorEventData.Add(key, mapData[key]);
+                // TODO: (Ed), should we reset when only one agent is done in a multiagent setting?
+                if (done) ResetAt(i);
             }
 
             eventData.outputKwargs.Add("actor_done_buffer", doneBuffer);
@@ -153,9 +139,8 @@ namespace SimEnv.RlAgents {
         // After Simulator step, record sensor observations
         public override void OnStep(EventData eventData) {
             for (int i = 0; i < activeMaps.Count; i++) {
-                activeMaps[i].GetActorObservations(currentActorEventData, sensorBuffers, i);
+                activeMaps[i].GetActorObservations(sensorBuffers, i);
             }
-            eventData.outputKwargs.Add("actors", currentActorEventData);
             eventData.outputKwargs.Add("actor_sensor_buffers", sensorBuffers);
             for (int i = 0; i < activeMaps.Count; i++)
                 activeMaps[i].DisableActorSensors();

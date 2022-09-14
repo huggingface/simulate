@@ -42,7 +42,6 @@ namespace SimEnv {
         int[] GetShape();
         void Enable();
         void Disable();
-        //string GetBufferType();
-        Buffer GetObs(Buffer buffer, int mapIndex, int actorIndex);
+        void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex);
     }
 }

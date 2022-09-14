@@ -98,17 +98,13 @@ namespace SimEnv.RlAgents {
             this.currentAction = action;
         }
 
-        public Data GetEventData() {
+        public (float, bool) GetRewardDone() {
             UpdateReward();
             bool done = IsDone();
             float reward = GetReward();
             ZeroReward();
             // Observations not included, as they are read later from the camera
-            Data data = new Data() {
-                done = done,
-                reward = reward,
-            };
-            return data;
+            return (reward, done);
         }
 
         public void EnableSensors() {
@@ -123,12 +119,10 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public void ReadSensorObservations(Data data, Dictionary<string, Buffer> sensorBuffers, int mapIndex, int actorIndex) {
-            Dictionary<string, Buffer> observations = new Dictionary<string, Buffer>();
+        public void ReadSensorObservations(Dictionary<string, Buffer> sensorBuffers, int mapIndex, int actorIndex) {
             foreach (var sensor in sensors) {
-                observations[sensor.GetName()] = sensor.GetObs(sensorBuffers[sensor.GetName()], mapIndex, actorIndex);
+                sensor.AddObsToBuffer(sensorBuffers[sensor.GetName()], mapIndex, actorIndex);
             }
-            data.observations = observations;
         }
 
         public void UpdateReward() {
@@ -172,10 +166,10 @@ namespace SimEnv.RlAgents {
             return done;
         }
 
-        public class Data {
-            public bool done;
-            public float reward;
-            public Dictionary<string, Buffer> observations;
-        }
+        // public class Data {
+        //     public bool done;
+        //     public float reward;
+        //     public Dictionary<string, Buffer> observations;
+        // }
     }
 }

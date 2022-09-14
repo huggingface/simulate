@@ -36,21 +36,23 @@ namespace SimEnv.RlAgents {
                 actors[key].SetAction(action);
         }
 
-        public Dictionary<string, Actor.Data> GetActorEventData() {
-            Dictionary<string, Actor.Data> actorEventData = new Dictionary<string, Actor.Data>();
+        public List<(float, bool)> GetActorRewardDones() {
+            List<(float, bool)> rewardDones = new List<(float, bool)>();
+            //Dictionary<string, Actor.Data> actorEventData = new Dictionary<string, Actor.Data>();
+
             foreach (string key in actors.Keys) {
                 Actor actor = actors[key];
-                Actor.Data data = actor.GetEventData();
-                actorEventData.Add(key, data);
+                var doneReward = actor.GetRewardDone();
+                rewardDones.Add(doneReward);
             }
-            return actorEventData;
+            return rewardDones;
         }
 
-        public void GetActorObservations(Dictionary<string, Actor.Data> actorEventData, Dictionary<string, Buffer> sensorBuffers, int mapIndex) {
+        public void GetActorObservations(Dictionary<string, Buffer> sensorBuffers, int mapIndex) {
             int actorIndex = 0;
             foreach (string key in actors.Keys) {
                 Actor actor = actors[key];
-                actor.ReadSensorObservations(actorEventData[key], sensorBuffers, mapIndex, actorIndex);
+                actor.ReadSensorObservations(sensorBuffers, mapIndex, actorIndex);
                 actorIndex++;
             }
         }

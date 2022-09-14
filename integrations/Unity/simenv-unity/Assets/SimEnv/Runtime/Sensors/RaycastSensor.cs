@@ -67,17 +67,11 @@ namespace SimEnv {
             return shape;
         }
 
-        // public string GetBufferType() {
-        //     return mType;
-        // }
-
-        public Buffer GetObs(Buffer buffer, int mapIndex, int actorIndex) {
-            Buffer oldBuffer = new Buffer(GetSize(), GetShape(), GetSensorBufferType());
-            GetState(oldBuffer, buffer, mapIndex, actorIndex);
-            return oldBuffer;
+        public void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex) {
+            GetState(buffer, mapIndex, actorIndex);
         }
 
-        public void GetState(Buffer oldBuffer, Buffer buffer, int mapIndex, int actorIndex) {
+        public void GetState(Buffer buffer, int mapIndex, int actorIndex) {
             int startingIndex = mapIndex * actorIndex * GetSize();
 
             for (int i = 0; i < raycastAngles.Count; i++) {
@@ -89,9 +83,8 @@ namespace SimEnv {
                 Quaternion.AngleAxis(angleV, node.transform.right) * node.transform.forward;
                 RaycastHit raycastHit;
                 var isHit = Physics.Raycast(node.transform.position, raycastDir, out raycastHit, rayLength); // TODO add Raycast layer mask?
-                oldBuffer.floatBuffer[i] = raycastDistance(raycastHit, isHit);
                 buffer.floatBuffer[i + startingIndex] = raycastDistance(raycastHit, isHit);
-                if (true) { // TODO: remove this from release version
+                if (false) { // TODO: remove this from release version
                     Debug.DrawRay(node.transform.position, rayLength * raycastDir.normalized);
                 }
             }
