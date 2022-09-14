@@ -16,6 +16,7 @@ from typing import Callable, Optional, Union
 
 import numpy as np
 
+
 try:
     from stable_baselines3.common.vec_env.base_vec_env import VecEnv
 except ImportError:
@@ -23,7 +24,9 @@ except ImportError:
     class VecEnv:
         pass  # Dummy class if SB3 is not installed
 
+
 import simenv as sm
+
 # Lint as: python3
 from simenv.scene import Scene
 
