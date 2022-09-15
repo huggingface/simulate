@@ -40,10 +40,6 @@ namespace SimEnv.RlAgents {
                 throw new NotImplementedException();
 
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
-            if (mapping.maxVelocityThreshold.HasValue)
-                if (actor.node.rigidbody.velocity.magnitude > mapping.maxVelocityThreshold.Value)
-                    return;
-
             Vector3 force = mapping.axis.Value.normalized * magnitude;
 
             ForceMode forceMode = ForceMode.Force;
@@ -59,6 +55,11 @@ namespace SimEnv.RlAgents {
                 } else {
                     actor.node.rigidbody.AddForce(force, forceMode);
                 }
+                if (actor.node.rigidbody.velocity.magnitude > mapping.maxVelocityThreshold.Value) {
+                    // there is some discussion about the "best" way to do this here
+                    // https://answers.unity.com/questions/9985/limiting-rigidbody-velocity.html
+                    actor.node.rigidbody.velocity = actor.node.rigidbody.velocity.normalized * mapping.maxVelocityThreshold.Value;
+                }
             }
 
             if (actor.node.articulationBody != null) {
@@ -66,6 +67,9 @@ namespace SimEnv.RlAgents {
                     actor.node.articulationBody.AddRelativeForce(force, forceMode);
                 } else {
                     actor.node.articulationBody.AddForce(force, forceMode);
+                }
+                if (actor.node.articulationBody.velocity.magnitude > mapping.maxVelocityThreshold.Value) {
+                    actor.node.articulationBody.velocity = actor.node.articulationBody.velocity.normalized * mapping.maxVelocityThreshold.Value;
                 }
             }
 
@@ -116,10 +120,6 @@ namespace SimEnv.RlAgents {
                 throw new NotImplementedException();
 
             float magnitude = (value[0] - mapping.offset) * mapping.amplitude;
-            if (mapping.maxVelocityThreshold.HasValue)
-                if (actor.node.rigidbody.velocity.magnitude > mapping.maxVelocityThreshold.Value)
-                    return;
-
             Vector3 force = mapping.axis.Value.normalized * magnitude;
 
             //Debug.Log("AddForceAtPosition, force: " + force + "position" + mapping.position.Value
@@ -131,9 +131,15 @@ namespace SimEnv.RlAgents {
 
             if (actor.node.rigidbody != null) {
                 actor.node.rigidbody.AddForceAtPosition(force, mapping.position.Value, forceMode);
+                if (actor.node.articulationBody.velocity.magnitude > mapping.maxVelocityThreshold.Value) {
+                    actor.node.articulationBody.velocity = actor.node.articulationBody.velocity.normalized * mapping.maxVelocityThreshold.Value;
+                }
             }
             if (actor.node.articulationBody != null) {
                 actor.node.articulationBody.AddForceAtPosition(force, mapping.position.Value, forceMode);
+                if (actor.node.articulationBody.velocity.magnitude > mapping.maxVelocityThreshold.Value) {
+                    actor.node.articulationBody.velocity = actor.node.articulationBody.velocity.normalized * mapping.maxVelocityThreshold.Value;
+                }
             }
         }
 
