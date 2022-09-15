@@ -230,16 +230,44 @@ class Asset(NodeMixin, object):
 
             # remove when release with https://github.com/huggingface/huggingface_hub/pull/1021 is out
             subfolder = subfolder if subfolder else None
+            file_path = ""
+            try:
+                file_path = hf_hub_download(
+                    repo_id=repo_id,
+                    filename=filename,
+                    subfolder=subfolder,
+                    revision=revision,
+                    repo_type="dataset",
+                    use_auth_token=use_auth_token,
+                    **kwargs,
+                )
+            except Exception:
+                print("Asset not found in Datasets. Checking Spaces...")
 
-            file_path = hf_hub_download(
-                repo_id=repo_id,
-                filename=filename,
-                subfolder=subfolder,
-                revision=revision,
-                repo_type="space",
-                use_auth_token=use_auth_token,
-                **kwargs,
-            )
+            if not file_path:
+                try:
+                    file_path = hf_hub_download(
+                        repo_id=repo_id,
+                        filename=filename,
+                        subfolder=subfolder,
+                        revision=revision,
+                        repo_type="space",
+                        use_auth_token=use_auth_token,
+                        **kwargs,
+                    )
+                except Exception:
+                    print("Asset not found in Spaces. Loading default Asset instead.")
+
+            if not file_path:
+                file_path = hf_hub_download(
+                    repo_id="simenv-tests/Box",
+                    filename="Box.glb",
+                    subfolder="glTF-Binary",
+                    revision=revision,
+                    repo_type="space",
+                    use_auth_token=use_auth_token,
+                    **kwargs,
+                )
 
         nodes = load_gltf_as_tree(
             file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
@@ -280,6 +308,15 @@ class Asset(NodeMixin, object):
             is_local=is_local,
             **(hf_hub_kwargs if hf_hub_kwargs is not None else {}),
         )
+
+        root_node.name = kwargs.pop("name", root_node.name)
+        root_node.position = kwargs.pop("position", root_node.position)
+        root_node.rotation = kwargs.pop("rotation", root_node.rotation)
+        root_node.scaling = kwargs.pop("scaling", root_node.scaling)
+
+        for node in root_node.tree_children:
+            node.name = root_node.name + "_" + node.name
+
         return cls(
             name=root_node.name,
             position=root_node.position,
