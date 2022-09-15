@@ -117,13 +117,12 @@ def generate_map(index):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
-    parser.add_argument("--n_maps", default=1, type=int, required=False, help="Number of maps to spawn")
-    parser.add_argument("--n_show", default=1, type=int, required=False, help="Number of maps to show")
+    parser.add_argument("--n_maps", default=2, type=int, required=False, help="Number of maps to spawn")
+    parser.add_argument("--n_show", default=2, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
 
     env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, frame_skip=1)
     obs = env.reset()
-    obs, reward, done, info = env.step()
     for i in range(4000):
         obs, reward, done, info = env.step()
         # print(obs)

@@ -2,7 +2,7 @@ using UnityEngine;
 using SimEnv.GLTF;
 using UnityEngine.Rendering.Universal;
 using Newtonsoft.Json;
-
+using System.Collections.Generic;
 namespace SimEnv {
     public class Node : MonoBehaviour {
         public GLTFCamera cameraData;
@@ -19,6 +19,9 @@ namespace SimEnv {
         public new Collider collider { get; private set; }
         public new Rigidbody rigidbody { get; private set; }
         public ArticulationBody articulationBody { get; private set; }
+        // fix for deactivation of articulation bodies: see http://anja-haumann.de/unity-preserve-articulation-body-state/
+        private readonly List<float> jointPositionBackup = new List<float>();
+        private readonly List<float> jointVelocityBackup = new List<float>();
         public ISensor sensor;
         public Data initialState { get; private set; }
 
@@ -40,7 +43,38 @@ namespace SimEnv {
             initialState = GetData();
         }
 
-        public void ResetState() {
+        // private void FixedUpdate() {
+        //     if (articulationBody != null) {
+        //         //Debug.Log("fixed update");
+        //     }
+
+        // }
+
+        // private void OnEnable() {
+        //     if (articulationBody != null && articulationBody.isRoot) {
+        //         Debug.Log("enable " + jointPositionBackup.Count.ToString());
+
+        //         if (jointPositionBackup.Count > 0) {
+        //             articulationBody.SetJointPositions(jointPositionBackup);
+        //             articulationBody.SetJointVelocities(jointVelocityBackup);
+        //         }
+
+        //     }
+        // }
+
+        // private void OnDisable() {
+        //     if (articulationBody != null && articulationBody.isRoot) {
+
+        //         Debug.Log("disable " + jointPositionBackup.Count.ToString());
+
+        //         jointPositionBackup.Clear();
+        //         jointVelocityBackup.Clear();
+        //         articulationBody.GetJointPositions(jointPositionBackup);
+        //         articulationBody.GetJointVelocities(jointVelocityBackup);
+        //         Debug.Log("disable bup " + jointPositionBackup.Count.ToString() + jointVelocityBackup.Count.ToString());
+        //     }
+        // }
+        public void ResetState(Vector3 rootPosition) {
             if (articulationBody == null) {
                 // you cannot teleport articulation bodies so simply (see below)
                 transform.position = initialState.position;
@@ -65,10 +99,10 @@ namespace SimEnv {
                 articulationBody.xDrive = drive;
 
                 if (articulationBody.isRoot) {
-                    articulationBody.TeleportRoot(initialState.position, initialState.rotation);
+                    articulationBody.TeleportRoot(-rootPosition + initialState.position, initialState.rotation);
                 }
 
-                // TODO probably also ened to reset the drive
+                // TODO probably also need to reset the drive
                 // https://forum.unity.com/threads/reset-pos-rot-of-articulation-bodies-manually-without-a-cacophony-of-derp.958741/
             }
         }
@@ -207,7 +241,7 @@ namespace SimEnv {
                 // we should only try and set this property if we are the root in a chain of articulated bodies
                 ab.immovable = articulationBodyData.immovable;
             }
-
+            ab.matchAnchors = false;
             ab.linearDamping = articulationBodyData.linear_damping;
             ab.angularDamping = articulationBodyData.angular_damping;
             ab.jointFriction = articulationBodyData.joint_friction;
