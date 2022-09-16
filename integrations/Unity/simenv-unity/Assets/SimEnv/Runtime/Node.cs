@@ -19,6 +19,7 @@ namespace SimEnv {
         public new Collider collider { get; private set; }
         public new Rigidbody rigidbody { get; private set; }
         public ArticulationBody articulationBody { get; private set; }
+        public ISensor sensor;
         public HFActuators.Actuator actuator { get; private set; }
         public Data initialState { get; private set; }
         public bool isActor { get; set; }
