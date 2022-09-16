@@ -207,6 +207,8 @@ namespace SimEnv {
                 // we should only try and set this property if we are the root in a chain of articulated bodies
                 ab.immovable = articulationBodyData.immovable;
             }
+            // setting match anchors to false ensures we can deactivate and activate the articulation body 
+            // see http://anja-haumann.de/unity-preserve-articulation-body-state/
             ab.matchAnchors = false;
             ab.linearDamping = articulationBodyData.linear_damping;
             ab.angularDamping = articulationBodyData.angular_damping;
