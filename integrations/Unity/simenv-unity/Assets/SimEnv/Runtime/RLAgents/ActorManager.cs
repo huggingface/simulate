@@ -49,12 +49,7 @@ namespace SimEnv.RlAgents {
 
         }
         static void InitializeBuffers() {
-
-            Debug.Log("intializing buffers");
-            // Creates buffers that hold the sensor measurements for all Actors
-            // find the number of maps
             int nActiveMaps = activeMaps.Count;
-            // find the maximum number of agents
             int nActors = maxActorsPerMap;
             // get the names and shapes of all the sensors, we assume all agents have the same sensors (for now)
             foreach (var sensor in activeMaps[0].actors.Values.First<Actor>().sensors) {
@@ -95,7 +90,7 @@ namespace SimEnv.RlAgents {
         static void PopulateMapPool() {
             for (int i = 0; i < poolSize; i++) {
                 Map map = mapPool.Request();
-                map.SetPosition(positions[i]);
+                map.Reset(positions[i]);
                 activeMaps.Add(map);
             }
         }
@@ -112,9 +107,7 @@ namespace SimEnv.RlAgents {
         // After Simulator step, before rendering, check if any maps are done
         // If so, reset them, and update the map data
         public override void OnEarlyStep(EventData eventData) {
-
             for (int i = 0; i < activeMaps.Count; i++) {
-
                 List<(float reward, bool done)> rewardDones = activeMaps[i].GetActorRewardDones();
                 bool done = false;
                 int count = 0;
@@ -124,7 +117,6 @@ namespace SimEnv.RlAgents {
                     rewardBuffer.floatBuffer[i * maxActorsPerMap + count] = rewardDone.reward;
                     count++;
                 }
-
                 // TODO: (Ed), should we reset when only one agent is done in a multiagent setting?
                 if (done) ResetAt(i);
             }
@@ -151,8 +143,8 @@ namespace SimEnv.RlAgents {
             mapPool.Push(map);
 
             map = mapPool.Request();
-            map.SetPosition(positions[index]);
             map.SetActive(true);
+            map.Reset(positions[index]);
             activeMaps[index] = map;
         }
 
@@ -170,6 +162,7 @@ namespace SimEnv.RlAgents {
             mapPool.Clear();
             activeMaps.Clear();
             positions.Clear();
+            sensorBuffers.Clear();
         }
 
         static void CreatePositionPool() {

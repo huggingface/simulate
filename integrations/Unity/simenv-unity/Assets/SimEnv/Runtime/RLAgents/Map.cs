@@ -65,10 +65,6 @@ namespace SimEnv.RlAgents {
             this.active = active;
         }
 
-        public void SetPosition(Vector3 position) {
-            root.gameObject.transform.position = position;
-        }
-
         public void SetActions(object action) {
             foreach (string key in actors.Keys)
                 actors[key].SetAction(action);
@@ -95,9 +91,9 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        public void Reset() {
+        public void Reset(Vector3 position) {
             foreach (Node node in children)
-                node.ResetState();
+                node.ResetState(position);
             foreach (Actor actor in actors.Values)
                 actor.Reset();
         }

@@ -19,9 +19,6 @@ namespace SimEnv {
         public new Collider collider { get; private set; }
         public new Rigidbody rigidbody { get; private set; }
         public ArticulationBody articulationBody { get; private set; }
-        // fix for deactivation of articulation bodies: see http://anja-haumann.de/unity-preserve-articulation-body-state/
-        private readonly List<float> jointPositionBackup = new List<float>();
-        private readonly List<float> jointVelocityBackup = new List<float>();
         public ISensor sensor;
         public Data initialState { get; private set; }
 
@@ -42,42 +39,10 @@ namespace SimEnv {
                 InitializeArticulationBody();
             initialState = GetData();
         }
-
-        // private void FixedUpdate() {
-        //     if (articulationBody != null) {
-        //         //Debug.Log("fixed update");
-        //     }
-
-        // }
-
-        // private void OnEnable() {
-        //     if (articulationBody != null && articulationBody.isRoot) {
-        //         Debug.Log("enable " + jointPositionBackup.Count.ToString());
-
-        //         if (jointPositionBackup.Count > 0) {
-        //             articulationBody.SetJointPositions(jointPositionBackup);
-        //             articulationBody.SetJointVelocities(jointVelocityBackup);
-        //         }
-
-        //     }
-        // }
-
-        // private void OnDisable() {
-        //     if (articulationBody != null && articulationBody.isRoot) {
-
-        //         Debug.Log("disable " + jointPositionBackup.Count.ToString());
-
-        //         jointPositionBackup.Clear();
-        //         jointVelocityBackup.Clear();
-        //         articulationBody.GetJointPositions(jointPositionBackup);
-        //         articulationBody.GetJointVelocities(jointVelocityBackup);
-        //         Debug.Log("disable bup " + jointPositionBackup.Count.ToString() + jointVelocityBackup.Count.ToString());
-        //     }
-        // }
-        public void ResetState(Vector3 rootPosition) {
+        public void ResetState(Vector3 position) {
             if (articulationBody == null) {
                 // you cannot teleport articulation bodies so simply (see below)
-                transform.position = initialState.position;
+                transform.position = position + initialState.position;
                 transform.rotation = initialState.rotation;
             }
             if (rigidbody != null) {
@@ -86,6 +51,8 @@ namespace SimEnv {
             }
 
             if (articulationBody != null) {
+                // https://forum.unity.com/threads/reset-pos-rot-of-articulation-bodies-manually-without-a-cacophony-of-derp.958741/
+                // see http://anja-haumann.de/unity-preserve-articulation-body-state/ a great resource
                 articulationBody.velocity = Vector3.zero;
                 articulationBody.angularVelocity = Vector3.zero;
 
@@ -99,11 +66,10 @@ namespace SimEnv {
                 articulationBody.xDrive = drive;
 
                 if (articulationBody.isRoot) {
-                    articulationBody.TeleportRoot(-rootPosition + initialState.position, initialState.rotation);
+                    // this is the only way we can adjust the position of an articulation body
+                    articulationBody.TeleportRoot(initialState.position + position, initialState.rotation);
                 }
 
-                // TODO probably also need to reset the drive
-                // https://forum.unity.com/threads/reset-pos-rot-of-articulation-bodies-manually-without-a-cacophony-of-derp.958741/
             }
         }
 
