@@ -228,4 +228,4 @@ class Material:
 
     @classproperty
     def TRANSPARENT(cls):
-        return cls(base_color=(0.0, 0.0, 0.0, 0.0))
+        return cls(base_color=(0.0, 0.0, 0.0, 0.0), alpha_mode="BLEND")

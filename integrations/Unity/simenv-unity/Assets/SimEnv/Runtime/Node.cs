@@ -2,7 +2,7 @@ using UnityEngine;
 using SimEnv.GLTF;
 using UnityEngine.Rendering.Universal;
 using Newtonsoft.Json;
-
+using System.Collections.Generic;
 namespace SimEnv {
     public class Node : MonoBehaviour {
         public GLTFCamera cameraData;
@@ -39,11 +39,10 @@ namespace SimEnv {
                 InitializeArticulationBody();
             initialState = GetData();
         }
-
-        public void ResetState() {
+        public void ResetState(Vector3 position) {
             if (articulationBody == null) {
                 // you cannot teleport articulation bodies so simply (see below)
-                transform.position = initialState.position;
+                transform.position = position + initialState.position;
                 transform.rotation = initialState.rotation;
             }
             if (rigidbody != null) {
@@ -52,6 +51,8 @@ namespace SimEnv {
             }
 
             if (articulationBody != null) {
+                // https://forum.unity.com/threads/reset-pos-rot-of-articulation-bodies-manually-without-a-cacophony-of-derp.958741/
+                // see http://anja-haumann.de/unity-preserve-articulation-body-state/ a great resource
                 articulationBody.velocity = Vector3.zero;
                 articulationBody.angularVelocity = Vector3.zero;
 
@@ -65,11 +66,10 @@ namespace SimEnv {
                 articulationBody.xDrive = drive;
 
                 if (articulationBody.isRoot) {
-                    articulationBody.TeleportRoot(initialState.position, initialState.rotation);
+                    // this is the only way we can adjust the position of an articulation body
+                    articulationBody.TeleportRoot(initialState.position + position, initialState.rotation);
                 }
 
-                // TODO probably also ened to reset the drive
-                // https://forum.unity.com/threads/reset-pos-rot-of-articulation-bodies-manually-without-a-cacophony-of-derp.958741/
             }
         }
 
@@ -207,7 +207,9 @@ namespace SimEnv {
                 // we should only try and set this property if we are the root in a chain of articulated bodies
                 ab.immovable = articulationBodyData.immovable;
             }
-
+            // setting match anchors to false ensures we can deactivate and activate the articulation body 
+            // see http://anja-haumann.de/unity-preserve-articulation-body-state/
+            ab.matchAnchors = false;
             ab.linearDamping = articulationBodyData.linear_damping;
             ab.angularDamping = articulationBodyData.angular_damping;
             ab.jointFriction = articulationBodyData.joint_friction;

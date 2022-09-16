@@ -171,8 +171,8 @@ namespace SimEnv {
         }
 
         public static void Reset() {
-            foreach (Node node in nodes.Values)
-                node.ResetState();
+            // foreach (Node node in nodes.Values)
+            //     node.ResetState(Vector3.zero);
             foreach (IPlugin plugin in plugins)
                 plugin.OnReset();
             AfterReset?.Invoke();
