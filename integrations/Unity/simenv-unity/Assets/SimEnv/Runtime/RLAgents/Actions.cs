@@ -30,6 +30,8 @@ namespace SimEnv.RlAgents {
                 case "set_rotation":
                     actor.SetRotation(value, mapping);
                     break;
+                case "do_nothing":
+                    break;
             }
         }
 
