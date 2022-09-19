@@ -100,7 +100,6 @@ namespace SimEnv.RlAgents {
         // Action is a:
         // A Dict (maps index) of Dict (agents names) to individual actions
         // Where "individual actions" is a list of integers/floats coresponding to the actions
-
         public override void OnBeforeStep(EventData eventData) {
             if (!active) return;
             if (eventData.inputKwargs.TryParse<Dictionary<string, List<List<List<float>>>>>("action", out Dictionary<string, List<List<List<float>>>> actions)) {
