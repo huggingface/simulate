@@ -10,7 +10,6 @@ def create_scene(build_exe=None):
     # Create a scene with Unity engine backend
     scene = sm.Scene(engine="Unity", engine_exe=build_exe)
     scene += sm.LightSun()
-    scene.config.frame_skip = 10
 
     # Add a floor
     scene += sm.Box(
