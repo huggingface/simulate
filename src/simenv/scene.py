@@ -15,18 +15,12 @@
 # Lint as: python3
 """ A simenv Scene - Host a level or Scene."""
 import itertools
-from typing import List, Optional, Tuple, Union
+from typing import Dict, List, Optional, Tuple, Union
 
-from .assets import Asset, Camera, Light, Object3D, RaycastSensor, RewardFunction, StateSensor
+from .assets import Asset, Camera, Light, Object3D, RaycastSensor, RewardFunction, StateSensor, spaces
 from .assets.anytree import RenderTree
 from .config import Config
 from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
-
-
-try:
-    from gym import spaces
-except ImportError:
-    pass
 
 
 class Scene(Asset):
@@ -94,8 +88,37 @@ class Scene(Asset):
         """Render the Scene using the engine."""
         self.engine.show(**engine_kwargs)
 
-    def step(self, time_step=None, frame_skip=None, return_nodes=None, return_frames=None, **engine_kwargs):
-        """Step the Scene"""
+    def step(
+        self,
+        action: Dict[str, Union[int, float, List[float]]] = None,
+        time_step: Optional[float] = None,
+        frame_skip: Optional[int] = None,
+        return_nodes: Optional[bool] = None,
+        return_frames: Optional[bool] = None,
+        **engine_kwargs,
+    ):
+        """Step the Scene.
+
+        Parameters
+        ----------
+        action: Dict[str, List[Any]]
+            The action to apply to the actors in the scene.
+            Keys are actuator_id and values are actions to apply as tensors of shapes (n_maps, n_actors, action_space...)
+        time_step: Optional[float]
+            The time step to apply to the scene. If None, the time_step of the config is used.
+        frame_skip: Optional[int]
+            The number of frames to skip. If None, the frame_skip of the config is used.
+        return_nodes: Optional[bool]
+            If True, the nodes of the scene are returned. If None, the return_nodes of the config is used.
+        return_frames: Optional[bool]
+            If True, the frames of the scene are returned. If None, the return_frames of the config is used.
+        engine_kwargs: Dict
+            Additional kwargs to pass to the engine.
+        """
+        if len(self.actors) == 0:
+            raise ValueError(
+                "The scene should have at least one actor to step. Set is_actor=True on the root node of your actor."
+            )
         if time_step is not None:
             engine_kwargs.update({"time_step": time_step})
         if frame_skip is not None:
@@ -104,32 +127,40 @@ class Scene(Asset):
             engine_kwargs.update({"return_nodes": return_nodes})
         if return_frames is not None:
             engine_kwargs.update({"return_frames": return_frames})
-        return self.engine.step(**engine_kwargs)
+        return self.engine.step(action=action, **engine_kwargs)
 
     def reset(self):
         """Reset the Scene"""
         return self.engine.reset()
 
+    def close(self):
+        self.engine.close()
+
     @property
-    def action_space(self):
+    def action_space(self) -> Optional[spaces.Space]:
+        """The action space of the single actor in the scene.
+        Only available is the scene has one and only one actor.
+        Otherwise, None is returned.
+        If the scene has more than one actor, you should query
+            the action_space of the actor directly, e.g. scene.actors[0].action_space
+        """
         actors = self.actors
-        if len(actors) > 0:
+        if len(actors) == 1:
             return actors[0].action_space
         return None
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> Optional[spaces.Space]:
+        """The observation space of the single actor in thescene.
+        Only available is the scene has one and only one actor.
+        Otherwise, None is returned.
+        If the scene has more than one actor, you should query
+            the observation_space of the actor directly, e.g. scene.actors[0].observation_space
+        """
         actors = self.actors
-        if len(actors) > 0:
-            actor = actors[0]
-            sensors = actor.tree_filtered_descendants(
-                lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor))
-            )
-            return spaces.Dict({sensor.sensor_name: sensor.observation_space for sensor in sensors})
+        if len(actors) == 1:
+            return actors[0].observation_space
         return None
-
-    def close(self):
-        self.engine.close()
 
     @property
     def lights(self):
@@ -157,10 +188,8 @@ class Scene(Asset):
         return self.tree_filtered_descendants(lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor)))
 
     @property
-    def unique_sensors(self):
-        """Tuple with all sensors in the Scene"""
-        return set(self.tree_filtered_descendants(lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor))))
-
-    @property
     def actors(self) -> Tuple[Asset]:
-        return self.tree_filtered_descendants(lambda node: node.actuator is not None)
+        """Return the actors in the scene, sorted by names."""
+        unsorted_actors = self.tree_filtered_descendants(lambda node: node.is_actor)
+        sorted_actors = sorted(unsorted_actors, key=lambda actor: actor.name)
+        return tuple(sorted_actors)

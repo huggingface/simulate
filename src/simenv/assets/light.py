@@ -32,6 +32,7 @@ class Light(Asset):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
+        is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -40,6 +41,7 @@ class Light(Asset):
             position=position,
             rotation=rotation,
             scaling=scaling,
+            is_actor=is_actor,
             parent=parent,
             children=children,
         )
@@ -97,6 +99,7 @@ class LightSun(Light):
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
+        is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -115,6 +118,7 @@ class LightSun(Light):
             position=position,
             rotation=rotation,
             scaling=scaling,
+            is_actor=is_actor,
             parent=parent,
             children=children,
         )

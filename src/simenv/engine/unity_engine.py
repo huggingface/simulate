@@ -97,7 +97,16 @@ class UnityEngine(Engine):
         kwargs.update({"b64bytes": b64_bytes})
         return self.run_command("Initialize", **kwargs)
 
-    def step(self, **kwargs):
+    def step(self, action=None, **kwargs):
+        """Step the environment with the given action.
+
+        Args:
+            action (dict): The action to take in the environment.
+                If the action is None, we don't send an action to the environment.
+                We then only send the Step command to Unity to step the physics engine.
+        """
+        if action is not None:
+            kwargs.update({"action": action})
         return self.run_command("Step", **kwargs)
 
     def step_send_async(self, **kwargs):

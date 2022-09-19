@@ -7,13 +7,13 @@ namespace SimEnv.RlAgents {
         public bool active { get; private set; }
 
         Node root;
-        public Dictionary<string, Actor> actors;
+        public SortedDictionary<string, Actor> actors;  // Make sure we iterate on the actors in order of their name
         List<Node> children;
 
         public Map(Node root) {
             this.root = root;
             bounds = GetLocalBoundsForObject(root.gameObject);
-            actors = new Dictionary<string, Actor>();
+            actors = new SortedDictionary<string, Actor>();
             children = new List<Node>();
             foreach (Node node in root.GetComponentsInChildren<Node>(true)) {
                 if (ActorManager.actors.TryGetValue(node.name, out Actor Actor))
@@ -44,7 +44,7 @@ namespace SimEnv.RlAgents {
                     return;
                 }
             }
-            CameraSensor cameraSensor = new CameraSensor(node.camera, node.cameraData.sensor_name); // same instance shared across actors
+            CameraSensor cameraSensor = new CameraSensor(node.camera, node.cameraData.extras.sensor_tag); // same instance shared across actors
             foreach (var actor in actors.Values) {
                 actor.sensors.Add(cameraSensor);
             }
@@ -65,9 +65,21 @@ namespace SimEnv.RlAgents {
             this.active = active;
         }
 
-        public void SetActions(object action) {
-            foreach (string key in actors.Keys)
-                actors[key].SetAction(action);
+        public void SetPosition(Vector3 position) {
+            root.gameObject.transform.position = position;
+        }
+
+        public void SetActions(Dictionary<string, List<List<float>>> actions) {
+            var i = 0;
+            foreach (var actor in actors.Values) {
+                // Create a dictionary of actions for the actor
+                Dictionary<string, List<float>> actionsForActor = new Dictionary<string, List<float>>();
+                foreach (KeyValuePair<string, List<List<float>>> action in actions) {
+                    actionsForActor[action.Key] = action.Value[i];
+                }
+                Debug.Log($"actions for actor {i}: {actionsForActor}");
+                actor.SetAction(actionsForActor);
+            }
         }
 
         public List<(float, bool)> GetActorRewardDones() {

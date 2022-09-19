@@ -1,3 +1,4 @@
+#nullable enable
 // adapted from https://github.com/Siccity/GLTFUtility/blob/master/Scripts/Spec/GLTFCamera.cs
 using System.Collections.Generic;
 using System.Linq;
@@ -6,13 +7,13 @@ using UnityEngine;
 
 namespace SimEnv.GLTF {
     public class GLTFCamera {
-        public Orthographic orthographic;
-        public Perspective perspective;
+        public Orthographic? orthographic;
+        public Perspective? perspective;
         [JsonProperty(Required = Required.Always), JsonConverter(typeof(EnumConverter))] public CameraType type;
-        public string name;
-        public string sensor_name; // we should refactor this to be a HF_Camera or HF_CameraSensor 
+        public string? name;
         public int width = 512;
         public int height = 512;
+        public Extras? extras;
 
         public class Orthographic {
             public float xmag = 1f;
@@ -28,10 +29,15 @@ namespace SimEnv.GLTF {
             [JsonProperty(Required = Required.Always)] public float znear = .3f;
         }
 
+        public class Extras {
+            public string? sensor_tag;
+            public bool? is_actor;
+        }
+
         public static void Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {
             List<GLTFCamera> components = new List<GLTFCamera>();
             foreach (GLTFNode.ExportResult node in nodes) {
-                GLTFCamera camera = Export(node);
+                GLTFCamera? camera = StaticExport(node);
                 if (camera == null) continue;
                 if (!components.Contains(camera))
                     components.Add(camera);
@@ -42,7 +48,7 @@ namespace SimEnv.GLTF {
             gltfObject.nodes = nodes.Cast<GLTFNode>().ToList();
         }
 
-        static GLTFCamera Export(GLTFNode.ExportResult node) {
+        static GLTFCamera? StaticExport(GLTFNode.ExportResult node) {
             Camera cam = node.transform.GetComponent<Camera>();
             if (cam == null) return null;
             GLTFCamera camera = new GLTFCamera();

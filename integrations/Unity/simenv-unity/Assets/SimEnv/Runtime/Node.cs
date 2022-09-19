@@ -10,7 +10,7 @@ namespace SimEnv {
         public HFColliders.GLTFCollider.ImportResult colliderData;
         public HFRigidBodies.GLTFRigidBody rigidBodyData;
         public HFarticulationBodies.GLTFArticulationBody articulationBodyData;
-        public HFActuators.HFActuator actionData;
+        public HFActuators.HFActuator actuatorData;
         public HFStateSensors.HFStateSensor stateSensorData;
         public HFRaycastSensors.HFRaycastSensor raycastSensorData;
         public HFRewardFunctions.HFRewardFunction rewardFunctionData;
@@ -20,7 +20,9 @@ namespace SimEnv {
         public new Rigidbody rigidbody { get; private set; }
         public ArticulationBody articulationBody { get; private set; }
         public ISensor sensor;
+        public HFActuators.Actuator actuator { get; private set; }
         public Data initialState { get; private set; }
+        public bool isActor = false;
 
         public void Initialize() {
             if (cameraData != null)
@@ -37,6 +39,8 @@ namespace SimEnv {
                 InitializeRigidBody();
             if (articulationBodyData != null)
                 InitializeArticulationBody();
+            if (actuatorData != null)
+                InitializeActuator();
             initialState = GetData();
         }
         public void ResetState(Vector3 position) {
@@ -71,6 +75,10 @@ namespace SimEnv {
                 }
 
             }
+        }
+
+        void InitializeActuator() {
+            actuator = new HFActuators.Actuator(actuatorData);
         }
 
         void InitializeCamera() {

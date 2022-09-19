@@ -12,7 +12,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Callable, Optional, Union
+from typing import Callable, Union
 
 import numpy as np
 
@@ -76,14 +76,19 @@ class RLEnv(VecEnv):
         # TODO --> add warning if scene has no actor or reward functions
         self.actors = {actor.name: actor for actor in self.scene.actors}
         self.n_actors = len(self.actors)
+        if self.n_actors == 0:
+            raise ValueError(
+                "No actors found in scene. At least one of your Assets should have the is_actor=True property."
+            )
         self.n_maps = n_maps
         self.n_show = n_show
         self.n_actors_per_map = self.n_actors // self.n_maps
 
         self.actor = next(iter(self.actors.values()))
 
-        self.action_space = self.scene.action_space
-        self.observation_space = self.scene.observation_space
+        self.action_space = self.scene.actors[0].action_space
+        self.observation_space = self.scene.actors[0].observation_space
+        self.action_tags = self.scene.actors[0].action_tags
 
         super().__init__(n_show, self.observation_space, self.action_space)
 
@@ -100,23 +105,74 @@ class RLEnv(VecEnv):
             n_show=n_show,
         )
 
-    def step(self, action: Optional[list] = None):
+    def step(self, action=None):
+        """The step function for the environment.
+
+        Action is a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
+        """
+
+        if not isinstance(action, dict):
+            if len(self.action_tags) != 1:
+                raise ValueError(
+                    f"Action must be a dict with keys {self.action_tags} when there are multiple action tags."
+                )
+            action = {self.action_tags[0]: action}
+
+        # Check that the keys are in the action tags
+        # Add maps/actor dimension to action if single map/actor
+        for key, value in action.items():
+            if key not in self.action_tags:
+                raise ValueError(f"Action tag {key} not found in action tags: {self.action_tags}.")
+            if isinstance(value, (int, float)):
+                # A single value for the action – we add the map/actor/action-list dimensions
+                if self.n_show == 1 and self.n_actors == 1:
+                    action[key] = [[[value]]]
+                else:
+                    raise ValueError(
+                        f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
+                        f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} and n_actors {self.n_actors})."
+                    )
+            elif isinstance(value, (list, tuple)) and len(value) > 0 and isinstance(value[0], (int, float)):
+                # A list value for the action – we add the map/actor dimensions
+                if self.n_show == 1 and self.n_actors == 1:
+                    action[key] = [[value]]
+                else:
+                    raise ValueError(
+                        f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
+                        f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} and n_actors {self.n_actors})."
+                    )
+
         self.step_send_async(action=action)
         return self.step_recv_async()
 
     def step_send_async(self, action=None):
-        action_dict = {}
-        # TODO: adapt this to multiagent setting
-        if action is None:
-            for i in range(self.n_show):
-                action_dict[str(i)] = int(self.action_space.sample())
-        elif isinstance(action, np.int64):
-            action_dict["0"] = int(action)
-        else:
-            for i in range(self.n_show):
-                action_dict[str(i)] = int(action[i])
+        # action_dict = {}
+        # if action is None:
+        #     # We sample actions - TODO keep this?
+        #     for i in range(self.n_show):
+        #         action_dict[str(i)] = self.action_space.sample().tolist()
+        # else:
+        #     if self.n_show == 1:
+        #         if np.isscalar(action):
+        #             # We have a scalar, either numpy or python
+        #             if isinstance(action, np.ndarray):
+        #                 action = [action.item()]
+        #             else:
+        #                 action = [action]
+        #         action_dict["0"] = action
+        #     else:
+        #         # We have a list that we will spread over each parallel env
+        #         if len(action) != self.n_show:
+        #             raise ValueError("The number of actions must match the number of environments")
+        #         for i, action_i in enumerate(self.n_show):
+        #             # We have a scalar, either numpy or python
+        #             if isinstance(action, np.ndarray):
+        #                 action = [action.item()]
+        #             else:
+        #                 action = [action]
+        #             action_dict[str(i)] = int(action[i])
 
-        self.scene.engine.step_send_async(action=action_dict)
+        self.scene.engine.step_send_async(action=action)
 
     def step_recv_async(self):
         event = self.scene.engine.step_recv_async()
@@ -157,8 +213,8 @@ class RLEnv(VecEnv):
 
     def _extract_sensor_obs(self, sim_event_data):
         sensor_obs = {}
-        for sensor_name, sensor_data in sim_event_data.items():
-            sensor_obs[sensor_name] = self._convert_to_numpy(sensor_data)
+        for sensor_tag, sensor_data in sim_event_data.items():
+            sensor_obs[sensor_tag] = self._convert_to_numpy(sensor_data)
         return sensor_obs
 
     def close(self):

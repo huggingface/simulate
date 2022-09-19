@@ -19,6 +19,12 @@ namespace SimEnv.GLTF {
         public int? camera;
         public int? weights;
         public Extensions extensions;
+        public Extras extras;
+
+        public class Extras {
+            public bool? is_actor;
+        }
+
 
         public bool ShouldSerializematrix() { return matrix != Matrix4x4.identity; }
         public bool ShouldSerializetranslation() { return translation != Vector3.zero; }
@@ -102,6 +108,9 @@ namespace SimEnv.GLTF {
                     result[i].transform = new GameObject().transform;
                     result[i].transform.gameObject.name = nodes[i].name;
                     result[i].node = result[i].transform.gameObject.AddComponent<Node>();
+                    if (nodes[i].extras != null && nodes[i].extras.is_actor.HasValue && nodes[i].extras.is_actor.Value == true) {
+                        result[i].node.isActor = true;
+                    }
                 }
 
                 // Connect children and parents in our gameObjects transforms
@@ -152,7 +161,7 @@ namespace SimEnv.GLTF {
                     if (nodes[i].camera.HasValue)
                         result[i].node.cameraData = cameras[nodes[i].camera.Value];
 
-                    // Extensions (lights, colliders, Actor etc)
+                    // Extensions (lights, colliders, Actuators, etc)
                     if (nodes[i].extensions != null) {
                         // Colliders
                         if (nodes[i].extensions.HF_colliders != null) {
@@ -211,13 +220,13 @@ namespace SimEnv.GLTF {
                                 result[i].node.rigidBodyData = extensions.HF_rigid_bodies.objects[componentId];
                             }
                         }
-                        // Actor Actions
+                        // Actuators
                         if (nodes[i].extensions.HF_actuators != null) {
                             int value = nodes[i].extensions.HF_actuators.object_id;
                             if (extensions == null || extensions.HF_actuators == null || extensions.HF_actuators.objects == null || extensions.HF_actuators.objects.Count < value) {
                                 Debug.LogWarning("Error importing actor actuator");
                             } else {
-                                result[i].node.actionData = extensions.HF_actuators.objects[value];
+                                result[i].node.actuatorData = extensions.HF_actuators.objects[value];
                             }
                         }
                         // State Sensor

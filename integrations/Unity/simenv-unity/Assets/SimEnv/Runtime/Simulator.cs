@@ -40,6 +40,7 @@ namespace SimEnv {
         public static EventData currentEvent { get; private set; }
 
         private void Awake() {
+            Debug.Log("Waking up simulator");
             Physics.autoSimulation = false;
             LoadCustomAssemblies();
             LoadPlugins();
