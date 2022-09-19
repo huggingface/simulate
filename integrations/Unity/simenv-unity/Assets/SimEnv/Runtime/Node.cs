@@ -39,10 +39,10 @@ namespace SimEnv {
                 InitializeActuator();
             initialState = GetData();
         }
-        public void ResetState(Vector3 position) {
+        public void ResetState(Vector3 offset = default(Vector3)) {
             if (articulationBody == null) {
                 // you cannot teleport articulation bodies so simply (see below)
-                transform.position = position + initialState.position;
+                transform.position = offset + initialState.position;
                 transform.rotation = initialState.rotation;
             }
             if (rigidbody != null) {
@@ -67,7 +67,7 @@ namespace SimEnv {
 
                 if (articulationBody.isRoot) {
                     // this is the only way we can adjust the position of an articulation body
-                    articulationBody.TeleportRoot(initialState.position + position, initialState.rotation);
+                    articulationBody.TeleportRoot(initialState.position + offset, initialState.rotation);
                 }
             }
         }
