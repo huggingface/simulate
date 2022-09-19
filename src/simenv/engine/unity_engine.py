@@ -6,8 +6,11 @@ import socket
 import subprocess
 import time
 
+from ..utils import logging
 from .engine import Engine
 
+
+logger = logging.get_logger(__name__)
 
 NUM_BIND_RETRIES = 20
 BIND_RETRIES_DELAY = 2.0
@@ -40,7 +43,7 @@ class UnityEngine(Engine):
     def _launch_executable(self, executable: str, port: str, headless: bool):
         # TODO: improve headless training check on a headless machine
         if headless:
-            print("launching env headless")
+            logger.info("launching env headless")
             launch_command = f"{executable} -batchmode -nographics --args port {port}".split(" ")
         else:
             launch_command = f"{executable} --args port {port}".split(" ")
@@ -53,7 +56,7 @@ class UnityEngine(Engine):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        print(f"Server started. Waiting for connection on {self.host} {self.port}...")
+        logger.info(f"Server started. Waiting for connection on {self.host} {self.port}...")
         try:
             self.socket.bind((self.host, self.port))
         except OSError:
@@ -63,12 +66,12 @@ class UnityEngine(Engine):
                     self.socket.bind((self.host, self.port))
                     break
                 except OSError:
-                    print(f"port {self.port} is still in use, trying again")
+                    logger.info(f"port {self.port} is still in use, trying again")
             raise Exception(f"Could not bind to port {self.port}")
 
         self.socket.listen()
         self.client, self.client_address = self.socket.accept()
-        print(f"Connection from {self.client_address}")
+        logger.info(f"Connection from {self.client_address}")
 
     def _get_response(self):
         while True:
@@ -80,7 +83,7 @@ class UnityEngine(Engine):
                 while len(response) < data_length:
                     response += self.client.recv(data_length - len(response)).decode()
 
-                # print(f"Received response: {response}")
+                # logger.info(f"Received response: {response}")
                 return response
 
     def update_asset(self, root_node):
@@ -133,16 +136,16 @@ class UnityEngine(Engine):
             return response
 
     def _close(self):
-        # print("exit was not clean, using atexit to close env")
+        # logger.info("exit was not clean, using atexit to close env")
         self.close()
 
     def close(self):
         try:
             self.run_command("Close", wait_for_response=False)
         except Exception as e:
-            print("exception sending close message", e)
+            logger.info("exception sending close message", e)
 
-        # print("closing client")
+        # logger.info("closing client")
         # self.client.shutdown(socket.SHUT_RDWR)
         self.client.close()
         self.socket.close()
@@ -150,4 +153,4 @@ class UnityEngine(Engine):
         try:
             atexit.unregister(self._close)
         except Exception as e:
-            print("exception unregistering close method", e)
+            logger.info("exception unregistering close method", e)

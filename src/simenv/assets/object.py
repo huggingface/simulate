@@ -20,11 +20,15 @@ from typing import List, Optional, Union
 import numpy as np
 import pyvista as pv
 
+from ..utils import logging
 from .asset import Asset
 from .collider import Collider
 from .material import Material
 from .procgen.prims import generate_prims_maze
 from .procgen.wfc import generate_2d_map, generate_map
+
+
+logger = logging.get_logger(__name__)
 
 
 class Object3D(Asset):
@@ -1158,7 +1162,7 @@ class ProcgenGrid(Object3D):
         if seed is None:
             seed = np.random.randint(0, 100000)
             if verbose:
-                print("Seed:", seed)
+                logger.info("Seed:", seed)
 
         # Seeding
         np.random.seed(seed)

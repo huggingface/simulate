@@ -20,7 +20,11 @@ import numpy as np
 import pyvista
 
 from ..assets import Asset, Camera, Light, Material, Object3D
+from ..utils import logging
 from .engine import Engine
+
+
+logger = logging.get_logger(__name__)
 
 
 try:

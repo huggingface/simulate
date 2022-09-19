@@ -1,5 +1,5 @@
 extends GLTFDocumentExtension
-class_name HFCollider
+class_name HFPhysicMaterial
 
 
 func _import_node(state, gltf_node, json, node):
@@ -8,32 +8,30 @@ func _import_node(state, gltf_node, json, node):
 		return OK
 	if state.base_path.is_empty():
 		return OK
-	if node_extensions.has("HF_colliders"):
-		print("Colliders found.")
+	if node_extensions.has("HF_physic_materials"):
+		print("Physic materials found.")
 		import_agents(state, json, gltf_node, node_extensions)
 	return OK
 
 func import_agents(state, json, node, extensions):
-	var colliders = extensions["HF_colliders"]["objects"]
+	var physic_materials = extensions["HF_physic_materials"]["objects"]
 	var new_node = null
 	var old_node = node
 	
-	for collider in colliders:
-		for key in collider.keys():
+	for physic_material in physic_materials:
+		for key in physic_material.keys():
 			match key:
 				"name":
 					pass
-				"type":
+				"dynamic_friction":
 					pass
-				"bounding_box":
+				"static_friction":
 					pass
-				"offset":
+				"bounciness":
 					pass
-				"intangible":
+				"friction_combine":
 					pass
-				"convex":
-					pass
-				"physic_material":
+				"bounce_combine":
 					pass
 	
 	if new_node:

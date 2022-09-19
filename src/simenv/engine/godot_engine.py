@@ -3,7 +3,11 @@ import base64
 import json
 import socket
 
+from ..utils import logging
 from .engine import Engine
+
+
+logger = logging.get_logger(__name__)
 
 
 class GodotEngine(Engine):
@@ -29,10 +33,10 @@ class GodotEngine(Engine):
         """Create TCP socket and listen for connections"""
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
-        print("Server started. Waiting for connection...")
+        logger.info("Server started. Waiting for connection...")
         self.socket.listen()
         self.client, self.client_address = self.socket.accept()
-        print(f"Connection from {self.client_address}")
+        logger.info(f"Connection from {self.client_address}")
 
     def _send_bytes(self, bytes, ack):
         """Send bytes to socket and wait for response"""
@@ -106,9 +110,9 @@ class GodotEngine(Engine):
         try:
             self.run_command("close")
         except Exception as e:
-            print("exception sending close message", e)
+            logger.error("exception sending close message", e)
         self.client.close()
         try:
             atexit.unregister(self._close)
         except Exception as e:
-            print("exception unregistering close method", e)
+            logger.error("exception unregistering close method", e)

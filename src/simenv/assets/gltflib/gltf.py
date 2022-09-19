@@ -527,7 +527,7 @@ class GLTF:
         create_parent_dirs(filename)
         data = self.model.to_json()
         file_names = [filename]
-        print(filename)
+        logger.info(filename)
         with open(filename, "w", encoding="utf-8") as f:
             f.write(data)
         if save_file_resources:

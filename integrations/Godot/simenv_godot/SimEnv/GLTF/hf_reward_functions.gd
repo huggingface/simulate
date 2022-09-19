@@ -1,5 +1,5 @@
 extends GLTFDocumentExtension
-class_name HFCollider
+class_name HFRewardFunction
 
 
 func _import_node(state, gltf_node, json, node):
@@ -8,32 +8,38 @@ func _import_node(state, gltf_node, json, node):
 		return OK
 	if state.base_path.is_empty():
 		return OK
-	if node_extensions.has("HF_colliders"):
-		print("Colliders found.")
+	if node_extensions.has("HF_reward_functions"):
+		print("Reward functions found.")
 		import_agents(state, json, gltf_node, node_extensions)
 	return OK
 
 func import_agents(state, json, node, extensions):
-	var colliders = extensions["HF_colliders"]["objects"]
+	var reward_functions = extensions["HF_reward_functions"]["objects"]
 	var new_node = null
 	var old_node = node
 	
-	for collider in colliders:
-		for key in collider.keys():
+	for reward_function in reward_functions:
+		for key in reward_function.keys():
 			match key:
-				"name":
-					pass
 				"type":
 					pass
-				"bounding_box":
+				"entity_a":
 					pass
-				"offset":
+				"entity_b":
 					pass
-				"intangible":
+				"distance_metric":
 					pass
-				"convex":
+				"direction":
 					pass
-				"physic_material":
+				"scalar":
+					pass
+				"threshold":
+					pass
+				"is_terminal":
+					pass
+				"is_collectable":
+					pass
+				"trigger_once":
 					pass
 	
 	if new_node:

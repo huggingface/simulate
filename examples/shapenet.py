@@ -8,16 +8,15 @@ wood_mat = sm.Material(base_color=[0.28, 0.2, 0.14])
 grass_mat = sm.Material(base_color=[0, 0.21, 0.09])
 road_mat = sm.Material(base_color=[0.1, 0.1, 0.1])
 
-scene += sm.Box(name="road", position=[0, 0.3, 12.5], bounds=[30, 0.1, 5], material=road_mat, with_collider=True)
-scene += sm.Box(name="grass", position=[0, 0, 0], bounds=[30, 0.5, 30], material=grass_mat, with_collider=True)
-scene += sm.Box(name="floor", position=[0, 0.5, -6.925], bounds=[15, 0.5, 15], material=wood_mat, with_collider=True)
+scene += sm.Box(name="road", position=[0, 0.3, 12.5], bounds=[30, 0.1, 5], material=road_mat)
+scene += sm.Box(name="grass", position=[0, 0, 0], bounds=[30, 0.5, 30], material=grass_mat)
+scene += sm.Box(name="floor", position=[0, 0.5, -6.925], bounds=[15, 0.5, 15], material=wood_mat)
 scene += sm.Box(
     name="wall1",
     position=[0, 2.25, -13.87],
     rotation=[90, 0, 0],
     bounds=[14, 0.5, 3],
     material=wood_mat,
-    with_collider=True,
 )
 scene += sm.Box(
     name="wall2",
@@ -25,7 +24,6 @@ scene += sm.Box(
     rotation=[90, 0, 0],
     bounds=[14, 0.5, 3],
     material=wood_mat,
-    with_collider=True,
 )
 scene += sm.Box(
     name="wall3",
@@ -33,7 +31,6 @@ scene += sm.Box(
     rotation=[90, 90, 0],
     bounds=[13.5, 0.5, 3],
     material=wood_mat,
-    with_collider=True,
 )
 scene += sm.Box(
     name="wall4",
@@ -41,7 +38,6 @@ scene += sm.Box(
     rotation=[90, 90, 0],
     bounds=[13.5, 0.5, 3],
     material=wood_mat,
-    with_collider=True,
 )
 
 scene += sm.Asset.create_from(

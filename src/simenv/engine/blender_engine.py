@@ -3,7 +3,11 @@ import base64
 import json
 import socket
 
+from ..utils import logging
 from .engine import Engine
+
+
+logger = logging.get_logger(__name__)
 
 
 class BlenderEngine(Engine):
@@ -24,10 +28,10 @@ class BlenderEngine(Engine):
         """Create TCP socket and listen for connections"""
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
-        print("Server started. Waiting for connection...")
+        logger.info("Server started. Waiting for connection...")
         self.socket.listen()
         self.client, self.client_address = self.socket.accept()
-        print(f"Connection from {self.client_address}")
+        logger.info(f"Connection from {self.client_address}")
 
     def _send_bytes(self, bytes, ack):
         """Send bytes to socket and wait for response"""
@@ -56,7 +60,7 @@ class BlenderEngine(Engine):
     def run_command(self, command, ack=True):
         """Encode command and send the bytes to the socket"""
         message = json.dumps(command)
-        print(f"Sending command: {message}")
+        logger.info(f"Sending command: {message}")
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         return self._send_bytes(message_bytes, ack)
 
@@ -83,7 +87,7 @@ class BlenderEngine(Engine):
         self.run_command(command)
 
     def _close(self):
-        # print("exit was not clean, using atexit to close env")
+        # logger.warning("exit was not clean, using atexit to close env")
         self.close()
 
     def close(self):
@@ -95,4 +99,4 @@ class BlenderEngine(Engine):
         try:
             atexit.unregister(self._close)
         except Exception as e:
-            print("exception unregistering close method", e)
+            logger.error("exception unregistering close method", e)

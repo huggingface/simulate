@@ -23,6 +23,7 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
+from ..utils import logging
 from .actuator import Actuator, ActuatorDict, ActuatorTuple
 from .anytree import NodeMixin, TreeError
 from .articulation_body import ArticulationBodyComponent
@@ -37,6 +38,7 @@ from .utils import (
 
 
 ALLOWED_COMPONENTS_ATTRIBUTES = ["actuator", "physics_component", "actuator"]
+logger = logging.get_logger(__name__)
 
 
 class Asset(NodeMixin, object):
@@ -242,7 +244,7 @@ class Asset(NodeMixin, object):
                     **kwargs,
                 )
             except Exception:
-                print("Asset not found in Datasets. Checking Spaces...")
+                logger.info(f"{hub_or_local_filepath} not found in Datasets. Checking Spaces...")
 
             if not file_path:
                 try:
@@ -256,18 +258,10 @@ class Asset(NodeMixin, object):
                         **kwargs,
                     )
                 except Exception:
-                    print("Asset not found in Spaces. Loading default Asset instead.")
-
-            if not file_path:
-                file_path = hf_hub_download(
-                    repo_id="simenv-tests/Box",
-                    filename="Box.glb",
-                    subfolder="glTF-Binary",
-                    revision=revision,
-                    repo_type="space",
-                    use_auth_token=use_auth_token,
-                    **kwargs,
-                )
+                    raise RuntimeError(
+                        f"{hub_or_local_filepath} not found. Make sure the path (local or hub) is "
+                        f"correct and the Asset exists."
+                    )
 
         nodes = load_gltf_as_tree(
             file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
@@ -334,7 +328,7 @@ class Asset(NodeMixin, object):
         revision: Optional[str] = None,
         is_local: Optional[bool] = None,
         **kwargs,
-    ) -> "Asset":
+    ):
         """Load a Scene from the HuggingFace hub or from a local GLTF file.
 
         First argument is either:

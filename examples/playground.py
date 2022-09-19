@@ -8,7 +8,7 @@ import simenv as sm
 
 
 def make_scene(build_exe, camera_width, camera_height):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe)
+    scene = sm.Scene(engine="godot", engine_exe=build_exe)
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
     scene += sm.Box(

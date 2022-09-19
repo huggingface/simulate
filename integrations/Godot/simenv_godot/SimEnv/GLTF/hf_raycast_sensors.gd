@@ -1,5 +1,5 @@
 extends GLTFDocumentExtension
-class_name HFCollider
+class_name HFRaycastSensor
 
 
 func _import_node(state, gltf_node, json, node):
@@ -8,32 +8,30 @@ func _import_node(state, gltf_node, json, node):
 		return OK
 	if state.base_path.is_empty():
 		return OK
-	if node_extensions.has("HF_colliders"):
-		print("Colliders found.")
+	if node_extensions.has("HF_raycast_sensors"):
+		print("Raycast sensors found.")
 		import_agents(state, json, gltf_node, node_extensions)
 	return OK
 
 func import_agents(state, json, node, extensions):
-	var colliders = extensions["HF_colliders"]["objects"]
+	var raycast_sensors = extensions["HF_raycast_sensors"]["objects"]
 	var new_node = null
 	var old_node = node
 	
-	for collider in colliders:
-		for key in collider.keys():
+	for raycast_sensor in raycast_sensors:
+		for key in raycast_sensor.keys():
 			match key:
-				"name":
+				"n_horizontal_rays":
 					pass
-				"type":
+				"n_vertical_rays":
 					pass
-				"bounding_box":
+				"horizontal_fov":
 					pass
-				"offset":
+				"vertical_fov":
 					pass
-				"intangible":
+				"ray_length":
 					pass
-				"convex":
-					pass
-				"physic_material":
+				"sensor_name":
 					pass
 	
 	if new_node:
