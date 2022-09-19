@@ -19,7 +19,6 @@ namespace SimEnv.RlAgents {
         }
     }
 
-
     public static class RewardFunctionBuilder {
         public static readonly string[] LEAF_REWARD_FUNCTION_TYPES = { "dense", "sparse", "timeout", "see", "angle_to" };
         public static readonly string[] NODE_REWARD_FUNCTION_TYPES = { "and", "or", "not" };
@@ -149,9 +148,7 @@ namespace SimEnv.RlAgents {
             }
             return rewardFunction;
         }
-
     }
-
 
     public abstract class RewardFunction {
         public Node entityA;
@@ -253,6 +250,7 @@ namespace SimEnv.RlAgents {
             return reward;
         }
     }
+
     public class AngleToRewardFunction : SparseRewardFunction {
         public AngleToRewardFunction(Node entityA, Node entityB,
             IDistanceMetric distanceMetric, float rewardScalar, Vector3 direction, float threshold, bool isTerminal, bool isCollectable, bool triggerOnce)

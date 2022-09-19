@@ -16,6 +16,7 @@ namespace SimEnv.RlAgents {
         static Dictionary<string, Buffer> sensorBuffers;
         static Buffer doneBuffer;
         static Buffer rewardBuffer;
+        static bool active;
 
         public ActorManager() {
             instance = this;
@@ -24,6 +25,7 @@ namespace SimEnv.RlAgents {
             activeMaps = new List<Map>();
             positions = new List<Vector3>();
             sensorBuffers = new Dictionary<string, Buffer>();
+            active = false;
         }
 
         public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
@@ -45,9 +47,12 @@ namespace SimEnv.RlAgents {
                 InitializeMapPool(maps);
             }
 
-            InitializeBuffers();
+            active = actors.Count > 0;
 
+            if (active)
+                InitializeBuffers();
         }
+
         static void InitializeBuffers() {
             int nActiveMaps = activeMaps.Count;
             int nActors = maxActorsPerMap;
@@ -66,11 +71,7 @@ namespace SimEnv.RlAgents {
             }
             int[] shape = { nActiveMaps, nActors, 1 };
             doneBuffer = new Buffer(nActiveMaps * nActors, shape, "float"); // we send bools as floats for now
-            Debug.Log("intializing buffers done buffer");
             rewardBuffer = new Buffer(nActiveMaps * nActors, shape, "float");
-            Debug.Log("intializing buffers reward buffer");
-
-
         }
 
         static void InitializeMapPool(List<string> names) {
@@ -97,6 +98,7 @@ namespace SimEnv.RlAgents {
 
         // Before Simulator step, set up agent actions
         public override void OnBeforeStep(EventData eventData) {
+            if (!active) return;
             if (eventData.inputKwargs.TryParse<Dictionary<string, object>>("action", out Dictionary<string, object> actions)) {
                 for (int i = 0; i < activeMaps.Count; i++) {
                     activeMaps[i].SetActions(actions[i.ToString()]);
@@ -107,6 +109,7 @@ namespace SimEnv.RlAgents {
         // After Simulator step, before rendering, check if any maps are done
         // If so, reset them, and update the map data
         public override void OnEarlyStep(EventData eventData) {
+            if (!active) return;
             for (int i = 0; i < activeMaps.Count; i++) {
                 List<(float reward, bool done)> rewardDones = activeMaps[i].GetActorRewardDones();
                 bool done = false;
@@ -130,6 +133,7 @@ namespace SimEnv.RlAgents {
 
         // After Simulator step, record sensor observations
         public override void OnStep(EventData eventData) {
+            if (!active) return;
             for (int i = 0; i < activeMaps.Count; i++) {
                 activeMaps[i].GetActorObservations(sensorBuffers, i);
             }
