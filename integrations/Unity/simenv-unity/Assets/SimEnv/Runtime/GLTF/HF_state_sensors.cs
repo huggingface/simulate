@@ -11,7 +11,7 @@ namespace SimEnv.GLTF {
             public string reference_entity;
             public string target_entity;
             public List<string> properties;
-            public string sensor_name;
+            public string sensor_tag;
         }
     }
 

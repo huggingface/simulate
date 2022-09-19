@@ -20,7 +20,7 @@ namespace SimEnv {
         public RaycastSensor(Node node, SimEnv.GLTF.HFRaycastSensors.HFRaycastSensor data) {
             m_node = node;
             node.sensor = this;
-            mName = data.sensor_name;
+            mName = data.sensor_tag;
             // calculate ray angles etc
             Debug.Log("instantiating raycast sensor");
 

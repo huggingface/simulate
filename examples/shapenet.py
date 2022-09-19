@@ -135,6 +135,7 @@ scene += sm.Asset.create_from(
 actor = sm.Asset.create_from(
     "simenv-explorer/public-test/pot/1a03376343b2e4f0c27d3c9a6f742a5e.glb",
     name="actor",
+    is_actor=True,
     position=[0, 1.65, -1.35],
     scaling=[2, 2, 2],
 )
@@ -160,7 +161,7 @@ env = sm.RLEnv(scene, frame_skip=1)
 scene.show()
 scene.reset()
 for i in range(1000):
-    action = scene.action_space.sample()
+    action = scene.actors[0].action_space.sample()
     # obs, reward, done = scene.step()
     print(i, action)
     env.step([action])

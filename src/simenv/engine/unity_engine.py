@@ -11,6 +11,7 @@ from .engine import Engine
 
 NUM_BIND_RETRIES = 20
 BIND_RETRIES_DELAY = 2.0
+SOCKET_TIME_OUT = 30.0  # Timeout in seconds
 
 
 class UnityEngine(Engine):
@@ -19,13 +20,13 @@ class UnityEngine(Engine):
         scene,
         auto_update=True,
         engine_exe="",
-        engine_port=55000,
+        engine_port=None,
         engine_headless=False,
     ):
         super().__init__(scene=scene, auto_update=auto_update)
 
         self.host = "127.0.0.1"
-        self.port = engine_port
+        self.port = engine_port if engine_port is not None else 55000
 
         if engine_exe:
             self._launch_executable(executable=engine_exe, port=engine_port, headless=engine_headless)
@@ -68,10 +69,13 @@ class UnityEngine(Engine):
 
         self.socket.listen()
         self.client, self.client_address = self.socket.accept()
+        # self.client.setblocking(0)  # Set to non-blocking
+        self.client.settimeout(SOCKET_TIME_OUT)  # Set a timeout
         print(f"Connection from {self.client_address}")
 
     def _get_response(self):
         while True:
+
             data_length = self.client.recv(4)
             data_length = int.from_bytes(data_length, "little")
 
@@ -97,7 +101,16 @@ class UnityEngine(Engine):
         kwargs.update({"b64bytes": b64_bytes})
         return self.run_command("Initialize", **kwargs)
 
-    def step(self, **kwargs):
+    def step(self, action=None, **kwargs):
+        """Step the environment with the given action.
+
+        Args:
+            action (dict): The action to take in the environment.
+                If the action is None, we don't send an action to the environment.
+                We then only send the Step command to Unity to step the physics engine.
+        """
+        if action is not None:
+            kwargs.update({"action": action})
         return self.run_command("Step", **kwargs)
 
     def step_send_async(self, **kwargs):

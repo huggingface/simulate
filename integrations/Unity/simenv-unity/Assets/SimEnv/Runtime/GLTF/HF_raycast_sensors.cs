@@ -15,7 +15,7 @@ namespace SimEnv.GLTF {
             public float horizontal_fov;
             public float vertical_fov;
             public float ray_length;
-            public string sensor_name;
+            public string sensor_tag;
         }
     }
 }

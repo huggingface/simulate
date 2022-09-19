@@ -35,7 +35,7 @@ if __name__ == "__main__":
     axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
     for i in range(1000):
-        action = scene.action_space.sample()
+        action = scene.actors[0].action_space.sample()
         if type(action) == int:  # discrete are ints, continuous are numpy arrays
             action = action
         else:

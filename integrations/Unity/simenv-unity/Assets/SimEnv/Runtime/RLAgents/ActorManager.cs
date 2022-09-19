@@ -30,7 +30,7 @@ namespace SimEnv.RlAgents {
 
         public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
             foreach (Node node in Simulator.nodes.Values) {
-                if (node.actionData != null) {
+                if (node.isActor == true) {
                     actors.Add(node.name, new Actor(node));
                 }
             }
@@ -97,11 +97,20 @@ namespace SimEnv.RlAgents {
         }
 
         // Before Simulator step, set up agent actions
+        // Action is a:
+        // A Dict (maps index) of Dict (agents names) to individual actions
+        // Where "individual actions" is a list of integers/floats coresponding to the actions
+
         public override void OnBeforeStep(EventData eventData) {
             if (!active) return;
-            if (eventData.inputKwargs.TryParse<Dictionary<string, object>>("action", out Dictionary<string, object> actions)) {
+            if (eventData.inputKwargs.TryParse<Dictionary<string, List<List<List<float>>>>>("action", out Dictionary<string, List<List<List<float>>>> actions)) {
                 for (int i = 0; i < activeMaps.Count; i++) {
-                    activeMaps[i].SetActions(actions[i.ToString()]);
+                    // Create a dictionary of actions for the map
+                    Dictionary<string, List<List<float>>> actionsForMap = new Dictionary<string, List<List<float>>>();
+                    foreach (KeyValuePair<string, List<List<List<float>>>> action in actions) {
+                        actionsForMap[action.Key] = action.Value[i];
+                    }
+                    activeMaps[i].SetActions(actionsForMap);
                 }
             }
         }

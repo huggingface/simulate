@@ -78,7 +78,7 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
     target_entity: Optional[Any] = None
     reference_entity: Optional[Any] = None
     properties: Optional[List[str]] = None
-    sensor_name: str = "StateSensor"
+    sensor_tag: str = "StateSensor"
 
     name: InitVar[Optional[str]] = None
     position: InitVar[Optional[List[float]]] = None
@@ -130,7 +130,7 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
     horizontal_fov: float = 0
     vertical_fov: float = 0
     ray_length: float = 100
-    sensor_name: str = "RaycastSensor"
+    sensor_tag: str = "RaycastSensor"
 
     name: InitVar[Optional[str]] = None
     position: InitVar[Optional[List[float]]] = None

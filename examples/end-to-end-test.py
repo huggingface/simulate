@@ -32,6 +32,7 @@ if __name__ == "__main__":
 
     actor = sm.EgocentricCameraActor(
         name="actor",
+        is_actor=True,
         camera_width=CAMERA_WIDTH,
         camera_height=CAMERA_HEIGHT,
         position=[0.0, 0.0, 0.0],

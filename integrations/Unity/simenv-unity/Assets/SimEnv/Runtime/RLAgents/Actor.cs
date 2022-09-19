@@ -5,18 +5,17 @@ using SimEnv.GLTF;
 namespace SimEnv.RlAgents {
     public class Actor {
         public Node node { get; private set; }
-        public HFActuators.ActionSpace actionSpace { get; private set; }
 
         private Dictionary<string, object> observations = new Dictionary<string, object>();
 
         public List<ISensor> sensors = new List<ISensor>();
+        public Dictionary<string, Node> actuatorNodes = new Dictionary<string, Node>();
         List<RewardFunction> rewardFunctions = new List<RewardFunction>();
         float accumReward;
-        object currentAction;
+        public Dictionary<string, List<float>> currentAction = new Dictionary<string, List<float>>();
 
         public Actor(Node node) {
             this.node = node;
-            node.gameObject.tag = "Actor";
             Initialize();
         }
 
@@ -29,26 +28,24 @@ namespace SimEnv.RlAgents {
         }
 
         void InitActions() {
-            if (node.actionData == null) {
-                Debug.LogWarning("Actor missing action data");
+            if (node.actuatorData == null) {
+                Debug.LogWarning("Actor missing actuator data");
                 return;
             }
-            if (node.actionData.n == null && node.actionData.low == null) {
+            if (node.actuatorData.n == null && node.actuatorData.low == null) {
                 Debug.LogWarning("At least one action space required.");
                 return;
             }
 
-            if (node.actionData.n != null) {
-                // Discrete action space
-                actionSpace = new HFActuators.ActionSpace(node.actionData);
-            } else if (node.actionData.low != null) {
-                // continuous action space
-                Debug.LogWarning("Continous actions are yet to be implemented");
-                return;
-            } else {
-                Debug.LogWarning("Error parsing actor action space");
-                return;
+            // search children for Actuators
+            // this is a bit slow but it only runs once at startup
+            foreach (Node node2 in Simulator.nodes.Values) {
+                if (node2.actuator != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
+                    actuatorNodes[node2.actuator.actuator_tag] = node2;
+                }
             }
+
+            
         }
         void InitSensors() {
             // search children for Cameras and add these as camera sensors
@@ -56,7 +53,7 @@ namespace SimEnv.RlAgents {
             foreach (Node node2 in Simulator.nodes.Values) {
                 // search children for Cameras and create CameraSensors
                 if (node2.camera != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
-                    CameraSensor cameraSensor = new CameraSensor(node2.camera, node2.cameraData.sensor_name);
+                    CameraSensor cameraSensor = new CameraSensor(node2.camera, node2.cameraData.extras.sensor_tag);
                     sensors.Add(cameraSensor);
                 }
                 // search children for StateSensors
@@ -86,11 +83,11 @@ namespace SimEnv.RlAgents {
                 return;
             }
 
-            if (currentAction != null && node.gameObject.activeSelf)
+            if (currentAction.Count > 0 && node.gameObject.activeSelf)
                 this.ExecuteAction(currentAction);
         }
 
-        public void SetAction(object action) {
+        public void SetAction(Dictionary<string, List<float>> action) {
             this.currentAction = action;
         }
 
