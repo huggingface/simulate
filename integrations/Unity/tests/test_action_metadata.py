@@ -225,7 +225,7 @@ def test_add_force_frame_skip(build_exe, port_number):
     scene.config.time_step = 0.01
     scene.config.frame_skip = 5
     scene.show()
-    # Apply 20 times a force of 10 N to an object of 1 kg along the x axis during 0.01 second
+    # Apply 4 times a force of 10 N to an object of 1 kg along the x axis during 0.01 * 5 second
     for i in range(3):
         scene.step(action={"actuator": [[[0]]]})
     event = scene.step(action={"actuator": [[[0]]]})
@@ -246,4 +246,4 @@ if __name__ == "__main__":
     build_exe = os.environ.get("BUILD_EXE")
     if not build_exe:
         build_exe = None
-    test_add_force_time_step(build_exe, port_number=55000)
+    test_add_force_frame_skip(build_exe, port_number=55000)

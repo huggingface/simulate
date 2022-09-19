@@ -88,9 +88,6 @@ namespace SimEnv.RlAgents {
                 throw new System.Exception("You need to provide an axis to use the 'Add Torque' action.");
 
             float magnitude = (value - mapping.offset) * mapping.amplitude;
-            // if (mapping.maxVelocityThreshold.HasValue)
-            //     if (node.rigidbody.angularVelocity.magnitude > mapping.maxVelocityThreshold.Value)
-            //         return;
 
             Vector3 torque = mapping.axis.Value.normalized * magnitude;
 
@@ -107,12 +104,20 @@ namespace SimEnv.RlAgents {
                 } else {
                     node.rigidbody.AddTorque(torque, forceMode);
                 }
+                if (mapping.maxVelocityThreshold.HasValue && node.rigidbody.angularVelocity.magnitude > mapping.maxVelocityThreshold.Value) {
+                    Debug.Log($"Angular velocity {node.rigidbody.angularVelocity.magnitude} exceeds threshold {mapping.maxVelocityThreshold.Value}");
+                    node.rigidbody.angularVelocity = node.rigidbody.angularVelocity.normalized * mapping.maxVelocityThreshold.Value;
+                    Debug.Log($"Clamped angular velocity to {node.rigidbody.angularVelocity.magnitude}");
+                }
             }
             if (node.articulationBody != null) {
                 if (mapping.useLocalCoordinates) {
                     node.articulationBody.AddRelativeTorque(torque, forceMode);
                 } else {
                     node.articulationBody.AddTorque(torque, forceMode);
+                }
+                if (mapping.maxVelocityThreshold.HasValue && node.articulationBody.angularVelocity.magnitude > mapping.maxVelocityThreshold.Value) {
+                    node.articulationBody.angularVelocity = node.articulationBody.angularVelocity.normalized * mapping.maxVelocityThreshold.Value;
                 }
             }
         }

@@ -103,6 +103,8 @@ namespace SimEnv {
             kwargs.TryParse("return_nodes", out Config.instance.returnNodes, returnNodes);
             kwargs.TryParse("return_frames", out Config.instance.returnFrames, returnFrames);
 
+            Debug.Log($"Stepping {Config.instance.frameSkip} frames with {Config.instance.timeStep} time step");
+
             if (currentEvent == null)
                 currentEvent = new EventData();
 

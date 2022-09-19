@@ -1,5 +1,4 @@
 import os
-import time
 
 import pytest
 
@@ -49,7 +48,7 @@ def test_add_force(build_exe, port_number):
     assert original_angular_velocity == [0.0, 0.0, 0.0]
 
     # Apply one time a force of 10 N to an object of 1 kg along the x axis during 0.02 second
-    event = scene.step(action={"0": 0})
+    event = scene.step(action={"actuator": [[[0]]]})
     new_position = event["nodes"]["actor"]["position"]
     new_rotation = event["nodes"]["actor"]["rotation"]
     new_velocity = event["nodes"]["actor"]["velocity"]
@@ -66,8 +65,8 @@ def test_add_force(build_exe, port_number):
 
     # Apply 9 more time the force of 10 N to an object of 1 kg along the x axis during 0.02 second
     for i in range(8):
-        scene.step(action={"0": 0})
-    event = scene.step(action={"0": 0})
+        scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
     new_position = event["nodes"]["actor"]["position"]
     new_rotation = event["nodes"]["actor"]["rotation"]
     new_velocity = event["nodes"]["actor"]["velocity"]
@@ -85,8 +84,6 @@ def test_add_force(build_exe, port_number):
 
     scene.close()
 
-    time.sleep(2)
-
 
 def test_add_force_is_impulse(build_exe, port_number):
     scene = sm.Scene(engine="unity", engine_exe=build_exe, engine_port=port_number) + sm.LightSun(
@@ -95,7 +92,7 @@ def test_add_force_is_impulse(build_exe, port_number):
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", is_actor=True, position=[0.0, 0.5, 0.0])
-    actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
+    actor2 = sm.Box(name="actor2", is_actor=True, position=[0.0, 0.5, 5.0])
     # Which can only move along the x axis
     actor.physics_component = sm.RigidBodyComponent(
         mass=1,
@@ -134,8 +131,8 @@ def test_add_force_is_impulse(build_exe, port_number):
     scene.show()
     # Apply 10 times the actions
     for i in range(9):
-        scene.step(action={"0": 0})
-    event = scene.step(action={"0": 0})
+        scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
 
     position_1 = event["nodes"]["actor"]["position"]
     velocity_1 = event["nodes"]["actor"]["velocity"]
@@ -165,7 +162,7 @@ def test_add_force_local_coordinates(build_exe, port_number):
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", is_actor=True, position=[0.0, 0.5, 0.0])
-    actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
+    actor2 = sm.Box(name="actor2", is_actor=True, position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
     actor.physics_component = sm.RigidBodyComponent(
         mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
@@ -194,8 +191,8 @@ def test_add_force_local_coordinates(build_exe, port_number):
     scene.show()
     # Apply 10 times the actions
     for i in range(9):
-        scene.step(action={"0": 0})
-    event = scene.step(action={"0": 0})
+        scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
 
     position_1 = event["nodes"]["actor"]["position"]
     velocity_1 = event["nodes"]["actor"]["velocity"]
@@ -226,7 +223,7 @@ def test_add_force_amplitude(build_exe, port_number):
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", is_actor=True, position=[0.0, 0.5, 0.0])
-    actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
+    actor2 = sm.Box(name="actor2", is_actor=True, position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
     actor.physics_component = sm.RigidBodyComponent(
         mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
@@ -247,8 +244,8 @@ def test_add_force_amplitude(build_exe, port_number):
     scene.show()
     # Apply 10 times the actions
     for i in range(9):
-        scene.step(action={"0": 0})
-    event = scene.step(action={"0": 0})
+        scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
 
     position_1 = event["nodes"]["actor"]["position"]
     velocity_1 = event["nodes"]["actor"]["velocity"]
@@ -279,7 +276,7 @@ def test_add_force_offset(build_exe, port_number):
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", is_actor=True, position=[0.0, 0.5, 0.0])
-    actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
+    actor2 = sm.Box(name="actor2", is_actor=True, position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
     actor.physics_component = sm.RigidBodyComponent(
         mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
@@ -300,8 +297,8 @@ def test_add_force_offset(build_exe, port_number):
     scene.show()
     # Apply 10 times the actions
     for i in range(9):
-        scene.step(action={"0": 0})
-    event = scene.step(action={"0": 0})
+        scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
 
     position_1 = event["nodes"]["actor"]["position"]
     velocity_1 = event["nodes"]["actor"]["velocity"]
@@ -332,7 +329,7 @@ def test_add_force_max_velocity(build_exe, port_number):
 
     # Add two 1 kg cubes as actor
     actor = sm.Box(name="actor", is_actor=True, position=[0.0, 0.5, 0.0])
-    actor2 = sm.Box(name="actor2", position=[0.0, 0.5, 5.0])
+    actor2 = sm.Box(name="actor2", is_actor=True, position=[0.0, 0.5, 5.0])
     # Which can only move along the x and z axis
     actor.physics_component = sm.RigidBodyComponent(
         mass=1, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y", "freeze_position_y"]
@@ -357,8 +354,8 @@ def test_add_force_max_velocity(build_exe, port_number):
     scene.show()
     # Apply 10 times the actions
     for i in range(9):
-        scene.step(action={"0": 0})
-    event = scene.step(action={"0": 0})
+        scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
 
     position_1 = event["nodes"]["actor"]["position"]
     velocity_1 = event["nodes"]["actor"]["velocity"]
@@ -384,6 +381,4 @@ if __name__ == "__main__":
     build_exe = os.environ.get("BUILD_EXE")
     if not build_exe:
         build_exe = None
-    test_add_force_max_velocity(build_exe)
-
-    test_add_force_is_impulse(build_exe)
+    test_add_force(build_exe, port_number=None)

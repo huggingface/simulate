@@ -63,6 +63,8 @@ class Scene(Asset):
         )
         self.config = config if config is not None else Config()
 
+        self._is_shown = False
+
         self.engine = None
         if engine is not None:
             engine = engine.lower()
@@ -85,8 +87,29 @@ class Scene(Asset):
         return f"Scene(engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
 
     def show(self, **engine_kwargs):
-        """Render the Scene using the engine."""
+        """Send the scene to the engine for rendering or later simulation."""
+
+        # Sanity check that all actuators are part of one and only one actor
+        node_with_actuators = self.tree_filtered_descendants(lambda node: node.actuator is not None)
+        for node in node_with_actuators:
+            number_of_parent_actors = 0
+            for parent_node in node.tree_path:
+                number_of_parent_actors += 1 if parent_node.is_actor else 0
+            if number_of_parent_actors == 0:
+                raise ValueError(
+                    f"Node {node.name} has an actuator but is not part of an actor. "
+                    "Actuators should be part of an actor. "
+                    f"Check that at least one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
+                )
+            elif number_of_parent_actors > 1:
+                raise ValueError(
+                    f"Node {node.name} has an actuator but is part of more than one actor. "
+                    "Actuators should be part of one and only one actor. "
+                    f"Check that only one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
+                )
+
         self.engine.show(**engine_kwargs)
+        self._is_shown = True
 
     def step(
         self,
@@ -115,6 +138,8 @@ class Scene(Asset):
         engine_kwargs: Dict
             Additional kwargs to pass to the engine.
         """
+        if not self._is_shown:
+            raise ValueError("The scene should be shown before stepping it (call scene.show()).")
         if len(self.actors) == 0:
             raise ValueError(
                 "The scene should have at least one actor to step. Set is_actor=True on the root node of your actor."
