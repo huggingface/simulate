@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using UnityEngine;
 using SimEnv.GLTF;
-using System.Linq;
 
 namespace SimEnv.RlAgents {
     public class Actor {
@@ -22,8 +21,6 @@ namespace SimEnv.RlAgents {
         }
 
         void Initialize() {
-            Debug.Log("initializing Actor");
-
             InitActions();
             InitSensors();
             InitRewardFunctions();
@@ -71,7 +68,6 @@ namespace SimEnv.RlAgents {
         }
 
         void InitRewardFunctions() {
-            Debug.Log("init reward functions");
             // find reward nodes with reward data
             var vals = Simulator.nodes.Values;
             foreach (Node node2 in Simulator.nodes.Values) {

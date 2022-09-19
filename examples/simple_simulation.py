@@ -10,6 +10,7 @@ def create_scene(build_exe=None):
     # Create a scene with Unity engine backend
     scene = sm.Scene(engine="Unity", engine_exe=build_exe)
     scene += sm.LightSun()
+    scene.config.frame_skip = 10
 
     # Add a floor
     scene += sm.Box(
@@ -46,10 +47,7 @@ def simulate(scene, n_frames=30):
     for i in range(n_frames):
         # Calling scene.step() will step the simulation forward, and return a dictionary of data
         # By default, it contains a rendering from each camera, and node-level data like position and rotation
-        if i == 10:
-            event = scene.step(time_step=0)
-        else:
-            event = scene.step()
+        event = scene.step()
 
         # We will graph the height of the cube as it falls
         height = event["nodes"]["cube"]["position"][1]

@@ -1,5 +1,3 @@
-using UnityEngine;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 
 namespace SimEnv.GLTF {
@@ -15,7 +13,6 @@ namespace SimEnv.GLTF {
             public List<string> properties;
             public string sensor_name;
         }
-
     }
 
 }
