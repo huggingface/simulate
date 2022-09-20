@@ -40,11 +40,9 @@ namespace SimEnv {
         public static EventData currentEvent { get; private set; }
 
         private void Awake() {
-            Debug.Log("Waking up simulator");
             Physics.autoSimulation = false;
             LoadCustomAssemblies();
             LoadPlugins();
-            // TODO: Option to parse simulation args directly from API
             GetCommandLineArgs(out int port);
             Client.Initialize("localhost", port);
         }
@@ -102,8 +100,6 @@ namespace SimEnv {
             kwargs.TryParse("time_step", out Config.instance.timeStep, timeStep);
             kwargs.TryParse("return_nodes", out Config.instance.returnNodes, returnNodes);
             kwargs.TryParse("return_frames", out Config.instance.returnFrames, returnFrames);
-
-            Debug.Log($"Stepping {Config.instance.frameSkip} frames with {Config.instance.timeStep} time step");
 
             if (currentEvent == null)
                 currentEvent = new EventData();

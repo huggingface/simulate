@@ -256,7 +256,6 @@ namespace SimEnv.GLTF {
                             if (extensions == null || extensions.HF_reward_functions == null || extensions.HF_reward_functions.objects == null || extensions.HF_reward_functions.objects.Count < rewardValue) {
                                 Debug.LogWarning("Error importing reward function");
                             } else {
-                                Debug.Log(extensions.HF_reward_functions.objects[rewardValue].type);
                                 result[i].node.rewardFunctionData = extensions.HF_reward_functions.objects[rewardValue];
                             }
                         }

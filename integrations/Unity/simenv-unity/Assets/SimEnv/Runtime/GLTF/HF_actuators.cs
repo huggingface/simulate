@@ -30,7 +30,6 @@ namespace SimEnv.GLTF {
             public string? dtype;
 
             public int? seed;
-
         }
 
         public class ActionMapping {
@@ -57,7 +56,6 @@ namespace SimEnv.GLTF {
 
             [JsonProperty("max_velocity_threshold")]
             public float? maxVelocityThreshold;
-
         }
 
         public class Actuator {
@@ -81,8 +79,6 @@ namespace SimEnv.GLTF {
                 }
             }
         }
-
-
     }
 }
 

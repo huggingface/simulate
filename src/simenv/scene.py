@@ -140,10 +140,6 @@ class Scene(Asset):
         """
         if not self._is_shown:
             raise ValueError("The scene should be shown before stepping it (call scene.show()).")
-        if len(self.actors) == 0:
-            raise ValueError(
-                "The scene should have at least one actor to step. Set is_actor=True on the root node of your actor."
-            )
         if time_step is not None:
             engine_kwargs.update({"time_step": time_step})
         if frame_skip is not None:

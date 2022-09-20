@@ -37,7 +37,6 @@ namespace SimEnv {
         /// Connect to server and begin listening for commands.
         /// </summary>
         public static void Initialize(string host = "localhost", int port = 55000) {
-            Debug.Log("Initializing Tcp Client");
             Client.host = host;
             Client.port = port;
             LoadCommands();
