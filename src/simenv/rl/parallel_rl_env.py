@@ -44,7 +44,7 @@ class ParallelRLEnv(VecEnv):
 
     def step(self, actions: Optional[np.array] = None):
         for i in range(self.n_parallel):
-            action = actions[i * self.n_show : (i + 1) * self.n_show].tolist() if actions is not None else None
+            action = actions[i * self.n_show : (i + 1) * self.n_show] if actions is not None else None
             self.envs[i].step_send_async(action)
 
         all_obs = []

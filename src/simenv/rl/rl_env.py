@@ -111,6 +111,10 @@ class RLEnv(VecEnv):
         Action is a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
         """
 
+        self.step_send_async(action=action)
+        return self.step_recv_async()
+
+    def step_send_async(self, action=None):
         if not isinstance(action, dict):
             if len(self.action_tags) != 1:
                 raise ValueError(
@@ -145,36 +149,6 @@ class RLEnv(VecEnv):
                 # actions are a number array
                 value = value.reshape((self.n_show, self.n_actors_per_map, -1))
                 action[key] = value.tolist()
-
-        self.step_send_async(action=action)
-        return self.step_recv_async()
-
-    def step_send_async(self, action=None):
-        # action_dict = {}
-        # if action is None:
-        #     # We sample actions - TODO keep this?
-        #     for i in range(self.n_show):
-        #         action_dict[str(i)] = self.action_space.sample().tolist()
-        # else:
-        #     if self.n_show == 1:
-        #         if np.isscalar(action):
-        #             # We have a scalar, either numpy or python
-        #             if isinstance(action, np.ndarray):
-        #                 action = [action.item()]
-        #             else:
-        #                 action = [action]
-        #         action_dict["0"] = action
-        #     else:
-        #         # We have a list that we will spread over each parallel env
-        #         if len(action) != self.n_show:
-        #             raise ValueError("The number of actions must match the number of environments")
-        #         for i, action_i in enumerate(self.n_show):
-        #             # We have a scalar, either numpy or python
-        #             if isinstance(action, np.ndarray):
-        #                 action = [action.item()]
-        #             else:
-        #                 action = [action]
-        #             action_dict[str(i)] = int(action[i])
 
         self.scene.engine.step_send_async(action=action)
 
