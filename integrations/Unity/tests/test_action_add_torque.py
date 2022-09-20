@@ -10,7 +10,7 @@ def test_add_torque(build_exe, port_number):
 
     # Add a 1 kg sphere as actor
     actor = sm.Cylinder(
-        name="actor", position=[0.0, 0.5, 0.0]
+        name="actor", is_actor=True, position=[0.0, 0.5, 0.0]
     )  # Using a cylinder to compute more easily our equations
     # Can only rotate along the y axis
     actor.physics_component = sm.RigidBodyComponent(
@@ -48,7 +48,7 @@ def test_add_torque(build_exe, port_number):
     assert original_angular_velocity == [0.0, 0.0, 0.0]
 
     # Apply one time a torque of 1 N.m to an object of 1 kg along the y axis during 0.02 second
-    event = scene.step(action={"0": 0})
+    event = scene.step(action={"actuator": [[[0]]]})
     new_position = event["nodes"]["actor"]["position"]
     new_rotation = event["nodes"]["actor"]["rotation"]
     new_velocity = event["nodes"]["actor"]["velocity"]
@@ -65,8 +65,8 @@ def test_add_torque(build_exe, port_number):
 
     # Apply 4 more time the torque of 1 N.m to an object of 1 kg along the y axis during 0.02 second
     for i in range(3):
-        event = scene.step(action={"0": 0})
-    event = scene.step(action={"0": 0})  # and 4th time
+        event = scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})  # and 4th time
 
     new_position = event["nodes"]["actor"]["position"]
     new_rotation = event["nodes"]["actor"]["rotation"]
@@ -91,8 +91,8 @@ def test_add_torque_is_impulse(build_exe, port_number):
     )
 
     # Add two 1 kg cylinders as actor
-    actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])
-    actor2 = sm.Cylinder(name="actor2", position=[0.0, 0.5, 5.0])
+    actor = sm.Cylinder(name="actor", is_actor=True, position=[0.0, 0.5, 0.0])
+    actor2 = sm.Cylinder(name="actor2", is_actor=True, position=[0.0, 0.5, 5.0])
     # Which can only move along the y axis
     actor.physics_component = sm.RigidBodyComponent(
         mass=1,
@@ -132,8 +132,8 @@ def test_add_torque_is_impulse(build_exe, port_number):
     # Apply 5 times the actions
     # Be careful, if you apply for too many steps you should check the inertia of the object
     for i in range(4):
-        event = scene.step(action={"0": 0, "1": 0})
-    event = scene.step(action={"0": 0, "1": 0})
+        event = scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
 
     rotation_1 = event["nodes"]["actor"]["rotation"]
     angular_velocity_1 = event["nodes"]["actor"]["angular_velocity"]
@@ -161,8 +161,8 @@ def test_add_torque_local_coordinates(build_exe, port_number):
     )
 
     # Add two 1 kg cylinders as actor
-    actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])
-    actor2 = sm.Cylinder(name="actor2", position=[0.0, 0.5, 5.0])
+    actor = sm.Cylinder(name="actor", is_actor=True, position=[0.0, 0.5, 0.0])
+    actor2 = sm.Cylinder(name="actor2", is_actor=True, position=[0.0, 0.5, 5.0])
     # Which can only move along the y axis
     actor.physics_component = sm.RigidBodyComponent(
         mass=1,
@@ -205,8 +205,8 @@ def test_add_torque_local_coordinates(build_exe, port_number):
     # Apply 5 times the actions
     # Be careful, if you apply for too many steps you should check the inertia of the object
     for i in range(4):
-        event = scene.step(action={"0": 0, "1": 0})
-    event = scene.step(action={"0": 0, "1": 0})
+        event = scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
 
     rotation_1 = event["nodes"]["actor"]["rotation"]
     angular_velocity_1 = event["nodes"]["actor"]["angular_velocity"]
@@ -237,8 +237,8 @@ def test_add_torque_amplitude(build_exe, port_number):
     )
 
     # Add two 1 kg cylinders as actor
-    actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])
-    actor2 = sm.Cylinder(name="actor2", position=[0.0, 0.5, 5.0])
+    actor = sm.Cylinder(name="actor", is_actor=True, position=[0.0, 0.5, 0.0])
+    actor2 = sm.Cylinder(name="actor2", is_actor=True, position=[0.0, 0.5, 5.0])
     # Which can only move along the y axis
     actor.physics_component = sm.RigidBodyComponent(
         mass=1,
@@ -274,8 +274,8 @@ def test_add_torque_amplitude(build_exe, port_number):
     # Apply 5 times the actions
     # Be careful, if you apply for too many steps you should check the inertia of the object
     for i in range(4):
-        event = scene.step(action={"0": 0, "1": 0})
-    event = scene.step(action={"0": 0, "1": 0})
+        event = scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
 
     rotation_1 = event["nodes"]["actor"]["rotation"]
     angular_velocity_1 = event["nodes"]["actor"]["angular_velocity"]
@@ -303,8 +303,8 @@ def test_add_torque_offset(build_exe, port_number):
     )
 
     # Add two 1 kg cylinders as actor
-    actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])
-    actor2 = sm.Cylinder(name="actor2", position=[0.0, 0.5, 5.0])
+    actor = sm.Cylinder(name="actor", is_actor=True, position=[0.0, 0.5, 0.0])
+    actor2 = sm.Cylinder(name="actor2", is_actor=True, position=[0.0, 0.5, 5.0])
     # Which can only move along the y axis
     actor.physics_component = sm.RigidBodyComponent(
         mass=1,
@@ -340,8 +340,8 @@ def test_add_torque_offset(build_exe, port_number):
     # Apply 5 times the actions
     # Be careful, if you apply for too many steps you should check the inertia of the object
     for i in range(4):
-        event = scene.step(action={"0": 0, "1": 0})
-    event = scene.step(action={"0": 0, "1": 0})
+        event = scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
 
     rotation_1 = event["nodes"]["actor"]["rotation"]
     angular_velocity_1 = event["nodes"]["actor"]["angular_velocity"]
@@ -369,8 +369,8 @@ def test_add_torque_max_velocity(build_exe, port_number):
     )
 
     # Add two 1 kg cylinders as actor
-    actor = sm.Cylinder(name="actor", position=[0.0, 0.5, 0.0])
-    actor2 = sm.Cylinder(name="actor2", position=[0.0, 0.5, 5.0])
+    actor = sm.Cylinder(name="actor", is_actor=True, position=[0.0, 0.5, 0.0])
+    actor2 = sm.Cylinder(name="actor2", is_actor=True, position=[0.0, 0.5, 5.0])
     # Which can only move along the y axis
     actor.physics_component = sm.RigidBodyComponent(
         mass=1,
@@ -410,8 +410,8 @@ def test_add_torque_max_velocity(build_exe, port_number):
     # Apply 5 times the actions
     # Be careful, if you apply for too many steps you should check the inertia of the object
     for i in range(4):
-        event = scene.step(action={"0": 0, "1": 0})
-    event = scene.step(action={"0": 0, "1": 0})
+        event = scene.step(action={"actuator": [[[0]]]})
+    event = scene.step(action={"actuator": [[[0]]]})
 
     rotation_1 = event["nodes"]["actor"]["rotation"]
     angular_velocity_1 = event["nodes"]["actor"]["angular_velocity"]
@@ -426,8 +426,8 @@ def test_add_torque_max_velocity(build_exe, port_number):
 
     # Actor1: We have applied a torque of -1 N.m to an object of 1 kg along the y axis during 5*0.02=0.1 second
     # Our new angular velocity should be limited to slightly more than 0.01 rad/s (depending on frame rate)
-    assert angular_velocity_2 == pytest.approx([0.0, 0.02, 0.0], abs=1e-3)
-    assert rotation_2 == pytest.approx(sm.rotation_from_euler_radians(0, -0.002, 0), abs=1e-3)
+    assert angular_velocity_2 == pytest.approx([0.0, 0.03, 0.0], abs=1e-3)
+    assert rotation_2 == pytest.approx(sm.rotation_from_euler_radians(0, -0.003, 0), abs=1e-3)
 
     scene.close()
 
@@ -436,4 +436,4 @@ if __name__ == "__main__":
     build_exe = None  # os.environ.get("BUILD_EXE")
     if not build_exe:
         build_exe = None
-    test_add_torque_max_velocity(build_exe)
+    test_add_torque_max_velocity(build_exe, port_number=None)

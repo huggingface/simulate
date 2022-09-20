@@ -13,7 +13,6 @@ namespace SimEnv.RlAgents {
         public void Push(Map map) {
             Debug.Assert(!pool.Contains(map));
             map.SetActive(false);
-            map.Reset();
             pool.Enqueue(map);
         }
 

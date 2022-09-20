@@ -15,13 +15,13 @@ namespace SimEnv {
             }
         }
 
-        public float timeStep = .02f;
-        public int frameSkip = 1;
-        public bool returnNodes = true;
-        public bool returnFrames = true;
-        public List<string> nodeFilter;
-        public List<string> cameraFilter;
-        [JsonConverter(typeof(ColorRGBConverter))] public Color ambientColor = Color.gray;
+        [JsonProperty(PropertyName = "time_step")] public float timeStep = .02f;
+        [JsonProperty(PropertyName = "frame_skip")] public int frameSkip = 1;
+        [JsonProperty(PropertyName = "return_nodes")] public bool returnNodes = true;
+        [JsonProperty(PropertyName = "return_frames")] public bool returnFrames = true;
+        [JsonProperty(PropertyName = "node_filter")] public List<string> nodeFilter;
+        [JsonProperty(PropertyName = "camera_filter")] public List<string> cameraFilter;
+        [JsonProperty(PropertyName = "ambient_color"), JsonConverter(typeof(ColorRGBConverter))] public Color ambientColor = Color.gray;
         [JsonConverter(typeof(Vector3Converter))] public Vector3 gravity = Vector3.down * 9.81f;
 
         public bool ShouldSerializetimeStep() => timeStep != .02f;

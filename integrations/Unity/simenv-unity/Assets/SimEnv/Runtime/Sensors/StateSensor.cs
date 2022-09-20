@@ -6,27 +6,32 @@ namespace SimEnv {
         public string mName = "StateSensor";
         public static string mType = "float";
         public Node node => m_node;
+
         Node m_node;
-        private GameObject referenceEntity;
-        private GameObject targetEntity;
-        private List<string> properties;
+        GameObject referenceEntity;
+        GameObject targetEntity;
+        Rigidbody referenceRigidbody;
+        Rigidbody targetRigidbody;
+        ArticulationBody referenceArticulationBody;
+        ArticulationBody targetArticulationBody;
+        List<string> properties;
 
         public StateSensor(Node node, SimEnv.GLTF.HFStateSensors.HFStateSensor data) {
             m_node = node;
             node.sensor = this;
-            mName = data.sensor_name;
+            mName = data.sensor_tag;
             properties = data.properties;
             referenceEntity = GameObject.Find(data.reference_entity);
-            if (referenceEntity != null) {
-                Debug.Log("State Sensor found reference entity " + data.reference_entity);
-            }
             targetEntity = GameObject.Find(data.target_entity);
             if (targetEntity != null) {
-                Debug.Log("State Sensor found target entity " + data.target_entity);
+                targetRigidbody = targetEntity.GetComponent<Rigidbody>();
+                targetArticulationBody = targetEntity.GetComponent<ArticulationBody>();
+            } else {
+                Debug.LogWarning("State sensor target entity not found: " + data.target_entity);
             }
-
-            foreach (var property in properties) {
-                Debug.Log("property: " + property);
+            if (referenceEntity != null) {
+                referenceRigidbody = referenceEntity.GetComponent<Rigidbody>();
+                referenceArticulationBody = referenceEntity.GetComponent<ArticulationBody>();
             }
         }
 
@@ -82,28 +87,23 @@ namespace SimEnv {
             Vector3 relativeVelocity = Vector3.zero;
             Quaternion rotation;
             Vector3 relativeAngularRotation = Vector3.zero;
-            // worthwhile caching these ?
-            Rigidbody referenceRigidbody = referenceEntity.GetComponent<Rigidbody>();
-            Rigidbody targetEntityRigidbody = targetEntity.GetComponent<Rigidbody>();
-            ArticulationBody referenceArticulationBody = referenceEntity.GetComponent<ArticulationBody>();
-            ArticulationBody targetArticulationBody = targetEntity.GetComponent<ArticulationBody>();
             if (referenceEntity != null) {
                 relativePosition = referenceEntity.transform.InverseTransformPoint(targetEntity.transform.position);
                 rotation = Quaternion.Inverse(referenceEntity.transform.rotation) * targetEntity.transform.rotation;
 
                 if (referenceRigidbody != null) {
-                    if (targetEntityRigidbody != null) {
-                        relativeVelocity = targetEntityRigidbody.velocity - referenceRigidbody.velocity;
-                        relativeAngularRotation = referenceEntity.transform.InverseTransformDirection(targetEntityRigidbody.angularVelocity);
+                    if (targetRigidbody != null) {
+                        relativeVelocity = targetRigidbody.velocity - referenceRigidbody.velocity;
+                        relativeAngularRotation = referenceEntity.transform.InverseTransformDirection(targetRigidbody.angularVelocity);
 
                     } else if (targetArticulationBody != null) {
                         relativeVelocity = targetArticulationBody.velocity - referenceRigidbody.velocity;
                         relativeAngularRotation = referenceEntity.transform.InverseTransformDirection(targetArticulationBody.angularVelocity);
                     }
                 } else if (referenceArticulationBody != null) {
-                    if (targetEntityRigidbody != null) {
-                        relativeVelocity = targetEntityRigidbody.velocity - referenceArticulationBody.velocity;
-                        relativeAngularRotation = referenceEntity.transform.InverseTransformDirection(targetEntityRigidbody.angularVelocity);
+                    if (targetRigidbody != null) {
+                        relativeVelocity = targetRigidbody.velocity - referenceArticulationBody.velocity;
+                        relativeAngularRotation = referenceEntity.transform.InverseTransformDirection(targetRigidbody.angularVelocity);
 
                     } else if (targetArticulationBody != null) {
                         relativeVelocity = targetArticulationBody.velocity - referenceArticulationBody.velocity;
@@ -111,14 +111,13 @@ namespace SimEnv {
                     }
                 }
                 relativeVelocity = referenceEntity.transform.InverseTransformPoint(relativeVelocity);
-
             } else {
                 relativePosition = targetEntity.transform.position;
                 relativePosition = targetEntity.transform.position;
                 rotation = targetEntity.transform.rotation;
 
-                if (targetEntityRigidbody != null) {
-                    relativeVelocity = targetEntityRigidbody.velocity;
+                if (targetRigidbody != null) {
+                    relativeVelocity = targetRigidbody.velocity;
                 } else if (targetArticulationBody != null) {
                     relativeVelocity = targetArticulationBody.velocity;
                 }

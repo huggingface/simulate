@@ -58,6 +58,7 @@ class SimpleActor(Sphere):
             parent=parent,
             children=children,
             transformation_matrix=transformation_matrix,
+            is_actor=True,
             with_collider=True,
         )
 
@@ -155,6 +156,7 @@ class EgocentricCameraActor(Capsule):
             parent=parent,
             children=children,
             transformation_matrix=transformation_matrix,
+            is_actor=True,
             with_collider=True,
         )
 

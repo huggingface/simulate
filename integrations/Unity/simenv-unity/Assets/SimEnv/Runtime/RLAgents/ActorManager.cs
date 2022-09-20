@@ -16,6 +16,7 @@ namespace SimEnv.RlAgents {
         static Dictionary<string, Buffer> sensorBuffers;
         static Buffer doneBuffer;
         static Buffer rewardBuffer;
+        static bool active;
 
         public ActorManager() {
             instance = this;
@@ -24,11 +25,12 @@ namespace SimEnv.RlAgents {
             activeMaps = new List<Map>();
             positions = new List<Vector3>();
             sensorBuffers = new Dictionary<string, Buffer>();
+            active = false;
         }
 
         public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
             foreach (Node node in Simulator.nodes.Values) {
-                if (node.actionData != null) {
+                if (node.isActor == true) {
                     actors.Add(node.name, new Actor(node));
                 }
             }
@@ -45,16 +47,14 @@ namespace SimEnv.RlAgents {
                 InitializeMapPool(maps);
             }
 
-            InitializeBuffers();
+            active = actors.Count > 0;
 
+            if (active)
+                InitializeBuffers();
         }
-        static void InitializeBuffers() {
 
-            Debug.Log("intializing buffers");
-            // Creates buffers that hold the sensor measurements for all Actors
-            // find the number of maps
+        static void InitializeBuffers() {
             int nActiveMaps = activeMaps.Count;
-            // find the maximum number of agents
             int nActors = maxActorsPerMap;
             // get the names and shapes of all the sensors, we assume all agents have the same sensors (for now)
             foreach (var sensor in activeMaps[0].actors.Values.First<Actor>().sensors) {
@@ -71,11 +71,7 @@ namespace SimEnv.RlAgents {
             }
             int[] shape = { nActiveMaps, nActors, 1 };
             doneBuffer = new Buffer(nActiveMaps * nActors, shape, "float"); // we send bools as floats for now
-            Debug.Log("intializing buffers done buffer");
             rewardBuffer = new Buffer(nActiveMaps * nActors, shape, "float");
-            Debug.Log("intializing buffers reward buffer");
-
-
         }
 
         static void InitializeMapPool(List<string> names) {
@@ -95,16 +91,26 @@ namespace SimEnv.RlAgents {
         static void PopulateMapPool() {
             for (int i = 0; i < poolSize; i++) {
                 Map map = mapPool.Request();
-                map.SetPosition(positions[i]);
+                map.Reset(positions[i]);
                 activeMaps.Add(map);
             }
         }
 
         // Before Simulator step, set up agent actions
+        // Action is a:
+        // A Dict (maps index) of Dict (agents names) to individual actions
+        // Where "individual actions" is a list of integers/floats coresponding to the actions
+
         public override void OnBeforeStep(EventData eventData) {
-            if (eventData.inputKwargs.TryParse<Dictionary<string, object>>("action", out Dictionary<string, object> actions)) {
+            if (!active) return;
+            if (eventData.inputKwargs.TryParse<Dictionary<string, List<List<List<float>>>>>("action", out Dictionary<string, List<List<List<float>>>> actions)) {
                 for (int i = 0; i < activeMaps.Count; i++) {
-                    activeMaps[i].SetActions(actions[i.ToString()]);
+                    // Create a dictionary of actions for the map
+                    Dictionary<string, List<List<float>>> actionsForMap = new Dictionary<string, List<List<float>>>();
+                    foreach (KeyValuePair<string, List<List<List<float>>>> action in actions) {
+                        actionsForMap[action.Key] = action.Value[i];
+                    }
+                    activeMaps[i].SetActions(actionsForMap);
                 }
             }
         }
@@ -112,9 +118,8 @@ namespace SimEnv.RlAgents {
         // After Simulator step, before rendering, check if any maps are done
         // If so, reset them, and update the map data
         public override void OnEarlyStep(EventData eventData) {
-
+            if (!active) return;
             for (int i = 0; i < activeMaps.Count; i++) {
-
                 List<(float reward, bool done)> rewardDones = activeMaps[i].GetActorRewardDones();
                 bool done = false;
                 int count = 0;
@@ -124,7 +129,6 @@ namespace SimEnv.RlAgents {
                     rewardBuffer.floatBuffer[i * maxActorsPerMap + count] = rewardDone.reward;
                     count++;
                 }
-
                 // TODO: (Ed), should we reset when only one agent is done in a multiagent setting?
                 if (done) ResetAt(i);
             }
@@ -138,6 +142,7 @@ namespace SimEnv.RlAgents {
 
         // After Simulator step, record sensor observations
         public override void OnStep(EventData eventData) {
+            if (!active) return;
             for (int i = 0; i < activeMaps.Count; i++) {
                 activeMaps[i].GetActorObservations(sensorBuffers, i);
             }
@@ -151,8 +156,8 @@ namespace SimEnv.RlAgents {
             mapPool.Push(map);
 
             map = mapPool.Request();
-            map.SetPosition(positions[index]);
             map.SetActive(true);
+            map.Reset(positions[index]);
             activeMaps[index] = map;
         }
 
@@ -170,6 +175,7 @@ namespace SimEnv.RlAgents {
             mapPool.Clear();
             activeMaps.Clear();
             positions.Clear();
+            sensorBuffers.Clear();
         }
 
         static void CreatePositionPool() {

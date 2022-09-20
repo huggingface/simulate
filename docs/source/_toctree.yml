@@ -1,0 +1,30 @@
+- sections:
+  - local: index
+    title: SimEnv
+  - local: quicktour
+    title: Quicktour
+  title: Get started
+- sections:
+  - sections:
+    - local: examples/example1
+      title: SimEnv for ...
+    - local: examples/example2
+      title: SimEnv for ...
+    title: Examples
+  - sections:
+     - local: integrations/backends
+       title: Rendering Backends
+     - local: integrations/gltf
+       title: GLTF Extensions
+     - local: integrations/rl
+       title: Reinforcement Learning
+    title: Integrations
+  title: Using SimEnv
+- sections:
+  - sections:
+     - local: scene
+       title: Scene
+     - local: asset
+       title: Asset
+    title: Main Classes
+  title: API

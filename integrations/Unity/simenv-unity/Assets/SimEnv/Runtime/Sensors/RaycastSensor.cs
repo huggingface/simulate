@@ -20,7 +20,7 @@ namespace SimEnv {
         public RaycastSensor(Node node, SimEnv.GLTF.HFRaycastSensors.HFRaycastSensor data) {
             m_node = node;
             node.sensor = this;
-            mName = data.sensor_name;
+            mName = data.sensor_tag;
             // calculate ray angles etc
             Debug.Log("instantiating raycast sensor");
 
@@ -83,14 +83,12 @@ namespace SimEnv {
                 Quaternion.AngleAxis(angleV, node.transform.right) * node.transform.forward;
                 RaycastHit raycastHit;
                 var isHit = Physics.Raycast(node.transform.position, raycastDir, out raycastHit, rayLength); // TODO add Raycast layer mask?
-                buffer.floatBuffer[i + startingIndex] = raycastDistance(raycastHit, isHit);
-                if (false) { // TODO: remove this from release version
-                    Debug.DrawRay(node.transform.position, rayLength * raycastDir.normalized);
-                }
+                buffer.floatBuffer[i + startingIndex] = RaycastDistance(raycastHit, isHit);
+                // Debug.DrawRay(node.transform.position, rayLength * raycastDir.normalized);
             }
         }
 
-        private float raycastDistance(RaycastHit raycastHit, bool isHit) {
+        private float RaycastDistance(RaycastHit raycastHit, bool isHit) {
             // normalizes the result to range 0-1
             if (isHit) {
                 return 1.0f - raycastHit.distance / rayLength;

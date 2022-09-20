@@ -17,7 +17,7 @@ def create_scene(build_exe=None, gltf_path=None):
 
 
 def add_rl_components_to_scene(scene):
-    actor = scene.Cart
+    actor = scene.MountainCar_Cart
 
     # Add action mappings, moving left and right
     mapping = [
@@ -55,6 +55,5 @@ if __name__ == "__main__":
 
     for i in range(10000):
         obs, reward, done, info = env.step()
-        print(obs)
 
     input("Press enter to continue...")

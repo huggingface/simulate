@@ -32,4 +32,3 @@ class Camera(NamedBaseModel):
     type: str = None
     width: int = None
     height: int = None
-    sensor_name: str = None

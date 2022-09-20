@@ -40,6 +40,7 @@ namespace SimEnv {
         public static EventData currentEvent { get; private set; }
 
         private void Awake() {
+            Debug.Log("Waking up simulator");
             Physics.autoSimulation = false;
             LoadCustomAssemblies();
             LoadPlugins();
@@ -102,6 +103,8 @@ namespace SimEnv {
             kwargs.TryParse("return_nodes", out Config.instance.returnNodes, returnNodes);
             kwargs.TryParse("return_frames", out Config.instance.returnFrames, returnFrames);
 
+            Debug.Log($"Stepping {Config.instance.frameSkip} frames with {Config.instance.timeStep} time step");
+
             if (currentEvent == null)
                 currentEvent = new EventData();
 
@@ -110,12 +113,6 @@ namespace SimEnv {
             foreach (IPlugin plugin in plugins)
                 plugin.OnBeforeStep(currentEvent);
             BeforeStep?.Invoke();
-
-            // Perform the actual simulation
-            // Debug.Log($"Frame skip is {Config.instance.frameSkip}");
-            // Debug.Log($"Time step is {Config.instance.timeStep}");
-            // Debug.Log($"returnFrames is {Config.instance.returnFrames}");
-            // Debug.Log($"returnNodes is {Config.instance.returnNodes}");
 
             for (int i = 0; i < Config.instance.frameSkip; i++) {
                 BeforeIntermediateFrame?.Invoke();
@@ -171,8 +168,8 @@ namespace SimEnv {
         }
 
         public static void Reset() {
-            foreach (Node node in nodes.Values)
-                node.ResetState();
+            // foreach (Node node in nodes.Values)
+            //     node.ResetState(Vector3.zero);
             foreach (IPlugin plugin in plugins)
                 plugin.OnReset();
             AfterReset?.Invoke();

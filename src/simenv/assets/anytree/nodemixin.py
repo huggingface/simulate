@@ -1,10 +1,14 @@
 # -*- coding: utf-8 -*-
 
-from typing import Callable, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Callable, Iterator, Optional, Sequence, Tuple, Union
 
 from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
 from .render import RenderTree
+
+
+if TYPE_CHECKING:
+    from ..asset import Asset
 
 
 class NodeMixin(object):
@@ -103,7 +107,7 @@ class NodeMixin(object):
         pass
 
     @property
-    def tree_parent(self):
+    def tree_parent(self) -> "Asset":
         """
         Parent Node.
 
@@ -144,7 +148,7 @@ class NodeMixin(object):
             return None
 
     @tree_parent.setter
-    def tree_parent(self, value):
+    def tree_parent(self, value: "Asset"):
         if value is not None and not isinstance(value, NodeMixin):
             msg = "Parent node %r is not of type 'NodeMixin'." % value
             raise TreeError(msg)
@@ -213,7 +217,7 @@ class NodeMixin(object):
             return self.__children
 
     @property
-    def tree_children(self):
+    def tree_children(self) -> Tuple["Asset", ...]:
         """
         All child nodes.
 
@@ -278,7 +282,7 @@ class NodeMixin(object):
                 raise TreeError(msg)
 
     @tree_children.setter
-    def tree_children(self, children):
+    def tree_children(self, children: Optional[Tuple["Asset"]]):
         # convert iterable to tuple
         children = tuple(children)
         NodeMixin.__check_children(children)
@@ -349,7 +353,7 @@ class NodeMixin(object):
         """Method call after attaching to `parent`."""
         pass
 
-    def remove(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+    def remove(self, assets: Union["Asset", Sequence["Asset"]]):
         if isinstance(assets, NodeMixin):
             assets.tree_parent = None
         else:
@@ -357,7 +361,7 @@ class NodeMixin(object):
                 asset.tree_parent = None
         return self
 
-    def add(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+    def add(self, assets: Union["Asset", Sequence["Asset"]]):
         if isinstance(assets, NodeMixin):
             assets.tree_parent = self
         else:
@@ -365,16 +369,16 @@ class NodeMixin(object):
                 asset.tree_parent = self
         return self
 
-    def __iadd__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+    def __iadd__(self, assets: Union["Asset", Sequence["Asset"]]):
         return self.add(assets)
 
-    def __add__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+    def __add__(self, assets: Union["Asset", Sequence["Asset"]]):
         return self.add(assets)
 
-    def __isub__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+    def __isub__(self, assets: Union["Asset", Sequence["Asset"]]):
         return self.remove(assets)
 
-    def __sub__(self, assets: Union["NodeMixin", Sequence["NodeMixin"]]):
+    def __sub__(self, assets: Union["Asset", Sequence["Asset"]]):
         return self.remove(assets)
 
     def _get_one_line_repr(self):
@@ -387,7 +391,9 @@ class NodeMixin(object):
         node_str = self._get_one_line_repr() + ("\n" if self.tree_children else "")
         return f"{node_str}{RenderTree(self).print_tree()}"
 
-    def tree_filtered_descendants(self, filter_fn: Callable, stop=None, maxlevel=None):
+    def tree_filtered_descendants(
+        self, filter_fn: Callable[["Asset"], bool], stop=None, maxlevel=None
+    ) -> Tuple["Asset"]:
         """
         Iterate over tree starting at node.
         Keyword Args:
@@ -398,7 +404,7 @@ class NodeMixin(object):
         return tuple(PreOrderIter(self, filter_=filter_fn, stop=stop, maxlevel=maxlevel))
 
     @property
-    def tree_path(self):
+    def tree_path(self) -> Tuple["Asset"]:
         """
         Path of this `Node`.
 
@@ -415,7 +421,7 @@ class NodeMixin(object):
         """
         return self._path
 
-    def tree_iter_path_reverse(self):
+    def tree_iter_path_reverse(self) -> Iterator["Asset"]:
         """
         Iterate up the tree from the current node.
 
@@ -469,7 +475,7 @@ class NodeMixin(object):
         return self.tree_parent.tree_path
 
     @property
-    def tree_descendants(self) -> Tuple["NodeMixin", ...]:
+    def tree_descendants(self) -> Tuple["Asset", ...]:
         """
         All child nodes and all their child nodes.
 
@@ -489,7 +495,7 @@ class NodeMixin(object):
         return tuple(PreOrderIter(self))[1:]
 
     @property
-    def tree_root(self):
+    def tree_root(self) -> "Asset":
         """
         Tree Root Node.
 
@@ -510,7 +516,7 @@ class NodeMixin(object):
         return node
 
     @property
-    def tree_siblings(self):
+    def tree_siblings(self) -> Tuple["Asset", ...]:
         """
         Tuple of nodes with the same parent.
 
@@ -536,7 +542,7 @@ class NodeMixin(object):
             return tuple(node for node in parent.tree_children if node is not self)
 
     @property
-    def tree_leaves(self):
+    def tree_leaves(self) -> Tuple["Asset", ...]:
         """
         Tuple of all leaf nodes.
 
@@ -554,7 +560,7 @@ class NodeMixin(object):
         return tuple(PreOrderIter(self, filter_=lambda node: node.tree_is_leaf))
 
     @property
-    def tree_is_leaf(self):
+    def tree_is_leaf(self) -> bool:
         """
         `Node` has no children (External Node).
 
@@ -572,7 +578,7 @@ class NodeMixin(object):
         return len(self.__children_or_empty) == 0
 
     @property
-    def tree_is_root(self):
+    def tree_is_root(self) -> bool:
         """
         `Node` is tree root.
 
@@ -590,7 +596,7 @@ class NodeMixin(object):
         return self.tree_parent is None
 
     @property
-    def tree_height(self):
+    def tree_height(self) -> int:
         """
         Number of edges on the longest path to a leaf `Node`.
 
@@ -612,7 +618,7 @@ class NodeMixin(object):
             return 0
 
     @property
-    def tree_depth(self):
+    def tree_depth(self) -> int:
         """
         Number of edges to the root `Node`.
 

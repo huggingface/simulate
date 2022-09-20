@@ -102,9 +102,9 @@ def make_lander(engine="Unity", engine_exe=None):
     lander.mesh.extrude((0, 0, -1), capping=True, inplace=True)
     lander.actuator = sm.Actuator(
         mapping=[
-            sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=1),
-            sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=-1),
-            sm.ActionMapping("add_force", axis=[0, 1, 0], amplitude=-0.3),
+            sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=5),
+            sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=-5),
+            sm.ActionMapping("add_force", axis=[0, 1, 0], amplitude=0.3),
         ],
         n=3,
     )
@@ -124,7 +124,7 @@ def make_lander(engine="Unity", engine_exe=None):
         material=lander_material,
         parent=lander,
         name="lander_r_leg",
-        with_collider=True,
+        # with_collider=True, # TODO can use this when convex colliders is added
     )
     r_leg.mesh.extrude((0, 0, -1), capping=True, inplace=True)
 
@@ -133,7 +133,7 @@ def make_lander(engine="Unity", engine_exe=None):
         material=lander_material,
         parent=lander,
         name="lander_l_leg",
-        with_collider=True,
+        # with_collider=True, # TODO can use this when convex colliders is added
     )
     l_leg.mesh.extrude((0, 0, -1), capping=True, inplace=True)
 
@@ -192,10 +192,11 @@ def make_lander(engine="Unity", engine_exe=None):
     )
 
     ## apply initial force & rotation to lander
-    reward = sm.RewardFunction(
+    cost = sm.RewardFunction(type="not")
+    cost += sm.RewardFunction(
         type="dense", entity_a=lander, entity_b=sc.target
     )  # By default a dense reward equal to the distance between 2 entities
-    lander += reward
+    lander += cost
 
     sc += lander
     sc += land
@@ -227,7 +228,7 @@ if __name__ == "__main__":
     for i in range(500):
         action = sc.action_space.sample()
         obs, reward, done, info = env.step()
-        print(f"step {i}, reward {reward[0]:4}")
+        print(f"step {i}, reward {reward[0]}")
 
         if args.plot:
             if "CameraSensor" in obs:

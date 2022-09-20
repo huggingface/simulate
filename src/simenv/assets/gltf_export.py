@@ -404,7 +404,9 @@ def add_camera_to_model(
     camera: Camera, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
     gl_camera = gl.Camera(
-        type=camera.camera_type, width=camera.width, height=camera.height, sensor_name=camera.sensor_name
+        type=camera.camera_type,
+        width=camera.width,
+        height=camera.height,
     )
 
     if camera.camera_type == "perspective":
@@ -415,6 +417,9 @@ def add_camera_to_model(
         gl_camera.orthographic = gl.OrthographicCameraInfo(
             xmag=camera.xmag, ymag=camera.ymag, zfar=camera.zfar, znear=camera.znear
         )
+
+    if camera.sensor_tag is not None:
+        gl_camera.extras = {"sensor_tag": camera.sensor_tag}
 
     # If we have already created exactly the same camera we avoid double storing
     cached_id = is_data_cached(data=gl_camera.to_json(), cache=cache)
@@ -491,6 +496,7 @@ def add_node_to_scene(
     )
 
     extensions = gl.Extensions()
+    extras = dict()
     extension_used = set()
 
     if isinstance(node, Camera):
@@ -563,6 +569,15 @@ def add_node_to_scene(
             extensions, object_id=object_id, object_name=component_name
         )
         extension_used.add(new_extension_used)
+
+    # Store a couple of fields in the extras
+    # We use the extras to avoid having extensions only for a few fields
+    if getattr(node, "is_actor", False):
+        extras["is_actor"] = node.is_actor
+
+    # Add the extras to the node is anything in it
+    if len(extras) > 0:
+        gl_node.extras = extras
 
     # Add the extensions to the node if anything not none
     if extension_used:

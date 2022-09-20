@@ -84,7 +84,7 @@ class GltfTest(unittest.TestCase):
             scene += sm.Box(name=f"cube{i}", position=[1, 0.5, 1], material=material)
 
         # Lets add an actor in the scene, a capsule with associated actions and a camera as observation device
-        actor = sm.Capsule(name="actor", position=[0.0, 0.0, 0.0])  # Has a collider,
+        actor = sm.Capsule(name="actor", is_actor=True, position=[0.0, 0.0, 0.0])  # Has a collider,
 
         # Add a camera to the actor
         actor_camera = sm.Camera(name="camera", width=40, height=40, position=[0, 0.75, 0])

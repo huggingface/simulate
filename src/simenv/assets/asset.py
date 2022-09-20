@@ -18,12 +18,12 @@ import itertools
 import os
 import tempfile
 import uuid
-from typing import Any, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
-from .actuator import Actuator, ActuatorDict, ActuatorTuple
+from .actuator import Actuator, ActuatorDict, spaces
 from .anytree import NodeMixin, TreeError
 from .articulation_body import ArticulationBodyComponent
 from .rigid_body import RigidBodyComponent
@@ -44,6 +44,32 @@ class Asset(NodeMixin, object):
 
     Parameters
     ----------
+    name : str, optional
+        Name of the asset, by default set to [class_name]_[counter]
+    position : List[float] (Vector3), optional
+        Position of the asset in the scene, by default [0, 0, 0]
+    rotation : List[float] (Quaternion), optional
+        Rotation of the asset in the scene, by default [0, 0, 0, 1]
+    scaling : Union[float, List[float]] (Vector3), optional
+        Scaling of the asset in the scene, by default 1
+    transformation_matrix : List[float] (Matrix4x4), optional
+        Transformation matrix of the asset in the scene, by default computed from position, rotation and scaling
+    actuator : Union[Actuator, ActuatorDict], optional
+        Actuator to control movements of the asset, by default None.
+        Setting an actuator will make the Asset an ``Actor``.$
+    physics_component : Union[None, RigidBodyComponent, ArticulationBodyComponent], optional
+        Physics component of the asset, by default None
+        Setting a physics component will make the Asset move according to the physics engine.
+    is_actor : bool, optional
+        If True, the asset will be the root node of an actor, by default False.
+        This can be used to group a tree of related nodes and actuators in a single
+        identified actor in the scene.
+    parent : Asset, optional
+        Parent of the asset, by default None
+    children : List[Asset], optional
+        Children of the asset, by default None
+    created_from_file : str, optional
+        Path to the file from which the asset was created if relevant, by default None
 
     Returns
     -------
@@ -63,8 +89,9 @@ class Asset(NodeMixin, object):
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
-        actuator: Optional[Union[Actuator, ActuatorDict, ActuatorTuple]] = None,
-        physics_component: Union[None, RigidBodyComponent, ArticulationBodyComponent] = None,
+        actuator: Optional[Union[Actuator, ActuatorDict]] = None,
+        physics_component: Optional[Union[RigidBodyComponent, ArticulationBodyComponent]] = None,
+        is_actor: bool = False,
         parent=None,
         children=None,
         created_from_file=None,
@@ -78,6 +105,8 @@ class Asset(NodeMixin, object):
         self.tree_parent = parent
         if children is not None:
             self.tree_children = children
+
+        self.is_actor = is_actor
 
         self._position = None
         self._rotation = None
@@ -95,6 +124,20 @@ class Asset(NodeMixin, object):
 
         self._n_copies = 0
         self._created_from_file = created_from_file
+
+    def _repr_info_str(self) -> str:
+        """Used to add additional information to the __repr__ method."""
+        return ""
+
+    def __repr__(self):
+        asset_str = ""
+        if self.is_actor:
+            asset_str += "is_actor=True, "
+        if self.actuator is not None:
+            asset_str += f"actuator={self.actuator.__class__.__name__}(), "
+        if self.physics_component is not None:
+            asset_str += f"physics_component={self.physics_component.__class__.__name__}(), "
+        return f"{self.name}: {self.__class__.__name__}({asset_str}{self._repr_info_str()})"
 
     @property
     def uuid(self):
@@ -118,18 +161,12 @@ class Asset(NodeMixin, object):
 
     # Actions and action_space
     @property
-    def actuator(self):
+    def actuator(self) -> Optional[Union[Actuator, ActuatorDict]]:
         return self._actuator
 
     @actuator.setter
-    def actuator(self, actuator: Union[Actuator, ActuatorTuple, ActuatorDict]):
+    def actuator(self, actuator: Optional[Union[Actuator, ActuatorDict]]):
         self._actuator = actuator
-
-    @property
-    def action_space(self):
-        if self.actuator is not None:
-            return self.actuator.space
-        return None
 
     @property
     def physics_component(self):
@@ -152,6 +189,138 @@ class Asset(NodeMixin, object):
             multiple_physics = self.check_parent_physics()
             if multiple_physics:
                 print("WARNING: A linked child asset and parent asset have a physics component, not supported.")
+
+    @property
+    def action_space(self) -> Optional[spaces.Dict]:
+        """Build and return the action space of the actor if the asset is an actor (is_actor=True).
+        The action space is a space Dict with keys coresponding to the tags of the actuators.
+        If some actuators have space Dict action spaces, they are flattened.
+        If the returned action space Dict has a single entry, we return the single space instead of the Dict.
+        """
+        # [The following is NOT implemented at the moment]
+        # If the asset has multiple actuators with different ids, actuators of identical types are grouped together by tags and index
+        # in particular:
+        # - Box actuators will be grouped together in a concatenated Box space along the first axis
+        # - Discrete/MultiDiscrete actuators will be grouped together in a MultiDiscrete space
+        # - MultiBinary actuators will be grouped together in a larger MultiBinary space
+        # Actuators with different tags will be grouped together in a Dict space.
+
+        def update_dict_space(act: Union[Actuator, ActuatorDict], actions_space_dict: Dict[str, spaces.Space]):
+            """Helper function to update a Dict space with the action space associated to an actuator."""
+            if act is None:
+                return
+            if isinstance(act, Actuator):
+                if act.actuator_tag not in actions_space_dict:
+                    actions_space_dict[act.actuator_tag] = act.action_space
+                else:
+                    raise ValueError(f"Actuator with tag {act.actuator_tag} already exists in the action space. ")
+                    # actions_space_dict[act.actuator_tag].append((act.index, act.action_space))
+            elif isinstance(act, ActuatorDict):
+                for value in act.actuators.values():
+                    if value.actuator_tag not in actions_space_dict:
+                        actions_space_dict[value.actuator_tag] = value.action_space
+                    else:
+                        raise ValueError(
+                            f"Actuator with tag {value.actuator_tag} already exists in the action space. "
+                        )
+                        # actions_space_dict[value.actuator_tag].append((value.index, value.action_space))
+            else:
+                raise NotImplementedError()
+
+        if not self.is_actor:
+            return None
+
+        actions_space_dict: Dict[str, spaces.Space] = dict()
+
+        # Let's populate the action space dict with the actuator of the actor root node and of it's descendants
+        update_dict_space(self.actuator, actions_space_dict)
+        for descendant in self.tree_descendants:
+            update_dict_space(descendant.actuator, actions_space_dict)
+
+        # Now let's merge the actions if they share tags
+        # merged_dict = dict()
+        # for tag, actions in actions_space_dict.items():
+        #     actions.sort(key=lambda x: x[0])  # Sort by index
+        #     actions = [action for _, action in actions]  # and remove the index
+        #     if len(actions) == 0:
+        #         continue
+        #     elif len(actions) == 1:
+        #         merged_dict[tag] = actions[0]
+        #     else:
+        #         if all(isinstance(act, spaces.Box) for act in actions):
+        #             dtype=actions[0].dtype
+        #             seed=actions[0].seed
+        #             merged_dict[tag] = spaces.Box(
+        #                 np.concatenate([act.low for act in actions]),
+        #                 np.concatenate([act.high for act in actions]),
+        #                 dtype=dtype,
+        #                 seed=seed
+        #             )
+        #         elif all(isinstance(act, spaces.Discrete) for act in actions):
+        #             merged_dict[tag] = spaces.MultiDiscrete([act.n for act in actions], seed=seed)
+        #         elif all(isinstance(act, spaces.MultiBinary) for act in actions):
+        #             merged_dict[tag] = spaces.MultiBinary([act.n for act in actions], seed=seed)
+        #         else:
+        #             raise ValueError(f"Issue with merging the actions {actions}")
+
+        # if there is only one action space, we return it directly
+        if len(actions_space_dict) == 1:
+            return actions_space_dict[list(actions_space_dict.keys())[0]]
+        else:
+            return spaces.Dict(actions_space_dict)
+
+    @property
+    def action_tags(self) -> Optional[List[str]]:
+        """Return the list of all action tags of the actor (keys of the action_space)."""
+
+        def update_tag_list(act: Union[Actuator, ActuatorDict], tag_list: List[str]):
+            """Helper function to update a list of all the action tags."""
+            if act is None:
+                return
+            if isinstance(act, Actuator):
+                if act.actuator_tag not in tag_list:
+                    tag_list.append(act.actuator_tag)
+                else:
+                    raise ValueError(f"Actuator with tag {act.actuator_tag} already exists in the action space. ")
+            elif isinstance(act, ActuatorDict):
+                for value in act.actuators.values():
+                    if value.actuator_tag not in tag_list:
+                        tag_list.append(value.actuator_tag)
+                    else:
+                        raise ValueError(
+                            f"Actuator with tag {value.actuator_tag} already exists in the action space. "
+                        )
+            else:
+                raise NotImplementedError()
+
+        if not self.is_actor:
+            return None
+        else:
+            tag_list: List[str] = []
+
+            # Let's populate the action tag list with the actuator of the actor root node and of it's descendants
+            update_tag_list(self.actuator, tag_list)
+            for descendant in self.tree_descendants:
+                update_tag_list(descendant.actuator, tag_list)
+
+            return tag_list
+
+    @property
+    def observation_space(self) -> Optional[spaces.Space]:
+        if not self.is_actor:
+            return None
+        else:
+            sensors = self.tree_filtered_descendants(lambda node: getattr(node, "sensor_tag", None) is not None)
+            return spaces.Dict({sensor.sensor_tag: sensor.observation_space for sensor in sensors})
+
+    @property
+    def sensor_tags(self) -> Optional[List[str]]:
+        if not self.is_actor:
+            return None
+
+        sensors = self.tree_filtered_descendants(lambda node: getattr(node, "sensor_tag", None) is not None)
+
+        return [sensor.sensor_tag for sensor in sensors]
 
     def __len__(self):
         return len(self.tree_descendants)
@@ -244,16 +413,44 @@ class Asset(NodeMixin, object):
 
             # remove when release with https://github.com/huggingface/huggingface_hub/pull/1021 is out
             subfolder = subfolder if subfolder else None
+            file_path = ""
+            try:
+                file_path = hf_hub_download(
+                    repo_id=repo_id,
+                    filename=filename,
+                    subfolder=subfolder,
+                    revision=revision,
+                    repo_type="dataset",
+                    use_auth_token=use_auth_token,
+                    **kwargs,
+                )
+            except Exception:
+                print("Asset not found in Datasets. Checking Spaces...")
 
-            file_path = hf_hub_download(
-                repo_id=repo_id,
-                filename=filename,
-                subfolder=subfolder,
-                revision=revision,
-                repo_type="space",
-                use_auth_token=use_auth_token,
-                **kwargs,
-            )
+            if not file_path:
+                try:
+                    file_path = hf_hub_download(
+                        repo_id=repo_id,
+                        filename=filename,
+                        subfolder=subfolder,
+                        revision=revision,
+                        repo_type="space",
+                        use_auth_token=use_auth_token,
+                        **kwargs,
+                    )
+                except Exception:
+                    print("Asset not found in Spaces. Loading default Asset instead.")
+
+            if not file_path:
+                file_path = hf_hub_download(
+                    repo_id="simenv-tests/Box",
+                    filename="Box.glb",
+                    subfolder="glTF-Binary",
+                    revision=revision,
+                    repo_type="space",
+                    use_auth_token=use_auth_token,
+                    **kwargs,
+                )
 
         nodes = load_gltf_as_tree(
             file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
@@ -294,6 +491,15 @@ class Asset(NodeMixin, object):
             is_local=is_local,
             **(hf_hub_kwargs if hf_hub_kwargs is not None else {}),
         )
+
+        root_node.name = kwargs.pop("name", root_node.name)
+        root_node.position = kwargs.pop("position", root_node.position)
+        root_node.rotation = kwargs.pop("rotation", root_node.rotation)
+        root_node.scaling = kwargs.pop("scaling", root_node.scaling)
+
+        for node in root_node.tree_children:
+            node.name = root_node.name + "_" + node.name
+
         return cls(
             name=root_node.name,
             position=root_node.position,
