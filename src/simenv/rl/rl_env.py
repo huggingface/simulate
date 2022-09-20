@@ -105,6 +105,11 @@ class RLEnv(VecEnv):
             n_show=n_show,
         )
 
+    @property
+    def n_agents(self):
+        # required for sample-factory integration, assumes 1 agent per map
+        return self.n_show
+
     def step(self, action=None):
         """The step function for the environment.
 
