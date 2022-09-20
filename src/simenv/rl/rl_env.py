@@ -141,6 +141,10 @@ class RLEnv(VecEnv):
                         f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
                         f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} and n_actors {self.n_actors})."
                     )
+            elif isinstance(value, np.ndarray) and len(value) > 0 and isinstance(value[0], (np.int64, np.float32)):
+                # actions are a number array
+                value = value.reshape((self.n_show, self.n_actors_per_map, -1))
+                action[key] = value.tolist()
 
         self.step_send_async(action=action)
         return self.step_recv_async()
