@@ -1,16 +1,17 @@
-using SimEnv;
 using UnityEngine;
 
 [RequireComponent(typeof(Rigidbody))]
 public class Cart : MonoBehaviour {
     public float moveForce = 300f;
-    public float rotationDampening = 10f;
+    public float rotationDampening = 200f;
 
     Rigidbody rigidBody;
+    Vector3 prevPos;
     float push;
 
     void Awake() {
         rigidBody = GetComponent<Rigidbody>();
+        prevPos = transform.position;
     }
 
     void Update() {
@@ -20,14 +21,13 @@ public class Cart : MonoBehaviour {
         if (Input.GetKey(KeyCode.RightArrow))
             push += 1;
 
-        UpdateRotation();
-    }
-
-    void UpdateRotation() {
         Ray ray = new Ray(transform.position, Vector3.down);
+        float deltaPosition = (transform.position - prevPos).magnitude;
         if (Physics.Raycast(ray, out RaycastHit hit, 1f, LayerMask.GetMask("Ground"))) {
-            transform.up = Vector3.Lerp(transform.up, hit.normal, Time.deltaTime * rotationDampening);
+            transform.up = Vector3.Lerp(transform.up, hit.normal, Time.deltaTime * deltaPosition * rotationDampening);
         }
+
+        prevPos = transform.position;
     }
 
     void FixedUpdate() {

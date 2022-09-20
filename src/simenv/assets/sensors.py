@@ -37,10 +37,18 @@ ALLOWED_STATE_SENSOR_PROPERTIES = {
     "position.x": 1,
     "position.y": 1,
     "position.z": 1,
+    "velocity": 3,
+    "velocity.x": 1,
+    "velocity.y": 1,
+    "velocity.z": 1,
     "rotation": 3,
     "rotation.x": 1,
     "rotation.y": 1,
     "rotation.z": 1,
+    "angular_velocity": 3,
+    "angular_velocity.x": 1,
+    "angular_velocity.y": 1,
+    "angular_velocity.z": 1,
     "distance": 1,
 }
 
@@ -70,6 +78,7 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
     target_entity: Optional[Any] = None
     reference_entity: Optional[Any] = None
     properties: Optional[List[str]] = None
+    sensor_tag: str = "StateSensor"
 
     name: InitVar[Optional[str]] = None
     position: InitVar[Optional[List[float]]] = None
@@ -121,6 +130,7 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
     horizontal_fov: float = 0
     vertical_fov: float = 0
     ray_length: float = 100
+    sensor_tag: str = "RaycastSensor"
 
     name: InitVar[Optional[str]] = None
     position: InitVar[Optional[List[float]]] = None

@@ -2,56 +2,64 @@ using System.Collections.Generic;
 using UnityEngine;
 
 namespace SimEnv.RlAgents {
-    public class EntityCache {
-        private GameObject entity;
-        private Rigidbody rigidbody;
-        private Vector3 entityOriginalPosition;
-        private Quaternion entityOriginalRotation;
-        public EntityCache(GameObject entity) {
-            this.entity = entity;
-            entityOriginalPosition = entity.transform.localPosition;
-            entityOriginalRotation = entity.transform.localRotation;
-            rigidbody = entity.GetComponent<Rigidbody>();
-        }
-        public void Reset() {
-            entity.transform.localPosition = entityOriginalPosition;
-            entity.transform.localRotation = entityOriginalRotation;
-
-            if (rigidbody != null) {
-                rigidbody.velocity = Vector3.zero;
-                rigidbody.angularVelocity = Vector3.zero;
-            }
-
-        }
-
-    }
     public class Map {
         public Bounds bounds { get; private set; }
         public bool active { get; private set; }
 
         Node root;
-        Dictionary<string, Actor> actors;
-        private List<EntityCache> decendants;
+        public SortedDictionary<string, Actor> actors;  // Make sure we iterate on the actors in order of their name
+        List<Node> children;
 
         public Map(Node root) {
             this.root = root;
-            decendants = new List<EntityCache>();
             bounds = GetLocalBoundsForObject(root.gameObject);
-            actors = new Dictionary<string, Actor>();
+            actors = new SortedDictionary<string, Actor>();
+            children = new List<Node>();
             foreach (Node node in root.GetComponentsInChildren<Node>(true)) {
                 if (ActorManager.actors.TryGetValue(node.name, out Actor Actor))
                     actors.Add(node.name, Actor);
+                children.Add(node);
             }
-            addChildrenToCache(root.gameObject);
+            initMapSensors();
+        }
 
-        }
-        private void addChildrenToCache(GameObject gameObject) {
-            foreach (Transform child in gameObject.transform) {
-                EntityCache entityCache = new EntityCache(child.gameObject);
-                decendants.Add(entityCache);
-                addChildrenToCache(child.gameObject);
+        private void initMapSensors() {
+            // finds sensors that are children of the map, but not of the actors (in this map)
+            // these sensors are considered to be "global" sensors that are static relative to a particular
+            // agent
+            foreach (Node node2 in Simulator.nodes.Values) {
+                if (node2.camera != null && node2.gameObject.transform.IsChildOf(root.gameObject.transform)) {
+                    TryAddCameraToActors(node2);
+                }
+                // search children for StateSensors
+                if (node2.sensor != null && node2.gameObject.transform.IsChildOf(root.gameObject.transform)) {
+                    TryAddSensorToActors(node2);
+                }
             }
         }
+
+        private void TryAddCameraToActors(Node node) {
+            foreach (var actor in actors.Values) {
+                if (node.gameObject.transform.IsChildOf(actor.node.gameObject.transform)) {
+                    return;
+                }
+            }
+            CameraSensor cameraSensor = new CameraSensor(node.camera, node.cameraData.extras.sensor_tag); // same instance shared across actors
+            foreach (var actor in actors.Values) {
+                actor.sensors.Add(cameraSensor);
+            }
+        }
+        private void TryAddSensorToActors(Node node) {
+            foreach (var actor in actors.Values) {
+                if (node.gameObject.transform.IsChildOf(actor.node.gameObject.transform)) {
+                    return;
+                }
+            }
+            foreach (var actor in actors.Values) {
+                actor.sensors.Add(node.sensor);
+            }
+        }
+
         public void SetActive(bool active) {
             root.gameObject.SetActive(active);
             this.active = active;
@@ -61,45 +69,52 @@ namespace SimEnv.RlAgents {
             root.gameObject.transform.position = position;
         }
 
-        public void SetActions(object action) {
-            foreach (string key in actors.Keys)
-                actors[key].Step(action);
+        public void SetActions(Dictionary<string, List<List<float>>> actions) {
+            var i = 0;
+            foreach (var actor in actors.Values) {
+                // Create a dictionary of actions for the actor
+                Dictionary<string, List<float>> actionsForActor = new Dictionary<string, List<float>>();
+                foreach (KeyValuePair<string, List<List<float>>> action in actions) {
+                    actionsForActor[action.Key] = action.Value[i];
+                }
+                Debug.Log($"actions for actor {i}: {actionsForActor}");
+                actor.SetAction(actionsForActor);
+            }
         }
 
-        public (Dictionary<string, Actor.Data>, bool) Step() {
-            Dictionary<string, Actor.Data> ActorEventData = new Dictionary<string, Actor.Data>();
-            bool done = false;
+        public List<(float, bool)> GetActorRewardDones() {
+            List<(float, bool)> rewardDones = new List<(float, bool)>();
+            //Dictionary<string, Actor.Data> actorEventData = new Dictionary<string, Actor.Data>();
+
             foreach (string key in actors.Keys) {
-                Actor Actor = actors[key];
-                Actor.Data data = Actor.GetEventData();
-                done = done || data.done; // TODO: this assumes when one Actor in the map is done the map should be reset
-                ActorEventData.Add(key, data);
-                Actor.ZeroReward();
+                Actor actor = actors[key];
+                var doneReward = actor.GetRewardDone();
+                rewardDones.Add(doneReward);
             }
-            return (ActorEventData, done);
-        }
-        public Dictionary<string, Actor.Data> GetActorEventData() {
-            Dictionary<string, Actor.Data> ActorEventData = new Dictionary<string, Actor.Data>();
-            foreach (string key in actors.Keys) {
-                Actor Actor = actors[key];
-                Actor.Data data = Actor.GetEventData();
-                ActorEventData.Add(key, data);
-            }
-            return ActorEventData;
+            return rewardDones;
         }
 
-        public void Reset() {
-            foreach (EntityCache entityCache in decendants) {
-                entityCache.Reset();
+        public void GetActorObservations(Dictionary<string, Buffer> sensorBuffers, int mapIndex) {
+            int actorIndex = 0;
+            foreach (string key in actors.Keys) {
+                Actor actor = actors[key];
+                actor.ReadSensorObservations(sensorBuffers, mapIndex, actorIndex);
+                actorIndex++;
             }
-            foreach (Actor Actor in actors.Values)
-                Actor.Reset();
+        }
+
+        public void Reset(Vector3 position) {
+            foreach (Node node in children)
+                node.ResetState(position);
+            foreach (Actor actor in actors.Values)
+                actor.Reset();
         }
 
         public void EnableActorSensors() {
             foreach (Actor Actor in actors.Values)
                 Actor.EnableSensors();
         }
+
         public void DisableActorSensors() {
             foreach (Actor Actor in actors.Values)
                 Actor.DisableSensors();

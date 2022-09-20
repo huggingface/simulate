@@ -17,7 +17,7 @@ def create_env_pool(
     n_show=9,
     port=None,
     headless=None,
-    frame_rate=None,
+    time_step=None,
     frame_skip=None,
     **kwargs,
 ):
@@ -49,14 +49,14 @@ def create_env_pool(
                 return root
         return None
 
-    map_pool = sm.ParallelRLEnvironment(
+    map_pool = sm.RLEnv(
         _map_fn,
         n_maps=n_maps,
         n_show=n_show,
         engine_exe=executable,
         engine_port=port,
         engine_headless=headless,
-        frame_rate=frame_rate,
+        time_step=time_step,
         frame_skip=frame_skip,
     )
 
@@ -78,7 +78,7 @@ def make_env_fn(
     neighbors=None,
     seed=0,
     headless=False,
-    frame_rate=30,
+    time_step=30,
     frame_skip=4,
     **kwargs,
 ):
@@ -99,7 +99,7 @@ def make_env_fn(
             headless=headless,
             n_maps=n_maps,
             n_show=n_show,
-            frame_rate=frame_rate,
+            time_step=time_step,
             frame_skip=frame_skip,
             **kwargs,
         )

@@ -35,15 +35,15 @@ for i in range(1):
     )
 
 # Lets add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
-actor = sm.Capsule(name="actor", position=[0.0, 0.7, 0.0], with_collider=True)  # Has a collider
+actor = sm.Capsule(name="actor", is_actor=True, position=[0.0, 0.7, 0.0], with_collider=True)  # Has a collider
 actor.physics_component = sm.RigidBodyComponent(constraints=["freeze_rotation_x", "freeze_rotation_z"])
 # Specify the action to control the actor: 3 discrete action to rotate and move forward
-actor.controller = sm.Controller(
+actor.actuator = sm.Actuator(
     n=3,
     mapping=[
-        sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=-90),
-        sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=90),
-        sm.ActionMapping("change_relative_position", axis=[1, 0, 0], amplitude=2.0),
+        sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),
+        sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
+        sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
     ],
 )
 scene += actor
@@ -82,7 +82,7 @@ actor += timeout_reward
 print(scene)
 scene.save("test.gltf")
 
-env = sm.ParallelRLEnvironment(scene)
+env = sm.RLEnv(scene)
 
 plt.ion()
 fig1, ax1 = plt.subplots()

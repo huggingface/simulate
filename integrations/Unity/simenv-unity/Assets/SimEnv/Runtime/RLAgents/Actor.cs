@@ -1,29 +1,25 @@
 using System.Collections.Generic;
 using UnityEngine;
 using SimEnv.GLTF;
-using System.Linq;
 
 namespace SimEnv.RlAgents {
     public class Actor {
         public Node node { get; private set; }
-        public HFControllers.ActionSpace actionSpace { get; private set; }
 
         private Dictionary<string, object> observations = new Dictionary<string, object>();
 
-        private List<ISensor> sensors = new List<ISensor>();
+        public List<ISensor> sensors = new List<ISensor>();
+        public Dictionary<string, Node> actuatorNodes = new Dictionary<string, Node>();
         List<RewardFunction> rewardFunctions = new List<RewardFunction>();
         float accumReward;
-        object currentAction;
+        public Dictionary<string, List<float>> currentAction = new Dictionary<string, List<float>>();
 
         public Actor(Node node) {
             this.node = node;
-            node.gameObject.tag = "Actor";
             Initialize();
         }
 
         void Initialize() {
-            Debug.Log("initializing Actor");
-
             InitActions();
             InitSensors();
             InitRewardFunctions();
@@ -32,26 +28,24 @@ namespace SimEnv.RlAgents {
         }
 
         void InitActions() {
-            if (node.actionData == null) {
-                Debug.LogWarning("Actor missing action data");
+            if (node.actuatorData == null) {
+                Debug.LogWarning("Actor missing actuator data");
                 return;
             }
-            if (node.actionData.n == null && node.actionData.low == null) {
+            if (node.actuatorData.n == null && node.actuatorData.low == null) {
                 Debug.LogWarning("At least one action space required.");
                 return;
             }
 
-            if (node.actionData.n != null) {
-                // Discrete action space
-                actionSpace = new HFControllers.ActionSpace(node.actionData);
-            } else if (node.actionData.low != null) {
-                // continuous action space
-                Debug.LogWarning("Continous actions are yet to be implemented");
-                return;
-            } else {
-                Debug.LogWarning("Error parsing actor action space");
-                return;
+            // search children for Actuators
+            // this is a bit slow but it only runs once at startup
+            foreach (Node node2 in Simulator.nodes.Values) {
+                if (node2.actuator != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
+                    actuatorNodes[node2.actuator.actuator_tag] = node2;
+                }
             }
+
+            
         }
         void InitSensors() {
             // search children for Cameras and add these as camera sensors
@@ -59,7 +53,7 @@ namespace SimEnv.RlAgents {
             foreach (Node node2 in Simulator.nodes.Values) {
                 // search children for Cameras and create CameraSensors
                 if (node2.camera != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
-                    CameraSensor cameraSensor = new CameraSensor(node2.camera);
+                    CameraSensor cameraSensor = new CameraSensor(node2.camera, node2.cameraData.extras.sensor_tag);
                     sensors.Add(cameraSensor);
                 }
                 // search children for StateSensors
@@ -67,14 +61,10 @@ namespace SimEnv.RlAgents {
                     sensors.Add(node2.sensor);
                 }
             }
-
             // TODO: search children for RaycastSensors
-
-
         }
 
         void InitRewardFunctions() {
-            Debug.Log("init reward functions");
             // find reward nodes with reward data
             var vals = Simulator.nodes.Values;
             foreach (Node node2 in Simulator.nodes.Values) {
@@ -87,38 +77,27 @@ namespace SimEnv.RlAgents {
             }
         }
 
-
         void HandleIntermediateFrame() {
             if (node == null || node.gameObject == null) {
                 Simulator.BeforeIntermediateFrame -= HandleIntermediateFrame;
                 return;
             }
 
-            if (currentAction != null && node.gameObject.activeSelf)
+            if (currentAction.Count > 0 && node.gameObject.activeSelf)
                 this.ExecuteAction(currentAction);
         }
 
-        public void Step(object action) {
+        public void SetAction(Dictionary<string, List<float>> action) {
             this.currentAction = action;
         }
 
-        public Data GetEventData(bool forceGetObs = false) {
+        public (float, bool) GetRewardDone() {
             UpdateReward();
             bool done = IsDone();
             float reward = GetReward();
             ZeroReward();
-            Dictionary<string, SensorBuffer> observations = null;
-            // no need to render if the environment is done, frames will be taken from the next map
-            if (!done || forceGetObs) {
-                observations = GetSensorObservations();
-            }
-            Data data = new Data() {
-                done = done,
-                reward = reward,
-                observations = observations,
-            };
-
-            return data;
+            // Observations not included, as they are read later from the camera
+            return (reward, done);
         }
 
         public void EnableSensors() {
@@ -133,12 +112,10 @@ namespace SimEnv.RlAgents {
             }
         }
 
-        Dictionary<string, SensorBuffer> GetSensorObservations() {
-            Dictionary<string, SensorBuffer> observations = new Dictionary<string, SensorBuffer>();
+        public void ReadSensorObservations(Dictionary<string, Buffer> sensorBuffers, int mapIndex, int actorIndex) {
             foreach (var sensor in sensors) {
-                observations[sensor.GetName()] = sensor.GetObs();
+                sensor.AddObsToBuffer(sensorBuffers[sensor.GetName()], mapIndex, actorIndex);
             }
-            return observations;
         }
 
         public void UpdateReward() {
@@ -182,10 +159,10 @@ namespace SimEnv.RlAgents {
             return done;
         }
 
-        public class Data {
-            public bool done;
-            public float reward;
-            public Dictionary<string, SensorBuffer> observations;
-        }
+        // public class Data {
+        //     public bool done;
+        //     public float reward;
+        //     public Dictionary<string, Buffer> observations;
+        // }
     }
 }

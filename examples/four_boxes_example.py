@@ -129,7 +129,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_show", default=16, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
 
-    env = sm.ParallelRLEnvironment(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
+    env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
 
     # for i in range(1000):
     #     obs, reward, done, info = env.step()

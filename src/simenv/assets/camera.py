@@ -61,9 +61,11 @@ class Camera(Asset):
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,
         name: Optional[str] = None,
+        sensor_tag: Optional[str] = "CameraSensor",
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
+        is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -72,6 +74,7 @@ class Camera(Asset):
             position=position,
             rotation=rotation,
             scaling=scaling,
+            is_actor=is_actor,
             parent=parent,
             children=children,
         )
@@ -79,11 +82,16 @@ class Camera(Asset):
         self.height = height
 
         self.camera_type = camera_type
+        self.sensor_tag = sensor_tag
         if camera_type not in ALLOWED_CAMERA_TYPES:
             raise ValueError(f"Camera type {camera_type} is not allowed. Allowed types are: {ALLOWED_CAMERA_TYPES}")
         if camera_type == "perspective":
             if any(n is None for n in (yfov, znear)):
                 raise ValueError("Perspective camera needs to have yfov and znear defined.")
+        elif camera_type == "orthographic":
+            if any(n is None for n in (xmag, ymag, znear, zfar)):
+                raise ValueError("Orthographic camera needs to have xmag, ymag, znear and zfar defined.")
+
         self.aspect_ratio = aspect_ratio
         self.yfov = yfov
         self.zfar = zfar
@@ -149,9 +157,11 @@ class CameraDistant(Camera):
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,
         name: Optional[str] = None,
+        sensor_tag: Optional[str] = "CameraSensor",
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
+        is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
     ):
@@ -163,9 +173,11 @@ class CameraDistant(Camera):
 
         super().__init__(
             name=name,
+            sensor_tag=sensor_tag,
             position=position,
             rotation=rotation,
             scaling=scaling,
+            is_actor=is_actor,
             parent=parent,
             children=children,
             width=width,

@@ -10,11 +10,10 @@ namespace SimEnv {
         public virtual void OnReleased() { }
         public virtual void OnSceneInitialized(Dictionary<string, object> kwargs) { }
         public virtual void OnBeforeStep(EventData eventData) { }
+        public virtual void OnEarlyStep(EventData eventData) { }
         public virtual void OnStep(EventData eventData) { }
         public virtual void OnReset() { }
         public virtual void OnBeforeSceneUnloaded() { }
-        public virtual IEnumerator OnStepCoroutine(EventData eventData) {
-            throw new System.NotImplementedException();
-        }
+        public virtual IEnumerator OnStepCoroutine(EventData eventData) { yield break; }
     }
 }

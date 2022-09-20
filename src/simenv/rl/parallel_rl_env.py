@@ -13,14 +13,9 @@
 # limitations under the License.
 
 from collections import defaultdict
+from typing import Optional
 
 import numpy as np
-from gym import spaces
-
-import simenv as sm
-
-# Lint as: python3
-from simenv.scene import Scene
 
 
 try:
@@ -31,169 +26,73 @@ except ImportError:
         pass  # Dummy class if SB3 is not installed
 
 
-class ParallelRLEnvironment(VecEnv):
-    """
-    Parallel RL environment wrapper for SimEnv scene. Uses functionality from the VecEnv in stable baselines 3
-    For more information on VecEnv, see the source
-    https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
+class ParallelRLEnv(VecEnv):
+    def __init__(self, env_fn, n_parallel: int, starting_port: int = 55000):
+        self.n_parallel = n_parallel
+        self.envs = []
+        # create the environments
+        for i in range(n_parallel):
+            env = env_fn(starting_port + i)
+            self.n_show = env.n_show
 
-    Args:
-        scene_or_map_fn: a generator function for generating instances of the desired environment
-        n_maps: TODO
-        n_show: TODO
-        frame_rate: TODO
-        frame_skip: TODO
-    """
+            observation_space = env.observation_space
+            action_space = env.action_space
 
-    def __init__(self, scene_or_map_fn, n_maps=1, n_show=1, frame_rate=30, frame_skip=4, **engine_kwargs):
+            self.envs.append(env)
+        num_envs = self.n_show * self.n_parallel
+        super().__init__(num_envs, observation_space, action_space)
 
-        if hasattr(scene_or_map_fn, "__call__"):
-            self.scene = Scene(engine="Unity", **engine_kwargs)
-            self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
-            self.map_roots = []
-            for i in range(n_maps):
-                map_root = scene_or_map_fn(i)
-                self.scene += map_root
-                self.map_roots.append(map_root)
-        else:
-            self.scene = scene_or_map_fn
-            self.map_roots = [self.scene]
+    def step(self, actions: Optional[np.array] = None):
+        for i in range(self.n_parallel):
+            action = actions[i * self.n_show : (i + 1) * self.n_show].tolist() if actions is not None else None
+            self.envs[i].step_send_async(action)
 
-        # TODO --> add warning if scene has no actor or reward functions
-        self.actors = {actor.name: actor for actor in self.scene.actors}
-        self.n_actors = len(self.actors)
-        self.n_maps = n_maps
-        self.n_show = n_show
-        self.n_actors_per_map = self.n_actors // self.n_maps
+        all_obs = []
+        all_reward = []
+        all_done = []
+        all_info = []
 
-        self.actor = next(iter(self.actors.values()))
+        for i in range(self.n_parallel):
+            obs, reward, done, info = self.envs[i].step_recv_async()
 
-        self.action_space = self.scene.action_space  # quick workaround while Thom refactors this
-        self.observation_space = {
-            "CameraSensor": self.scene.observation_space
-        }  # quick workaround while Thom refactors this
-        self.observation_space = spaces.Dict(self.observation_space)
+            all_obs.append(obs)
+            all_reward.extend(reward)
+            all_done.extend(done)
+            all_info.extend(info)
 
-        super().__init__(n_show, self.observation_space, self.action_space)
+        all_obs = self._combine_obs(all_obs)
+        all_reward = np.array(all_reward)
+        all_done = np.array(all_done)
 
-        # Don't return simulation data, since minimal/faster data will be returned by agent sensors
-        # Pass maps kwarg to enable map pooling
-        maps = [root.name for root in self.map_roots]
-        self.scene.show(
-            frame_rate=frame_rate,
-            frame_skip=frame_skip,
-            return_frames=False,
-            return_nodes=False,
-            maps=maps,
-            n_show=n_show,
-        )
+        return all_obs, all_reward, all_done, all_info
 
-    def step(self, action=None):
-        action_dict = {}
-        # TODO: adapt this to multiagent setting
-        if action is None:
-            for i in range(self.n_show):
-                action_dict[str(i)] = int(self.action_space.sample())
-        elif isinstance(action, np.int64):
-            action_dict["0"] = int(action)
-        else:
-            for i in range(self.n_show):
-                action_dict[str(i)] = int(action[i])
-
-        event = self.scene.step(action=action_dict)
-
-        # Extract observations, reward, and done from event data
-        # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
-        if self.n_actors == 1:
-            actor_data = event["actors"][self.actor.name]
-            obs = self._extract_sensor_obs(actor_data["observations"])
-            reward = actor_data["reward"]
-            done = actor_data["done"]
-            info = {}
-
-        else:
-            reward = []
-            done = []
-            info = []
-            obs = []
-            for actor_name in event["actors"].keys():
-                actor_data = event["actors"][actor_name]
-                actor_obs = self._extract_sensor_obs(actor_data["observations"])
-                obs.append(actor_obs)
-                reward.append(actor_data["reward"])
-                done.append(actor_data["done"])
-                info.append({})
-
-            obs = self._obs_dict_to_tensor2(obs)
-            reward = np.array(reward)
-            done = np.array(done)
-
-        return obs, reward, done, info
-
-    def reset(self):
-        self.scene.reset()
-
-        # To extract observations, we do a "fake" step (no actual simulation with frame_skip=0)
-        event = self.scene.step(return_frames=True, frame_skip=0)
-        obs = {}
-        if self.n_actors == 1:
-            actor_data = event["actors"][self.actor.name]
-            obs = self._extract_sensor_obs(actor_data["observations"])
-        else:
-            obs = []
-            for actor_name in event["actors"].keys():
-                actor_data = event["actors"][actor_name]
-                actor_obs = self._extract_sensor_obs(actor_data["observations"])
-                obs.append(actor_obs)
-
-            obs = self._obs_dict_to_tensor2(obs)
-
-        return obs
-
-    def _obs_dict_to_tensor2(self, obs):
+    def _combine_obs(self, obs):
         out = defaultdict(list)
 
         for o in obs:
             for key, value in o.items():
                 out[key].append(value)
 
-        for k in out.keys():
-            out[key] = np.stack(out[key])
+        for key in out.keys():
+            out[key] = np.concatenate(out[key], axis=0)
 
         return out
 
-    def _extract_sensor_obs(self, sim_data):
-        sensor_obs = {}
-        for sensor_name, sensor_data in sim_data.items():
-            if sensor_data["type"] == "uint8":
-                shape = sensor_data["shape"]
-                measurement = np.array(sensor_data["uintBuffer"], dtype=np.uint8).reshape(shape)
-                sensor_obs[sensor_name] = measurement
-                pass
-            elif sensor_data["type"] == "float":
-                shape = sensor_data["shape"]
-                measurement = np.array(sensor_data["floatBuffer"], dtype=np.float32).reshape(shape)
-                sensor_obs[sensor_name] = measurement
-            else:
-                raise TypeError
+    def reset(self):
+        # we don't both performing this async as this happens rarely as the env auto resets
+        all_obs = []
+        for i in range(self.n_parallel):
+            obs = self.envs[i].reset()
+            all_obs.append(obs)
+        all_obs = self._combine_obs(all_obs)
 
-        return sensor_obs
-
-    # def _obs_dict_to_tensor(self, obs_dict):
-    #     out = []
-    #     for val in obs_dict.values():
-    #         out.append(val)
-
-    #     if self.n_agents == 1:
-    #         return {"CameraSensor": np.stack(out)[0]}  # quick workaround while Thom refactors this
-    #     else:
-    #         return {"CameraSensor": np.stack(out)}  # quick workaround while Thom refactors this
+        return all_obs
 
     def close(self):
         self.scene.close()
 
     def env_is_wrapped(self):
-        return [False] * self.n_agents * self.n_parallel
+        return [False] * self.n_show * self.n_parallel
 
     # required abstract methods
 

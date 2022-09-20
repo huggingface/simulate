@@ -1,11 +1,11 @@
-from email import message
+import base64
 import json
 import os
-import base64
-from pickle import BINPUT
-import bpy
-from .client import Client
 from pathlib import Path
+
+import bpy
+
+from .client import Client
 
 
 class Simulator:
@@ -18,7 +18,7 @@ class Simulator:
         getattr(self, json_data["type"])(json_data["contents"])
 
     def build_scene(self, data):
-        bpy.ops.object.select_all(action='SELECT')
+        bpy.ops.object.select_all(action="SELECT")
         bpy.ops.object.delete()
 
         gltf_data = base64.b64decode(data["b64bytes"].encode("ascii"))
@@ -44,8 +44,8 @@ class Simulator:
 
         bpy.context.scene.render.engine = "CYCLES"
         for scene in bpy.data.scenes:
-            scene.cycles.device = 'GPU'
-        
+            scene.cycles.device = "GPU"
+
         bpy.context.scene.camera = bpy.data.objects.get("cam1")
         bpy.context.scene.render.filepath = os.path.join(data["path"], str(render_count) + ".png")
         bpy.ops.render.render(write_still=True)
@@ -57,4 +57,4 @@ class Simulator:
         self.client.close()
 
     def _callback(self, data):
-        self.client.send_bytes(len(data).to_bytes(4, 'little') + data.encode())
+        self.client.send_bytes(len(data).to_bytes(4, "little") + data.encode())

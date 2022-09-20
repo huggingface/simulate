@@ -19,10 +19,9 @@ namespace SimEnv.RlAgents {
         }
     }
 
-
     public static class RewardFunctionBuilder {
-        public static readonly string[] LEAF_REWARD_FUNCTION_TYPES = { "dense", "sparse", "timeout", "see" };
-        public static readonly string[] NODE_REWARD_FUNCTION_TYPES = { "and", "or", "not", "see" };
+        public static readonly string[] LEAF_REWARD_FUNCTION_TYPES = { "dense", "sparse", "timeout", "see", "angle_to" };
+        public static readonly string[] NODE_REWARD_FUNCTION_TYPES = { "and", "or", "not" };
         public static RewardFunction Build(Node node) {
             Debug.Assert(node.rewardFunctionData != null);
 
@@ -79,6 +78,11 @@ namespace SimEnv.RlAgents {
                 case "see":
                     rewardFunction = new SeeRewardFunction(
                         entity_a, entity_b, distanceMetric, rewardData.scalar, rewardData.threshold, rewardData.is_terminal,
+                        rewardData.is_collectable, rewardData.trigger_once);
+                    break;
+                case "angle_to":
+                    rewardFunction = new AngleToRewardFunction(
+                        entity_a, entity_b, distanceMetric, rewardData.scalar, rewardData.direction, rewardData.threshold, rewardData.is_terminal,
                         rewardData.is_collectable, rewardData.trigger_once);
                     break;
 
@@ -144,13 +148,12 @@ namespace SimEnv.RlAgents {
             }
             return rewardFunction;
         }
-
     }
-
 
     public abstract class RewardFunction {
         public Node entityA;
         public Node entityB;
+        public Vector3 direction;
         public float rewardScalar = 1.0f;
         public IDistanceMetric distanceMetric;
         public abstract void Reset();
@@ -235,6 +238,31 @@ namespace SimEnv.RlAgents {
 
             // Get angle in degrees and then compare to the threshold
             float angle = Vector3.Angle(entityA.transform.position - entityB.transform.position, entityA.transform.forward);
+
+            if ((!hasTriggered || !triggerOnce) && (angle < threshold)) {
+                hasTriggered = true;
+                reward += rewardScalar;
+                if (isCollectable) {
+                    entityB.gameObject.SetActive(false);
+                }
+            }
+
+            return reward;
+        }
+    }
+
+    public class AngleToRewardFunction : SparseRewardFunction {
+        public AngleToRewardFunction(Node entityA, Node entityB,
+            IDistanceMetric distanceMetric, float rewardScalar, Vector3 direction, float threshold, bool isTerminal, bool isCollectable, bool triggerOnce)
+                : base(entityA, entityB, distanceMetric, rewardScalar, threshold, isTerminal, isCollectable, triggerOnce) {
+            this.direction = direction;
+        }
+
+        public override float CalculateReward() {
+            float reward = 0.0f;
+
+            // Get angle in degrees and then compare to the threshold
+            float angle = Vector3.Angle(entityA.transform.position - entityB.transform.position, direction);
             if ((!hasTriggered || !triggerOnce) && (angle < threshold)) {
                 hasTriggered = true;
                 reward += rewardScalar;

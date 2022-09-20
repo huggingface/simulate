@@ -40,6 +40,7 @@ namespace SimEnv {
         public static EventData currentEvent { get; private set; }
 
         private void Awake() {
+            Debug.Log("Waking up simulator");
             Physics.autoSimulation = false;
             LoadCustomAssemblies();
             LoadPlugins();
@@ -80,9 +81,8 @@ namespace SimEnv {
                 }
             }
 
-            // Override metadata from kwargs
-            MetaData.instance.Parse(kwargs);
-            MetaData.Apply();
+            // Apply configuration, such as ambient lighting
+            Config.Apply();
 
             // Initialize plugins
             foreach (IPlugin plugin in plugins)
@@ -90,12 +90,23 @@ namespace SimEnv {
         }
 
         public static IEnumerator StepCoroutine(Dictionary<string, object> kwargs) {
-            // Optionally override return_nodes and return_frames in step
-            kwargs.TryParse<bool>("return_nodes", out bool readNodeData, MetaData.instance.returnNodes);
-            kwargs.TryParse<bool>("return_frames", out bool readCameraData, MetaData.instance.returnFrames);
+            if (root == null)
+                throw new System.Exception("Scene is not initialized. Call `show()` to initialize the scene before stepping.");
+
+            // If config overrides found, cache and apply
+            int frameSkip = Config.instance.frameSkip;
+            float timeStep = Config.instance.timeStep;
+            bool returnNodes = Config.instance.returnNodes;
+            bool returnFrames = Config.instance.returnFrames;
+            kwargs.TryParse("frame_skip", out Config.instance.frameSkip, frameSkip);
+            kwargs.TryParse("time_step", out Config.instance.timeStep, timeStep);
+            kwargs.TryParse("return_nodes", out Config.instance.returnNodes, returnNodes);
+            kwargs.TryParse("return_frames", out Config.instance.returnFrames, returnFrames);
+
+            Debug.Log($"Stepping {Config.instance.frameSkip} frames with {Config.instance.timeStep} time step");
 
             if (currentEvent == null)
-                yield return ReadEventData(readNodeData, readCameraData);
+                currentEvent = new EventData();
 
             // Execute pre-step functionality
             currentEvent.inputKwargs = kwargs;
@@ -103,36 +114,49 @@ namespace SimEnv {
                 plugin.OnBeforeStep(currentEvent);
             BeforeStep?.Invoke();
 
-            // Perform the actual simulation
-            for (int i = 0; i < MetaData.instance.frameSkip; i++) {
+            for (int i = 0; i < Config.instance.frameSkip; i++) {
                 BeforeIntermediateFrame?.Invoke();
-                Physics.Simulate(1f / MetaData.instance.frameRate);
+                Physics.Simulate(Config.instance.timeStep);
                 AfterIntermediateFrame?.Invoke();
             }
 
-            // Collect post-step data
-            yield return ReadEventData(readNodeData, readCameraData);
+            // Perform early post-step functionality
+            currentEvent = new EventData();
+            OnEarlyStepInternal(Config.instance.returnFrames);
+            foreach (IPlugin plugin in plugins)
+                plugin.OnEarlyStep(currentEvent);
 
-            // Execute post-step functionality
+            yield return new WaitForEndOfFrame();
+
+            // Perform post-step functionality
+            OnStepInternal(Config.instance.returnNodes, Config.instance.returnFrames);
             foreach (IPlugin plugin in plugins)
                 plugin.OnStep(currentEvent);
-            foreach (IPlugin plugin in plugins)
-                yield return plugin.OnStepCoroutine(currentEvent);
+
             AfterStep?.Invoke();
+
+            // Revert config overrides
+            Config.instance.frameSkip = frameSkip;
+            Config.instance.timeStep = timeStep;
+            Config.instance.returnFrames = returnFrames;
+            Config.instance.returnNodes = returnNodes;
         }
 
-        static IEnumerator ReadEventData(bool readNodeData, bool readCameraData) {
-            currentEvent = new EventData();
+        static void OnEarlyStepInternal(bool readCameraData) {
+            if (readCameraData) {
+                foreach (RenderCamera camera in cameras)
+                    camera.camera.enabled = true;
+            }
+        }
+
+        static void OnStepInternal(bool readNodeData, bool readCameraData) {
             if (readNodeData) {
                 foreach (Node node in nodes.Values) {
-                    if (MetaData.instance.nodeFilter == null || MetaData.instance.nodeFilter.Contains(node.name))
+                    if (Config.instance.nodeFilter == null || Config.instance.nodeFilter.Contains(node.name))
                         currentEvent.nodes.Add(node.name, node.GetData());
                 }
             }
             if (readCameraData) {
-                foreach (RenderCamera camera in cameras)
-                    camera.camera.enabled = true;
-                yield return new WaitForEndOfFrame();
                 foreach (RenderCamera camera in cameras) {
                     if (camera.readable) {
                         camera.CopyRenderResultToBuffer(out uint[,,] buffer);
@@ -144,8 +168,8 @@ namespace SimEnv {
         }
 
         public static void Reset() {
-            foreach (Node node in nodes.Values)
-                node.ResetState();
+            // foreach (Node node in nodes.Values)
+            //     node.ResetState(Vector3.zero);
             foreach (IPlugin plugin in plugins)
                 plugin.OnReset();
             AfterReset?.Invoke();
@@ -154,7 +178,8 @@ namespace SimEnv {
         public static void Unload() {
             foreach (IPlugin plugin in Simulator.plugins)
                 plugin.OnBeforeSceneUnloaded();
-            GameObject.DestroyImmediate(root);
+            if (root != null)
+                GameObject.DestroyImmediate(root);
         }
 
         private static void LoadCustomAssemblies() {
@@ -196,6 +221,7 @@ namespace SimEnv {
 
         public static void Close() {
             Unload();
+            Client.Close();
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else

@@ -12,7 +12,7 @@ namespace SimEnv {
                 Debug.LogWarning("No simulator found");
                 return null;
             }
-            return Simulator.instance.StartCoroutine(item);
+        return Simulator.instance.StartCoroutine(item);
         }
 
         public static bool TryParse<T>(this Dictionary<string, object> kwargs, string key, out T result, T defaultValue = default(T)) {

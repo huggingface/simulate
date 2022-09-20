@@ -4,18 +4,19 @@ using UnityEngine;
 using System.Collections.Generic;
 
 namespace SimEnv.GLTF {
-    public class HFArticulatedBodies {
-        public List<GLTFArticulatedBody> objects;
+    public class HFarticulationBodies {
+        public List<GLTFArticulationBody> objects;
 
-        public HFArticulatedBodies() {
-            objects = new List<GLTFArticulatedBody>();
+        public HFarticulationBodies() {
+            objects = new List<GLTFArticulationBody>();
         }
 
-        public class GLTFArticulatedBody {
+        public class GLTFArticulationBody {
             public string joint_type = "";
             [JsonConverter(typeof(QuaternionConverter))] public Quaternion anchor_rotation = Quaternion.identity;
             [JsonConverter(typeof(TranslationConverter))] public Vector3 anchor_position = Vector3.zero;
             [JsonConverter(typeof(Vector3Converter))] public Vector3? inertia_tensor;
+            public bool immovable = false;
             public float linear_damping = 0.0f;
             public float angular_damping = 0.0f;
             public float joint_friction = 0.0f;
@@ -36,25 +37,25 @@ namespace SimEnv.GLTF {
             // public bool ShouldSerializeoffset() { return offset != Vector3.zero; }
             // public bool ShouldSerializeintangible() { return intangible; }
 
-        //     public override int GetHashCode() {
-        //         return type.GetHashCode()
-        //             ^ boundingBox.GetHashCode()
-        //             ^ mesh.GetHashCode()
-        //             ^ offset.GetHashCode()
-        //             ^ intangible.GetHashCode();
-        //     }
+            //     public override int GetHashCode() {
+            //         return type.GetHashCode()
+            //             ^ boundingBox.GetHashCode()
+            //             ^ mesh.GetHashCode()
+            //             ^ offset.GetHashCode()
+            //             ^ intangible.GetHashCode();
+            //     }
 
-        //     public override bool Equals(object obj) {
-        //         if (!(obj is GLTFCollider)) return false;
-        //         GLTFCollider other = obj as GLTFCollider;
-        //         if (type == other.type
-        //             && boundingBox == other.boundingBox
-        //             && mesh == other.mesh
-        //             && offset == other.offset
-        //             && intangible == other.intangible)
-        //             return true;
-        //         return false;
-        //     }
+            //     public override bool Equals(object obj) {
+            //         if (!(obj is GLTFCollider)) return false;
+            //         GLTFCollider other = obj as GLTFCollider;
+            //         if (type == other.type
+            //             && boundingBox == other.boundingBox
+            //             && mesh == other.mesh
+            //             && offset == other.offset
+            //             && intangible == other.intangible)
+            //             return true;
+            //         return false;
+            //     }
         }
 
         // public static void Export(GLTFObject gltfObject, List<GLTFNode.ExportResult> nodes) {

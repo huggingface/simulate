@@ -7,6 +7,7 @@ from stable_baselines3 import PPO
 
 import simenv as sm
 from simenv.assets.object import ProcGenPrimsMaze3D
+from simenv.assets.sensors import RaycastSensor, StateSensor
 
 
 def generate_map(index):
@@ -24,6 +25,9 @@ def generate_map(index):
     actor_position = [math.floor(maze_width / 2.0) + 0.5, 0.5, math.floor(maze_depth / 2.0) + 0.5]
 
     actor = sm.EgocentricCameraActor(position=actor_position)
+    actor += StateSensor(actor, maze)
+    actor += RaycastSensor()
+
     maze += actor
 
     for r in range(n_objects):
@@ -66,7 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
 
-    env = sm.ParallelRLEnvironment(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
+    env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
     time.sleep(2.0)
     model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=2)
     model.learn(total_timesteps=100000)

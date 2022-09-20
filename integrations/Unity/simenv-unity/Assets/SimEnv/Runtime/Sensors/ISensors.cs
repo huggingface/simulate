@@ -1,18 +1,19 @@
+using Newtonsoft.Json;
 using UnityEngine;
-using UnityEngine.Events;
-using System.Collections;
 
 namespace SimEnv {
-
-    public class SensorBuffer {
+    public class Buffer {
         public float[] floatBuffer;
         public uint[] uintBuffer;
         public string type;
         public int[] shape;
 
-        public SensorBuffer(int size, int[] shape, string type) {
+        public int size;
+
+        public Buffer(int size, int[] shape, string type) {
             this.type = type;
             this.shape = shape;
+            this.size = size;
             if (type == "float") {
                 floatBuffer = new float[size];
             } else if (type == "uint8") {
@@ -28,24 +29,19 @@ namespace SimEnv {
             } else if (type == "uint8") {
                 return JsonHelper.ToJson(uintBuffer, shape, name);
             } else {
-                Debug.Log("trying to create SensorBuffer with unknown type " + type);
+                Debug.Log("trying to parse SensorBuffer with unknown type " + type);
                 return "";
             }
         }
-
-
-
     }
 
     public interface ISensor {
-
-        public string GetName();
-        public string GetSensorType();
-        public int GetSize();
-        public int[] GetShape();
-        public void Enable();
-        public void Disable();
-        public string GetBufferType();
-        public SensorBuffer GetObs();
+        string GetName();
+        string GetSensorBufferType();
+        int GetSize();
+        int[] GetShape();
+        void Enable();
+        void Disable();
+        void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex);
     }
 }

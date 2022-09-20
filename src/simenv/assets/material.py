@@ -225,3 +225,7 @@ class Material:
     @classproperty
     def OLIVE(cls):
         return cls(base_color=(0.5, 0.5, 0.0))
+
+    @classproperty
+    def TRANSPARENT(cls):
+        return cls(base_color=(0.0, 0.0, 0.0, 0.0), alpha_mode="BLEND")

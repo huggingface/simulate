@@ -72,8 +72,8 @@ class GltfTest(unittest.TestCase):
         scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material.BLUE)
         box1 = sm.Box(name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.RED)
         box2 = sm.Box(name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.RED)
-        box1.physics_component = sm.ArticulatedBodyComponent("fixed")
-        box2.physics_component = sm.ArticulatedBodyComponent("revolute")
+        box1.physics_component = sm.ArticulationBodyComponent("fixed")
+        box2.physics_component = sm.ArticulationBodyComponent("revolute")
         box1 += box2
         scene += box1
         scene += sm.Box(name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.RED)
@@ -84,7 +84,7 @@ class GltfTest(unittest.TestCase):
             scene += sm.Box(name=f"cube{i}", position=[1, 0.5, 1], material=material)
 
         # Lets add an actor in the scene, a capsule with associated actions and a camera as observation device
-        actor = sm.Capsule(name="actor", position=[0.0, 0.0, 0.0])  # Has a collider,
+        actor = sm.Capsule(name="actor", is_actor=True, position=[0.0, 0.0, 0.0])  # Has a collider,
 
         # Add a camera to the actor
         actor_camera = sm.Camera(name="camera", width=40, height=40, position=[0, 0.75, 0])
@@ -93,12 +93,12 @@ class GltfTest(unittest.TestCase):
         actor += sm.RaycastSensor(n_horizontal_rays=12, n_vertical_rays=4, horizontal_fov=120, vertical_fov=45)
 
         # Specify the action to control the actor: 3 discrete action to rotate and move forward
-        actor.controller = sm.Controller(
+        actor.actuator = sm.Actuator(
             n=3,
             mapping=[
-                sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=-90),
-                sm.ActionMapping("change_relative_rotation", axis=[0, 1, 0], amplitude=90),
-                sm.ActionMapping("change_relative_position", axis=[1, 0, 0], amplitude=2.0),
+                sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),
+                sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
+                sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
             ],
         )
         scene += actor

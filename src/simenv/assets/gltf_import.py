@@ -229,6 +229,7 @@ def build_node_tree(
         # Let's add a Camera
         gltf_camera = gltf_model.cameras[gltf_node.camera]
         camera_type = gltf_camera.type
+
         scene_node = Camera(
             aspect_ratio=gltf_camera.perspective.aspectRatio if camera_type == "perspective" else None,
             yfov=np.degrees(gltf_camera.perspective.yfov) if camera_type == "perspective" else None,
@@ -336,6 +337,13 @@ def build_node_tree(
                 setattr(scene_node, key, value)
         else:
             scene_node = Asset(**common_kwargs)
+
+    # Check if we have some extras fields
+    if isinstance(gltf_node.extras, dict):
+        if "sensor_tag" in gltf_node.extras:
+            scene_node.sensor_tag = gltf_node.extras["sensor_tag"]
+        if "is_actor" in gltf_node.extras:
+            scene_node.is_actor = gltf_node.extras["is_actor"]
 
     # Recursively build the node tree
     if gltf_node.children:

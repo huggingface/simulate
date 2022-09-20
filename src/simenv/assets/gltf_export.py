@@ -20,6 +20,7 @@ from typing import Any, ByteString, Dict, List, Optional, Set, Union
 import numpy as np
 import pyvista as pv
 
+from ..config import Config
 from . import Asset, Camera, Collider, Light, Material, Object3D, PhysicMaterial
 from . import gltflib as gl
 from .gltf_extension import GLTF_NODES_EXTENSION_CLASS, process_tree_after_gltf, process_tree_before_gltf
@@ -402,7 +403,11 @@ def add_mesh_to_model(
 def add_camera_to_model(
     camera: Camera, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
-    gl_camera = gl.Camera(type=camera.camera_type, width=camera.width, height=camera.height)
+    gl_camera = gl.Camera(
+        type=camera.camera_type,
+        width=camera.width,
+        height=camera.height,
+    )
 
     if camera.camera_type == "perspective":
         gl_camera.perspective = gl.PerspectiveCameraInfo(
@@ -412,6 +417,9 @@ def add_camera_to_model(
         gl_camera.orthographic = gl.OrthographicCameraInfo(
             xmag=camera.xmag, ymag=camera.ymag, zfar=camera.zfar, znear=camera.znear
         )
+
+    if camera.sensor_tag is not None:
+        gl_camera.extras = {"sensor_tag": camera.sensor_tag}
 
     # If we have already created exactly the same camera we avoid double storing
     cached_id = is_data_cached(data=gl_camera.to_json(), cache=cache)
@@ -488,6 +496,7 @@ def add_node_to_scene(
     )
 
     extensions = gl.Extensions()
+    extras = dict()
     extension_used = set()
 
     if isinstance(node, Camera):
@@ -561,6 +570,15 @@ def add_node_to_scene(
         )
         extension_used.add(new_extension_used)
 
+    # Store a couple of fields in the extras
+    # We use the extras to avoid having extensions only for a few fields
+    if getattr(node, "is_actor", False):
+        extras["is_actor"] = node.is_actor
+
+    # Add the extras to the node is anything in it
+    if len(extras) > 0:
+        gl_node.extras = extras
+
     # Add the extensions to the node if anything not none
     if extension_used:
         gl_node.extensions = extensions
@@ -616,18 +634,18 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
 
     process_tree_before_gltf(root_node)
 
+    # Add all the nodes and get back all the extensions used
     extension_used = add_node_to_scene(
         node=root_node, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=0, cache=cache
     )
 
-    process_tree_after_gltf(root_node)
+    # Add scene-level extensions - only config metadata for now
+    config: Optional[Config] = getattr(root_node, "config", None)
+    if config is not None:
+        new_extension_used = config._add_component_to_gltf_scene(gltf_model.extensions)
+        extension_used.add(new_extension_used)
 
-    # Add metadata
-    if hasattr(root_node, "metadata") and root_node.metadata is not None:
-        if not extension_used:
-            extension_used = set()
-        extension_used.add("HF_metadata")
-        gltf_model.extensions.HF_metadata = root_node.metadata
+    process_tree_after_gltf(root_node)
 
     # Update scene requirements with the GLTF extensions we need
     if extension_used:
