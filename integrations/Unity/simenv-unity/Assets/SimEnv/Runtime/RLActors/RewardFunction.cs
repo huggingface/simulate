@@ -5,18 +5,47 @@ using System;
 namespace SimEnv.RlAgents {
     public interface IDistanceMetric {
         public float Calculate(Node e1, Node e2);
+        public void Reset(Node e1, Node e2);
     }
 
     public class EuclideanDistance : IDistanceMetric {
         public float Calculate(Node e1, Node e2) {
             return Vector3.Distance(e1.transform.position, e2.transform.position);
         }
+        public void Reset(Node e1, Node e2) { }
     }
 
     public class CosineDistance : IDistanceMetric {
         public float Calculate(Node e1, Node e2) {
             return Vector3.Dot(e1.transform.position.normalized, e2.transform.position.normalized);
         }
+        public void Reset(Node e1, Node e2) { }
+    }
+
+    public class BestDistance : IDistanceMetric {
+
+        private float bestDistance = float.PositiveInfinity;
+        private IDistanceMetric distanceMetric;
+
+        public BestDistance(IDistanceMetric distanceMetric) {
+            this.distanceMetric = distanceMetric;
+        }
+
+        public float Calculate(Node e1, Node e2) {
+            float reward = 0.0f;
+            float distance = distanceMetric.Calculate(e1, e2);
+            if (distance < bestDistance) {
+                reward += bestDistance - distance;
+                bestDistance = distance;
+            }
+            return reward;
+        }
+
+        public void Reset(Node e1, Node e2) {
+            bestDistance = distanceMetric.Calculate(e1, e2);
+        }
+
+
     }
 
     public static class RewardFunctionBuilder {
@@ -52,6 +81,9 @@ namespace SimEnv.RlAgents {
             switch (rewardData.distance_metric) {
                 case "euclidean":
                     distanceMetric = new EuclideanDistance();
+                    break;
+                case "best_euclidean":
+                    distanceMetric = new BestDistance(new EuclideanDistance());
                     break;
                 case "cosine":
                     distanceMetric = new CosineDistance();
@@ -161,7 +193,6 @@ namespace SimEnv.RlAgents {
     }
 
     public class DenseRewardFunction : RewardFunction {
-        float bestDistance = float.PositiveInfinity;
 
         public DenseRewardFunction(Node entityA, Node entityB, IDistanceMetric distanceMetric, float rewardScalar) {
             base.entityA = entityA;
@@ -171,19 +202,11 @@ namespace SimEnv.RlAgents {
         }
 
         public override void Reset() {
-            bestDistance = distanceMetric.Calculate(entityA, entityB);
+            distanceMetric?.Reset(entityA, entityB);
         }
 
         public override float CalculateReward() {
-            float distance = distanceMetric.Calculate(entityA, entityB);
-
-            float reward = 0.0f;
-
-            if (distance < bestDistance) {
-                reward += bestDistance - distance;
-                bestDistance = distance;
-            }
-
+            float reward = distanceMetric.Calculate(entityA, entityB);
             return reward * rewardScalar;
         }
     }
@@ -212,6 +235,7 @@ namespace SimEnv.RlAgents {
             if (isCollectable) {
                 entityB.gameObject.SetActive(true);
             }
+            distanceMetric?.Reset(entityA, entityB);
         }
 
         public override float CalculateReward() {

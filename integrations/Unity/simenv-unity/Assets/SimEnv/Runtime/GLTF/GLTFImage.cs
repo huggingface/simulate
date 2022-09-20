@@ -84,14 +84,19 @@ namespace SimEnv.GLTF {
             }
         }
 
-        public static List<GLTFImage.ExportResult> Export(GLTFObject gltfObject, Dictionary<string, ExportResult> images) {
+        public static List<GLTFImage.ExportResult> Export(GLTFObject gltfObject, Dictionary<string, ExportResult> images, bool embedded) {
             if (images.Count > 0) {
                 gltfObject.textures = new List<GLTFTexture>();
                 gltfObject.images = new List<GLTFImage>();
             }
             images.Keys.OrderBy(x => images[x].index).ToList().ForEach(uri => {
                 GLTFImage.ExportResult image = images[uri];
-                File.WriteAllBytes(image.path, image.bytes);
+                if (embedded) {
+                    string bytestring = Convert.ToBase64String(image.bytes);
+                    image.uri = "data:image/png;base64," + bytestring;
+                } else {
+                    File.WriteAllBytes(image.path, image.bytes);
+                }
                 GLTFTexture texture = new GLTFTexture();
                 texture.source = image.index;
                 texture.name = image.name;

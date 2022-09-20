@@ -7,6 +7,7 @@ using UnityEditor.AssetImporters;
 namespace SimEnv.GLTF {
     public static class GLTFAssetUtility {
         public static void SaveToAsset(GameObject root, AnimationClip[] animations, AssetImportContext ctx, ImportSettings settings) {
+            settings ??= new ImportSettings();
             ctx.AddObjectToAsset("main", root);
             ctx.SetMainObject(root);
             UnwrapParam? unwrapParams = new UnwrapParam() {

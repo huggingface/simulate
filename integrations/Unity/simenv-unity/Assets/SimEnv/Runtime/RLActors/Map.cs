@@ -16,7 +16,7 @@ namespace SimEnv.RlAgents {
             actors = new SortedDictionary<string, Actor>();
             children = new List<Node>();
             foreach (Node node in root.GetComponentsInChildren<Node>(true)) {
-                if (ActorManager.actors.TryGetValue(node.name, out Actor Actor))
+                if (RLPlugin.actors.TryGetValue(node.name, out Actor Actor))
                     actors.Add(node.name, Actor);
                 children.Add(node);
             }
@@ -32,8 +32,8 @@ namespace SimEnv.RlAgents {
                     TryAddCameraToActors(node2);
                 }
                 // search children for StateSensors
-                if (node2.sensor != null && node2.gameObject.transform.IsChildOf(root.gameObject.transform)) {
-                    TryAddSensorToActors(node2);
+                if (RLPlugin.sensors.TryGetValue(node2.name, out ISensor sensor) && node2.transform.IsChildOf(root.transform)) {
+                    TryAddSensorToActors(node2, sensor);
                 }
             }
         }
@@ -49,14 +49,14 @@ namespace SimEnv.RlAgents {
                 actor.sensors.Add(cameraSensor);
             }
         }
-        private void TryAddSensorToActors(Node node) {
+        private void TryAddSensorToActors(Node node, ISensor sensor) {
             foreach (var actor in actors.Values) {
                 if (node.gameObject.transform.IsChildOf(actor.node.gameObject.transform)) {
                     return;
                 }
             }
             foreach (var actor in actors.Values) {
-                actor.sensors.Add(node.sensor);
+                actor.sensors.Add(sensor);
             }
         }
 
@@ -77,7 +77,7 @@ namespace SimEnv.RlAgents {
                 foreach (KeyValuePair<string, List<List<float>>> action in actions) {
                     actionsForActor[action.Key] = action.Value[i];
                 }
-                Debug.Log($"actions for actor {i}: {actionsForActor}");
+                //Debug.Log($"actions for actor {i}: {actionsForActor}");
                 actor.SetAction(actionsForActor);
             }
         }

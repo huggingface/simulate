@@ -22,7 +22,14 @@ namespace SimEnv.GLTF {
         public static void ExportSelectedGLTF() {
             GameObject selection = Selection.activeGameObject;
             string filepath = EditorUtility.SaveFilePanel("Export GLTF", "", selection.name, "gltf");
-            ExportGLTF(selection, filepath);
+            ExportGLTF(selection, filepath, false);
+        }
+
+        [MenuItem("GameObject/SimEnv/Export GLTF (Embedded)")]
+        public static void ExportSelectedGLTFEmbedded() {
+            GameObject selection = Selection.activeGameObject;
+            string filepath = EditorUtility.SaveFilePanel("Export GLTF", "", selection.name, "gltf");
+            ExportGLTF(selection, filepath, true);
         }
 
         [MenuItem("GameObject/SimEnv/Enforce Unique Names")]
@@ -39,7 +46,7 @@ namespace SimEnv.GLTF {
 #endif
 
         public static void ExportGLB(GameObject root, string filepath) {
-            GLTFObject gltfObject = CreateGLTFObject(root.transform, filepath);
+            GLTFObject gltfObject = CreateGLTFObject(root.transform, filepath, true);
             JsonSerializerSettings settings = new JsonSerializerSettings() {
                 NullValueHandling = NullValueHandling.Ignore
             };
@@ -47,8 +54,8 @@ namespace SimEnv.GLTF {
             throw new NotImplementedException();
         }
 
-        public static void ExportGLTF(GameObject root, string filepath) {
-            GLTFObject gltfObject = CreateGLTFObject(root.transform, filepath);
+        public static void ExportGLTF(GameObject root, string filepath, bool embedded) {
+            GLTFObject gltfObject = CreateGLTFObject(root.transform, filepath, embedded);
             JsonSerializerSettings settings = new JsonSerializerSettings() {
                 NullValueHandling = NullValueHandling.Ignore
             };
@@ -56,7 +63,7 @@ namespace SimEnv.GLTF {
             File.WriteAllText(filepath, content);
         }
 
-        public static GLTFObject CreateGLTFObject(Transform root, string filepath) {
+        public static GLTFObject CreateGLTFObject(Transform root, string filepath, bool embedded) {
             SplitColliders(root);
             EnforceUniqueNames(root);
 
@@ -70,13 +77,16 @@ namespace SimEnv.GLTF {
             GLTFScene.Export(gltfObject, nodes);
             List<GLTFMesh.ExportResult> meshes = GLTFMesh.Export(gltfObject, nodes, ref bufferData);
             GLTFMaterial.Export(gltfObject, imageDict, meshes, filepath);
-            GLTFImage.Export(gltfObject, imageDict);
+            GLTFImage.Export(gltfObject, imageDict, embedded);
             GLTFCamera.Export(gltfObject, nodes);
             KHRLightsPunctual.Export(gltfObject, nodes);
             List<HFColliders.ExportResult> colliders = HFColliders.Export(gltfObject, nodes);
             HFPhysicMaterials.Export(gltfObject, colliders);
             HFRigidBodies.Export(gltfObject, nodes);
-            GLTFBuffer.Export(gltfObject, bufferData, filepath);
+            if (embedded)
+                GLTFBuffer.ExportEmbedded(gltfObject, bufferData);
+            else
+                GLTFBuffer.Export(gltfObject, bufferData, filepath);
 
             return gltfObject;
         }

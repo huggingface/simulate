@@ -70,5 +70,15 @@ namespace SimEnv.GLTF {
             File.WriteAllBytes(bufferPath, bufferData);
             return buffer;
         }
+
+        public static GLTFBuffer ExportEmbedded(GLTFObject gltfObject, byte[] bufferData) {
+            GLTFBuffer buffer = new GLTFBuffer();
+            buffer.byteLength = bufferData.Length;
+            string bytestring = Convert.ToBase64String(bufferData);
+            buffer.uri = embeddedPrefix + bytestring;
+            gltfObject.buffers ??= new List<GLTFBuffer>();
+            gltfObject.buffers.Add(buffer);
+            return buffer;
+        }
     }
 }
