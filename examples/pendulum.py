@@ -38,11 +38,14 @@ pendulum.actuator = sm.Actuator(
     low=-2.0,
     high=2.0,
     shape=(1,),
-    mapping=sm.ActionMapping("add_torque", axis=[1, 0, 0], amplitude=3, max_velocity_threshold=8.0),
+    mapping=sm.ActionMapping("add_torque", axis=[1, 0, 0], amplitude=1, max_velocity_threshold=8.0),
 )
 root += pendulum
 
-pendulum += sm.StateSensor(root, pendulum, "rotation")
+# Add all our sensors to the pendulum
+pendulum += [sm.StateSensor(root, pendulum, "position.x"),
+             sm.StateSensor(root, pendulum, "position.y"),
+             sm.StateSensor(root, pendulum, "angular_velocity.x")]
 
 scene.save("test.gltf")
 
