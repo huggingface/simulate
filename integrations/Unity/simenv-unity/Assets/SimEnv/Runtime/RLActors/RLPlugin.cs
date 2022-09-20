@@ -30,16 +30,19 @@ namespace SimEnv.RlAgents {
         }
 
         public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
-            // Find and cache actor and sensor nodes
+            // Find and cache sensor nodes
             foreach (Node node in Simulator.nodes.Values) {
-                if (node.isActor == true) {
-                    actors.Add(node.name, new Actor(node));
-                }
                 if (node.stateSensorData != null) {
                     sensors.Add(node.name, new StateSensor(node, node.stateSensorData));
                 }
                 if (node.raycastSensorData != null) {
                     sensors.Add(node.name, new RaycastSensor(node, node.raycastSensorData));
+                }
+            }
+            // Find and cache actor nodes
+            foreach (Node node in Simulator.nodes.Values) {
+                if (node.isActor == true) {
+                    actors.Add(node.name, new Actor(node));
                 }
             }
 
