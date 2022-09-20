@@ -21,7 +21,6 @@ namespace SimEnv {
             m_node = node;
             mName = data.sensor_tag;
             // calculate ray angles etc
-            Debug.Log("instantiating raycast sensor");
 
             nHorizontalRays = data.n_horizontal_rays;
             nVerticalRays = data.n_vertical_rays;

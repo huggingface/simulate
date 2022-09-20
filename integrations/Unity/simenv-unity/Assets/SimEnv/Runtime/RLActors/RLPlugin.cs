@@ -79,6 +79,7 @@ namespace SimEnv.RlAgents {
                     bufferShape.ToArray(),
                     sensor.GetSensorBufferType()
                 );
+                // TODO: error is thrown due to multiple sensors with the same name here
                 sensorBuffers.Add(sensor.GetName(), sensorBuffer);
             }
             int[] shape = { nActiveMaps, nActors, 1 };

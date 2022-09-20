@@ -15,7 +15,7 @@ namespace SimEnv {
                 await Simulator.Initialize(b64bytes, kwargs);
             } catch (System.Exception e) {
                 string error = "Failed to build scene from GLTF: " + e.ToString();
-                Debug.LogWarning(error);
+                Debug.LogError(error);
                 callback(error);
                 return;
             }

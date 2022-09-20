@@ -105,7 +105,7 @@ class RLEnv(VecEnv):
             n_show=n_show,
         )
 
-    def step(self, action=None):
+    def step(self, action):
         """The step function for the environment.
 
         Action is a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
@@ -114,7 +114,7 @@ class RLEnv(VecEnv):
         self.step_send_async(action=action)
         return self.step_recv_async()
 
-    def step_send_async(self, action=None):
+    def step_send_async(self, action):
         if not isinstance(action, dict):
             if len(self.action_tags) != 1:
                 raise ValueError(
