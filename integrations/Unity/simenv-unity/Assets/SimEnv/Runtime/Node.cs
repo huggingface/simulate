@@ -21,7 +21,7 @@ namespace SimEnv {
         public ArticulationBody articulationBody { get; private set; }
         public HFActuators.Actuator actuator { get; private set; }
         public Data initialState { get; private set; }
-        public bool isActor = false;
+        public bool isActor { get; set; }
 
         public void Initialize() {
             if (cameraData != null)
