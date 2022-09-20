@@ -45,7 +45,7 @@ namespace SimEnv.RlAgents {
                 }
             }
 
-            
+
         }
         void InitSensors() {
             // search children for Cameras and add these as camera sensors
@@ -57,8 +57,8 @@ namespace SimEnv.RlAgents {
                     sensors.Add(cameraSensor);
                 }
                 // search children for StateSensors
-                if (node2.sensor != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
-                    sensors.Add(node2.sensor);
+                if (RLPlugin.sensors.TryGetValue(node2.name, out ISensor sensor) && node2.transform.IsChildOf(node.transform)) {
+                    sensors.Add(sensor);
                 }
             }
             // TODO: search children for RaycastSensors

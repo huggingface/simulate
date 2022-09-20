@@ -1,13 +1,13 @@
 using System;
-using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
 namespace SimEnv.RlAgents {
-    public class ActorManager : PluginBase {
-        public static ActorManager instance { get; private set; }
+    public class RLPlugin : PluginBase {
+        public static RLPlugin instance { get; private set; }
         public static Dictionary<string, Actor> actors { get; private set; }
+        public static Dictionary<string, ISensor> sensors { get; private set; }
         static List<Map> activeMaps;
         static List<Vector3> positions;
         static MapPool mapPool;
@@ -18,9 +18,10 @@ namespace SimEnv.RlAgents {
         static Buffer rewardBuffer;
         static bool active;
 
-        public ActorManager() {
+        public RLPlugin() {
             instance = this;
             actors = new Dictionary<string, Actor>();
+            sensors = new Dictionary<string, ISensor>();
             mapPool = new MapPool();
             activeMaps = new List<Map>();
             positions = new List<Vector3>();
@@ -29,11 +30,19 @@ namespace SimEnv.RlAgents {
         }
 
         public override void OnSceneInitialized(Dictionary<string, object> kwargs) {
+            // Find and cache actor and sensor nodes
             foreach (Node node in Simulator.nodes.Values) {
                 if (node.isActor == true) {
                     actors.Add(node.name, new Actor(node));
                 }
+                if (node.stateSensorData != null) {
+                    sensors.Add(node.name, new StateSensor(node, node.stateSensorData));
+                }
+                if (node.raycastSensorData != null) {
+                    sensors.Add(node.name, new RaycastSensor(node, node.raycastSensorData));
+                }
             }
+
             if (kwargs.TryParse<List<string>>("maps", out List<string> maps)) {
                 Debug.Log("\"maps\" kwarg found, enabling map pooling");
                 poolSize = 1;

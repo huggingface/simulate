@@ -19,7 +19,6 @@ namespace SimEnv {
         public new Collider collider { get; private set; }
         public new Rigidbody rigidbody { get; private set; }
         public ArticulationBody articulationBody { get; private set; }
-        public ISensor sensor;
         public HFActuators.Actuator actuator { get; private set; }
         public Data initialState { get; private set; }
         public bool isActor = false;
@@ -27,10 +26,6 @@ namespace SimEnv {
         public void Initialize() {
             if (cameraData != null)
                 InitializeCamera();
-            if (stateSensorData != null)
-                InitializeStateSensor();
-            if (raycastSensorData != null)
-                InitializeRaycastSensor();
             if (lightData != null)
                 InitializeLight();
             if (colliderData != null)
@@ -73,7 +68,6 @@ namespace SimEnv {
                     // this is the only way we can adjust the position of an articulation body
                     articulationBody.TeleportRoot(initialState.position + position, initialState.rotation);
                 }
-
             }
         }
 
@@ -85,12 +79,12 @@ namespace SimEnv {
             camera = new RenderCamera(this, cameraData);
         }
 
-        void InitializeStateSensor() {
+        /* void InitializeStateSensor() {
             sensor = new StateSensor(this, stateSensorData);
         }
         void InitializeRaycastSensor() {
             sensor = new RaycastSensor(this, raycastSensorData);
-        }
+        } */
 
         void InitializeLight() {
             light = gameObject.AddComponent<Light>();
