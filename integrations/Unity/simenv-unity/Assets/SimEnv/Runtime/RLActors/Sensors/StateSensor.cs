@@ -18,7 +18,6 @@ namespace SimEnv {
 
         public StateSensor(Node node, SimEnv.GLTF.HFStateSensors.HFStateSensor data) {
             m_node = node;
-            node.sensor = this;
             mName = data.sensor_tag;
             properties = data.properties;
             referenceEntity = GameObject.Find(data.reference_entity);
