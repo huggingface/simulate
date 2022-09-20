@@ -1,4 +1,5 @@
 import argparse
+import pdb
 
 import simenv as sm
 from simenv.assets.action_mapping import ActionMapping
@@ -34,7 +35,7 @@ def add_rl_components_to_scene(scene):
     actor += reward
 
     # Add state sensor, for position of agent
-    actor += sm.StateSensor(target_entity=actor, properties=["position"])
+    actor += sm.StateSensor(target_entity=actor, reference_entity=reward_entity, properties=["position"])
 
     return scene
 
@@ -55,6 +56,9 @@ if __name__ == "__main__":
     print(scene)
     env = sm.RLEnv(scene)
     env.reset()
+    # import ipdb; pdb.set_trace()
+    policy = PPO('MultiInputPolicy', env, verbose=1)
+    policy.learn(total_timesteps=1000)
 
     for i in range(10000):
         obs, reward, done, info = env.step()
