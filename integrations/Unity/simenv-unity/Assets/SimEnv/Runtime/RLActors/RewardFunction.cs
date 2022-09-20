@@ -193,7 +193,6 @@ namespace SimEnv.RlAgents {
     }
 
     public class DenseRewardFunction : RewardFunction {
-        float bestDistance = float.PositiveInfinity;
 
         public DenseRewardFunction(Node entityA, Node entityB, IDistanceMetric distanceMetric, float rewardScalar) {
             base.entityA = entityA;

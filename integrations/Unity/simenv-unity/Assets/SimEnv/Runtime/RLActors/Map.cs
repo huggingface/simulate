@@ -77,7 +77,7 @@ namespace SimEnv.RlAgents {
                 foreach (KeyValuePair<string, List<List<float>>> action in actions) {
                     actionsForActor[action.Key] = action.Value[i];
                 }
-                Debug.Log($"actions for actor {i}: {actionsForActor}");
+                //Debug.Log($"actions for actor {i}: {actionsForActor}");
                 actor.SetAction(actionsForActor);
             }
         }
