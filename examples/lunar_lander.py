@@ -6,7 +6,7 @@ import numpy as np
 import simenv as sm
 
 
-# File inspired by soruce: https://github.com/openai/gym/blob/master/gym/envs/box2d/lunar_lander.py
+# File inspired by source: https://github.com/openai/gym/blob/master/gym/envs/box2d/lunar_lander.py
 
 # CONSTANTS From source
 # TODO implement scaling
@@ -20,7 +20,7 @@ INITIAL_RANDOM = 1000.0  # Set 1500 to make game harder
 LANDER_POLY = np.array([(-17, -10, 0), (-17, 0, 0), (-14, 17, 0), (14, 17, 0), (17, 0, 0), (17, -10, 0)])[::-1] / SCALE
 LEG_AWAY = 20
 LEG_DOWN = -7
-LEG_ANGLE = 0.25  # radions
+LEG_ANGLE = 0.25  # radians
 LEG_W, LEG_H = 2, 8
 
 LEG_RIGHT_POLY = (
@@ -76,7 +76,7 @@ LAND_POLY = (
 )
 
 
-def make_lander(engine="Unity", engine_exe=None):
+def make_lander(engine="unity", engine_exe=None):
     # Add sm scene
     sc = sm.Scene(engine=engine, engine_exe=engine_exe)
 
@@ -93,6 +93,7 @@ def make_lander(engine="Unity", engine_exe=None):
         material=lander_material,
         position=lander_init_pos,
         name="lunar_lander",
+        is_actor=True,
         physics_component=sm.RigidBodyComponent(
             use_gravity=True,
             constraints=["freeze_rotation_x", "freeze_rotation_y", "freeze_position_z"],
@@ -152,7 +153,6 @@ def make_lander(engine="Unity", engine_exe=None):
         rotation = [0, 0, 90 + np.degrees(np.arctan2(y2 - (y1 + y2) / 2, (x2 - x1) / 2))]
         block_i = sm.Box(
             position=[(x1 + x2) / 2, (y1 + y2) / 2, -0.5],
-            # direction=normal,
             bounds=[0.01, np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 1],
             material=sm.Material.GRAY,
             rotation=rotation,
@@ -171,7 +171,7 @@ def make_lander(engine="Unity", engine_exe=None):
     )
 
     # TODO add lander state sensors for state-based RL
-    # TODO, can only accomodate one state-sensor in the backend
+    #aw TODO, can only accomodate one state-sensor in the backend
     # sc += sm.StateSensor(target_entity=lander, properties=["position", "rotation", "distance"], name="world_sensor")
     sc += sm.StateSensor(
         target_entity=sc.target,
@@ -182,7 +182,7 @@ def make_lander(engine="Unity", engine_exe=None):
 
     sc += sm.Camera(
         name="SceneCam",
-        camera_type="orthographic",
+        camera_type="perspective",
         # TODO Tune position
         position=np.array([10, 12, 3]),
         rotation=[0, -180, 0],
@@ -213,7 +213,7 @@ if __name__ == "__main__":
     parser.add_argument("--plot", default=True, type=bool, required=False, help="show camera in matplotlib")
     args = parser.parse_args()
 
-    sc = make_lander(engine="Unity", engine_exe=args.build_exe)
+    sc = make_lander(engine="unity", engine_exe=args.build_exe)
     sc += sm.LightSun()
 
     if args.plot:
@@ -226,8 +226,8 @@ if __name__ == "__main__":
     env.reset()
 
     for i in range(500):
-        action = sc.action_space.sample()
-        obs, reward, done, info = env.step()
+        action = [sc.action_space.sample()]
+        obs, reward, done, info = env.step(action)
         print(f"step {i}, reward {reward[0]}")
 
         if args.plot:

@@ -998,7 +998,7 @@ class Asset(NodeMixin, object):
             self.tree_root.engine.update_asset(self)
 
     def _post_attach_parent(self, parent):
-        """NodeMixing nethod call after attaching to a `parent`."""
+        """NodeMixing method call after attaching to a `parent`."""
         parent.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
         if getattr(parent.tree_root, "engine", None) is not None:
             if parent.tree_root.engine.auto_update:
@@ -1026,12 +1026,12 @@ class Asset(NodeMixin, object):
             )
 
     def _post_detach_parent(self, parent):
-        """NodeMixing nethod call after detaching from a `parent`."""
+        """NodeMixing method call after detaching from a `parent`."""
         if getattr(parent.tree_root, "engine", None) is not None and parent.tree_root.engine.auto_update:
             parent.tree_root.engine.remove_asset(self)
 
     def _post_name_change(self, value):
-        """NodeMixing nethod call after changing the name of a node."""
+        """NodeMixing method call after changing the name of a node."""
         self.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
 
     def _check_all_names_unique(self):

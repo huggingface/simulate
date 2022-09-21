@@ -110,7 +110,7 @@ class Object3D(Asset):
         return instance_copy
 
     def _post_name_change(self, value):
-        """NodeMixing nethod call after changing the name of a node."""
+        """NodeMixing method call after changing the name of a node."""
         for node in self.tree_children:
             if isinstance(node, Collider):
                 node.name = self.name + "_collider"  # Let's keep the name of the collider in sync
