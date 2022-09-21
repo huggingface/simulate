@@ -215,4 +215,4 @@ if __name__ == "__main__":
         print(f"step {i}, reward {reward[0]}")
         time.sleep(0.1)
 
-    sc.close()
+    env.close()

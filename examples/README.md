@@ -1,25 +1,30 @@
 ## Examples for SimEnv
 
-Here we can track the high level status of the examples
+The examples are organized by level of complexity or application. 
+Currently, SimEnv has the following examples running:
 
-| File                              | Desciption                                 | Status | Comments                                   | P.O.C. |
-|-----------------------------------|--------------------------------------------|--------|--------------------------------------------| ----------|
-| `benchmark.py`                    | Build and run Unity example                | TBD    | Requires Unity / Requires pre-built env    | Ed? |
-| `blender_example.py`              | Build simple blender example               | TBD    | Requires Blender                           | TODO |
-| `collectables.py`                 | Collectable objects and associated rewards | TBD    |                                            |      | 
-| `duplicate_envs.py`               |                                            | Bug    | Requires Unity, Has an error in `step()`, `self.client.sendall(bytes) OSError: [Errno 9] Bad file descriptor` |      | 
-| `four_boxes_example.py`           | Create boxes & different reward functions  | TBD    | Requires Unity                             |      | 
-| `gltf_loading_test.py`            | Create simple box and render from          | TBD    | Requires acces to hf org `simenv-tests`    |      | 
-| `helloworld.py`                   | Creates a basic scene and saves as gltf    | TBD    |                                            |      | 
-| `parralel_envs.py`                |                                            | TBD    | Requires Unity                             |      | 
-| `playground.py`                   |                                            | TBD    | To-do                                      |      | 
-| `procgen_grid.py`                 |                                            | TBD    | To-do                                      |      | 
-| `procgen_prims.py`                |                                            | TBD    | To-do                                      |      | 
-| `reward_examples.py`              |                                            | TBD    | To-do                                      |      | 
-| `reward_see.py`                   |                                            | TBD    | To-do                                      |      | 
-| `sb3_training_parallel_simenv.py` |                                            | TBD    | To-do                                      |      | 
-| `structured_grid_test.py`         |                                            | TBD    | To-do                                      |      | 
-| `tmaze.py`                        |                                            | TBD    | To-do                                      |      | 
+### Basic
+* `create_and_save.py`:
+* `objects.py`:
+* `simple_physics.py`:
+* `structured_grid_test.py`:
+
+### Intermediate
+* `playground.py`:
+* `procgren_grid.py`:
+* `tmaze.py`:
+
+### Advanced
+* `cartpole.py`:
+* `lunarlander.py`:
+
+### Reinforcement Learning (RL)
+There are multiple environments implemented with Stable Baselines 3 PPO:
+* `sb3_basic_maze.py`:
+* `sb3_collectables.py`:
+* `sb3_move_boxes.py`:
+* `sb3_procgen.py`:
+* `sb3_visual_reward.py`:
 
 ## Backend Integrations
 For more information on the backend integrations, see the relevant folders:

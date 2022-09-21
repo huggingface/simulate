@@ -106,7 +106,7 @@ class SimpleActor(Sphere):
 class EgocentricCameraActor(Capsule):
     """Create an Egocentric RL Actor in the Scene -- essentially a basic first-person agent.
 
-        A egocentric actor is a capsule asset with:
+        An egocentric actor is a capsule asset with:
         - a Camera as a child asset for observation device
         - a RigidBodyComponent component with a mass of 1.0
         - a discrete actuator

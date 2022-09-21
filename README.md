@@ -28,13 +28,18 @@ Loading a scene from a local file or the hu is done with `Scene.load()`, saving 
 from simenv import Scene
 
 scene = Scene()
-scene = scene.load('simenv-tests/Box/glTF/Box.gltf')  # either local (priority) or on the hub with full path to file
+scene = scene.load('tests/test_assets/fixtures/Box.gltf')  # either local (priority) or on the hub with full path to file
 scene = Scene()
 scene = scene.load('simenv-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the hub file
 
 scene.save('local_dir/file.gltf')  # Save to a local file
 scene.push_to_hub('simenv-tests/Debug/glTF/Box.gltf')  # Save to the hub
 ```
+<p align="center">
+    <br>
+    <img src="https://user-images.githubusercontent.com/10695622/191554717-acba4764-a4f4-4609-834a-39ddb50b844a.png" width="400"/>
+    <br>
+<p>
 
 ## Creating a Scene and adding/managing Objects in the scene
 
@@ -74,16 +79,26 @@ The following objects creation helpers are currently provided:
 - `Circle`
 - `StructuredGrid`
 
+Most of these objects can be visualized by running the following [example](https://github.com/huggingface/simenv/tree/main/examples/objects.py):
+```
+python examples/basic/objects.py
+```
+<p align="center">
+    <br>
+    <img src="https://user-images.githubusercontent.com/10695622/191562825-49d4c692-a1ed-44e9-bdb9-da5f0bfb9828.png" width="400"/>
+    <br>
+<p>
+
 ### Objects are organized in a tree structure
 
 Adding/removing objects:
 - Using the addition (`+`) operator (or alternatively the method `.add(object)`) will add an object as a child of a previous object.
-- Objects can be removed with the substraction (`-`) operator or the `.remove(object)` command.
+- Objects can be removed with the subtraction (`-`) operator or the `.remove(object)` command.
 - The whole scene can be cleared with `.clear()`.
 
 Accessing objects:
 - Objects can be directly accessed as attributes of their parents using their names (given with  `name` attribute at creation or automatically generated from the class name + creation counter).
-- Objects can also be accessed from their names with `.get(name)` or by naviguating in the tree using the various `tree_*` attributes available on any node.
+- Objects can also be accessed from their names with `.get(name)` or by navigating in the tree using the various `tree_*` attributes available on any node.
 
 Here are a couple of examples of manipulations:
 
@@ -93,7 +108,7 @@ Here are a couple of examples of manipulations:
 scene += [scene.plane_01.sphere_02.copy(), scene.plane_01.sphere_02.copy()]
 
 >>> scene
->>> Scene(dimensionality=3, engine='PyVistaEngine')
+>>> Scene(dimensionality=3, engine='pyvista')
 >>> ├── plane_01 (Plane - Mesh: 121 points, 100 cells)
 >>> │   └── sphere_02 (Sphere - Mesh: 842 points, 870 cells)
 >>> ├── sphere_03 (Sphere - Mesh: 842 points, 870 cells)
@@ -101,7 +116,7 @@ scene += [scene.plane_01.sphere_02.copy(), scene.plane_01.sphere_02.copy()]
 
 # Remove the last added sphere
 >>> scene.remove(scene.sphere_04)
->>> Scene(dimensionality=3, engine='PyVistaEngine')
+>>> Scene(dimensionality=3, engine='pyvista')
 >>> ├── plane_01 (Plane - Mesh: 121 points, 100 cells)
 >>> │   └── sphere_02 (Sphere - Mesh: 842 points, 870 cells)
 >>> └── sphere_03 (Sphere - Mesh: 842 points, 870 cells)
@@ -127,7 +142,7 @@ print(scene.sphere_03.scaling)
 
 ### Visualization engine
 
-A default vizualization engine is provide with the vtk backend of `pyvista`.
+A default vizualization engine is provided with the vtk backend of `pyvista`.
 
 Starting the vizualization engine can be done simply with `.show()`.
 ```

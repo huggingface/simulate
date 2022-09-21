@@ -2,17 +2,12 @@ import argparse
 import math
 import random
 import time
-from collections import defaultdict
 
-import numpy as np
 from stable_baselines3 import PPO
 
 import simenv as sm
 from simenv.assets.object import ProcGenPrimsMaze3D
 from simenv.assets.sensors import RaycastSensor, StateSensor
-
-# Lint as: python3
-from simenv.scene import Scene
 
 
 def generate_map(index):

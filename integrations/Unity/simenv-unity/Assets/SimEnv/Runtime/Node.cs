@@ -222,7 +222,7 @@ namespace SimEnv {
             }
 
             ArticulationDrive xDrive = new ArticulationDrive() {
-                stiffness = articulationBodyData.drive_stifness,
+                stiffness = articulationBodyData.drive_stiffness,
                 forceLimit = articulationBodyData.drive_force_limit,
                 damping = articulationBodyData.drive_damping,
                 lowerLimit = articulationBodyData.lower_limit,

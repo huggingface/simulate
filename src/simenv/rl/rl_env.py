@@ -11,7 +11,6 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-
 from typing import Callable, Union
 
 import numpy as np
@@ -39,7 +38,7 @@ class RLEnv(VecEnv):
 
     Args:
         scene_or_map_fn: a generator function for generating instances of the desired environment
-        n_maps: the number of map instances to create, defualt 1
+        n_maps: the number of map instances to create, default 1
         n_show: optionally show a subset of the maps during training and dequeue a new map at the end of each episode
         time_step: the physics timestep of the environment
         frame_skip: the number of times an action is repeated before the next observation is returned
@@ -73,7 +72,6 @@ class RLEnv(VecEnv):
             self.scene = scene_or_map_fn
             self.map_roots = [self.scene]
 
-        # TODO --> add warning if scene has no actor or reward functions
         self.actors = {actor.name: actor for actor in self.scene.actors}
         self.n_actors = len(self.actors)
         if self.n_actors == 0:
@@ -197,6 +195,13 @@ class RLEnv(VecEnv):
 
     def close(self):
         self.scene.close()
+
+    def sample_action(self):
+        if self.n_actors_per_map > 1:
+            raise NotImplementedError("TODO: add sampling mechanism for multi-agent spaces.")
+        else:
+            action = [self.action_space.sample() for _ in range(self.n_show)]
+        return np.array(action)
 
     def env_is_wrapped(self):
         return [False] * self.n_agents * self.n_parallel
