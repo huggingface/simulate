@@ -390,7 +390,7 @@ class Asset(NodeMixin, object):
         When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
 
         Examples:
-        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('tests/test_assets/fixtures/Box.gltf'): a file on the hub
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         # We import dynamically here to avoid circular import (tried many other options...)
@@ -482,7 +482,7 @@ class Asset(NodeMixin, object):
         When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
 
         Examples:
-        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('tests/test_assets/fixtures/Box.gltf'): a file on the hub
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         root_node, gltf_file = Asset._get_node_tree_from_hub_or_local(
