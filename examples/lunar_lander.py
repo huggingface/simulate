@@ -1,6 +1,6 @@
 import argparse
+import time
 
-import matplotlib.pyplot as plt
 import numpy as np
 
 import simenv as sm
@@ -12,8 +12,7 @@ import simenv as sm
 # TODO implement scaling
 SCALE = 30.0  # affects how fast-paced the game is, forces should be adjusted as well
 
-
-# TODO integrate forces
+# TODO integrate random initial forces
 INITIAL_RANDOM = 1000.0  # Set 1500 to make game harder
 
 # Lander construction
@@ -63,11 +62,11 @@ HEIGHTS[CHUNKS // 2 + 2] = HELIPAD_y
 SMOOTH_Y = [0.33 * (HEIGHTS[i - 1] + HEIGHTS[i + 0] + HEIGHTS[i + 1]) for i in range(CHUNKS)]
 
 # advanced features
-MAIN_ENGINE_POWER = 13.0  # TODO integrate
-SIDE_ENGINE_POWER = 0.6  # TODO integrate
-LEG_SPRING_TORQUE = 40  # TODO integrate
-SIDE_ENGINE_HEIGHT = 14.0  # TODO integrate
-SIDE_ENGINE_AWAY = 12.0  # TODO integrate
+MAIN_ENGINE_POWER = 13.0  # TODO integrate specific forces
+SIDE_ENGINE_POWER = 0.6  # TODO integrate specific forces
+LEG_SPRING_TORQUE = 40  # TODO integrate specific forces
+SIDE_ENGINE_HEIGHT = 14.0  # TODO integrate specific forces
+SIDE_ENGINE_AWAY = 12.0  # TODO integrate specific forces
 
 LAND_POLY = (
     [[CHUNK_X[0], SMOOTH_Y[0] - 3, 0]]
@@ -80,14 +79,15 @@ def make_lander(engine="unity", engine_exe=None):
     # Add sm scene
     sc = sm.Scene(engine=engine, engine_exe=engine_exe)
 
-    # initial lander position
-    lander_init_pos = (10, 6, 0) + np.random.uniform(2, 4, 3)
-    lander_init_pos[2] = 0.0
+    # initial lander position sampling
+    lander_init_pos = (10, 10, 0) + np.random.uniform(2, 4, 3)
+    lander_init_pos[2] = 0.0  # z axis is always 0, for 2D
 
     lander_material = sm.Material(base_color=LANDER_COLOR)
-    invisible_material = sm.Material.TRANSPARENT  # for colliders
 
-    # TODO Debug Collider
+    # create the lander polygons
+
+    # first, the main lander body
     lander = sm.Polygon(
         points=LANDER_POLY,
         material=lander_material,
@@ -100,26 +100,29 @@ def make_lander(engine="unity", engine_exe=None):
             mass=1,
         ),
     )
+
+    # extrude to make 3D visually.
     lander.mesh.extrude((0, 0, -1), capping=True, inplace=True)
     lander.actuator = sm.Actuator(
         mapping=[
             sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=5),
             sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=-5),
-            sm.ActionMapping("add_force", axis=[0, 1, 0], amplitude=0.3),
+            sm.ActionMapping("add_force", axis=[0, 1, 0], amplitude=1),
         ],
         n=3,
     )
 
+    # add an invisible box as collider until convex meshes are completed
     lander += sm.Box(
         position=[0, np.min(LEG_RIGHT_POLY, axis=0)[1], -0.5],
         bounds=[0.01, 2 * np.max(LEG_RIGHT_POLY, axis=0)[0], 1],
-        material=invisible_material,
-        # material=sm.Material.BLUE,
-        rotation=[0, 0, 90],  # to fix an off by 90 degree error for flat boxes,
+        material=sm.Material.TRANSPARENT,
+        rotation=[0, 0, 90],
         with_collider=True,
         name="lander_collider_box",
     )
 
+    # add legs as children objects (they take positions as local coordinates!)
     r_leg = sm.Polygon(
         points=LEG_RIGHT_POLY,
         material=lander_material,
@@ -138,7 +141,7 @@ def make_lander(engine="unity", engine_exe=None):
     )
     l_leg.mesh.extrude((0, 0, -1), capping=True, inplace=True)
 
-    # TODO verify collider
+    # Create land object
     land = sm.Polygon(
         points=LAND_POLY[::-1],  # Reversing vertex order so the normal faces the right direction
         material=sm.Material.GRAY,
@@ -150,7 +153,9 @@ def make_lander(engine="unity", engine_exe=None):
     for i in range(len(CHUNK_X) - 1):
         x1, x2 = CHUNK_X[i], CHUNK_X[i + 1]
         y1, y2 = SMOOTH_Y[i], SMOOTH_Y[i + 1]
-        rotation = [0, 0, 90 + np.degrees(np.arctan2(y2 - (y1 + y2) / 2, (x2 - x1) / 2))]
+
+        # compute rotation from generated coordinates
+        rotation = [0, 0, -90 + np.degrees(np.arctan2(y2 - (y1 + y2) / 2, (x2 - x1) / 2))]
         block_i = sm.Box(
             position=[(x1 + x2) / 2, (y1 + y2) / 2, -0.5],
             bounds=[0.01, np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 1],
@@ -171,8 +176,6 @@ def make_lander(engine="unity", engine_exe=None):
     )
 
     # TODO add lander state sensors for state-based RL
-    #aw TODO, can only accomodate one state-sensor in the backend
-    # sc += sm.StateSensor(target_entity=lander, properties=["position", "rotation", "distance"], name="world_sensor")
     sc += sm.StateSensor(
         target_entity=sc.target,
         reference_entity=lander,
@@ -180,21 +183,9 @@ def make_lander(engine="unity", engine_exe=None):
         name="goal_sense",
     )
 
-    sc += sm.Camera(
-        name="SceneCam",
-        camera_type="perspective",
-        # TODO Tune position
-        position=np.array([10, 12, 3]),
-        rotation=[0, -180, 0],
-        ymag=10,
-        width=256,
-        height=256,
-    )
-
-    ## apply initial force & rotation to lander
-    cost = sm.RewardFunction(type="not")
-    cost += sm.RewardFunction(
-        type="dense", entity_a=lander, entity_b=sc.target
+    # create Euclidean distance reward
+    cost = sm.RewardFunction(
+        type="dense", entity_a=lander, entity_b=sc.target, scalar=-1
     )  # By default a dense reward equal to the distance between 2 entities
     lander += cost
 
@@ -210,17 +201,10 @@ if __name__ == "__main__":
     parser.add_argument(
         "--num_steps", default=100, type=int, required=False, help="number of steps to run the simulator"
     )
-    parser.add_argument("--plot", default=True, type=bool, required=False, help="show camera in matplotlib")
     args = parser.parse_args()
 
     sc = make_lander(engine="unity", engine_exe=args.build_exe)
     sc += sm.LightSun()
-
-    if args.plot:
-        plt.ion()
-        fig, ax = plt.subplots()
-        imdata = np.zeros(shape=(256, 256, 3), dtype=np.uint8)
-        axim = ax.imshow(imdata, vmin=0, vmax=255)
 
     env = sm.RLEnv(sc)
     env.reset()
@@ -229,13 +213,6 @@ if __name__ == "__main__":
         action = [sc.action_space.sample()]
         obs, reward, done, info = env.step(action)
         print(f"step {i}, reward {reward[0]}")
-
-        if args.plot:
-            if "CameraSensor" in obs:
-                frame = np.array(obs["CameraSensor"], dtype=np.uint8)
-                frame = frame.squeeze().transpose((1, 2, 0))  # (C,H,W) -> (H,W,C)
-                axim.set_data(frame[::-1])
-                fig.canvas.flush_events()
-                plt.pause(0.001)
+        time.sleep(0.1)
 
     sc.close()

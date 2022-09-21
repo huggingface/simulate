@@ -173,6 +173,7 @@ class Asset(NodeMixin, object):
         return self._physics_component
 
     def check_parent_physics(self):
+        # TODO: replace with tree operations
         if self.tree_parent is not None:
             if self.tree_parent.physics_component is not None:
                 return True

@@ -485,7 +485,6 @@ class Box(Object3D):
         with_collider: bool = True,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        rotation: Optional[List[float]] = None,
         direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
