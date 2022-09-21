@@ -19,4 +19,5 @@ if __name__ == "__main__":
     scene += sm.Camera(position=[0, 5, -15], rotation=[0, 1, 0, 0])
     scene.show()
 
+    input("Press enter to end this example.")
     scene.close()
