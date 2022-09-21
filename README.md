@@ -81,7 +81,7 @@ The following objects creation helpers are currently provided:
 
 Most of these objects can be visualized by running the following [example](https://github.com/huggingface/simenv/tree/main/examples/objects.py):
 ```
-python examples/objects.py
+python examples/basic/objects.py
 ```
 <p align="center">
     <br>
