@@ -26,7 +26,7 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
         entity_b: Asset
             The second entity in the reward function
         scalar: float, optional (default=1.0)
-            The scalar reward
+            The scalar to modify the reward by a constant. Setting to -1 will make the reward behave as a cost.
         threshold: float, optional (default=0.0)
             The distance threshold to give the reward
         is_terminal: bool, optional (default=False)

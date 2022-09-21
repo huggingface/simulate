@@ -156,6 +156,8 @@ class NodeMixin(object):
             parent = self.__parent
         except AttributeError:
             parent = None
+        if parent is not None:
+            print("WARNING: overriding parent of an asset.")
         if parent is not value:
             self.__check_loop(value)
             self.__detach(parent)

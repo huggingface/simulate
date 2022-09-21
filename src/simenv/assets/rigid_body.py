@@ -36,7 +36,7 @@ ALLOWED_COLLISION_DETECTION = ["discrete", "continuous"]
 @dataclass()
 class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodies", object_type="component"):
     """
-    A rigid body caracteristics that can be added to a primitive.
+    A rigid body characteristics that can be added to a primitive.
 
     Parameters
     ----------
@@ -48,9 +48,13 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
 
     constraints : List[str], optional
         List of constraints to apply to the rigidbody, selected in:
-            [FreezePositionX, FreezePositionY, FreezePositionZ,
-             FreezeRotationX, FreezeRotationY, FreezeRotationZ,
-             FreezePosition, FreezeRotation, FreezeAll]
+            [    "freeze_position_x",
+                "freeze_position_y",
+                "freeze_position_z",
+                "freeze_rotation_x",
+                "freeze_rotation_y",
+                "freeze_rotation_z",
+            ]
 
     use_gravity : bool, optional
         Whether the rigidbody should ignore gravity
@@ -105,9 +109,9 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
 
         if self.constraints is None:
             self.constraints = []
-        for contraint in self.constraints:
-            if contraint not in ALLOWED_CONSTRAINTS:
-                raise ValueError(f"Contraint {contraint} not in allowed list: {ALLOWED_CONSTRAINTS}")
+        for constraint in self.constraints:
+            if constraint not in ALLOWED_CONSTRAINTS:
+                raise ValueError(f"Contraint {constraint} not in allowed list: {ALLOWED_CONSTRAINTS}")
 
         if self.use_gravity is None:
             self.use_gravity = True
