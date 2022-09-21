@@ -21,7 +21,6 @@ import simenv as sm
 # from stable_baselines3 import PPO
 
 
-
 def generate_map(index):
     cart_depth = 0.3
     cart_width = 0.5

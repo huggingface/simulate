@@ -10,7 +10,6 @@ from simenv.assets.object import ProcGenPrimsMaze3D
 from simenv.assets.sensors import RaycastSensor, StateSensor
 
 
-
 def generate_map(index):
     maze_width = 3
     maze_depth = 3

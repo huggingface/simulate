@@ -1,6 +1,8 @@
+import time
+
 import matplotlib.pyplot as plt
 import numpy as np
-import time
+
 import simenv as sm
 
 
@@ -38,7 +40,7 @@ if __name__ == "__main__":
     env.reset()
 
     for i in range(1000):
-        action = env.sample_action() 
+        action = env.sample_action()
         obs, reward, done, info = env.step(action)
         axim1.set_data(np.squeeze(obs["CameraSensor"]).transpose(1, 2, 0))
         fig1.canvas.flush_events()
