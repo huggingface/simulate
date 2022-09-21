@@ -183,7 +183,7 @@ def make_lander(engine="unity", engine_exe=None):
         name="goal_sense",
     )
 
-    # create Euclidean distance reward
+    # create Euclidean distance reward, scalar changes the reward to a cost
     cost = sm.RewardFunction(
         type="dense", entity_a=lander, entity_b=sc.target, scalar=-1
     )  # By default a dense reward equal to the distance between 2 entities
