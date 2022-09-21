@@ -14,11 +14,12 @@
 
 
 import argparse
-from cmath import pi
-
-from stable_baselines3 import PPO
 
 import simenv as sm
+
+
+# from stable_baselines3 import PPO
+
 
 
 def generate_map(index):
@@ -35,7 +36,7 @@ def generate_map(index):
         "prismatic", immovable=True, use_gravity=False
     )  # note for the base the joint type is ignored
 
-    cart = sm.Box(bounds=[cart_width, cart_height, cart_depth], with_collider=False)
+    cart = sm.Box(bounds=[cart_width, cart_height, cart_depth], with_collider=False, is_actor=True)
 
     cart.physics_component = sm.ArticulationBodyComponent("prismatic")
     mapping = [
@@ -64,10 +65,10 @@ def generate_map(index):
     )
     cart += pole
     cart += sm.StateSensor(
-        pole, base, ["position.x", "velocity.x", "rotation.z", "angular_velocity.z"], sensor_name="StateSensor1"
+        pole, base, ["position.x", "velocity.x", "rotation.z", "angular_velocity.z"], sensor_tag="StateSensor1"
     )
     cart += sm.StateSensor(
-        pole, base, ["position.x", "velocity.x", "rotation.z", "angular_velocity.z"], sensor_name="StateSensor2"
+        pole, base, ["position.x", "velocity.x", "rotation.z", "angular_velocity.z"], sensor_tag="StateSensor2"
     )
 
     # End episode if the pole tips more than 30 degrees from the vertical (implemented as 60 degrees from the horizontal)
@@ -92,10 +93,10 @@ def generate_map(index):
         scalar=1.0,
     )
 
-    # a positve reward of +1 for each timestep, for a maximim of 200 steps
+    # a positive reward of +1 for each timestep, for a maximum of 200 steps
     cart += sm.RewardFunction("timeout", scalar=1.0, threshold=200, is_terminal=True)
 
-    # # restrict the cart's distance from origin to be at most 10 metres
+    # restrict the cart's distance from origin to be at most 10 metres
     not_near = sm.RewardFunction("not", is_terminal=True, scalar=0.0)
     not_near += sm.RewardFunction(
         type="sparse",
@@ -123,9 +124,12 @@ if __name__ == "__main__":
 
     env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, frame_skip=1)
     obs = env.reset()
+
     for i in range(4000):
-        obs, reward, done, info = env.step()
-        # print(obs)
+        print(f"step {i}")
+        action = env.sample_action()
+        obs, reward, done, info = env.step(action)
+
     # model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
     # model.learn(total_timesteps=100000)
 

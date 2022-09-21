@@ -20,7 +20,7 @@ namespace SimEnv.GLTF {
             public float linear_damping = 0.0f;
             public float angular_damping = 0.0f;
             public float joint_friction = 0.0f;
-            public float drive_stifness = 0.0f;
+            public float drive_stiffness = 0.0f;
             public float drive_damping = 0.0f;
             public float drive_force_limit = 0.0f;
             public float drive_target = 0.0f;

@@ -85,7 +85,7 @@ python examples/objects.py
 ```
 <p align="center">
     <br>
-    <img src="https://user-images.githubusercontent.com/10695622/191554717-acba4764-a4f4-4609-834a-39ddb50b844a.png" width="400"/>
+    <img src="https://user-images.githubusercontent.com/10695622/191562825-49d4c692-a1ed-44e9-bdb9-da5f0bfb9828.png" width="400"/>
     <br>
 <p>
 

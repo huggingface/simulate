@@ -1,8 +1,4 @@
 import argparse
-import random
-
-import matplotlib.pyplot as plt
-import numpy as np
 
 import simenv as sm
 
@@ -32,7 +28,6 @@ if __name__ == "__main__":
 
     actor = sm.EgocentricCameraActor(
         name="actor",
-        is_actor=True,
         camera_width=CAMERA_WIDTH,
         camera_height=CAMERA_HEIGHT,
         position=[0.0, 0.0, 0.0],
@@ -41,18 +36,11 @@ if __name__ == "__main__":
     scene += actor
 
     print(scene.actors)
-    # scene.show()
 
-    env = sm.RLEnvironment(scene)
+    env = sm.RLEnv(scene)
 
     print(env.actors)
 
-    obs, reward, done, info = env.step()
-
-    # for i in range(10):
-    #     print(f"Step {i}")
-
-    #     obs, reward, done, info = env.step()
-    #     # print(f"CameraSensor: {obs['CameraSensor'][:5, :5, :5]}")
+    obs, reward, done, info = env.step([0])
 
     scene.close()

@@ -48,7 +48,6 @@ def generate_map(index):
     root += actor
     for i in range(20):
 
-        # material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
         collectable = sm.Sphere(
             name=f"collectable_{index}_{i}",
             position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)],
@@ -91,8 +90,6 @@ if __name__ == "__main__":
 
     env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
 
-    # for i in range(1000):
-    #     obs, reward, done, info = env.step()
     model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
     model.learn(total_timesteps=100000)
 

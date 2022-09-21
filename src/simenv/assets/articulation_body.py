@@ -60,7 +60,7 @@ class ArticulationBodyComponent(
     linear_damping: Optional[float] = 0.0
     angular_damping: Optional[float] = 0.0
     joint_friction: Optional[float] = 0.0
-    drive_stifness: Optional[float] = 0.0
+    drive_stiffness: Optional[float] = 0.0
     drive_damping: Optional[float] = 0.0
     drive_force_limit: Optional[float] = 0.0
     drive_target: Optional[float] = 0.0

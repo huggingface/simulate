@@ -458,7 +458,7 @@ class Box(Object3D):
             => bounds are ``(-xSize/2, xSize/2, ySize/2, ySize/2, -zSize/2, zSize/2)``
         - a single float: size
             => bounds are ``(-size/2, size/2, size/2, size/2, -size/2, size/2)``
-        If no value is provide, create a centered unit box
+        If no value is provided, create a centered unit box
 
     level : int, optional
         Level of subdivision of the faces.
