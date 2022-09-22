@@ -66,7 +66,6 @@ REQUIRED_PKGS = [
    "dataclasses_json",  # For GLTF export/imports
    "numpy>=1.17", # We use numpy>=1.17 to have np.random.Generator
    "pyvista",  # For mesh creation and edition and simple vizualization
-   "pyVHACD",  # For mesh decomposition (will be integrated in simulate at some point)
    "huggingface_hub",
 ]
 
