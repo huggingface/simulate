@@ -36,10 +36,10 @@ jobs:
       - name: Caching Unity Library
         uses: actions/cache@v2
         with:
-          path: integrations/Unity/simenv-unity/Library
-          key: Library-SimEnv-Linux64
+          path: integrations/Unity/simulate-unity/Library
+          key: Library-Simulate-Linux64
           restore-keys: |
-            Library-SimEnv-
+            Library-Simulate-
             Library-
 
       - name: Install the library
@@ -63,21 +63,21 @@ jobs:
           which python
           pip list
 
-      - name: Build Unity SimEnv
+      - name: Build Unity Simulate
         uses: game-ci/unity-builder@v2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: StandaloneLinux64
-          projectPath: integrations/Unity/simenv-unity
+          projectPath: integrations/Unity/simulate-unity
           buildName: StandaloneLinux64
-          buildsPath: integrations/Unity/simenv-unity/builds
+          buildsPath: integrations/Unity/simulate-unity/builds
 
       - uses: actions/upload-artifact@v2
         with:
           name: Build-StandaloneLinux64
-          path: integrations/Unity/simenv-unity/builds/StandaloneLinux64
+          path: integrations/Unity/simulate-unity/builds/StandaloneLinux64
 
       - name: Run the test example
         run: |
-          xvfb-run --auto-servernum --server-args='-screen 0 640x480x24:32' python ./examples/end-to-end-test.py --build_exe ./integrations/Unity/simenv-unity/builds/StandaloneLinux64/UnityPlayer.so
+          xvfb-run --auto-servernum --server-args='-screen 0 640x480x24:32' python ./examples/end-to-end-test.py --build_exe ./integrations/Unity/simulate-unity/builds/StandaloneLinux64/UnityPlayer.so

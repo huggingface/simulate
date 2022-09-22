@@ -24,22 +24,22 @@ jobs:
       - name: Caching Unity Library
         uses: actions/cache@v2
         with:
-          path: integrations/Unity/simenv-unity/Library
-          key: Library-SimEnv
+          path: integrations/Unity/simulate-unity/Library
+          key: Library-Simulate
           restore-keys: |
-            Library-SimEnv-
+            Library-Simulate-
             Library-
 
-      - name: Build Unity SimEnv
+      - name: Build Unity Simulate
         uses: game-ci/unity-builder@v2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
           targetPlatform: ${{ matrix.targetPlatform }}
-          projectPath: integrations/Unity/simenv-unity
-          buildsPath: integrations/Unity/simenv-unity/builds
+          projectPath: integrations/Unity/simulate-unity
+          buildsPath: integrations/Unity/simulate-unity/builds
 
       - uses: actions/upload-artifact@v2
         with:
           name: Build-${{ matrix.targetPlatform }}
-          path: integrations/Unity/simenv-unity/builds/${{ matrix.targetPlatform }}
+          path: integrations/Unity/simulate-unity/builds/${{ matrix.targetPlatform }}
