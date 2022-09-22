@@ -1,15 +1,15 @@
 - sections:
   - local: index
-    title: SimEnv
+    title: Simulate
   - local: quicktour
     title: Quicktour
   title: Get started
 - sections:
   - sections:
     - local: examples/example1
-      title: SimEnv for ...
+      title: Simulate for ...
     - local: examples/example2
-      title: SimEnv for ...
+      title: Simulate for ...
     title: Examples
   - sections:
      - local: integrations/backends
@@ -19,7 +19,7 @@
      - local: integrations/rl
        title: Reinforcement Learning
     title: Integrations
-  title: Using SimEnv
+  title: Using Simulate
 - sections:
   - sections:
      - local: scene

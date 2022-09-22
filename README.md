@@ -1,4 +1,4 @@
-# simenv
+# simulate
 Creating and sharing simulation environments for intelligent agents (e.g. reinforcement learning) and synthetic data generation.
 
 To install and contribute (from [CONTRIBUTING.md](CONTRIBUTING.md))
@@ -14,7 +14,7 @@ make style
 
 ## Project Structure
 
-The Python API is located in src/simenv. It allows creation and loading of scenes, and sending commands to the backend.
+The Python API is located in src/simulate. It allows creation and loading of scenes, and sending commands to the backend.
 
 The backend, currently just Unity, is located in [integrations/Unity](integrations/Unity). 
 This is currently a Unity editor project, which must be opened in Unity 2021.3.2f1. 
@@ -25,15 +25,15 @@ In the future, this will be built as an executable, and spawned by the Python AP
 Loading a scene from a local file or the hu is done with `Scene.load()`, saving or pushing to the hub with `scene.save()` or `scene.push_to_hub()`:
 
 ```
-from simenv import Scene
+from simulate import Scene
 
 scene = Scene()
 scene = scene.load('tests/test_assets/fixtures/Box.gltf')  # either local (priority) or on the hub with full path to file
 scene = Scene()
-scene = scene.load('simenv-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the hub file
+scene = scene.load('simulate-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the hub file
 
 scene.save('local_dir/file.gltf')  # Save to a local file
-scene.push_to_hub('simenv-tests/Debug/glTF/Box.gltf')  # Save to the hub
+scene.push_to_hub('simulate-tests/Debug/glTF/Box.gltf')  # Save to the hub
 ```
 <p align="center">
     <br>
@@ -45,7 +45,7 @@ scene.push_to_hub('simenv-tests/Debug/glTF/Box.gltf')  # Save to the hub
 
 Basic example of creating a scene with a plane and a sphere above it:
 ```
-import simenv as sm
+import simulate as sm
 
 scene = sm.Scene()
 scene += sm.Plane() + sm.Sphere(position=[0, 1, 0], radius=0.2)
@@ -79,7 +79,7 @@ The following objects creation helpers are currently provided:
 - `Circle`
 - `StructuredGrid`
 
-Most of these objects can be visualized by running the following [example](https://github.com/huggingface/simenv/tree/main/examples/objects.py):
+Most of these objects can be visualized by running the following [example](https://github.com/huggingface/simulate/tree/main/examples/objects.py):
 ```
 python examples/basic/objects.py
 ```

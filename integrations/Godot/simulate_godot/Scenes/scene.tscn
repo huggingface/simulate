@@ -1,6 +1,6 @@
 [gd_scene load_steps=2 format=3 uid="uid://b0j8qghrwvoyr"]
 
-[ext_resource type="Script" path="res://SimEnv/debug_camera.gd" id="2_cqhjv"]
+[ext_resource type="Script" path="res://Simulate/debug_camera.gd" id="2_cqhjv"]
 
 [node name="Root" type="Node"]
 

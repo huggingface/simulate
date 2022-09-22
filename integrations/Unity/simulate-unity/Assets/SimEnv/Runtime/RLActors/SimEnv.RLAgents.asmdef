@@ -1,5 +1,5 @@
 {
-    "name": "SimEnv.RLAgents",
+    "name": "Simulate.RLAgents",
     "rootNamespace": "",
     "references": [
         "GUID:20acf4accf2cab340945bbf78cc82cf7"

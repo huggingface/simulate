@@ -1,4 +1,4 @@
-This package provides core backend functionality for the Hugging Face SimEnv project: (https://github.com/huggingface/simenv).
+This package provides core backend functionality for the Hugging Face Simulate project: (https://github.com/huggingface/simulate).
 
 To use this package, add a GameObject to the scene, then add a `Simulator` component to it.
 
@@ -16,7 +16,7 @@ Plugins:
 To add functionality to the backend:
 - Create a separate folder. For example, `RLAgents`.
 - Add an assembly definition to this folder (Right Click > Create > Assembly Definition).
-- In the assembly definition, add a reference to `SimEnv`.
+- In the assembly definition, add a reference to `Simulate`.
 - In the folder, create a script that implements `IPlugin`. For a simple example, look at `IPlugin.cs`, or for a more complex example, see `AgentsPlugin.cs`.
 
 If this folder is in the Unity project, it will automatically be included in the build.

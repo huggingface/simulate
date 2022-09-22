@@ -5,7 +5,7 @@
         "UnityEngine.TestRunner",
         "UnityEditor.TestRunner",
         "Runtime",
-        "SimEnv.RLAgents"
+        "Simulate.RLAgents"
     ],
     "includePlatforms": [
         "Editor"

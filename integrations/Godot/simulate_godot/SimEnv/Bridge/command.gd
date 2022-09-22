@@ -10,7 +10,7 @@ var _commands : Dictionary
 
 func load_commands():
 	var directory: Directory = Directory.new()
-	var com_path : String = "res://SimEnv/Commands"
+	var com_path : String = "res://Simulate/Commands"
 	directory.open(com_path)
 	directory.list_dir_begin()
 	

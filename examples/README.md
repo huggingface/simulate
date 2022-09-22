@@ -1,7 +1,7 @@
-## Examples for SimEnv
+## Examples for Simulate
 
 The examples are organized by level of complexity or application. 
-Currently, SimEnv has the following examples running:
+Currently, Simulate has the following examples running:
 
 ### Basic
 * `create_and_save.py`:

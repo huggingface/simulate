@@ -5,7 +5,7 @@ Currently we use Unity version `2021.3.2f1` as the development version.
 
 To install and run the project in Unity:
 - First install Unity `2021.3.2f1` using the Unity Hub if you don't have it. 
-- From the Unity Hub, open the project at `./integrations/Unity/simenv-unity`
+- From the Unity Hub, open the project at `./integrations/Unity/simulate-unity`
 - Open the Sample Scene or create a new scene with an empty GameObject with a `Client.cs` component attached
 
 (Note that installation of this specific version on Apple Silicon Mac's has been tricky -- to do so, first install Unity Hub, then download the [source](https://unity3d.com/get-unity/download/archive) package from Unity directly, then install the package. 
@@ -13,9 +13,9 @@ It is easiest to do this from a fresh Unity install; detecting the second from-s
 
 ### Run with the Unity engine
 1. If it's not already opened, open the Unity project with Scene with a GameObject with a `Client.cs` component attached.
-2. Create the `simenv` scene with a `'Unity'` engine, for example:
+2. Create the `simulate` scene with a `'Unity'` engine, for example:
 ```
-import simenv as sm
+import simulate as sm
 
 scene = sm.Scene(engine="Unity")
 scene += sm.Sphere()
@@ -39,7 +39,7 @@ The `type` and `contents` dict is a wrapper around each command. The internal co
 The above example will only work if `MyCommand` is implemented in the backend. To implement this in the backend, add the following script in the Unity project:
 ```
 using UnityEngine.Events;
-using SimEnv;
+using Simulate;
 
 public class MyCommand : Command {
     public string message;

@@ -13,7 +13,7 @@ jobs:
     with:
       commit_sha: ${{ github.event.pull_request.head.sha }}
       pr_number: ${{ github.event.number }}
-      package: simenv
+      package: simulate
       install_libgl1: true
     secrets:
       token: ${{ secrets.HUGGINGFACE_PUSH }}
