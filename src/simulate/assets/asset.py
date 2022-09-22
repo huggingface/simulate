@@ -17,7 +17,6 @@
 import itertools
 import os
 import tempfile
-import uuid
 from typing import Any, Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -96,7 +95,6 @@ class Asset(NodeMixin, object):
         children=None,
         created_from_file=None,
     ):
-        self._uuid = uuid.uuid4()
         id = next(getattr(self.__class__, f"_{self.__class__.__name__}__NEW_ID"))
         if name is None:
             name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
@@ -138,11 +136,6 @@ class Asset(NodeMixin, object):
         if self.physics_component is not None:
             asset_str += f"physics_component={self.physics_component.__class__.__name__}(), "
         return f"{self.name}: {self.__class__.__name__}({asset_str}{self._repr_info_str()})"
-
-    @property
-    def uuid(self):
-        """A unique identifier of the node if needed."""
-        return self._uuid
 
     @property
     def named_components(self) -> List[Tuple[str, Any]]:
