@@ -141,10 +141,6 @@ class Plane(Object3D):
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
 
-    direction : list or tuple or np.ndarray, optional
-        Direction the normal to the plane in ``[x, y, z]``.
-        Default to normal pointing in the ``y`` (up) direction.
-
     i_size : float
         Size of the plane in the i direction.
 
@@ -175,16 +171,14 @@ class Plane(Object3D):
         j_resolution: Optional[int] = 1,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        if direction is None:
-            direction = (0, -1, 0)
+        direction = (0, -1, 0)
         mesh = pv.Plane(
-            direction=direction,
+            direction=(0, 1, 0),
             i_size=i_size,
             j_size=j_size,
             i_resolution=i_resolution,
@@ -206,10 +200,6 @@ class Sphere(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
-
-    direction : list or tuple or np.ndarray, optional
-        Direction the top of the sphere points to in ``[x, y, z]``.
-        Default to top of sphere pointing in the ``y`` (up) direction.
 
     radius : float, optional
         Sphere radius.
@@ -243,7 +233,6 @@ class Sphere(Object3D):
     def __init__(
         self,
         position: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
         radius: Optional[float] = 1.0,
         theta_resolution: Optional[int] = 10,
         phi_resolution: Optional[int] = 10,
@@ -276,9 +265,6 @@ class Sphere(Object3D):
         sphere.Update()
         mesh = pv.wrap(sphere.GetOutput())
         mesh.rotate_y(-90, inplace=True)
-        if direction is None:
-            direction = (0, 1, 0)
-        pv.translate(mesh, (0, 0, 0), direction)
 
         super().__init__(
             name=name, mesh=mesh, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs
@@ -303,10 +289,6 @@ class Capsule(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
-
-    direction : list or tuple or np.ndarray, optional
-        Direction the capsule points to in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
 
     height : float
       Center to center distance of two spheres
@@ -335,7 +317,6 @@ class Capsule(Object3D):
     def __init__(
         self,
         position: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
         height: Optional[float] = 1.0,
         radius: Optional[float] = 0.2,
         theta_resolution: Optional[int] = 4,
@@ -363,9 +344,6 @@ class Capsule(Object3D):
 
         mesh = pv.wrap(capsule.GetOutput())
         mesh.rotate_z(-90, inplace=True)
-        if direction is None:
-            direction = (0, 1, 0)
-        pv.translate(mesh, (0, 0, 0), direction)
 
         super().__init__(
             mesh=mesh, name=name, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs
@@ -388,10 +366,6 @@ class Cylinder(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
-
-    direction : list or tuple or np.ndarray, optional
-        Direction the cylinder points to in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
 
     radius : float, optional
         Radius of the cylinder.
@@ -422,14 +396,12 @@ class Cylinder(Object3D):
         capping: Optional[bool] = True,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        if direction is None:
-            direction = (0, 1, 0)
+        direction = (0, 1, 0)
         mesh = pv.Cylinder(direction=direction, radius=radius, height=height, resolution=resolution, capping=capping)
 
         super().__init__(
@@ -445,10 +417,6 @@ class Box(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
-
-    direction : list or tuple or np.ndarray, optional
-        Direction the top of the box points to in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
 
     bounds : float or List[float], optional
         Specify the bounding box of the cube as either:
@@ -485,7 +453,6 @@ class Box(Object3D):
         with_collider: bool = True,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
@@ -506,8 +473,6 @@ class Box(Object3D):
             )  # Make it a tuple
 
         mesh = pv.Box(bounds=bounds, level=level, quads=quads)
-        if direction is not None:
-            pv.translate(mesh, (0, 0, 0), direction)
 
         super().__init__(
             mesh=mesh, name=name, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs
@@ -532,10 +497,6 @@ class Cone(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
-
-    direction : list or tuple or np.ndarray, optional
-        Direction the top of the cone points to in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
 
     height : float, optional
         Height along the cone in its specified direction.
@@ -563,14 +524,12 @@ class Cone(Object3D):
         resolution: Optional[int] = 6,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        if direction is None:
-            direction = (0, 1, 0)
+        direction = (0, 1, 0)
         mesh = pv.Cone(direction=direction, height=height, radius=radius, resolution=resolution)
         super().__init__(
             mesh=mesh, name=name, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs
@@ -793,10 +752,6 @@ class RegularPolygon(Object3D):
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
 
-    direction : list or tuple or np.ndarray, optional
-        Direction the normal to the polygon in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
-
     points : float, optional
         The radius of the polygon.
 
@@ -818,15 +773,13 @@ class RegularPolygon(Object3D):
         radius: Optional[float] = 1.0,
         n_sides: Optional[int] = 6,
         position: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        if direction is None:
-            direction = (0, 1, 0)
+        direction = (0, 1, 0)
         mesh = pv.Polygon(radius=radius, normal=direction, n_sides=n_sides)
         super().__init__(
             mesh=mesh, name=name, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs
@@ -845,10 +798,6 @@ class Ring(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
-
-    direction : list or tuple or np.ndarray, optional
-        Direction the normal to the disc in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
 
     inner : float, optional
         The inner radius.
@@ -887,8 +836,7 @@ class Ring(Object3D):
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        if direction is None:
-            direction = (0, 1, 0)
+        direction = (0, 1, 0)
         mesh = pv.Disc(inner=inner, outer=outer, normal=direction, r_res=r_res, c_res=c_res)
         super().__init__(
             mesh=mesh, name=name, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs
@@ -930,7 +878,6 @@ class Text3D(Object3D):
         depth: Optional[float] = 0.5,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
@@ -938,9 +885,6 @@ class Text3D(Object3D):
     ):
         mesh = pv.Text3D(string=string, depth=depth)
         mesh.rotate_y(-90, inplace=True)
-        if direction is None:
-            direction = (0, 0, -1)
-        pv.translate(mesh, (0, 0, 0), direction)
 
         super().__init__(
             mesh=mesh, name=name, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs
@@ -1045,7 +989,6 @@ class Circle(Object3D):
         resolution: Optional[int] = 100,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
@@ -1053,9 +996,6 @@ class Circle(Object3D):
     ):
         mesh = pv.Circle(radius=radius, resolution=resolution)
         mesh.rotate_y(-90, inplace=True)
-        if direction is None:
-            direction = (0, 1, 0)
-        pv.translate(mesh, (0, 0, 0), direction)
         super().__init__(
             mesh=mesh, name=name, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs
         )

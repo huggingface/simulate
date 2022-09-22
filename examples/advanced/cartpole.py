@@ -30,7 +30,7 @@ def generate_map(index):
 
     root = sm.Asset(name=f"root_{index}")
 
-    base = sm.Cylinder(direction=(1, 0, 0), radius=0.05, height=6, material=sm.Material.GRAY50)
+    base = sm.Cylinder(radius=0.05, height=6, material=sm.Material.GRAY50)
     base.physics_component = sm.ArticulationBodyComponent(
         "prismatic", immovable=True, use_gravity=False
     )  # note for the base the joint type is ignored
