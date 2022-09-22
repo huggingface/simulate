@@ -5,9 +5,9 @@ from pathlib import Path
 from pprint import pformat
 from unittest import TestCase
 
-from simenv.assets.gltflib import GLTF
+from simulate.assets.gltflib import GLTF
 
-from ..util import SIMENV_TEST_REPOS, sample
+from ..util import SIMULATE_TEST_REPOS, sample
 
 
 # If set to True, for any models that fail to pass the equality check, this will automatically launch kdiff3 to compare
@@ -39,7 +39,7 @@ class TestRoundtrip(TestCase):
         self.maxDiff = None
 
     def _get_model_index(self):
-        return SIMENV_TEST_REPOS
+        return SIMULATE_TEST_REPOS
 
     def test_roundtrip(self):
         """Ensures all sample models remain unchanged after loading, saving, and loading again via the library"""

@@ -1,7 +1,7 @@
 // adapted from https://github.com/Siccity/GLTFUtility/blob/master/Scripts/Spec/GLTFAsset.cs
 using Newtonsoft.Json;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFAsset {
         public string copyright;
         public string generator;

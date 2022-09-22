@@ -2,7 +2,7 @@
 Python file to call map, game and agents generation.
 """
 
-import simenv as sm
+import simulate as sm
 
 from .utils import seed_env
 from .world import generate_map, get_positions
@@ -59,7 +59,7 @@ def create_map(
         predicate: type of predicate (random or None)
         **kwargs: Additional arguments. Handles unused args as well.
     Returns:
-        root: the generated map root in simenv format.
+        root: the generated map root in simulate format.
     """
 
     seed_env(seed)

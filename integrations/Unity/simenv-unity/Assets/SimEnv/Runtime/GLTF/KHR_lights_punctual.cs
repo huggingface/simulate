@@ -2,7 +2,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class KHRLightsPunctual {
         public List<GLTFLight> lights;
 

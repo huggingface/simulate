@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simenv Asset - Objects in the scene (mesh, primitives, camera, lights)."""
+""" A simulate Asset - Objects in the scene (mesh, primitives, camera, lights)."""
 import itertools
 import os
 import tempfile
@@ -390,7 +390,7 @@ class Asset(NodeMixin, object):
         When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
 
         Examples:
-        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         # We import dynamically here to avoid circular import (tried many other options...)
@@ -444,7 +444,7 @@ class Asset(NodeMixin, object):
 
             if not file_path:
                 file_path = hf_hub_download(
-                    repo_id="simenv-tests/Box",
+                    repo_id="simulate-tests/Box",
                     filename="Box.glb",
                     subfolder="glTF-Binary",
                     revision=revision,
@@ -482,7 +482,7 @@ class Asset(NodeMixin, object):
         When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
 
         Examples:
-        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         root_node, gltf_file = Asset._get_node_tree_from_hub_or_local(
@@ -528,7 +528,7 @@ class Asset(NodeMixin, object):
         When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
 
         Examples:
-        - Scene.load('simenv-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.load('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
         - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         root_node, gltf_file = Asset._get_node_tree_from_hub_or_local(
@@ -562,7 +562,7 @@ class Asset(NodeMixin, object):
         Return the url on the hub of the file.
 
         Example:
-        - scene.push_to_hub('simenv-tests/Box/glTF-Embedded/Box.gltf')
+        - scene.push_to_hub('simulate-tests/Box/glTF-Embedded/Box.gltf')
         """
         splitted_hub_path = hub_filepath.split("/")
         hub_repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]

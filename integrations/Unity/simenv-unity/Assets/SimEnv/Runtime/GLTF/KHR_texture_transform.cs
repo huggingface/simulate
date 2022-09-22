@@ -2,7 +2,7 @@
 using UnityEngine;
 using Newtonsoft.Json;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class KHR_texture_transform {
         [JsonConverter(typeof(Vector2Converter))] public Vector2 offset = Vector2.zero;
         public float rotation;

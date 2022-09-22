@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SimEnv {
+namespace Simulate {
     public class CameraSensor : ISensor {
         public string mName = "CameraSensor";
         public static string mType = "uint8";

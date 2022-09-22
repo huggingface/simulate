@@ -1,12 +1,12 @@
 import argparse
 import base64
 
-import simenv as sm
+import simulate as sm
 
 
 def create_scene(build_exe=None):
     scene = sm.Scene(engine="Unity")
-    scene.load("simenv-tests/Box/glTF-Embedded/Box.gltf")
+    scene.load("simulate-tests/Box/glTF-Embedded/Box.gltf")
 
     scene.show()
 

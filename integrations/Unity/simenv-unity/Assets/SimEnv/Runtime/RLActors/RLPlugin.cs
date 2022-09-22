@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using System.Linq;
 
-namespace SimEnv.RlAgents {
+namespace Simulate.RlAgents {
     public class RLPlugin : PluginBase {
         public static RLPlugin instance { get; private set; }
         public static Dictionary<string, Actor> actors { get; private set; }

@@ -1,6 +1,6 @@
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 
 if __name__ == "__main__":

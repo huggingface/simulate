@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SimEnv {
+namespace Simulate {
     public class StateSensor : ISensor {
         public string mName = "StateSensor";
         public static string mType = "float";
@@ -16,7 +16,7 @@ namespace SimEnv {
         ArticulationBody targetArticulationBody;
         List<string> properties;
 
-        public StateSensor(Node node, SimEnv.GLTF.HFStateSensors.HFStateSensor data) {
+        public StateSensor(Node node, Simulate.GLTF.HFStateSensors.HFStateSensor data) {
             m_node = node;
             mName = data.sensor_tag;
             properties = data.properties;

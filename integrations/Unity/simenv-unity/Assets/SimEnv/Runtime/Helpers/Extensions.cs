@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace SimEnv {
+namespace Simulate {
     public static class Extensions {
         public static Coroutine RunCoroutine(this IEnumerator item) {
             if (Simulator.instance == null) {

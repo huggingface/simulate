@@ -1,6 +1,6 @@
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 
 if __name__ == "__main__":
@@ -8,7 +8,7 @@ if __name__ == "__main__":
     scene = sm.Scene()
 
     # Create mesh
-    # Height map and, in the future, a map of simenv objects
+    # Height map and, in the future, a map of simulate objects
     specific_map = (
         np.array(
             [

@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using UnityEngine;
 using System;
-using SimEnv.GLTF;
+using Simulate.GLTF;
 
-namespace SimEnv.RlAgents {
+namespace Simulate.RlAgents {
     public static class Actions {
         public static void ExecuteAction(this Actor actor, Dictionary<string, List<float>> actions) {
             foreach (KeyValuePair<string, List<float>> action in actions) {

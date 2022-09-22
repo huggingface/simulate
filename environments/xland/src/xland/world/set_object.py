@@ -6,7 +6,7 @@ from collections import defaultdict
 
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 from ..utils import COLOR_NAMES, COLORS, OBJECTS, get_bounds, get_connected_components
 
@@ -171,7 +171,7 @@ def get_object_fn(obj):
 
 def create_objects(positions, object_type=None, specific_color=None, object_size=0.5, rank=0):
     """
-    Create objects in simenv.
+    Create objects in simulate.
     """
 
     object_names = defaultdict(lambda: 0)

@@ -24,15 +24,15 @@ except ImportError:
         pass  # Dummy class if SB3 is not installed
 
 
-import simenv as sm
+import simulate as sm
 
 # Lint as: python3
-from simenv.scene import Scene
+from simulate.scene import Scene
 
 
 class RLEnv(VecEnv):
     """
-    RL environment wrapper for SimEnv scene. Uses functionality from the VecEnv in stable baselines 3
+    RL environment wrapper for Simulate scene. Uses functionality from the VecEnv in stable baselines 3
     For more information on VecEnv, see the source
     https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
 

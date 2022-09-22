@@ -1,9 +1,9 @@
 using System.Collections.Generic;
 using System.Collections;
 
-namespace SimEnv {
+namespace Simulate {
     /// <summary>
-    /// Used to add custom functionality to the SimEnv backend.
+    /// Used to add custom functionality to the Simulate backend.
     /// <para>Any classes that extends <c>IPlugin</c> will 
     /// be loaded automatically.</para>
     /// <example>

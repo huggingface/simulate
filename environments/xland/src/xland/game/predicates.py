@@ -23,7 +23,7 @@ take the floor into consideration to simplify things.
 
 import numpy as np
 
-from simenv import RewardFunction
+from simulate import RewardFunction
 
 
 def near(entity_a, entity_b, reward_type="sparse"):

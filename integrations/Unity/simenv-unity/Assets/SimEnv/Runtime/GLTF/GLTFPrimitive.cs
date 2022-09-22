@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFPrimitive {
         [JsonProperty(Required = Required.Always)] public GLTFAttributes attributes;
         public RenderingMode mode = RenderingMode.TRIANGLES;

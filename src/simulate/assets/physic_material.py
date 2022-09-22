@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simenv Physic Material."""
+""" A simulate Physic Material."""
 import copy
 import itertools
 from dataclasses import dataclass

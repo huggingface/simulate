@@ -1,7 +1,7 @@
 // adapted from https://github.com/Siccity/GLTFUtility/blob/master/Scripts/Settings/AnimationSettings.cs
 using System;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     [Serializable]
     public class AnimationSettings {
         public bool looping;

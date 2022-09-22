@@ -13,7 +13,7 @@ To create the package for pypi.
 0. Prerequisites:
    - Dependencies:
      - twine: "pip install twine"
-   - Create an account in (and join the 'simenv' project):
+   - Create an account in (and join the 'simulate' project):
      - PyPI: https://pypi.org/
      - Test PyPI: https://test.pypi.org/
 
@@ -42,7 +42,7 @@ To create the package for pypi.
    twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
 
    Check that you can install it in a virtualenv/notebook by running:
-   pip install -i https://testpypi.python.org/pypi simenv
+   pip install -i https://testpypi.python.org/pypi simulate
 
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi
@@ -59,7 +59,7 @@ from setuptools import find_packages, setup
 REQUIRED_PKGS = [
     "dataclasses_json",  # For GLTF export/imports
     "numpy>=1.17",  # We use numpy>=1.17 to have np.random.Generator
-    "simenv",
+    "simulate",
 ]
 
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]

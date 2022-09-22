@@ -1,6 +1,6 @@
 """RL env generation."""
 
-import simenv as sm
+import simulate as sm
 
 from .gen_map import create_map
 

@@ -15,7 +15,7 @@
 # Lint as: python3
 import unittest
 
-from simenv.assets.actuator import ActionMapping, Actuator
+from simulate.assets.actuator import ActionMapping, Actuator
 
 
 # TODO add more tests on saving/exporting/loading in gltf files

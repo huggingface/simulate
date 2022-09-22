@@ -9,7 +9,7 @@ using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Text;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public static class Importer {
         public abstract class ImportTask {
             public Task task;

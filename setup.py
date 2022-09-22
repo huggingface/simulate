@@ -1,5 +1,5 @@
 # Lint as: python3
-""" HuggingFace/simenv is an open library of simulation and synthetic environments.
+""" HuggingFace/simulate is an open library of simulation and synthetic environments.
 
 Note:
 
@@ -13,7 +13,7 @@ To create the package for pypi.
 0. Prerequisites:
    - Dependencies:
      - twine: "pip install twine"
-   - Create an account in (and join the 'simenv' project):
+   - Create an account in (and join the 'simulate' project):
      - PyPI: https://pypi.org/
      - Test PyPI: https://test.pypi.org/
 
@@ -42,7 +42,7 @@ To create the package for pypi.
    twine upload dist/* -r pypitest --repository-url=https://test.pypi.org/legacy/
 
    Check that you can install it in a virtualenv/notebook by running:
-   pip install -i https://testpypi.python.org/pypi simenv
+   pip install -i https://testpypi.python.org/pypi simulate
 
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi
@@ -105,15 +105,15 @@ else:
 ext_modules = [
    Extension(
       name="wfc_binding",
-      sources=["src/simenv/assets/procgen/wfc/core/wfc_binding.pyx", 
-               "src/simenv/assets/procgen/wfc/core/cpp/src/propagator.cpp",
-               "src/simenv/assets/procgen/wfc/core/cpp/src/wave.cpp",
-               "src/simenv/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
+      sources=["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx", 
+               "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
+               "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
+               "src/simulate/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
       language="c++",
       extra_compile_args=extra_compile_args,
       extra_link_args=extra_link_args,
       include_dirs=[
-            "src/simenv/assets/procgen/wfc/core/cpp/include",
+            "src/simulate/assets/procgen/wfc/core/cpp/include",
       ],
    )
 ]
@@ -121,15 +121,15 @@ ext_modules = [
 ext_modules = cythonize(ext_modules, force=True)
 
 setup(
-    name="simenv",
+    name="simulate",
     version="0.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of simulation environments",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
     author="HuggingFace Inc.",
     author_email="thomas@huggingface.co",
-    url="https://github.com/huggingface/simenv",
-    download_url="https://github.com/huggingface/simenv/tags",
+    url="https://github.com/huggingface/simulate",
+    download_url="https://github.com/huggingface/simulate/tags",
     license="Apache 2.0",
     package_dir={"": "src"},
     packages=find_packages("src"),

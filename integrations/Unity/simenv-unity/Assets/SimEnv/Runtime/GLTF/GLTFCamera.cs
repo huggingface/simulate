@@ -5,7 +5,7 @@ using System.Linq;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFCamera {
         public Orthographic? orthographic;
         public Perspective? perspective;

@@ -17,7 +17,7 @@ import unittest
 # Lint as: python3
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 
 # TODO add more tests on saving/exporting/loading in gltf files

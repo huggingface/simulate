@@ -13,7 +13,7 @@
 # along with this program. If not, see <http://www.gnu.org/licenses/>.
 
 bl_info = {
-    "name": "simenv",
+    "name": "simulate",
     "author": "Hugging Face",
     "description": "",
     "blender": (3, 2, 0),
@@ -25,11 +25,11 @@ bl_info = {
 
 import bpy
 
-from .simenv_op import SIMENV_OT_ImportScene
-from .simenv_pnl import SIMENV_PT_Panel
+from .simulate_op import SIMULATE_OT_ImportScene
+from .simulate_pnl import SIMULATE_PT_Panel
 
 
-classes = (SIMENV_OT_ImportScene, SIMENV_PT_Panel)
+classes = (SIMULATE_OT_ImportScene, SIMULATE_PT_Panel)
 
 
 def register():

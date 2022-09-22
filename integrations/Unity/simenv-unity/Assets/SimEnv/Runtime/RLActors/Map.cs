@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SimEnv.RlAgents {
+namespace Simulate.RlAgents {
     public class Map {
         public Bounds bounds { get; private set; }
         public bool active { get; private set; }

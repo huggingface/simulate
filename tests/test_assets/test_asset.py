@@ -17,7 +17,7 @@ import unittest
 
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 
 # From example test at https://github.com/KhronosGroup/glTF-Tutorials/blob/master/gltfTutorial/gltfTutorial_004_ScenesNodes.md

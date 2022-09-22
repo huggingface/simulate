@@ -4,7 +4,7 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class BufferedBinaryReader : IDisposable {
         readonly Stream stream;
         readonly byte[] buffer;

@@ -1,7 +1,7 @@
 import json
 from unittest import TestCase
 
-from simenv.assets.gltflib import GLTF, Animation, AnimationSampler, Asset, Buffer, Channel, GLTFModel, Target
+from simulate.assets.gltflib import GLTF, Animation, AnimationSampler, Asset, Buffer, Channel, GLTFModel, Target
 
 from ..util import sample
 

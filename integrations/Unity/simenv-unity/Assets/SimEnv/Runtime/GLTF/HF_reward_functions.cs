@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class HFRewardFunctions {
         public List<HFRewardFunction> objects;
 

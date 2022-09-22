@@ -3,7 +3,7 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 
 scene = sm.Scene(engine="unity")

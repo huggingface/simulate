@@ -1,13 +1,13 @@
 import argparse
 
-import simenv as sm
-from simenv.assets.action_mapping import ActionMapping
+import simulate as sm
+from simulate.assets.action_mapping import ActionMapping
 
 
 def create_scene(build_exe=None, gltf_path=None):
     try:
         raise Exception
-        scene = sm.Scene.create_from("simenv-tests/MountainCar/MountainCar.gltf")
+        scene = sm.Scene.create_from("simulate-tests/MountainCar/MountainCar.gltf")
     except Exception as e:
         print(e)
         print("Failed to load from hub, loading from path: " + gltf_path)
@@ -38,7 +38,7 @@ def add_rl_components_to_scene(scene):
 
 
 if __name__ == "__main__":
-    DYLAN_GLTF_PATH = "C:\\Users\\dylan\\Documents\\huggingface\\simenv\\integrations\\Unity\\simenv-unity\\Assets\\GLTF\\mountaincar\\Exported\\MountainCar.gltf"
+    DYLAN_GLTF_PATH = "C:\\Users\\dylan\\Documents\\huggingface\\simulate\\integrations\\Unity\\simulate-unity\\Assets\\GLTF\\mountaincar\\Exported\\MountainCar.gltf"
 
     parser = argparse.ArgumentParser()
     parser.add_argument(

@@ -5,7 +5,7 @@ using System.Linq;
 using System;
 using System.Collections.Generic;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFAnimation {
         [JsonProperty(Required = Required.Always)] public Channel[] channels;
         [JsonProperty(Required = Required.Always)] public Sampler[] samplers;

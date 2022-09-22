@@ -3,10 +3,10 @@ from bpy.types import Operator
 from .simulator import Simulator
 
 
-class SIMENV_OT_ImportScene(Operator):
-    bl_idname = "simenv.import_scene"
+class SIMULATE_OT_ImportScene(Operator):
+    bl_idname = "simulate.import_scene"
     bl_label = "Import Scene"
-    bl_description = "Import a scene from the SimEnv library through TCP"
+    bl_description = "Import a scene from the Simulate library through TCP"
 
     @classmethod
     def poll(cls, context) -> bool:

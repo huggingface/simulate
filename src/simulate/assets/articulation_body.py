@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simenv JointComponent."""
+""" A simulate JointComponent."""
 import itertools
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional

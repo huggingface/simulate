@@ -1,7 +1,7 @@
 using System.Collections;
 using System.Collections.Generic;
 
-namespace SimEnv {
+namespace Simulate {
     /// <summary>
     /// Helper class if you only want to override some methods.
     /// </summary>

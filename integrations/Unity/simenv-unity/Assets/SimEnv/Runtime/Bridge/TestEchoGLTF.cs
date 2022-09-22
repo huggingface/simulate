@@ -1,11 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using SimEnv.GLTF;
+using Simulate.GLTF;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SimEnv {
+namespace Simulate {
     public class TestEchoGLTF : ICommand {
         public string b64bytes;
 

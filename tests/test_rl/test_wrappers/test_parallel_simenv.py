@@ -17,7 +17,7 @@ import random
 # Lint as: python3
 import unittest
 
-import simenv as sm
+import simulate as sm
 
 
 def create_env(dummy_port: int):
@@ -36,9 +36,9 @@ def create_env(dummy_port: int):
 
 
 # TODO add a real RL test
-class ParallelSimenvTest(unittest.TestCase):
-    def test_parallel_simenv(self):
+class ParallelSimulateTest(unittest.TestCase):
+    def test_parallel_simulate(self):
         pass
-        # env = sm.ParallelSimEnv(env_fn=create_env, n_parallel=2)
+        # env = sm.ParallelSimulate(env_fn=create_env, n_parallel=2)
 
         # obs = env.reset()

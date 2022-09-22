@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using NUnit.Framework;
 using UnityEngine;
 using UnityEngine.TestTools;
-using SimEnv;
-using SimEnv.RlAgents;
+using Simulate;
+using Simulate.RlAgents;
 public class TestRewardFunctions {
     [UnityTest]
     public IEnumerator TestDenseRewardFunctionBestEuclidean() {

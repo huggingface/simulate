@@ -13,7 +13,7 @@ import numpy as np
 from xland import create_map
 from xland.utils import generate_tiles
 
-import simenv as sm
+import simulate as sm
 
 
 if __name__ == "__main__":

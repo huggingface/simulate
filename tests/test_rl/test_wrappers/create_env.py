@@ -16,7 +16,7 @@
 """ A very simple environment creation ethod."""
 import random
 
-import simenv as sm
+import simulate as sm
 
 
 def create_env():

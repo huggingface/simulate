@@ -1,6 +1,6 @@
 """Functions for setting the agent in the world."""
 
-from simenv import SimpleRlAgent
+from simulate import SimpleRlAgent
 
 from ..game.generation import add_dummy_generated_reward_fn
 from ..game.predicates import (
@@ -24,7 +24,7 @@ def create_agents(
     frame_skip=None,
 ):
     """
-    Create agents in simenv.
+    Create agents in simulate.
 
     Args:
         agent_pos: list of positions of the agents

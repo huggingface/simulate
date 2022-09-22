@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SimEnv.RlAgents {
+namespace Simulate.RlAgents {
     public class MapPool : IEnumerable<Map> {
         Queue<Map> pool;
 

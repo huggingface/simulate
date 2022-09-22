@@ -1,7 +1,7 @@
 from bpy.types import Panel
 
 
-class SIMENV_PT_Panel(Panel):
+class SIMULATE_PT_Panel(Panel):
     bl_space_type = "VIEW_3D"
     bl_region_type = "UI"
     bl_label = "Simulation Environment"
@@ -11,4 +11,4 @@ class SIMENV_PT_Panel(Panel):
         layout = self.layout
         layout.label(text="Simulation Environment")
         row = layout.row()
-        row.operator("simenv.import_scene", text="Import Scene")
+        row.operator("simulate.import_scene", text="Import Scene")

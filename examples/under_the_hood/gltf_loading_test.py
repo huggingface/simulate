@@ -1,10 +1,10 @@
 import os
 
-from simenv import Scene
+from simulate import Scene
 
 
 if __name__ == "__main__":
-    scene = Scene.create_from("simenv-tests/Box/glTF/Box.gltf", auto_update=False)
+    scene = Scene.create_from("simulate-tests/Box/glTF/Box.gltf", auto_update=False)
 
     print("===== BEFORE ====")
     print(scene)
@@ -26,10 +26,10 @@ if __name__ == "__main__":
     scene.show()
 
     # Push to hub
-    path_on_hub = "simenv-tests/Debug-2/glTF/Box.gltf"
+    path_on_hub = "simulate-tests/Debug-2/glTF/Box.gltf"
     hub_token = os.environ.get(
         "HUB_TOKEN"
-    )  # Set your Hub token for simenv-tests in this env variable (see https://huggingface.co/settings/tokens)
+    )  # Set your Hub token for simulate-tests in this env variable (see https://huggingface.co/settings/tokens)
     print(f"Hub token: {hub_token}")
     url_path_returned = scene.push_to_hub(path_on_hub, token=hub_token)
 
