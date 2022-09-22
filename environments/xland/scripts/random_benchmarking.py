@@ -25,7 +25,7 @@ if __name__ == "__main__":
     )
 
     # Parameters still to be fixed
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate")
     parser.add_argument("--n_parallel", default=1, type=int, required=False, help="Number of parallel environments")
     parser.add_argument("--n_maps", default=64, type=int, required=False, help="Total number of maps")
     parser.add_argument("--n_show", default=16, type=int, required=False, help="Number of maps to show at once")

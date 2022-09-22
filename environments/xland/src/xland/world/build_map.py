@@ -3,7 +3,8 @@ Files used for scene generation.
 """
 
 import numpy as np
-import simenv as sm
+
+import simulate as sm
 
 from ..utils import HEIGHT_CONSTANT, convert_to_actual_pos
 from .set_agent import create_agents
@@ -232,7 +233,7 @@ def generate_map(
     frame_skip=None,
 ):
     """
-    Generate scene using simenv library.
+    Generate scene using simulate library.
     """
 
     # Create root

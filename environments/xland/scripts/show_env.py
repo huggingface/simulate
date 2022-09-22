@@ -10,9 +10,10 @@ from collections import defaultdict
 from os.path import join
 
 import numpy as np
-import simenv as sm
 from xland import create_map
 from xland.utils import generate_tiles
+
+import simulate as sm
 
 
 if __name__ == "__main__":

@@ -1,4 +1,4 @@
-from simenv import Material
+from simulate import Material
 
 
 # Colors that the objects can have
