@@ -1,11 +1,29 @@
-# simulate
-Creating and sharing simulation environments for intelligent agents (e.g. reinforcement learning) and synthetic data generation.
+# 🏜 Simulate
+
+Simulate is a library for easily creating and sharing simulation environments for intelligent agents (e.g. reinforcement learning) or synthetic data generation.
+
+## Install
+
+You can install Simulate with a simple `pip install simulate`
+
+## Quick tour
+
+Simulate's API is inspired by the great [Kubric's API](https://github.com/google-research/kubric).
+The user create a scene and add assets in it (objects, cameras, lights if needed).
+Once the scene is created you can save/share it and also render or do simulations using one of the backend rendering/simulation engines (at the moment Unity, Blender and Godot). The saving/sharing format is engine agnostic and using the industry standard glTF format for saving scenes.
+
+Let's do a quick exploration together.
+
+We'll use the default backend which is a simple  
+
+
+
 
 To install and contribute (from [CONTRIBUTING.md](CONTRIBUTING.md))
 
 Create a virtual env and then install the code style/quality tools as well as the code base locally
 ```
-pip install -e ".[dev]"
+pip install simulate
 ```
 Before you merge a PR, fix the style (we use `isort` + `black`)
 ```

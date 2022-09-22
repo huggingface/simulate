@@ -65,7 +65,8 @@ import sys
 REQUIRED_PKGS = [
    "dataclasses_json",  # For GLTF export/imports
    "numpy>=1.17", # We use numpy>=1.17 to have np.random.Generator
-   "pyvista",  # For mesh creation and edition and simple vizualization
+   "pyvista",  # For mesh creation and edition and default simple vizualization
+   "pybullet", # For default physics simulation
    "huggingface_hub",
 ]
 
