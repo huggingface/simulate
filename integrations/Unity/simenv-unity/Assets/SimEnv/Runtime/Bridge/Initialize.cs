@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SimEnv {
+namespace Simulate {
     public class Initialize : ICommand {
         public string b64bytes;
 

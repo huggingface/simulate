@@ -8,8 +8,8 @@ using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace SimEnv {
-    [CreateAssetMenu(menuName = "SimEnv/Client")]
+namespace Simulate {
+    [CreateAssetMenu(menuName = "Simulate/Client")]
     public class Client : Singleton<Client> {
         public static string host;
         public static int port;

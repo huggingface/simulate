@@ -3,7 +3,7 @@ import argparse
 import matplotlib.pyplot as plt
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 
 def create_scene(build_exe=None):

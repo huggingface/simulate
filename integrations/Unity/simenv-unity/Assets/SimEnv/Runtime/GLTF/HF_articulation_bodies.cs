@@ -3,7 +3,7 @@ using Newtonsoft.Json;
 using UnityEngine;
 using System.Collections.Generic;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class HFarticulationBodies {
         public List<GLTFArticulationBody> objects;
 

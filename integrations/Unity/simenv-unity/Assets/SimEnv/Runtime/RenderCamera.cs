@@ -1,7 +1,7 @@
 using UnityEngine;
 using UnityEngine.Rendering.Universal;
 
-namespace SimEnv {
+namespace Simulate {
     public class RenderCamera {
         public Node node => m_node;
         public UnityEngine.Camera camera => m_camera;

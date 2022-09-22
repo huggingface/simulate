@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simenv Camera."""
+""" A simulate Camera."""
 import itertools
 from typing import List, Optional, Union
 

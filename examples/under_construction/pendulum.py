@@ -4,9 +4,9 @@ import matplotlib.pyplot as plt
 import numpy as np
 from matplotlib import use
 
-import simenv as sm
-from simenv.assets import material
-from simenv.assets.reward_functions import RewardFunction
+import simulate as sm
+from simulate.assets import material
+from simulate.assets.reward_functions import RewardFunction
 
 
 scene = sm.Scene(engine="Unity", config=sm.Config(time_step=1 / 30.0, frame_skip=4))

@@ -2,7 +2,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System;
 
-namespace SimEnv.RlAgents {
+namespace Simulate.RlAgents {
     public interface IDistanceMetric {
         public float Calculate(Node e1, Node e2);
         public void Reset(Node e1, Node e2);
@@ -66,7 +66,7 @@ namespace SimEnv.RlAgents {
 
         public static RewardFunction buildLeafRewardFunction(Node node) {
             RewardFunction rewardFunction = null;
-            SimEnv.GLTF.HFRewardFunctions.HFRewardFunction rewardData = node.rewardFunctionData;
+            Simulate.GLTF.HFRewardFunctions.HFRewardFunction rewardData = node.rewardFunctionData;
             Node entity_a = null;
             Node entity_b = null;
 
@@ -128,7 +128,7 @@ namespace SimEnv.RlAgents {
 
         public static RewardFunction buildNodeRewardFunction(Node node) {
             RewardFunction rewardFunction = null;
-            SimEnv.GLTF.HFRewardFunctions.HFRewardFunction rewardData = node.rewardFunctionData;
+            Simulate.GLTF.HFRewardFunctions.HFRewardFunction rewardData = node.rewardFunctionData;
             // I(Ed) do not like my implementation here, potentially slow. Perhaps Dylan can help ? TODO
             List<Node> children = new List<Node>();
             foreach (Node node2 in Simulator.nodes.Values) {

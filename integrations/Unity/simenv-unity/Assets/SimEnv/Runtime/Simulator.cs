@@ -5,13 +5,13 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
-using SimEnv.GLTF;
+using Simulate.GLTF;
 using UnityEngine;
 using UnityEngine.Events;
 
-namespace SimEnv {
+namespace Simulate {
     /// <summary>
-    /// Initializes the SimEnv backend. Required for all scenes.
+    /// Initializes the Simulate backend. Required for all scenes.
     /// </summary>
     public class Simulator : MonoBehaviour {
         static Simulator _instance;

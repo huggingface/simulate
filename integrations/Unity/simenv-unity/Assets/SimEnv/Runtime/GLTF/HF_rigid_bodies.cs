@@ -3,7 +3,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class HFRigidBodies {
         public List<GLTFRigidBody> objects;
 

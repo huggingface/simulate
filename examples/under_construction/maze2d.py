@@ -1,6 +1,6 @@
 # from .maze2denvs import LARGE_MAZE, LARGE_MAZE_EVAL, MEDIUM_MAZE, MEDIUM_MAZE_EVAL, U_MAZE, U_MAZE_EVAL, OPEN, parse_maze, WALL, GOAL, EMPTY
 
-import simenv as sm
+import simulate as sm
 
 
 scene = sm.Scene()

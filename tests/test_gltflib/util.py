@@ -3,14 +3,14 @@ from os import path
 
 from huggingface_hub import hf_hub_download
 
-from simenv.assets.gltflib import GLTF, FileResource
+from simulate.assets.gltflib import GLTF, FileResource
 
 
 # Directory containing the official glTF sample files. These samples are the same ones that are available here:
 # https://github.com/KhronosGroup/glTF-Sample-Models
-SIMENV_TEST_URL = "simenv-tests/"
+SIMULATE_TEST_URL = "simulate-tests/"
 
-SIMENV_TEST_REPOS = [
+SIMULATE_TEST_REPOS = [
     "AnimatedCube",
     "Box",
     "BoxTextured",
@@ -31,7 +31,7 @@ def get_file_from_hub(model, filename, subfolder=None):
     :return: File path
     """
     return hf_hub_download(
-        repo_id=SIMENV_TEST_URL + model,
+        repo_id=SIMULATE_TEST_URL + model,
         filename=filename,
         subfolder=subfolder,
         repo_type="space",

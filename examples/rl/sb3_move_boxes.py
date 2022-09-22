@@ -3,7 +3,7 @@ import random
 
 from stable_baselines3 import PPO
 
-import simenv as sm
+import simulate as sm
 
 
 CAMERA_HEIGHT = 40
@@ -124,7 +124,7 @@ def generate_map(index):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate")
     parser.add_argument("--n_maps", default=20, type=int, required=False, help="Number of maps to spawn")
     parser.add_argument("--n_show", default=16, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()

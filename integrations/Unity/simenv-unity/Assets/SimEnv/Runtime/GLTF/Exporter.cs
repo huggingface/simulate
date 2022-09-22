@@ -8,37 +8,37 @@ using System.IO;
 using UnityEditor;
 #endif
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public static class Exporter {
 #if UNITY_EDITOR
-        [MenuItem("GameObject/SimEnv/Export GLB")]
+        [MenuItem("GameObject/Simulate/Export GLB")]
         public static void ExportSelectedGLB() {
             GameObject selection = Selection.activeGameObject;
             string filepath = EditorUtility.SaveFilePanel("Export GLB", "", selection.name, "glb");
             ExportGLB(selection, filepath);
         }
 
-        [MenuItem("GameObject/SimEnv/Export GLTF")]
+        [MenuItem("GameObject/Simulate/Export GLTF")]
         public static void ExportSelectedGLTF() {
             GameObject selection = Selection.activeGameObject;
             string filepath = EditorUtility.SaveFilePanel("Export GLTF", "", selection.name, "gltf");
             ExportGLTF(selection, filepath, false);
         }
 
-        [MenuItem("GameObject/SimEnv/Export GLTF (Embedded)")]
+        [MenuItem("GameObject/Simulate/Export GLTF (Embedded)")]
         public static void ExportSelectedGLTFEmbedded() {
             GameObject selection = Selection.activeGameObject;
             string filepath = EditorUtility.SaveFilePanel("Export GLTF", "", selection.name, "gltf");
             ExportGLTF(selection, filepath, true);
         }
 
-        [MenuItem("GameObject/SimEnv/Enforce Unique Names")]
+        [MenuItem("GameObject/Simulate/Enforce Unique Names")]
         public static void EnforceUniqueNamesEditor() {
             GameObject selection = Selection.activeGameObject;
             EnforceUniqueNames(selection.transform);
         }
 
-        [MenuItem("GameObject/SimEnv/Split Colliders")]
+        [MenuItem("GameObject/Simulate/Split Colliders")]
         public static void SplitCollidersEditor() {
             GameObject selection = Selection.activeGameObject;
             SplitColliders(selection.transform);
@@ -70,7 +70,7 @@ namespace SimEnv.GLTF {
             byte[] bufferData = new byte[0];
             Dictionary<string, GLTFImage.ExportResult> imageDict = new Dictionary<string, GLTFImage.ExportResult>();
 
-            GLTFAsset asset = new GLTFAsset() { generator = "SimEnv-Unity", version = "2.0" };
+            GLTFAsset asset = new GLTFAsset() { generator = "Simulate-Unity", version = "2.0" };
             GLTFObject gltfObject = new GLTFObject() { asset = asset };
             Config.Export(gltfObject);
             List<GLTFNode.ExportResult> nodes = GLTFNode.Export(gltfObject, root);

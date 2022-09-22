@@ -1,7 +1,7 @@
 using UnityEditor.AssetImporters;
 using UnityEngine;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     [ScriptedImporter(1, "glb", importQueueOffset: 3000)]
     public class GLBImporterEditor : GLTFImporterEditor {
         public override void OnImportAsset(AssetImportContext ctx) {

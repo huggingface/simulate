@@ -1,8 +1,8 @@
 using System.Collections.Generic;
 using UnityEngine;
-using SimEnv.GLTF;
+using Simulate.GLTF;
 
-namespace SimEnv.RlAgents {
+namespace Simulate.RlAgents {
     public class Actor {
         public Node node { get; private set; }
 

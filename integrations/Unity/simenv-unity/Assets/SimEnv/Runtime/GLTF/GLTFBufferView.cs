@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using System.IO;
 using System.Threading.Tasks;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFBufferView {
         [JsonProperty(Required = Required.Always)] public int buffer;
         [JsonProperty(Required = Required.Always)] public int byteLength;

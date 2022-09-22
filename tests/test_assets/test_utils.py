@@ -17,7 +17,7 @@ import unittest
 
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 
 TRANSLATION = [10.0, 20.0, 30.0]

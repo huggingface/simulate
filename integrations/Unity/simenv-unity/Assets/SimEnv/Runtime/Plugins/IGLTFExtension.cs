@@ -1,4 +1,4 @@
-namespace SimEnv {
+namespace Simulate {
     /// <summary>
     /// Interface for custom GLTF Node extensions.
     /// <para>Extensions defined should be serializable, so they can be passed as json strings.</para>

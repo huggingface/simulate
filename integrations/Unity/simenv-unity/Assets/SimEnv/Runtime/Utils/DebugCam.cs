@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SimEnv {
+namespace Simulate {
     [RequireComponent(typeof(Camera))]
     public class DebugCam : MonoBehaviour {
         public float acceleration = 50; // how fast you accelerate

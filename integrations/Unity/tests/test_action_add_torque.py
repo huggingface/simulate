@@ -1,6 +1,6 @@
 import pytest
 
-import simenv as sm
+import simulate as sm
 
 
 def test_add_torque(build_exe, port_number):

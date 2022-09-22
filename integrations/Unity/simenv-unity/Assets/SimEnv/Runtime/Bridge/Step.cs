@@ -3,7 +3,7 @@ using UnityEngine.Events;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 
-namespace SimEnv {
+namespace Simulate {
     public class Step : ICommand {
         public void Execute(Dictionary<string, object> kwargs, UnityAction<string> callback) {
             ExecuteCoroutine(kwargs, callback).RunCoroutine();

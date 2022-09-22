@@ -2,7 +2,7 @@ import os
 
 import pytest
 
-import simenv as sm
+import simulate as sm
 
 
 # sm.ActionMapping("add_force_at_position", axis=[1, 0, 0], position=[0, 0, 0], amplitude=10, is_impulse=True),

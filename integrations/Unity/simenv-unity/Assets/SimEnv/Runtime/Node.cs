@@ -1,9 +1,9 @@
 using UnityEngine;
-using SimEnv.GLTF;
+using Simulate.GLTF;
 using UnityEngine.Rendering.Universal;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-namespace SimEnv {
+namespace Simulate {
     public class Node : MonoBehaviour {
         public GLTFCamera cameraData;
         public KHRLightsPunctual.GLTFLight lightData;

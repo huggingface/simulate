@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFObject {
         public int? scene;
         [JsonProperty(Required = Required.Always)] public GLTFAsset asset;

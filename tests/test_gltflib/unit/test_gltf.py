@@ -5,7 +5,7 @@ import tempfile
 from os import path
 from unittest import TestCase
 
-from simenv.assets.gltflib import (
+from simulate.assets.gltflib import (
     GLB_BINARY_CHUNK_TYPE,
     GLTF,
     Accessor,

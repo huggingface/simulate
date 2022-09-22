@@ -5,7 +5,7 @@ using Newtonsoft.Json;
 using System;
 using System.Threading.Tasks;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFAccessor {
         public int? bufferView;
         public int byteOffset = 0;

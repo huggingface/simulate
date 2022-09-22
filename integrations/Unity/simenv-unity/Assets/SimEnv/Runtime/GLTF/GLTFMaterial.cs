@@ -7,7 +7,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Linq;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFMaterial {
         static Material _defaultMaterial;
 #if UNITY_EDITOR

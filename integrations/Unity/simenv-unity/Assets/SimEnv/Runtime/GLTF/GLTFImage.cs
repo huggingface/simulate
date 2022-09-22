@@ -8,7 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Newtonsoft.Json;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFImage {
         public string uri;
         public string mimeType;

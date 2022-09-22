@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.IO;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFTexture {
         public int? sampler;
         public int? source;

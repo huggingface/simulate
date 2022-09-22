@@ -175,11 +175,11 @@ def get_texture_as_pyvista(gltf_scene: GLTF, texture_info: Optional[TextureInfo]
     return texture
 
 
-# Build a tree of simenv nodes from a GLTF object
+# Build a tree of simulate nodes from a GLTF object
 def build_node_tree(
     gltf_scene: GLTF, pyvista_meshes: pv.MultiBlock, gltf_node_id: int, parent: Optional[Asset] = None
 ) -> List:
-    """Build the node tree of simenv objects from the GLTF scene"""
+    """Build the node tree of simulate objects from the GLTF scene"""
     gltf_model = gltf_scene.model
     gltf_node = gltf_model.nodes[gltf_node_id]
     common_kwargs = {

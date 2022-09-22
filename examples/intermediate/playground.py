@@ -4,7 +4,7 @@ import random
 import matplotlib.pyplot as plt
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 
 def make_scene(build_exe, camera_width, camera_height):
@@ -74,7 +74,7 @@ def make_scene(build_exe, camera_width, camera_height):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate")
     args = parser.parse_args()
 
     camera_width = 40

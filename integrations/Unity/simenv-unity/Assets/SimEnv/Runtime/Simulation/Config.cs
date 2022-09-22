@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
-using SimEnv.GLTF;
+using Simulate.GLTF;
 using UnityEngine;
 
-namespace SimEnv {
+namespace Simulate {
     public class Config {
         static Config m_instance;
         public static Config instance {

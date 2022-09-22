@@ -4,7 +4,7 @@ using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class HFColliders {
         public List<GLTFCollider> objects;
 

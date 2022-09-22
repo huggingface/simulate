@@ -5,7 +5,6 @@ Main functions for setting objects on the map.
 from collections import defaultdict
 
 import numpy as np
-
 import simenv as sm
 
 from ..utils import COLOR_NAMES, COLORS, OBJECTS, get_bounds, get_connected_components

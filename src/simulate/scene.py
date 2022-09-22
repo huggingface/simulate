@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simenv Scene - Host a level or Scene."""
+""" A simulate Scene - Host a level or Scene."""
 import itertools
 from typing import Dict, List, Optional, Tuple, Union
 

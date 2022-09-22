@@ -1,7 +1,7 @@
 using Newtonsoft.Json;
 using UnityEngine;
 
-namespace SimEnv {
+namespace Simulate {
     public class Buffer {
         public float[] floatBuffer;
         public uint[] uintBuffer;

@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine.Events;
 
-namespace SimEnv {
+namespace Simulate {
     /// <summary>
     /// Interface for defining custom API commands.
     /// <para>Serializable fields in custom commands can be passed through the python API.</para>

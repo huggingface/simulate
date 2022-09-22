@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simenv Collider."""
+""" A simulate Collider."""
 import itertools
 from dataclasses import InitVar, dataclass, fields
 from typing import Any, ClassVar, List, Optional, Union

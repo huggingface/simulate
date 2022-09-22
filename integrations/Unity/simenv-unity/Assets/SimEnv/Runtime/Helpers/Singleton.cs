@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace SimEnv {
+namespace Simulate {
     public abstract class Singleton<T> : ScriptableObject where T : Singleton<T> {
         static T _instance;
         public static T instance {

@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using UnityEngine;
 
-namespace SimEnv {
+namespace Simulate {
     public class EventData {
         [JsonIgnore] public Dictionary<string, object> inputKwargs;
         [JsonIgnore] public Dictionary<string, object> outputKwargs;

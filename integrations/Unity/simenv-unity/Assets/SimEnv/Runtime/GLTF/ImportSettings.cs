@@ -2,7 +2,7 @@
 using UnityEngine;
 using System;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     [Serializable]
     public class ImportSettings {
         public bool materials = true;

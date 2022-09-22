@@ -5,7 +5,7 @@ using System.IO;
 using System;
 using System.Threading.Tasks;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFBuffer {
         [JsonProperty(Required = Required.Always)] public int byteLength;
         public string uri;

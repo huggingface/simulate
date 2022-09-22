@@ -1,4 +1,4 @@
-import simenv as sm
+import simulate as sm
 
 
 # This examples showcases the different objects we have in HuggingFace Simulate

@@ -8,7 +8,7 @@ using Newtonsoft.Json;
 using System.Threading.Tasks;
 using UnityEngine.Rendering;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFMesh {
         [JsonProperty(Required = Required.Always)] public List<GLTFPrimitive> primitives;
         public List<float> weights;

@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class HFStateSensors {
         public List<HFStateSensor> objects;
 

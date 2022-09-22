@@ -5,7 +5,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFSkin {
         public int? inverseBindMatrices;
         public int[] joints;

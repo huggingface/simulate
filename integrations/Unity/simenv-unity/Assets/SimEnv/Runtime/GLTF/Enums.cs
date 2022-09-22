@@ -1,7 +1,7 @@
 // adapted from https://github.com/Siccity/GLTFUtility/blob/master/Scripts/Enums.cs
 using UnityEngine;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public enum AlphaMode { OPAQUE, MASK, BLEND }
     public enum AccessorType { SCALAR, VEC2, VEC3, VEC4, MAT2, MAT3, MAT4 }
     public enum RenderingMode { POINTS, LINES, LINE_LOOP, LINE_STRIP, TRIANGLES, TRIANGLE_STRIP, TRIANGLE_FAN }

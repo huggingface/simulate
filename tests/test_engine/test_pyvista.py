@@ -18,7 +18,7 @@ import pytest
 import pyvista
 from pyvista.plotting import system_supports_plotting
 
-import simenv as sm
+import simulate as sm
 
 
 NO_PLOTTING = not system_supports_plotting()

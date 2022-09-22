@@ -3,7 +3,6 @@ Files used for scene generation.
 """
 
 import numpy as np
-
 import simenv as sm
 
 from ..utils import HEIGHT_CONSTANT, convert_to_actual_pos

@@ -2,7 +2,7 @@ import random
 
 import matplotlib.pyplot as plt
 
-import simenv as sm
+import simulate as sm
 
 
 scene = sm.Scene(engine="Godot")

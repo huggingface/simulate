@@ -6,7 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Linq;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class GLTFNode {
         public string name;
         public int[] children;

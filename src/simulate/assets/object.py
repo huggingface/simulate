@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simenv Scene Object."""
+""" A simulate Scene Object."""
 import itertools
 from typing import List, Optional, Union
 
@@ -1155,9 +1155,9 @@ class ProcgenGrid(Object3D):
         height of the generated map
 
     shallow: bool
-        Indicates whether procedural generation mesh should be generated in simenv or not.
+        Indicates whether procedural generation mesh should be generated in simulate or not.
         When it's true, we just return the map returned by the algorithm without
-        actually creating the mesh in simenv.
+        actually creating the mesh in simulate.
         Created for the purpose of optimizing certain environments such as XLand.
 
     seed: int

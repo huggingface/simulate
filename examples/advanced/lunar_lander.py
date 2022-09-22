@@ -3,7 +3,7 @@ import time
 
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 
 # File inspired by source: https://github.com/openai/gym/blob/master/gym/envs/box2d/lunar_lander.py
@@ -197,7 +197,7 @@ def make_lander(engine="unity", engine_exe=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simenv")
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate")
     parser.add_argument(
         "--num_steps", default=100, type=int, required=False, help="number of steps to run the simulator"
     )

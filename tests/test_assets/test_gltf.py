@@ -20,7 +20,7 @@ import unittest
 
 import numpy as np
 
-import simenv as sm
+import simulate as sm
 
 
 FIXTURE_BOX_FILE = os.path.join(os.path.dirname(__file__), "fixtures", "Box.gltf")

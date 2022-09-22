@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using UnityEngine;
 
-namespace SimEnv.GLTF {
+namespace Simulate.GLTF {
     public class HFPhysicMaterials {
         public List<GLTFPhysicMaterial> objects;
 

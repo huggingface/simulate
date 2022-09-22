@@ -19,7 +19,7 @@ import unittest
 import numpy as np
 import pyvista as pv
 
-import simenv as sm
+import simulate as sm
 
 
 # Create simple versions from all objects

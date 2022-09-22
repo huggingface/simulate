@@ -15,7 +15,7 @@
 # Lint as: python3
 import unittest
 
-import simenv as sm
+import simulate as sm
 
 
 PREDEFINED_MATERIALS = [

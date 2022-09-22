@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-namespace SimEnv {
+namespace Simulate {
     public class RaycastSensor : ISensor {
         public string mName = "RaycastSensor";
         public static string mType = "float";
@@ -17,7 +17,7 @@ namespace SimEnv {
         private float rayLength = 0;
 
 
-        public RaycastSensor(Node node, SimEnv.GLTF.HFRaycastSensors.HFRaycastSensor data) {
+        public RaycastSensor(Node node, Simulate.GLTF.HFRaycastSensors.HFRaycastSensor data) {
             m_node = node;
             mName = data.sensor_tag;
             // calculate ray angles etc
