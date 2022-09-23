@@ -22,14 +22,22 @@ from typing import Any, ClassVar, List, Optional, Union
 import numpy as np
 from dataclasses_json import dataclass_json
 
+from simulate import logging
+
 from .asset import Asset
 from .gltf_extension import GltfExtensionMixin
 
 
+logger = logging.get_logger(__name__)
+
 try:
     from gym import spaces
 except ImportError:
-    pass
+    # Our implementation of gym space classes if gym is not installed
+    logger.warning(
+        "The gym library is not installed, falling back our implementation of gym.spaces. To remove this message pip install simulate[rl]"
+    )
+    from . import spaces
 
 
 ALLOWED_STATE_SENSOR_PROPERTIES = {

@@ -45,10 +45,7 @@ class UnityEngine(Engine):
             launch_command = f"{executable} -batchmode -nographics --args port {port}".split(" ")
         else:
             launch_command = f"{executable} --args port {port}".split(" ")
-        self.proc = subprocess.Popen(
-            launch_command,
-            start_new_session=False,
-        )
+        self.proc = subprocess.Popen(launch_command, start_new_session=False, shell=True)
 
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)

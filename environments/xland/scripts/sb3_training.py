@@ -3,8 +3,20 @@
 import argparse
 
 import numpy as np
-from stable_baselines3 import PPO
 from xland.prebuilt import make_prebuilt_env
+
+from simulate import logging
+
+
+logger = logging.get_logger(__name__)
+
+try:
+    from stable_baselines3 import PPO
+except ImportError:
+    logger.warning(
+        "stable-baseline3 is required for this example and is not installed. To install: pip install simulate[sb3]"
+    )
+    exit()
 
 
 # TODO: check if seeding works properly and maybe migrate to using rng keys
