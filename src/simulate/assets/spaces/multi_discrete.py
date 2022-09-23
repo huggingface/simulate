@@ -5,7 +5,9 @@ from simulate import logging
 from .discrete import Discrete
 from .space import Space
 
+
 logger = logging.get_logger(__name__)
+
 
 class MultiDiscrete(Space):
     """

@@ -1,7 +1,6 @@
 import atexit
 import base64
 import json
-import os
 import signal
 import socket
 import subprocess

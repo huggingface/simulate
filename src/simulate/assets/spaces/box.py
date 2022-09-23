@@ -5,7 +5,10 @@ import numpy as np
 from simulate import logging
 
 from .space import Space
+
+
 logger = logging.get_logger(__name__)
+
 
 class Box(Space):
     """

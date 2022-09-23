@@ -3,7 +3,18 @@ import math
 import random
 import time
 
-from stable_baselines3 import PPO
+from simulate import logging
+
+
+logger = logging.get_logger(__name__)
+
+try:
+    from stable_baselines3 import PPO
+except ImportError:
+    logger.warning(
+        "stable-baseline3 is required for this example and is not installed. To install: pip install simulate[sb3]"
+    )
+    exit()
 
 import simulate as sm
 from simulate.assets.object import ProcGenPrimsMaze3D

@@ -24,12 +24,13 @@ from simulate import logging
 from .action_mapping import ActionMapping
 from .gltf_extension import GltfExtensionMixin
 
+
 logger = logging.get_logger(__name__)
 
 try:
     from gym import spaces
 except ImportError:
-    # Our implementation of gym space classes if gym is not installed - for loading the lib
+    # Our implementation of gym space classes if gym is not installed
     logger.warning(
         "The gym library is not installed, falling back our implementation of gym.spaces. To remove this message pip install simulate[rl]"
     )
