@@ -28,3 +28,11 @@ class Config(GltfExtensionMixin, gltf_extension_name="HF_config", object_type="s
     camera_filter: Optional[List[str]] = None
     ambient_color: Optional[List[float]] = None
     gravity: Optional[List[float]] = None
+
+    def __post_init__(self):
+        self.time_step = self.time_step or 0.02
+        self.frame_skip = self.frame_skip or 1
+        self.return_nodes = self.return_nodes or True
+        self.return_frames = self.return_frames or True
+        self.ambient_color = self.ambient_color or [0.329412, 0.329412, 0.329412]
+        self.gravity = self.gravity or [0, -9.81, 0]

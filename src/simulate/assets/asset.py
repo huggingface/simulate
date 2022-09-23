@@ -927,11 +927,13 @@ class Asset(NodeMixin, object):
                 value = [float(v) for v in value]
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._position = np.array(value)
-        self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
-        if getattr(self.tree_root, "engine", None) is not None:
-            self.tree_root.engine.update_asset(self)
+        new_position = np.array(value)
+        if not np.array_equal(self._position, new_position):
+            self._position = new_position
+            self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
+
+            self._post_asset_modification()
 
     @rotation.setter
     def rotation(self, value):
@@ -946,11 +948,13 @@ class Asset(NodeMixin, object):
                 value = [float(v) for v in value]
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._rotation = np.array(value) / np.linalg.norm(value)
-        self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
-        if getattr(self.tree_root, "engine", None) is not None:
-            self.tree_root.engine.update_asset(self)
+        new_rotation = np.array(value) / np.linalg.norm(value)
+        if not np.array_equal(self._rotation, new_rotation):
+            self._rotation = new_rotation
+            self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
+
+            self._post_asset_modification()
 
     @scaling.setter
     def scaling(self, value):
@@ -965,11 +969,13 @@ class Asset(NodeMixin, object):
                 value = [float(v) for v in value]
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._scaling = np.array(value)
-        self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
 
-        if getattr(self.tree_root, "engine", None) is not None:
-            self.tree_root.engine.update_asset(self)
+        new_scaling = np.array(value)
+        if not np.array_equal(self._scaling, new_scaling):
+            self._scaling = new_scaling
+            self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
+
+            self._post_asset_modification()
 
     @transformation_matrix.setter
     def transformation_matrix(self, value):
@@ -978,14 +984,17 @@ class Asset(NodeMixin, object):
                 value = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
         elif self.dimensionality == 2:
             raise NotImplementedError()
-        self._transformation_matrix = np.array(value)
 
-        translation, rotation, scale = get_trs_from_transform_matrix(value)
-        self._position = translation
-        self._rotation = rotation
-        self._scaling = scale
+        new_transformation_matrix = np.array(value)
+        if not np.array_equal(self._transformation_matrix, new_transformation_matrix):
+            self._transformation_matrix = new_transformation_matrix
 
-        self._post_asset_modification()
+            translation, rotation, scale = get_trs_from_transform_matrix(value)
+            self._position = translation
+            self._rotation = rotation
+            self._scaling = scale
+
+            self._post_asset_modification()
 
     def _post_asset_modification(self):
         if getattr(self.tree_root, "engine", None) is not None and self.tree_root.tree_root.engine.auto_update:
