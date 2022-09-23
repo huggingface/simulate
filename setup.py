@@ -67,11 +67,18 @@ REQUIRED_PKGS = [
    "numpy>=1.17", # We use numpy>=1.17 to have np.random.Generator
    "pyvista",  # For mesh creation and edition and simple vizualization
    "huggingface_hub", # For sharing objects, environments & trained RL policies
-   "gym==0.21.0" # For Gym RL API, observation spaces etc.
+]
+
+RL_REQUIRE = [
+   "gym==0.21.0",  # For RL action spaces and API
+]
+SB3_REQUIRE = [
+   "gym==0.21.0",  # For RL action spaces and API
+   "stable-baselines3"
 ]
 
 DEV_REQUIRE = [
-   "gym",  # For RL action spaces and API
+   "gym==0.21.0",  # For RL action spaces and API
    "stable-baselines3",  # For training with SB3
 
    # For background vizualization capabilities (could be optional - note than some Qt backend can have GPL license)
@@ -90,6 +97,8 @@ TESTS_REQUIRE = [
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 EXTRAS_REQUIRE = {
+   "rl" : RL_REQUIRE,
+   "sb3" : SB3_REQUIRE,
     "dev": DEV_REQUIRE + TESTS_REQUIRE + QUALITY_REQUIRE,
     "test": TESTS_REQUIRE,
     "quality": QUALITY_REQUIRE,
