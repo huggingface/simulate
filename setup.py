@@ -67,7 +67,7 @@ REQUIRED_PKGS = [
    "numpy>=1.17", # We use numpy>=1.17 to have np.random.Generator
    "pyvista",  # For mesh creation and edition and simple vizualization
    "huggingface_hub", # For sharing objects, environments & trained RL policies
-   "gym==0.22.0" # For Gym RL API, observation spaces etc.
+   "gym==0.21.0" # For Gym RL API, observation spaces etc.
 ]
 
 DEV_REQUIRE = [
