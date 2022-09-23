@@ -26,28 +26,8 @@ from .gltf_extension import GltfExtensionMixin
 try:
     from gym import spaces
 except ImportError:
-    # Dummy classes if gym is not installed - for loading the lib
-    class spaces:
-        class Space:
-            pass
-
-        class Box:
-            pass
-
-        class Discrete:
-            pass
-
-        class MultiDiscrete:
-            pass
-
-        class MultiBinary:
-            pass
-
-        class Tuple:
-            pass
-
-        class Dict:
-            pass
+    # Our implementation of gym space classes if gym is not installed - for loading the lib
+    from . import spaces
 
 
 @dataclass
