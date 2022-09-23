@@ -1,6 +1,7 @@
 import atexit
 import base64
 import json
+import os
 import signal
 import socket
 import subprocess
@@ -48,6 +49,7 @@ class UnityEngine(Engine):
         self.proc = subprocess.Popen(
             launch_command,
             start_new_session=False,
+            shell=True
         )
 
     def _initialize_server(self):
