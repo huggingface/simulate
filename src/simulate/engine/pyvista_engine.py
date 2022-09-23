@@ -14,17 +14,14 @@
 
 # Lint as: python3
 """ A PyVista plotting rendered as engine."""
-from typing import Any, Optional, TYPE_CHECKING, List, Dict
+from typing import Any, Optional
 
 import numpy as np
 import pyvista
-import pybullet as pb
 
-from ..assets import Asset, Camera, Light, Material, Object3D, Collider, RigidBodyComponent, ArticulationBodyComponent, get_trs_from_transform_matrix
+from ..assets import Asset, Camera, Light, Material, Object3D
 from .engine import Engine
 
-if TYPE_CHECKING:
-    from ..scene import Scene
 
 try:
     from pyvistaqt import BackgroundPlotter
@@ -70,57 +67,14 @@ except ImportError:
     CustomBackgroundPlotter = None
 
 
-def convert_colliders_to_pybullet(colliders: List[Collider]) -> List[int]:
-    pybullet_ids = []
-    for collider in colliders:
-        if collider.collider_type == "box":
-            pybullet_ids.append(
-                pb.createCollisionShape(
-                    pb.GEOM_BOX,
-                    halfExtents=[bound/2 for bound in collider.bounding_box],
-                )
-            )
-        elif collider.collider_type == "sphere":
-            pybullet_ids.append(
-                pb.createCollisionShape(
-                    pb.GEOM_SPHERE,
-                    radius=abs(min(collider.bounding_box)/2),
-                )
-            )
-        elif collider.collider_type == "capsule":
-            pybullet_ids.append(
-                pb.createCollisionShape(
-                    pb.GEOM_CAPSULE,
-                    radius=collider.bounding_box[0],
-                    height=collider.bounding_box[1],
-                )
-            )
-        elif collider.collider_type == "mesh":
-            raise NotImplementedError("Mesh collider not implemented yet")
-            # pybullet_ids.append(
-            #     pb.createCollisionShape(
-            #         pb.GEOM_MESH,
-            #         fileName=collider.file_name,
-            #         meshScale=collider.mesh_scale,
-            #     )
-            # )
-        else:
-            raise ValueError(f"Collider type {collider.collider_type} not supported")
-    if len(pybullet_ids) == 0:
-        return [-1]
-    return pybullet_ids
-
-
 class PyVistaEngine(Engine):
     def __init__(self, scene, auto_update=True, **plotter_kwargs):
         self.plotter: pyvista.Plotter = None
         self.plotter_kwargs = plotter_kwargs
-        self.physics_client = None
         self.auto_update = bool(CustomBackgroundPlotter is not None and auto_update)
 
-        self._scene: "Scene" = scene
-        self._plotter_actors: Dict[str, Any] = {}
-        self._pybullet_actors: Dict[Asset, int] = {}
+        self._scene: Asset = scene
+        self._plotter_actors = {}
 
     def _initialize_plotter(self):
         plotter_args = {"lighting": "none"}
@@ -132,18 +86,6 @@ class PyVistaEngine(Engine):
         # self.plotter.camera_position = "xy"
         self.plotter.view_vector((1, 1, 1), (0, 1, 0))
         self.plotter.add_axes(box=True)
-
-    def _initialize_pybullet(self):
-        self.physics_client = pb.connect(pb.DIRECT)
-        # --- Set some parameters to fix the sticky-walls problem; see
-        # https://github.com/bulletphysics/bullet3/issues/3094
-        pb.setPhysicsEngineParameter(restitutionVelocityThreshold=0.,
-                                    warmStartingFactor=0.,
-                                    useSplitImpulse=True,
-                                    contactSlop=0.,
-                                    enableConeFriction=False,
-                                    deterministicOverlappingPairs=True)
-
 
     @staticmethod
     def _get_node_transform(node) -> np.ndarray:
@@ -214,25 +156,6 @@ class PyVistaEngine(Engine):
                 self._set_pbr_material_for_actor(actor, material)
 
             self._plotter_actors[node.name] = actor
-
-            if isinstance(node.physics_component, RigidBodyComponent):
-                collider_list = [n for n in node.tree_children if isinstance(n, Collider)]
-                pybullet_collision_shapes = convert_colliders_to_pybullet(collider_list)
-                base_shape = pybullet_collision_shapes[0]
-                if len(pybullet_collision_shapes) > 1:
-                    raise NotImplementedError("Compound colliders not implemented yet")
-                translation, rotation, scaling = get_trs_from_transform_matrix(model_transform_matrix)
-                bullet_node_idx = pb.createMultiBody(node.physics_component.mass if not node.physics_component.kinematic else 0,
-                                             base_shape,
-                                             -1,
-                                             translation,
-                                             rotation)  # useMaximalCoordinates=True)
-                pb.changeDynamics(bullet_node_idx, -1, contactProcessingThreshold=0)
-
-                self._pybullet_actors[node] = bullet_node_idx
-
-            elif isinstance(node.physics_component, ArticulationBodyComponent):
-                raise NotImplementedError("Articulation bodies not implemented yet")
 
         elif isinstance(node, Camera):
             camera = pyvista.Camera()
@@ -327,8 +250,6 @@ class PyVistaEngine(Engine):
     def regenerate_scene(self):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             self._initialize_plotter()
-        if self.physics_client is None:
-            self._initialize_pybullet()
 
         # Clear plotter and dict of located meshes
         self.plotter.clear()
@@ -359,22 +280,6 @@ class PyVistaEngine(Engine):
         self.regenerate_scene()
         self.plotter.show(**plotter_kwargs)
 
-    def step(self, action=None):
-        if self.physics_client is None:
-            self.regenerate_scene()
-        pb.setGravity(*self._scene.config.gravity)
-        pb.setTimeStep(self._scene.config.time_step)
-
-        pb.stepSimulation()
-
-        for node, pybullet_id in self._pybullet_actors.items():
-            pos, quat = pb.getBasePositionAndOrientation(pybullet_id)
-            node.position = pos
-            node.rotation = quat
-
     def close(self):
         if self.plotter is not None:
             self.plotter.close()
-        if self.physics_client is not None:
-            pb.disconnect(self.physics_client)
-            self.physics_client = None
