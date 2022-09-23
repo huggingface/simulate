@@ -9,9 +9,10 @@ from xland.prebuilt import make_prebuilt_env
 try:
     from stable_baselines3 import PPO
 except ImportError:
-    raise ImportError(
+    logger.warning(
         "stable-baseline3 is required for this example and is not installed. To install: pip install simulate[sb3]"
     )
+    exit()
 
 
 # TODO: check if seeding works properly and maybe migrate to using rng keys
