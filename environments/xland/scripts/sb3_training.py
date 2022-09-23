@@ -5,6 +5,10 @@ import argparse
 import numpy as np
 from xland.prebuilt import make_prebuilt_env
 
+from simulate import logging
+
+
+logger = logging.get_logger(__name__)
 
 try:
     from stable_baselines3 import PPO
