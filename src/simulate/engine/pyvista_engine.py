@@ -14,14 +14,19 @@
 
 # Lint as: python3
 """ A PyVista plotting rendered as engine."""
-from typing import Any, Optional, TYPE_CHECKING, List, Dict
+from typing import Any, Optional, TYPE_CHECKING, List, Dict, Tuple
 
+import sys
 import numpy as np
 import pyvista
-import pybullet as pb
 
 from ..assets import Asset, Camera, Light, Material, Object3D, Collider, RigidBodyComponent, ArticulationBodyComponent, get_trs_from_transform_matrix
 from .engine import Engine
+from .engine_utils import RedirectStream
+
+with RedirectStream(stream=sys.stderr):
+    import pybullet as pb
+
 
 if TYPE_CHECKING:
     from ..scene import Scene
@@ -73,21 +78,21 @@ except ImportError:
 def convert_colliders_to_pybullet(colliders: List[Collider]) -> List[int]:
     pybullet_ids = []
     for collider in colliders:
-        if collider.collider_type == "box":
+        if collider.type == "box":
             pybullet_ids.append(
                 pb.createCollisionShape(
                     pb.GEOM_BOX,
                     halfExtents=[bound/2 for bound in collider.bounding_box],
                 )
             )
-        elif collider.collider_type == "sphere":
+        elif collider.type == "sphere":
             pybullet_ids.append(
                 pb.createCollisionShape(
                     pb.GEOM_SPHERE,
                     radius=abs(min(collider.bounding_box)/2),
                 )
             )
-        elif collider.collider_type == "capsule":
+        elif collider.type == "capsule":
             pybullet_ids.append(
                 pb.createCollisionShape(
                     pb.GEOM_CAPSULE,
@@ -95,7 +100,7 @@ def convert_colliders_to_pybullet(colliders: List[Collider]) -> List[int]:
                     height=collider.bounding_box[1],
                 )
             )
-        elif collider.collider_type == "mesh":
+        elif collider.type == "mesh":
             raise NotImplementedError("Mesh collider not implemented yet")
             # pybullet_ids.append(
             #     pb.createCollisionShape(
@@ -130,6 +135,7 @@ class PyVistaEngine(Engine):
         else:
             self.plotter: pyvista.Plotter = pyvista.Plotter(**plotter_args)
         # self.plotter.camera_position = "xy"
+        self.plotter.enable_shadows()
         self.plotter.view_vector((1, 1, 1), (0, 1, 0))
         self.plotter.add_axes(box=True)
 
@@ -146,8 +152,9 @@ class PyVistaEngine(Engine):
 
 
     @staticmethod
-    def _get_node_transform(node) -> np.ndarray:
+    def _get_node_transform(node: "Asset") -> np.ndarray:
         transforms = list(n.transformation_matrix for n in node.tree_path)
+        print(transforms)
         if len(transforms) > 1:
             model_transform_matrix = np.linalg.multi_dot(transforms)  # Compute transform from the tree parents
         else:
@@ -166,6 +173,12 @@ class PyVistaEngine(Engine):
             actor = self._plotter_actors.get(node.name)
             if actor is not None:
                 self.plotter.remove_actor(actor)
+                del self._plotter_actors[node.name]
+
+            pybullet_actor = self._pybullet_actors.get(node)
+            if pybullet_actor is not None:
+                pb.removeBody(pybullet_actor)
+                del self._pybullet_actors[node]
 
         self.plotter.reset_camera()
 
@@ -178,12 +191,21 @@ class PyVistaEngine(Engine):
             if not isinstance(node, (Object3D, Camera, Light)):
                 continue
 
+            # Remove the actor if it already exists
             actor = self._plotter_actors.get(node.name)
             if actor is not None:
                 self.plotter.remove_actor(actor)
+                del self._plotter_actors[node.name]
 
+            object_idx = self._pybullet_actors.get(node)
+            if object_idx is not None:
+                position, rotation, _ = get_trs_from_transform_matrix(self._get_node_transform(node))
+                velocity, angular_velocity = pb.getBaseVelocity(object_idx)
+                pb.resetBasePositionAndOrientation(object_idx, position, rotation)
+                pb.resetBaseVelocity(object_idx, velocity, angular_velocity)
+
+            # Now add it again
             model_transform_matrix = self._get_node_transform(node)
-
             self._add_asset_to_scene(node, model_transform_matrix)
 
         self.plotter.reset_camera()
@@ -215,21 +237,33 @@ class PyVistaEngine(Engine):
 
             self._plotter_actors[node.name] = actor
 
-            if isinstance(node.physics_component, RigidBodyComponent):
+            bullet_node_idx = self._pybullet_actors.get(node)
+            if bullet_node_idx is None:
                 collider_list = [n for n in node.tree_children if isinstance(n, Collider)]
-                pybullet_collision_shapes = convert_colliders_to_pybullet(collider_list)
-                base_shape = pybullet_collision_shapes[0]
-                if len(pybullet_collision_shapes) > 1:
-                    raise NotImplementedError("Compound colliders not implemented yet")
-                translation, rotation, scaling = get_trs_from_transform_matrix(model_transform_matrix)
-                bullet_node_idx = pb.createMultiBody(node.physics_component.mass if not node.physics_component.kinematic else 0,
-                                             base_shape,
-                                             -1,
-                                             translation,
-                                             rotation)  # useMaximalCoordinates=True)
-                pb.changeDynamics(bullet_node_idx, -1, contactProcessingThreshold=0)
+                if len(collider_list) > 0:
+                    mass = 0
+                    if isinstance(node.physics_component, RigidBodyComponent):
+                        mass = node.physics_component.mass if not node.physics_component.kinematic else 0
 
-                self._pybullet_actors[node] = bullet_node_idx
+                    if len(collider_list) > 1:
+                        raise NotImplementedError("Compound colliders not implemented yet")
+                    collider = collider_list[0]
+                    pybullet_collision_shapes = convert_colliders_to_pybullet([collider])
+                    base_shape = pybullet_collision_shapes[0]
+                    translation, rotation, _ = get_trs_from_transform_matrix(self._get_node_transform(collider))  # position, rotation of the collider
+
+                    bullet_node_idx = pb.createMultiBody(mass,
+                                                base_shape,
+                                                -1,
+                                                translation,
+                                                rotation,
+                                                useMaximalCoordinates=True)
+                    pb.changeDynamics(bullet_node_idx, -1, contactProcessingThreshold=0,
+                       spinningFriction=0.001,
+                       rollingFriction=0.001,
+                       linearDamping=0.0)
+
+                    self._pybullet_actors[node] = bullet_node_idx
 
             elif isinstance(node.physics_component, ArticulationBodyComponent):
                 raise NotImplementedError("Articulation bodies not implemented yet")
@@ -359,22 +393,49 @@ class PyVistaEngine(Engine):
         self.regenerate_scene()
         self.plotter.show(**plotter_kwargs)
 
-    def step(self, action=None):
+    def step(self, action=None, time_step=None, frame_skip=None, return_nodes=None, return_frames=None, **kwargs):
         if self.physics_client is None:
             self.regenerate_scene()
-        pb.setGravity(*self._scene.config.gravity)
-        pb.setTimeStep(self._scene.config.time_step)
 
-        pb.stepSimulation()
+        if self._scene.config.gravity is not None:
+            pb.setGravity(*self._scene.config.gravity)
 
-        for node, pybullet_id in self._pybullet_actors.items():
-            pos, quat = pb.getBasePositionAndOrientation(pybullet_id)
+        time_step = self._scene.config.time_step if time_step is None else time_step
+        if time_step is not None:
+            pb.setTimeStep(time_step)
+
+        # Run the simulation
+        frame_skip = self._scene.config.frame_skip if frame_skip is None else frame_skip
+        if frame_skip is not None and frame_skip > 0:
+            for _ in range(frame_skip):
+                print("run one step")
+                pb.stepSimulation()
+
+        # Update new pos/rot the scene
+        for node, pybullet_id  in self._pybullet_actors.items():
+            pos, rot = pb.getBasePositionAndOrientation(pybullet_id)
             node.position = pos
-            node.rotation = quat
+            node.rotation = rot
+        
+        # Return the events if needed
+        if return_nodes is not None:
+            node_dict = {}
+            for node in self._scene:
+                node_dict[node.name] = {"name": node.name,
+                                        "position": node.position,
+                                        "rotation": node.rotation}
+                if node in self._pybullet_actors:
+                    velocity, angular_velocity = pb.getBaseVelocity(self._pybullet_actors[node])
+                    node_dict[node.name].update({"velocity": velocity,
+                                                 "angular_velocity": angular_velocity})
 
     def close(self):
         if self.plotter is not None:
             self.plotter.close()
+
         if self.physics_client is not None:
-            pb.disconnect(self.physics_client)
+            try:
+                pb.disconnect(self.physics_client)
+            except pb.error:
+                pass
             self.physics_client = None
