@@ -21,12 +21,11 @@ import numpy as np
 import pyvista as pv
 
 from .asset import Asset
-from .rigid_body import RigidBodyComponent
-from .articulation_body import ArticulationBodyComponent
 from .collider import Collider
 from .material import Material
 from .procgen.prims import generate_prims_maze
 from .procgen.wfc import generate_2d_map, generate_map
+from .rigid_body import RigidBodyComponent
 
 
 class Object3D(Asset):
@@ -194,18 +193,26 @@ class Plane(Object3D):
         )
 
         super().__init__(
-            mesh=mesh, name=name, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            mesh=mesh,
+            name=name,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
         if with_collider:
-            collider_thickness = collider_thickness or min(i_size, j_size)/100
+            collider_thickness = collider_thickness or min(i_size, j_size) / 100
             collider = Collider(
                 name=self.name + "_collider",
                 type="box",
                 bounding_box=(i_size, collider_thickness, j_size),
-                position=(0, -collider_thickness/2, 0),
+                position=(0, -collider_thickness / 2, 0),
             )
             self.tree_children = (children if children is not None else []) + [collider]
+
 
 class Sphere(Object3D):
     """Create a Sphere
@@ -284,9 +291,18 @@ class Sphere(Object3D):
         sphere.Update()
         mesh = pv.wrap(sphere.GetOutput())
         mesh.rotate_y(-90, inplace=True)
+        direction = (0, 1, 0)
+        pv.translate(mesh, (0, 0, 0), direction)
 
         super().__init__(
-            name=name, mesh=mesh, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            name=name,
+            mesh=mesh,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
         if with_collider:
@@ -364,9 +380,18 @@ class Capsule(Object3D):
 
         mesh = pv.wrap(capsule.GetOutput())
         mesh.rotate_z(-90, inplace=True)
+        direction = (0, 1, 0)
+        pv.translate(mesh, (0, 0, 0), direction)
 
         super().__init__(
-            mesh=mesh, name=name, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            mesh=mesh,
+            name=name,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
         if with_collider:
@@ -426,7 +451,14 @@ class Cylinder(Object3D):
         mesh = pv.Cylinder(direction=direction, radius=radius, height=height, resolution=resolution, capping=capping)
 
         super().__init__(
-            mesh=mesh, name=name, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            mesh=mesh,
+            name=name,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
 
@@ -497,7 +529,14 @@ class Box(Object3D):
         mesh = pv.Box(bounds=bounds, level=level, quads=quads)
 
         super().__init__(
-            mesh=mesh, name=name, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            mesh=mesh,
+            name=name,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
         if with_collider:
@@ -555,7 +594,14 @@ class Cone(Object3D):
         direction = (0, 1, 0)
         mesh = pv.Cone(direction=direction, height=height, radius=radius, resolution=resolution)
         super().__init__(
-            mesh=mesh, name=name, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            mesh=mesh,
+            name=name,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
 
@@ -601,7 +647,15 @@ class Line(Object3D):
             pointb = [1.0, 0.0, 0.0]
         mesh = pv.Line(pointa=pointa, pointb=pointb, resolution=resolution)
 
-        super().__init__(mesh=mesh, name=name, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs)
+        super().__init__(
+            mesh=mesh,
+            name=name,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
+        )
 
 
 class MultipleLines(Object3D):
@@ -636,7 +690,15 @@ class MultipleLines(Object3D):
             points = [[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]
         mesh = pv.MultipleLines(points=points)
 
-        super().__init__(mesh=mesh, name=name, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs)
+        super().__init__(
+            mesh=mesh,
+            name=name,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
+        )
 
 
 class Tube(Object3D):
@@ -688,7 +750,15 @@ class Tube(Object3D):
         if pointb is None:
             pointb = [1.0, 0.0, 0.0]
         mesh = pv.Tube(pointa=pointa, pointb=pointb, radius=radius, resolution=resolution, n_sides=n_sides)
-        super().__init__(mesh=mesh, name=name, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs)
+        super().__init__(
+            mesh=mesh,
+            name=name,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
+        )
 
 
 class Polygon(Object3D):
@@ -758,7 +828,14 @@ class Polygon(Object3D):
         mesh = pv.PolyData(polygonPolyData)
 
         super().__init__(
-            mesh=mesh, name=name, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            mesh=mesh,
+            name=name,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
         if with_collider:
@@ -810,7 +887,14 @@ class RegularPolygon(Object3D):
         direction = (0, 1, 0)
         mesh = pv.Polygon(radius=radius, normal=direction, n_sides=n_sides)
         super().__init__(
-            mesh=mesh, name=name, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            mesh=mesh,
+            name=name,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
 
@@ -868,7 +952,14 @@ class Ring(Object3D):
         direction = (0, 1, 0)
         mesh = pv.Disc(inner=inner, outer=outer, normal=direction, r_res=r_res, c_res=c_res)
         super().__init__(
-            mesh=mesh, name=name, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            mesh=mesh,
+            name=name,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
 
@@ -915,9 +1006,18 @@ class Text3D(Object3D):
     ):
         mesh = pv.Text3D(string=string, depth=depth)
         mesh.rotate_y(-90, inplace=True)
+        direction = (0, 0, -1)
+        pv.translate(mesh, (0, 0, 0), direction)
 
         super().__init__(
-            mesh=mesh, name=name, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            mesh=mesh,
+            name=name,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
 
@@ -951,7 +1051,15 @@ class Triangle(Object3D):
         **kwargs,
     ):
         mesh = pv.Triangle(points=points)
-        super().__init__(mesh=mesh, name=name, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs)
+        super().__init__(
+            mesh=mesh,
+            name=name,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
+        )
 
 
 class Rectangle(Object3D):
@@ -983,7 +1091,15 @@ class Rectangle(Object3D):
         **kwargs,
     ):
         mesh = pv.Rectangle(points=points)
-        super().__init__(mesh=mesh, name=name, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs)
+        super().__init__(
+            mesh=mesh,
+            name=name,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
+        )
 
 
 class Circle(Object3D):
@@ -1029,8 +1145,18 @@ class Circle(Object3D):
     ):
         mesh = pv.Circle(radius=radius, resolution=resolution)
         mesh.rotate_y(-90, inplace=True)
+        direction = (0, 1, 0)
+        pv.translate(mesh, (0, 0, 0), direction)
+
         super().__init__(
-            mesh=mesh, name=name, position=position, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs
+            mesh=mesh,
+            name=name,
+            position=position,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
         )
 
 
@@ -1087,7 +1213,15 @@ class StructuredGrid(Object3D):
 
         # If it is a structured grid, extract the surface mesh (PolyData)
         mesh = pv.StructuredGrid(x, y, z).extract_surface()
-        super().__init__(mesh=mesh, name=name, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs)
+        super().__init__(
+            mesh=mesh,
+            name=name,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
+        )
 
 
 class ProcgenGrid(Object3D):
@@ -1224,7 +1358,15 @@ class ProcgenGrid(Object3D):
 
             # If it is a structured grid, extract the surface mesh (PolyData)
             mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
-            super().__init__(mesh=mesh, name=name, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs)
+            super().__init__(
+                mesh=mesh,
+                name=name,
+                is_actor=is_actor,
+                with_physics_component=with_physics_component,
+                parent=parent,
+                children=children,
+                **kwargs,
+            )
 
     def generate_3D(
         self,
@@ -1243,7 +1385,15 @@ class ProcgenGrid(Object3D):
 
         # If it is a structured grid, extract the surface mesh (PolyData)
         mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
-        super().__init__(mesh=mesh, name=name, is_actor=is_actor, with_physics_component=with_physics_component, parent=parent, children=children, **kwargs)
+        super().__init__(
+            mesh=mesh,
+            name=name,
+            is_actor=is_actor,
+            with_physics_component=with_physics_component,
+            parent=parent,
+            children=children,
+            **kwargs,
+        )
 
 
 class ProcGenPrimsMaze3D(Asset):

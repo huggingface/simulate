@@ -58,8 +58,9 @@ class PyvistaTest(unittest.TestCase):
         scene += sm.Sphere(position=(2, 0, 0))
         scene.show(auto_close=False)
         self.assertEqual(len(scene.engine.plotter.renderer._actors), 2)
-        scene.engine.plotter.close()
 
-        if scene.engine.auto_update:
-            window = scene.engine.plotter.app_window
-            self.assertTrue(window.isVisible())
+        # if scene.engine.auto_update:
+        #     window = scene.engine.plotter.app_window
+        #     self.assertTrue(window.isVisible())
+
+        scene.engine.plotter.close()

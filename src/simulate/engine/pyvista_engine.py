@@ -85,7 +85,8 @@ class PyVistaEngine(Engine):
             self.plotter: pyvista.Plotter = pyvista.Plotter(**plotter_args)
         # self.plotter.camera_position = "xy"
         self.plotter.view_vector((1, 1, 1), (0, 1, 0))
-        self.plotter.add_axes(box=True)
+        if not self.auto_update:
+            self.plotter.add_axes(box=True)
 
     @staticmethod
     def _get_node_transform(node) -> np.ndarray:
@@ -278,7 +279,7 @@ class PyVistaEngine(Engine):
             self.auto_update = auto_update
 
         self.regenerate_scene()
-        self.plotter.show(**plotter_kwargs)
+        self.plotter.show(**plotter_kwargs if not self.auto_update else {})
 
     def close(self):
         if self.plotter is not None:
