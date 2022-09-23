@@ -5,7 +5,7 @@ import numpy as np
 from simulate import logging
 
 from .space import Space
-
+logger = logging.get_logger(__name__)
 
 class Box(Space):
     """
@@ -63,7 +63,7 @@ class Box(Space):
         high_precision = _get_precision(self.high.dtype)
         dtype_precision = _get_precision(self.dtype)
         if min(low_precision, high_precision) > dtype_precision:
-            logging.warn("Box bound precision lowered by casting to {}".format(self.dtype))
+            logger.warning("Box bound precision lowered by casting to {}".format(self.dtype))
         self.low = self.low.astype(self.dtype)
         self.high = self.high.astype(self.dtype)
 

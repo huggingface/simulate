@@ -5,6 +5,7 @@ from simulate import logging
 from .discrete import Discrete
 from .space import Space
 
+logger = logging.get_logger(__name__)
 
 class MultiDiscrete(Space):
     """
@@ -66,7 +67,7 @@ class MultiDiscrete(Space):
 
     def __len__(self):
         if self.nvec.ndim >= 2:
-            logging.warn("Get length of a multi-dimensional MultiDiscrete space.")
+            logger.warning("Get length of a multi-dimensional MultiDiscrete space.")
         return len(self.nvec)
 
     def __eq__(self, other):
