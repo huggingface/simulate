@@ -145,7 +145,7 @@ class EgocentricCameraActor(Capsule):
         camera_name = None
         if name is not None:
             camera_name = f"{name}_camera"
-        self.camera = Camera(name=camera_name, width=camera_width, height=camera_height, position=[0, 0.75, 0])
+        self.camera = Camera(name=camera_name, width=camera_width, height=camera_height, position=[0, 0.25, 0])
         children = children + self.camera if children is not None else self.camera
 
         super().__init__(

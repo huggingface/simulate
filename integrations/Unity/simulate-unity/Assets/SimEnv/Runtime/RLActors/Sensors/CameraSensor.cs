@@ -40,7 +40,8 @@ namespace Simulate {
         }
 
         public void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex) {
-            int startingIndex = mapIndex * actorIndex * GetSize();
+            // TODO This needs to be adjusted for a multiagent setting to include the number of actors
+            int startingIndex = mapIndex * GetSize();
             if (!cached) {
                 RenderTexture activeRenderTexture = RenderTexture.active;
                 RenderTexture.active = renderCamera.camera.targetTexture;
