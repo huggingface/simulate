@@ -1,19 +1,19 @@
 import atexit
 import base64
 import json
+import os
 import signal
 import socket
 import subprocess
-import time
 import tarfile
-import os
+import time
+from sys import platform
 
 from huggingface_hub import hf_hub_download
 from huggingface_hub.constants import hf_cache_home
 
 from .engine import Engine
 
-from sys import platform
 
 NUM_BIND_RETRIES = 20
 BIND_RETRIES_DELAY = 2.0
@@ -42,6 +42,7 @@ elif platform == "win64":
 default_cache_path = os.path.join(hf_cache_home, "unity")
 
 HUGGINGFACE_UNITY_CACHE = os.getenv("HUGGINGFACE_UNITY_CACHE", default_cache_path)
+
 
 class UnityEngine(Engine):
     def __init__(
@@ -90,7 +91,6 @@ class UnityEngine(Engine):
         archive.extractall(HUGGINGFACE_UNITY_CACHE)
         archive.close()
         return os.path.join(HUGGINGFACE_UNITY_CACHE, main_dir, UNITY_EXECUTABLE_PATH)
-
 
     def _launch_executable(self, executable: str, port: str, headless: bool):
         # TODO: improve headless training check on a headless machine
