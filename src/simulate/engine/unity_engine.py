@@ -5,14 +5,43 @@ import signal
 import socket
 import subprocess
 import time
+import tarfile
+import os
+
+from huggingface_hub import hf_hub_download
+from huggingface_hub.constants import hf_cache_home
 
 from .engine import Engine
 
+from sys import platform
 
 NUM_BIND_RETRIES = 20
 BIND_RETRIES_DELAY = 2.0
 SOCKET_TIME_OUT = 30.0  # Timeout in seconds
 
+UNITY_BUILD_REPO = "simulate-tests/unity-test"
+UNITY_SUBFOLDER = "builds"
+
+if platform == "linux" or platform == "linux2":
+    UNITY_SUBFOLDER += "/Build-StandaloneLinux64"
+    UNITY_COMPRESSED_FILENAME = "StandaloneLinux64.tar.gz"
+    UNITY_EXECUTABLE_PATH = "StandaloneLinux64"
+elif platform == "darwin":
+    UNITY_SUBFOLDER += "/Build-StandaloneOSX"
+    UNITY_COMPRESSED_FILENAME = "StandaloneOSX.tar.gz"
+    UNITY_EXECUTABLE_PATH = "StandaloneOSX.app/Contents/MacOS/Simulate"
+elif platform == "win32":
+    UNITY_SUBFOLDER += "/Build-StandaloneWindows"
+    UNITY_COMPRESSED_FILENAME = "StandaloneWindows.tar.gz"
+    UNITY_EXECUTABLE_PATH = "StandaloneWindows.exe"
+elif platform == "win64":
+    UNITY_SUBFOLDER += "/Build-StandaloneWindows64"
+    UNITY_COMPRESSED_FILENAME = "StandaloneWindows64.tar.gz"
+    UNITY_EXECUTABLE_PATH = "StandaloneWindows64.exe"
+
+default_cache_path = os.path.join(hf_cache_home, "unity")
+
+HUGGINGFACE_UNITY_CACHE = os.getenv("HUGGINGFACE_UNITY_CACHE", default_cache_path)
 
 class UnityEngine(Engine):
     def __init__(
@@ -30,6 +59,13 @@ class UnityEngine(Engine):
 
         if engine_exe:
             self._launch_executable(executable=engine_exe, port=engine_port, headless=engine_headless)
+        elif engine_exe == "":
+            engine_exe = self._get_unity_from_hub()
+            self._launch_executable(executable=engine_exe, port=engine_port, headless=engine_headless)
+        elif engine_exe is None:
+            pass  # We run with the editor
+        else:
+            raise ValueError("engine_exe must be a string, None or empty")
 
         self._initialize_server()
         atexit.register(self._close)
@@ -37,6 +73,24 @@ class UnityEngine(Engine):
         signal.signal(signal.SIGINT, self._close)
 
         self._map_pool = False
+
+    def _get_unity_from_hub(self) -> str:
+        unity_compressed = hf_hub_download(
+            repo_id=UNITY_BUILD_REPO,
+            filename=UNITY_COMPRESSED_FILENAME,
+            subfolder=UNITY_SUBFOLDER,
+            revision=None,
+            repo_type="space",
+        )
+
+        # open file
+        archive = tarfile.open(unity_compressed)
+        main_dir = os.path.commonpath(archive.getnames())
+
+        archive.extractall(HUGGINGFACE_UNITY_CACHE)
+        archive.close()
+        return os.path.join(HUGGINGFACE_UNITY_CACHE, main_dir, UNITY_EXECUTABLE_PATH)
+
 
     def _launch_executable(self, executable: str, port: str, headless: bool):
         # TODO: improve headless training check on a headless machine
