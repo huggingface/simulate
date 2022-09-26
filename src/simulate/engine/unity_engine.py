@@ -50,13 +50,13 @@ class UnityEngine(Engine):
         scene,
         auto_update=True,
         engine_exe="",
-        engine_port=None,
+        engine_port=55000,
         engine_headless=False,
     ):
         super().__init__(scene=scene, auto_update=auto_update)
 
         self.host = "127.0.0.1"
-        self.port = engine_port if engine_port is not None else 55000
+        self.port = engine_port
 
         if engine_exe:
             self._launch_executable(executable=engine_exe, port=engine_port, headless=engine_headless)
@@ -99,7 +99,10 @@ class UnityEngine(Engine):
             launch_command = f"{executable} -batchmode -nographics --args port {port}".split(" ")
         else:
             launch_command = f"{executable} --args port {port}".split(" ")
-        self.proc = subprocess.Popen(launch_command, start_new_session=False, shell=True)
+        environ = os.environ.copy()
+        environ["PATH"] = "/usr/sbin:/sbin:" + environ["PATH"]
+
+        self.proc = subprocess.Popen(launch_command, env=environ)
 
     def _initialize_server(self):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
