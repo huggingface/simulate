@@ -85,7 +85,8 @@ class PyVistaEngine(Engine):
             self.plotter: pyvista.Plotter = pyvista.Plotter(**plotter_args)
         # self.plotter.camera_position = "xy"
         self.plotter.view_vector((1, 1, 1), (0, 1, 0))
-        self.plotter.add_axes(box=True)
+        if not self.auto_update:
+            self.plotter.add_axes(box=True)
 
     @staticmethod
     def _get_node_transform(node) -> np.ndarray:
@@ -105,7 +106,7 @@ class PyVistaEngine(Engine):
             if not isinstance(node, (Object3D, Camera, Light)):
                 continue
 
-            actor = self._plotter_actors.get(node.uuid)
+            actor = self._plotter_actors.get(node.name)
             if actor is not None:
                 self.plotter.remove_actor(actor)
 
@@ -120,7 +121,7 @@ class PyVistaEngine(Engine):
             if not isinstance(node, (Object3D, Camera, Light)):
                 continue
 
-            actor = self._plotter_actors.get(node.uuid)
+            actor = self._plotter_actors.get(node.name)
             if actor is not None:
                 self.plotter.remove_actor(actor)
 
@@ -155,18 +156,18 @@ class PyVistaEngine(Engine):
                 )
                 self._set_pbr_material_for_actor(actor, material)
 
-            self._plotter_actors[node.uuid] = actor
+            self._plotter_actors[node.name] = actor
 
         elif isinstance(node, Camera):
             camera = pyvista.Camera()
             camera.model_transform_matrix = model_transform_matrix
-            self._plotter_actors[node.uuid] = camera
+            self._plotter_actors[node.name] = camera
 
             self.plotter.camera = camera
         elif isinstance(node, Light):
             light = pyvista.Light()
             light.transform_matrix = model_transform_matrix
-            self._plotter_actors[node.uuid] = self.plotter.add_light(light)
+            self._plotter_actors[node.name] = self.plotter.add_light(light)
 
     @staticmethod
     def _set_pbr_material_for_actor(actor: pyvista._vtk.vtkActor, material: Material):
@@ -278,7 +279,7 @@ class PyVistaEngine(Engine):
             self.auto_update = auto_update
 
         self.regenerate_scene()
-        self.plotter.show(**plotter_kwargs)
+        self.plotter.show(**plotter_kwargs if not self.auto_update else {})
 
     def close(self):
         if self.plotter is not None:

@@ -1,0 +1,118 @@
+name: Build and push Unity to hub
+
+on:
+  workflow_dispatch:
+  pull_request:
+  push:
+    branches:
+     - master
+  release:
+    types:
+      - published
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  buildForAllSupportedPlatforms:
+    name: Build ${{ matrix.targetPlatform }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        targetPlatform:
+          - StandaloneOSX # Build a macOS standalone (Intel 64-bit).
+          - StandaloneWindows # Build a Windows standalone.
+          - StandaloneWindows64 # Build a Windows 64-bit standalone.
+          - StandaloneLinux64 # Build a Linux 64-bit standalone.
+          - WebGL # WebGL.
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          lfs: true
+
+      - name: Caching Unity Library
+        uses: actions/cache@v2
+        with:
+          path: integrations/Unity/simulate-unity/Library
+          key: Library-Simulate
+          restore-keys: |
+            Library-Simulate-
+            Library-
+
+      - name: Build Unity Simulate
+        uses: game-ci/unity-builder@v2
+        env:
+          UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
+        with:
+          targetPlatform: ${{ matrix.targetPlatform }}
+          projectPath: integrations/Unity/simulate-unity
+          buildsPath: integrations/Unity/builds
+
+      - name: Compress
+        run: |
+          mkdir ${{ github.workspace }}/compressed_builds
+          cd ${{ github.workspace }}/integrations/Unity/builds/
+          tar -cvzf ${{ github.workspace }}/compressed_builds/${{ matrix.targetPlatform }}.tar.gz ./${{ matrix.targetPlatform }}
+
+      - uses: actions/upload-artifact@v2
+        with:
+          name: Build-${{ matrix.targetPlatform }}
+          path: ${{ github.workspace }}/compressed_builds/${{ matrix.targetPlatform }}.tar.gz
+
+  # buildForAllSupportedPlatforms:
+  #   name: Simple build and push
+  #   runs-on: ubuntu-latest
+  #   steps:
+  #     - uses: actions/checkout@v2
+  #       with:
+  #         fetch-depth: 0
+  #         lfs: true
+
+  #     - name: Compress
+  #       run: |
+  #         mkdir ${{ github.workspace }}/builds
+  #         cd ${{ github.workspace }}/integrations/Godot/
+  #         tar -cvzf ${{ github.workspace }}/builds/Standalone.tar.gz ./simulate_godot
+
+
+  #     - uses: actions/upload-artifact@v2
+  #       with:
+  #         name: Build-Standalone
+  #         path: ./builds/Standalone.tar.gz
+
+  PushToHub:
+    name: Upload if release
+    needs: [buildForAllSupportedPlatforms]
+    runs-on: ubuntu-latest
+    # if: github.event_name == 'release' && github.event.action == 'published'
+
+    steps:
+      - uses: actions/setup-python@v4
+        with:
+          python-version: "3.x"
+
+      - uses: actions/download-artifact@v3
+        with:
+          # name: artifact
+          path: builds
+
+      - name: Push builds to Hub
+        env:
+          HF_TOKEN: ${{ secrets.HUGGINGFACE_PUSH }}
+          HF_USERNAME: thomwolf
+          REPO_NAME: unity_test
+        run: |
+          GIT_LFS_SKIP_SMUDGE=1 git clone https://huggingface.co/spaces/simulate-tests/$REPO_NAME
+          cd ./$REPO_NAME
+          rm -r ./builds
+          mv ../builds .
+          git config user.name thomwolf
+          git config user.email thomas@huggingface.co
+          git add .
+          git commit -m "release"
+          git push https://HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/simulate-tests/$REPO_NAME main
+
+      # git commit -m "${{github.event.release.tag_name}}"

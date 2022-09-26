@@ -64,10 +64,10 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
             but more precise collision detection (recommended for
             small but fast-moving objects)
 
-    kinematic : bool, optional
-        Whether to ignore force collisions and treat the rigidbody
-            as kinematic. Equivalent to isKinematic in Unity
-            and custom_integrator in Godot
+    kinematic : bool, optional (default: False)
+        Set to True to ignore force collisions and treat the rigidbody
+        as a fix/static object. Equivalent to isKinematic in Unity,
+        custom_integrator in Godot and a mass = 0 in Bullet.
 
     """
 
