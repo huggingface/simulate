@@ -112,7 +112,7 @@ jobs:
           git config user.name thomwolf
           git config user.email thomas@huggingface.co
           git add .
-          git commit -m "release"
+          git commit -m "Build github commit ${{ github.event.pull_request.head.sha }}"
           git push https://HF_USERNAME:$HF_TOKEN@huggingface.co/spaces/simulate-tests/$REPO_NAME main
 
       # git commit -m "${{github.event.release.tag_name}}"
