@@ -58,7 +58,7 @@ class Object3D(Asset):
     ):
         super().__init__(name=name, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs)
 
-        if with_physics_component:
+        if self.physics_component is None and with_physics_component:
             self.physics_component = RigidBodyComponent()
 
         self.mesh = mesh if mesh is not None else pv.PolyData()

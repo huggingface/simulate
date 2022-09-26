@@ -4,18 +4,6 @@ import simulate as sm
 from simulate.assets.action_mapping import ActionMapping
 
 
-def create_scene(build_exe=None, gltf_path=None):
-    try:
-        raise Exception
-        scene = sm.Scene.create_from("simulate-tests/MountainCar/MountainCar.gltf")
-    except Exception as e:
-        print(e)
-        print("Failed to load from hub, loading from path: " + gltf_path)
-        scene = sm.Scene.create_from(gltf_path, engine="Unity", engine_exe=build_exe)
-
-    return scene
-
-
 def add_rl_components_to_scene(scene):
     actor = scene.MountainCar_Cart
     actor.is_actor = True
@@ -38,18 +26,13 @@ def add_rl_components_to_scene(scene):
 
 
 if __name__ == "__main__":
-    DYLAN_GLTF_PATH = "C:\\Users\\dylan\\Documents\\huggingface\\simulate\\integrations\\Unity\\simulate-unity\\Assets\\GLTF\\mountaincar\\Exported\\MountainCar.gltf"
-
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--build_exe", help="path to unity engine build executable", required=False, type=str, default=None
-    )
-    parser.add_argument("--gltf_path", help="path to the gltf file", required=False, type=str, default=DYLAN_GLTF_PATH)
-
+    parser.add_argument("--build_exe", help="path to unity engine build executable", required=False, type=str, default="")
     parser.add_argument("-n", "--n_frames", help="number of frames to simulate", required=False, type=int, default=30)
     args = parser.parse_args()
 
-    scene = create_scene(args.build_exe, args.gltf_path)
+    build_exe = args.build_exe if args.build_exe != "None" else None
+    scene = sm.Scene.create_from("simulate-tests/MountainCar/MountainCar.gltf", engine="Unity", engine_exe=build_exe)
     add_rl_components_to_scene(scene)
 
     env = sm.RLEnv(scene)

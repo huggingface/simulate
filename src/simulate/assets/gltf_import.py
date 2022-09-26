@@ -26,7 +26,7 @@ from huggingface_hub import hf_hub_download
 
 from . import Asset, Camera, Light, Material, Object3D
 from .gltf_extension import GLTF_EXTENSIONS_REGISTER, GLTF_NODES_EXTENSION_CLASS, process_tree_after_gltf
-from .gltflib import GLTF, FileResource, TextureInfo
+from .gltflib import GLTF, FileResource, TextureInfo, Base64Resource
 from .gltflib.enums import AccessorType, ComponentType
 
 
@@ -170,7 +170,11 @@ def get_texture_as_pyvista(gltf_scene: GLTF, texture_info: Optional[TextureInfo]
             texture = pv.read_texture(filepath)
     else:
         resource = gltf_scene.get_resource(gltf_image.uri)
-        texture = pv.read_texture(resource.fullpath)
+        if isinstance(resource, Base64Resource):
+            image = PIL.Image.open(io.BytesIO(resource.data))
+            texture = pv.numpy_to_texture(np.array(image))
+        else:
+            texture = pv.read_texture(resource.fullpath)
 
     return texture
 
@@ -281,6 +285,7 @@ def build_node_tree(
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
         primitives = gltf_mesh.primitives
         base_name = common_kwargs["name"]
+        common_kwargs["with_physics_component"] = False
         for index, primitive in enumerate(primitives):
             mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][index]
 
