@@ -36,16 +36,6 @@ class GltfTest(unittest.TestCase):
         self.assertEqual(child.mesh.n_points, 24)
         self.assertEqual(child.material.base_color, [0.800000011920929, 0.0, 0.0, 1.0])
 
-    def test_load_asset_from_gltf_in_scene(self):
-        scene = sm.Scene()
-        scene.load(FIXTURE_BOX_FILE)
-        self.assertEqual(len(scene), 1)
-
-        child = scene.tree_children[0]
-        self.assertTrue(hasattr(scene, child.name))
-        self.assertEqual(child.mesh.n_points, 24)
-        self.assertEqual(child.material.base_color, [0.800000011920929, 0.0, 0.0, 1.0])
-
     def test_save_asset_in_gltf_from_scene(self):
         scene = sm.Scene.create_from(FIXTURE_BOX_FILE)
         with tempfile.TemporaryDirectory() as tmpdir:

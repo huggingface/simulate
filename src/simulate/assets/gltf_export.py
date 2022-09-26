@@ -302,7 +302,7 @@ def add_material_to_gltf(
 
 
 def add_mesh_to_model(
-    mesh: Union[pv.UnstructuredGrid, pv.PolyData],
+    meshes: Union[pv.UnstructuredGrid, pv.MultiBlock],
     material: Material,
     gltf_model: gl.GLTFModel,
     buffer_data: ByteString,
@@ -310,81 +310,85 @@ def add_mesh_to_model(
     cache: Optional[Dict] = None,
 ) -> int:
 
-    if mesh.n_verts == 0 and mesh.n_lines == 0 and mesh.n_faces == 0:
-        raise NotImplementedError()
-
-    # Store points in gltf
-    np_array = mesh.points.astype(NP_FLOAT32)
-    point_accessor = add_numpy_to_gltf(
-        np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-    )
-
-    # Store vertex normals in gltf (TODO maybe not always necessary?)
-    normal_accessor = None
-    if mesh.active_normals is not None:
-        np_array = mesh.active_normals.astype(NP_FLOAT32)
-        normal_accessor = add_numpy_to_gltf(
-            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-        )
-
-    # Store texture coord in gltf (TODO maybe not always necessary?)
-    tcoord_accessor = None
-    if mesh.active_t_coords is not None:
-        np_array = mesh.active_t_coords.astype(NP_FLOAT32)
-        tcoord_accessor = add_numpy_to_gltf(
-            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-        )
-
-    if material is not None and isinstance(material, Material):
-        # Add a material and/or texture if we want
-        material_id = add_material_to_gltf(
-            material=material, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-        )
-    else:
-        material_id = None
-
-    attributes = gl.Attributes(POSITION=point_accessor, NORMAL=normal_accessor, TEXCOORD_0=tcoord_accessor)
-    # attributes.COLOR_0 = vertex_accessor  # TODO Add back vertex color if we want to
+    if isinstance(meshes, pv.UnstructuredGrid):
+        meshes = [meshes]
 
     primitives = []
 
-    # Add verts as a a Primitive if we have some
-    if mesh.n_verts:
-        primitive = gl.Primitive(mode=gl.PrimitiveMode.POINTS.value, attributes=attributes)
-        # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
-        np_array = mesh.verts.copy().reshape((-1, 1)).astype(NP_UINT32)
-        primitive.indices = add_numpy_to_gltf(
+    for mesh in meshes:
+        if mesh.n_verts == 0 and mesh.n_lines == 0 and mesh.n_faces == 0:
+            raise NotImplementedError()
+
+        # Store points in gltf
+        np_array = mesh.points.astype(NP_FLOAT32)
+        point_accessor = add_numpy_to_gltf(
             np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
         )
-        primitive.material = material_id
-        primitives.append(primitive)
 
-    # Add lines as a Primitive if we have some
-    if mesh.n_lines:
-        primitive = gl.Primitive(mode=gl.PrimitiveMode.LINES.value, attributes=attributes)
-        # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
-        np_array = mesh.lines.copy().reshape((-1, 1)).astype(NP_UINT32)
-        primitive.indices = add_numpy_to_gltf(
-            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-        )
-        primitive.material = material_id
-        primitives.append(primitive)
+        # Store vertex normals in gltf (TODO maybe not always necessary?)
+        normal_accessor = None
+        if mesh.active_normals is not None:
+            np_array = mesh.active_normals.astype(NP_FLOAT32)
+            normal_accessor = add_numpy_to_gltf(
+                np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+            )
 
-    # Add faces as a Primitive if we have some
-    if mesh.n_faces:
-        primitive = gl.Primitive(mode=gl.PrimitiveMode.TRIANGLES.value, attributes=attributes)
-        # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
-        tri_mesh = mesh.triangulate()  # Triangulate the mesh (gltf can nly store triangulated meshes)
-        np_array = (
-            tri_mesh.faces.copy().reshape((-1, 4))[:, 1:].reshape(-1, 1).astype(NP_UINT32)
-        )  # We drop the number of indices per face
-        primitive.indices = add_numpy_to_gltf(
-            np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
-        )
-        primitive.material = material_id
-        primitives.append(primitive)
+        # Store texture coord in gltf (TODO maybe not always necessary?)
+        tcoord_accessor = None
+        if mesh.active_t_coords is not None:
+            np_array = mesh.active_t_coords.astype(NP_FLOAT32)
+            tcoord_accessor = add_numpy_to_gltf(
+                np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+            )
 
-    # Create a final new mesh
+        if material is not None and isinstance(material, Material):
+            # Add a material and/or texture if we want
+            material_id = add_material_to_gltf(
+                material=material, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+            )
+        else:
+            material_id = None
+
+        attributes = gl.Attributes(POSITION=point_accessor, NORMAL=normal_accessor, TEXCOORD_0=tcoord_accessor)
+        # attributes.COLOR_0 = vertex_accessor  # TODO Add back vertex color if we want to
+
+        # Add verts as a a Primitive if we have some
+        if mesh.n_verts:
+            primitive = gl.Primitive(mode=gl.PrimitiveMode.POINTS.value, attributes=attributes)
+            # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
+            np_array = mesh.verts.copy().reshape((-1, 1)).astype(NP_UINT32)
+            primitive.indices = add_numpy_to_gltf(
+                np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+            )
+            primitive.material = material_id
+            primitives.append(primitive)
+
+        # Add lines as a Primitive if we have some
+        if mesh.n_lines:
+            primitive = gl.Primitive(mode=gl.PrimitiveMode.LINES.value, attributes=attributes)
+            # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
+            np_array = mesh.lines.copy().reshape((-1, 1)).astype(NP_UINT32)
+            primitive.indices = add_numpy_to_gltf(
+                np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+            )
+            primitive.material = material_id
+            primitives.append(primitive)
+
+        # Add faces as a Primitive if we have some
+        if mesh.n_faces:
+            primitive = gl.Primitive(mode=gl.PrimitiveMode.TRIANGLES.value, attributes=attributes)
+            # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
+            tri_mesh = mesh.triangulate()  # Triangulate the mesh (gltf can nly store triangulated meshes)
+            np_array = (
+                tri_mesh.faces.copy().reshape((-1, 4))[:, 1:].reshape(-1, 1).astype(NP_UINT32)
+            )  # We drop the number of indices per face
+            primitive.indices = add_numpy_to_gltf(
+                np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
+            )
+            primitive.material = material_id
+            primitives.append(primitive)
+
+    # Create a final new mesh with all the primitives
     gltf_mesh = gl.Mesh(primitives=primitives)
 
     # If we have already created exactly the same mesh we avoid double storing

@@ -46,7 +46,7 @@ class Object3D(Asset):
 
     def __init__(
         self,
-        mesh: Optional[pv.UnstructuredGrid] = None,
+        mesh: Optional[Union[pv.UnstructuredGrid, pv.MultiBlock]] = None,
         material: Optional[Material] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
