@@ -26,7 +26,7 @@ from huggingface_hub import hf_hub_download
 
 from . import Asset, Camera, Light, Material, Object3D
 from .gltf_extension import GLTF_EXTENSIONS_REGISTER, GLTF_NODES_EXTENSION_CLASS, process_tree_after_gltf
-from .gltflib import GLTF, FileResource, TextureInfo, Base64Resource
+from .gltflib import GLTF, Base64Resource, FileResource, TextureInfo
 from .gltflib.enums import AccessorType, ComponentType
 
 

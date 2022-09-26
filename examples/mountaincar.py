@@ -27,7 +27,9 @@ def add_rl_components_to_scene(scene):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", help="path to unity engine build executable", required=False, type=str, default="")
+    parser.add_argument(
+        "--build_exe", help="path to unity engine build executable", required=False, type=str, default=""
+    )
     parser.add_argument("-n", "--n_frames", help="number of frames to simulate", required=False, type=int, default=30)
     args = parser.parse_args()
 

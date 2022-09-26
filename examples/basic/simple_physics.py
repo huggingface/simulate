@@ -44,7 +44,7 @@ def create_scene(build_exe=None):
         scaling=[1, 1, 1],
         material=sm.Material.GRAY50,
         with_collider=True,
-        with_physics_component=True
+        with_physics_component=True,
     )
 
     # Add a camera to record the scene
