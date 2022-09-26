@@ -121,8 +121,7 @@ class GltfTest(unittest.TestCase):
         self.assertEqual(child.material.base_color, [0.800000011920929, 0.0, 0.0, 1.0])
 
     def test_load_asset_from_gltf_in_asset(self):
-        asset = sm.Asset()
-        asset.load(FIXTURE_BOX_FILE)
+        asset = sm.Asset.create_from(FIXTURE_BOX_FILE)
         child = asset.tree_children[0]
         self.assertEqual(child.mesh.n_points, 24)
         self.assertEqual(child.material.base_color, [0.800000011920929, 0.0, 0.0, 1.0])

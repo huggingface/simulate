@@ -310,7 +310,7 @@ def add_mesh_to_model(
     cache: Optional[Dict] = None,
 ) -> int:
 
-    if isinstance(meshes, pv.UnstructuredGrid):
+    if not isinstance(meshes, pv.MultiBlock):
         meshes = [meshes]
 
     primitives = []
@@ -517,7 +517,7 @@ def add_node_to_scene(
     elif isinstance(node, Object3D):
         # For Object3D and for Collider we can have a mesh
         gl_node.mesh = add_mesh_to_model(
-            mesh=node.mesh,
+            meshes=node.mesh,
             material=getattr(node, "material", None),
             gltf_model=gltf_model,
             buffer_data=buffer_data,
@@ -542,7 +542,7 @@ def add_node_to_scene(
 
                     if node.mesh is not None:
                         gl_node.mesh = add_mesh_to_model(
-                            mesh=node.mesh,
+                            meshes=node.mesh,
                             material=None,
                             gltf_model=gltf_model,
                             buffer_data=buffer_data,

@@ -20,12 +20,39 @@ from typing import List, Optional, Union
 import numpy as np
 import pyvista as pv
 
+from .articulation_body import ArticulationBodyComponent
 from .asset import Asset
 from .collider import Collider
 from .material import Material
 from .procgen.prims import generate_prims_maze
 from .procgen.wfc import generate_2d_map, generate_map
 from .rigid_body import RigidBodyComponent
+
+
+def translate(surf, center=(0.0, 0.0, 0.0), new_direction=(1.0, 0.0, 0.0), original_direction=(1.0, 0.0, 0.0)):
+    """Translate and orient a mesh to a new center and direction.
+
+    By default, the input mesh is considered centered at the origin
+    and facing in the x direction.
+
+    Adapted from pyvista's translate function.
+
+    """
+    # Find rotation matrix that rotation original_direction to new_direction
+    v = np.cross(original_direction, new_direction)
+    s = np.linalg.norm(v)
+    if s > 0:
+        c = np.dot(original_direction, new_direction)
+        vx = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
+        R = np.eye(3) + vx + vx.dot(vx) * ((1 - c) / (s**2))
+
+        trans = np.zeros((4, 4))
+        trans[:3, :3] = R
+        trans[3, 3] = 1
+        surf.transform(trans)
+
+    if not np.allclose(center, [0.0, 0.0, 0.0]):
+        surf.points += np.array(center)
 
 
 class Object3D(Asset):
@@ -51,17 +78,29 @@ class Object3D(Asset):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
+        set_mesh_direction: Optional[List[float]] = None,
+        original_mesh_direction: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
         super().__init__(name=name, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs)
 
-        if self.physics_component is None and with_physics_component:
+        if with_rigid_body and with_articulation_body:
+            raise ValueError("Cannot have both rigid body and articulation body")
+        if self.physics_component is None and with_rigid_body:
             self.physics_component = RigidBodyComponent()
+        elif self.physics_component is None and with_articulation_body:
+            self.physics_component = ArticulationBodyComponent()
 
         self.mesh = mesh if mesh is not None else pv.PolyData()
+
+        if set_mesh_direction is not None:
+            if original_mesh_direction is None:
+                original_mesh_direction = [1.0, 0.0, 0.0]
+            translate(mesh, (0, 0, 0), new_direction=set_mesh_direction, original_direction=original_mesh_direction)
 
         # Avoid having averaging normals at shared points
         # (default pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
@@ -146,6 +185,10 @@ class Plane(Object3D):
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
 
+    set_mesh_direction : list or tuple or np.ndarray, optional
+        Direction the normal to the plane in ``[x, y, z]``.
+        Default to normal pointing in the ``y`` (up) direction.
+
     i_size : float
         Size of the plane in the i direction.
 
@@ -178,14 +221,17 @@ class Plane(Object3D):
         position: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
         with_collider: bool = True,
-        with_physics_component: bool = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
+        set_mesh_direction: Optional[List[float]] = None,
         collider_thickness: Optional[float] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
+        original_mesh_direction = (0, -1, 0)
         mesh = pv.Plane(
-            direction=(0, -1, 0),
+            direction=original_mesh_direction,
             i_size=i_size,
             j_size=j_size,
             i_resolution=i_resolution,
@@ -197,7 +243,10 @@ class Plane(Object3D):
             name=name,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=original_mesh_direction,
             parent=parent,
             children=children,
             **kwargs,
@@ -225,6 +274,10 @@ class Sphere(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
+
+    set_mesh_direction : list or tuple or np.ndarray, optional
+        Direction the top of the sphere points to in ``[x, y, z]``.
+        Default to top of sphere pointing in the ``y`` (up) direction.
 
     radius : float, optional
         Sphere radius.
@@ -269,7 +322,9 @@ class Sphere(Object3D):
         with_collider: bool = True,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
+        set_mesh_direction: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
@@ -291,15 +346,16 @@ class Sphere(Object3D):
         sphere.Update()
         mesh = pv.wrap(sphere.GetOutput())
         mesh.rotate_y(-90, inplace=True)
-        direction = (0, 1, 0)
-        pv.translate(mesh, (0, 0, 0), direction)
 
         super().__init__(
             name=name,
             mesh=mesh,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=(0, 1, 0),
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -324,6 +380,10 @@ class Capsule(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
+
+    set_mesh_direction : list or tuple or np.ndarray, optional
+        Direction the capsule points to in ``[x, y, z]``.
+        Default to pointing in the ``y`` (up) direction.
 
     height : float
       Center to center distance of two spheres
@@ -360,7 +420,9 @@ class Capsule(Object3D):
         with_collider: bool = True,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
+        set_mesh_direction: Optional[List[float]] = None,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
@@ -379,16 +441,16 @@ class Capsule(Object3D):
         capsule.Update()
 
         mesh = pv.wrap(capsule.GetOutput())
-        mesh.rotate_z(-90, inplace=True)
-        direction = (0, 1, 0)
-        pv.translate(mesh, (0, 0, 0), direction)
 
         super().__init__(
             mesh=mesh,
             name=name,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=(0, 1, 0),
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -411,6 +473,10 @@ class Cylinder(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
+
+    set_mesh_direction : list or tuple or np.ndarray, optional
+        Direction the cylinder points to in ``[x, y, z]``.
+        Default to pointing in the ``y`` (up) direction.
 
     radius : float, optional
         Radius of the cylinder.
@@ -441,21 +507,28 @@ class Cylinder(Object3D):
         capping: Optional[bool] = True,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
+        set_mesh_direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        direction = (0, 1, 0)
-        mesh = pv.Cylinder(direction=direction, radius=radius, height=height, resolution=resolution, capping=capping)
+        original_mesh_direction = (0, 1, 0)
+        mesh = pv.Cylinder(
+            direction=original_mesh_direction, radius=radius, height=height, resolution=resolution, capping=capping
+        )
 
         super().__init__(
             mesh=mesh,
             name=name,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=original_mesh_direction,
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -471,6 +544,10 @@ class Box(Object3D):
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
 
+    set_mesh_direction : list or tuple or np.ndarray, optional
+        Direction the top of the box points to in ``[x, y, z]``.
+        Default to pointing in the ``y`` (up) direction.
+
     bounds : float or List[float], optional
         Specify the bounding box of the cube as either:
         - a list of 6 floats:(xMin, xMax, yMin, yMax, zMin, zMax)
@@ -479,7 +556,7 @@ class Box(Object3D):
             => bounds are ``(-xSize/2, xSize/2, ySize/2, ySize/2, -zSize/2, zSize/2)``
         - a single float: size
             => bounds are ``(-size/2, size/2, size/2, size/2, -size/2, size/2)``
-        If no value is provided, create a centered unit box
+        If no value is provide, create a centered unit box
 
     level : int, optional
         Level of subdivision of the faces.
@@ -506,8 +583,10 @@ class Box(Object3D):
         with_collider: bool = True,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
+        set_mesh_direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
@@ -533,7 +612,10 @@ class Box(Object3D):
             name=name,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=(0, 1, 0),
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -558,6 +640,10 @@ class Cone(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
+
+    set_mesh_direction : list or tuple or np.ndarray, optional
+        Direction the top of the cone points to in ``[x, y, z]``.
+        Default to pointing in the ``y`` (up) direction.
 
     height : float, optional
         Height along the cone in its specified direction.
@@ -585,20 +671,25 @@ class Cone(Object3D):
         resolution: Optional[int] = 6,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
+        set_mesh_direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        direction = (0, 1, 0)
-        mesh = pv.Cone(direction=direction, height=height, radius=radius, resolution=resolution)
+        original_mesh_direction = (0, 1, 0)
+        mesh = pv.Cone(direction=original_mesh_direction, height=height, radius=radius, resolution=resolution)
         super().__init__(
             mesh=mesh,
             name=name,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=original_mesh_direction,
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -636,7 +727,9 @@ class Line(Object3D):
         resolution: Optional[int] = 1,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        set_mesh_direction: Optional[List[float]] = None,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
@@ -651,7 +744,10 @@ class Line(Object3D):
             mesh=mesh,
             name=name,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=(1, 0, 0),
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -681,7 +777,9 @@ class MultipleLines(Object3D):
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        set_mesh_direction: Optional[List[float]] = None,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
@@ -694,7 +792,10 @@ class MultipleLines(Object3D):
             mesh=mesh,
             name=name,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=(1, 0, 0),
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -740,7 +841,9 @@ class Tube(Object3D):
         n_sides: Optional[int] = 16,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        set_mesh_direction: Optional[List[float]] = None,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
@@ -750,11 +853,15 @@ class Tube(Object3D):
         if pointb is None:
             pointb = [1.0, 0.0, 0.0]
         mesh = pv.Tube(pointa=pointa, pointb=pointb, radius=radius, resolution=resolution, n_sides=n_sides)
+
         super().__init__(
             mesh=mesh,
             name=name,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=(0, 1, 0),
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -770,7 +877,7 @@ class Polygon(Object3D):
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
 
-    direction : list or tuple or np.ndarray, optional
+    set_mesh_direction : list or tuple or np.ndarray, optional
         Direction the normal to the polygon in ``[x, y, z]``.
         Default to pointing in the ``y`` (up) direction.
 
@@ -798,7 +905,9 @@ class Polygon(Object3D):
         position: Optional[List[float]] = None,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        set_mesh_direction: Optional[List[float]] = None,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         with_collider: bool = False,
@@ -832,7 +941,10 @@ class Polygon(Object3D):
             name=name,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=(0, 1, 0),
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -855,6 +967,10 @@ class RegularPolygon(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
+
+    set_mesh_direction : list or tuple or np.ndarray, optional
+        Direction the normal to the polygon in ``[x, y, z]``.
+        Default to pointing in the ``y`` (up) direction.
 
     points : float, optional
         The radius of the polygon.
@@ -879,19 +995,25 @@ class RegularPolygon(Object3D):
         position: Optional[List[float]] = None,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        set_mesh_direction: Optional[List[float]] = None,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        direction = (0, 1, 0)
-        mesh = pv.Polygon(radius=radius, normal=direction, n_sides=n_sides)
+        original_mesh_direction = (0, 1, 0)
+        mesh = pv.Polygon(radius=radius, normal=original_mesh_direction, n_sides=n_sides)
+
         super().__init__(
             mesh=mesh,
             name=name,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=original_mesh_direction,
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -910,6 +1032,10 @@ class Ring(Object3D):
     position : np.ndarray or list, optional
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
+
+    set_mesh_direction : list or tuple or np.ndarray, optional
+        Direction the normal to the disc in ``[x, y, z]``.
+        Default to pointing in the ``y`` (up) direction.
 
     inner : float, optional
         The inner radius.
@@ -942,21 +1068,26 @@ class Ring(Object3D):
         c_res: Optional[int] = 6,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        direction: Optional[List[float]] = None,
+        set_mesh_direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
-        direction = (0, 1, 0)
-        mesh = pv.Disc(inner=inner, outer=outer, normal=direction, r_res=r_res, c_res=c_res)
+        original_mesh_direction = (0, 1, 0)
+        mesh = pv.Disc(inner=inner, outer=outer, normal=original_mesh_direction, r_res=r_res, c_res=c_res)
+
         super().__init__(
             mesh=mesh,
             name=name,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=original_mesh_direction,
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -972,7 +1103,7 @@ class Text3D(Object3D):
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
 
-    direction : list or tuple or np.ndarray, optional
+    set_mesh_direction : list or tuple or np.ndarray, optional
         Direction the normal to the disc in ``[x, y, z]``.
         Default to pointing in the ``z`` direction.
 
@@ -998,23 +1129,28 @@ class Text3D(Object3D):
         depth: Optional[float] = 0.5,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
+        set_mesh_direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
         mesh = pv.Text3D(string=string, depth=depth)
         mesh.rotate_y(-90, inplace=True)
-        direction = (0, 0, -1)
-        pv.translate(mesh, (0, 0, 0), direction)
+        original_mesh_direction = (0, 0, -1)
+        translate(mesh, (0, 0, 0), new_direction=original_mesh_direction)
 
         super().__init__(
             mesh=mesh,
             name=name,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=original_mesh_direction,
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -1045,17 +1181,23 @@ class Triangle(Object3D):
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        set_mesh_direction: Optional[List[float]] = None,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
         mesh = pv.Triangle(points=points)
+
         super().__init__(
             mesh=mesh,
             name=name,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=(0, 1, 0),
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -1085,17 +1227,23 @@ class Rectangle(Object3D):
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        set_mesh_direction: Optional[List[float]] = None,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
         mesh = pv.Rectangle(points=points)
+
         super().__init__(
             mesh=mesh,
             name=name,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=(0, 1, 0),
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -1111,7 +1259,7 @@ class Circle(Object3D):
         Center in ``[x, y, z]``.
         Default to a center at the origin ``[0, 0, 0]``.
 
-    direction : list or tuple or np.ndarray, optional
+    set_mesh_direction : list or tuple or np.ndarray, optional
         Direction the normal to the circle in ``[x, y, z]``.
         Default to pointing in the ``y`` direction.
 
@@ -1138,22 +1286,27 @@ class Circle(Object3D):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        set_mesh_direction: Optional[List[float]] = None,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
     ):
         mesh = pv.Circle(radius=radius, resolution=resolution)
         mesh.rotate_y(-90, inplace=True)
-        direction = (0, 1, 0)
-        pv.translate(mesh, (0, 0, 0), direction)
+        original_mesh_direction = (0, 1, 0)
+        translate(mesh, (0, 0, 0), new_direction=original_mesh_direction)
 
         super().__init__(
             mesh=mesh,
             name=name,
             position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=original_mesh_direction,
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -1198,8 +1351,11 @@ class StructuredGrid(Object3D):
         y: Union[np.ndarray, List[List[float]]],
         z: Union[np.ndarray, List[List[float]]],
         name: Optional[str] = None,
+        position: Optional[List[float]] = None,
+        set_mesh_direction: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
@@ -1213,11 +1369,18 @@ class StructuredGrid(Object3D):
 
         # If it is a structured grid, extract the surface mesh (PolyData)
         mesh = pv.StructuredGrid(x, y, z).extract_surface()
+        original_mesh_direction = (0, 1, 0)
+        translate(mesh, (0, 0, 0), new_direction=original_mesh_direction, original_direction=(0, 1, 0))
+
         super().__init__(
             mesh=mesh,
             name=name,
+            position=position,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            set_mesh_direction=set_mesh_direction,
+            original_mesh_direction=original_mesh_direction,
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
@@ -1263,9 +1426,9 @@ class ProcgenGrid(Object3D):
         height of the generated map
 
     shallow: bool
-        Indicates whether procedural generation mesh should be generated in simulate or not.
+        Indicates whether procedural generation mesh should be generated in simenv or not.
         When it's true, we just return the map returned by the algorithm without
-        actually creating the mesh in simulate.
+        actually creating the mesh in simenv.
         Created for the purpose of optimizing certain environments such as XLand.
 
     seed: int
@@ -1299,7 +1462,10 @@ class ProcgenGrid(Object3D):
         seed: int = None,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        position: Optional[List[float]] = None,
+        set_mesh_direction: Optional[List[float]] = None,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         verbose: Optional[bool] = False,
@@ -1358,11 +1524,18 @@ class ProcgenGrid(Object3D):
 
             # If it is a structured grid, extract the surface mesh (PolyData)
             mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
+            original_mesh_direction = (0, 1, 0)
+            pv.translate(mesh, (0, 0, 0), new_direction=original_mesh_direction)
+
             super().__init__(
                 mesh=mesh,
                 name=name,
+                position=position,
                 is_actor=is_actor,
-                with_physics_component=with_physics_component,
+                set_mesh_direction=set_mesh_direction,
+                original_mesh_direction=original_mesh_direction,
+                with_rigid_body=with_rigid_body,
+                with_articulation_body=with_articulation_body,
                 parent=parent,
                 children=children,
                 **kwargs,
@@ -1372,7 +1545,8 @@ class ProcgenGrid(Object3D):
         self,
         name: Optional[str] = None,
         is_actor: Optional[bool] = False,
-        with_physics_component: Optional[bool] = True,
+        with_rigid_body: Optional[bool] = False,
+        with_articulation_body: Optional[bool] = False,
         parent: Optional[Asset] = None,
         children: Optional[List[Asset]] = None,
         **kwargs,
@@ -1389,7 +1563,8 @@ class ProcgenGrid(Object3D):
             mesh=mesh,
             name=name,
             is_actor=is_actor,
-            with_physics_component=with_physics_component,
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
             parent=parent,
             children=children,
             **kwargs,
