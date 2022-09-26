@@ -383,8 +383,8 @@ class Asset(NodeMixin, object):
         When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
 
         Examples:
-        - Scene.load('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
-        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
+        - Scene.create_from('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.create_from('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         # We import dynamically here to avoid circular import (tried many other options...)
         from .gltf_import import load_gltf_as_tree
@@ -475,8 +475,8 @@ class Asset(NodeMixin, object):
         When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
 
         Examples:
-        - Scene.load('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
-        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
+        - Scene.create_from('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.create_from('~/documents/gltf-files/scene.gltf'): a local files in user home
         """
         root_node, gltf_file = Asset._get_node_tree_from_hub_or_local(
             hub_or_local_filepath=hub_or_local_filepath,
@@ -503,42 +503,6 @@ class Asset(NodeMixin, object):
             created_from_file=gltf_file,
             **kwargs,
         )
-
-    def load(
-        self,
-        hub_or_local_filepath: str,
-        use_auth_token: Optional[str] = None,
-        revision: Optional[str] = None,
-        is_local: Optional[bool] = None,
-        **kwargs,
-    ) -> "Asset":
-        """Load a Scene from the HuggingFace hub or from a local GLTF file.
-
-        First argument is either:
-        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
-        - or a path to a local file on the drive.
-
-        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
-
-        Examples:
-        - Scene.load('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
-        - Scene.load('~/documents/gltf-files/scene.gltf'): a local files in user home
-        """
-        root_node, gltf_file = Asset._get_node_tree_from_hub_or_local(
-            hub_or_local_filepath=hub_or_local_filepath,
-            use_auth_token=use_auth_token,
-            revision=revision,
-            is_local=is_local,
-            **kwargs,
-        )
-
-        self.clear()
-        self.name = root_node.name
-        self.position = root_node.position
-        self.rotation = root_node.rotation
-        self.scaling = root_node.scaling
-        self.tree_children = root_node.tree_children
-        self.created_from_file = gltf_file
 
     def push_to_hub(
         self,

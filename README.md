@@ -40,15 +40,13 @@ In the future, this will be built as an executable, and spawned by the Python AP
 
 ## Loading a scene from the hub or a local file
 
-Loading a scene from a local file or the hu is done with `Scene.load()`, saving or pushing to the hub with `scene.save()` or `scene.push_to_hub()`:
+Loading a scene from a local file or the hu is done with `Scene.create_from()`, saving or pushing to the hub with `scene.save()` or `scene.push_to_hub()`:
 
 ```
 from simulate import Scene
 
-scene = Scene()
-scene = scene.load('tests/test_assets/fixtures/Box.gltf')  # either local (priority) or on the hub with full path to file
-scene = Scene()
-scene = scene.load('simulate-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the hub file
+scene = Scene.create_from('tests/test_assets/fixtures/Box.gltf')  # either local (priority) or on the hub with full path to file
+scene = Scene.create_from('simulate-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the hub file
 
 scene.save('local_dir/file.gltf')  # Save to a local file
 scene.push_to_hub('simulate-tests/Debug/glTF/Box.gltf')  # Save to the hub
