@@ -894,8 +894,13 @@ class Asset(NodeMixin, object):
 
         return self.scale(vector=[0.0, 0.0, 1.0], value=value)
 
-    # getters for position/rotation/scale
-
+    ##############################
+    # Properties copied from Asset()
+    # We need to redefine them here otherwise the dataclass lose them since
+    # they are also in the __init__ signature
+    #
+    # Need to be updated if Asset() is updated
+    ##############################
     @property
     def position(self):
         return self._position
@@ -919,12 +924,14 @@ class Asset(NodeMixin, object):
     @position.setter
     def position(self, value):
         if self.dimensionality == 3:
-            if value is None:
+            if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
-            elif len(value) != 3:
+            elif isinstance(value, (list, tuple, np.ndarray)) and len(value) != 3:
                 raise ValueError("position should be of size 3 (X, Y, Z)")
-            else:
+            elif isinstance(value, (list, tuple, np.ndarray)) and len(value) == 3:
                 value = [float(v) for v in value]
+            else:
+                raise TypeError("Position must be a list of 3 numbers")
         elif self.dimensionality == 2:
             raise NotImplementedError()
 
@@ -938,14 +945,14 @@ class Asset(NodeMixin, object):
     @rotation.setter
     def rotation(self, value):
         if self.dimensionality == 3:
-            if value is None:
+            if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
-            elif len(value) == 3:
+            elif isinstance(value, (list, tuple, np.ndarray)) and len(value) == 3:
                 value = rotation_from_euler_degrees(*value)
-            elif len(value) != 4:
-                raise ValueError("rotation should be of size 3 (Euler angles) or 4 (Quaternions")
-            else:
+            elif isinstance(value, (list, tuple, np.ndarray)) and len(value) == 4:
                 value = [float(v) for v in value]
+            else:
+                raise ValueError("Rotation should be of size 3 (Euler angles) or 4 (Quaternions")
         elif self.dimensionality == 2:
             raise NotImplementedError()
 
@@ -959,14 +966,14 @@ class Asset(NodeMixin, object):
     @scaling.setter
     def scaling(self, value):
         if self.dimensionality == 3:
-            if value is None:
+            if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
-            elif len(value) == 1:
+            elif isinstance(value, (int, float)):
                 value = [value, value, value]
-            elif len(value) != 3:
-                raise ValueError("Scale should be of size 1 (Uniform scale) or 3 (X, Y, Z)")
-            else:
+            elif isinstance(value, (list, tuple, np.ndarray)) and len(value) == 3:
                 value = [float(v) for v in value]
+            elif not isinstance(value, np.ndarray):
+                raise TypeError("Scale must be a float or a list of 3 numbers")
         elif self.dimensionality == 2:
             raise NotImplementedError()
 
@@ -979,9 +986,18 @@ class Asset(NodeMixin, object):
 
     @transformation_matrix.setter
     def transformation_matrix(self, value):
+        # Default to setting up from TRS if None
+        if (value is None or isinstance(value, property)) and (
+            self._position is not None and self._rotation is not None and self._scaling is not None
+        ):
+            self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
+            return
+
         if self.dimensionality == 3:
-            if value is None:
+            if value is None or isinstance(value, property):
                 value = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+            elif not isinstance(value, (list, tuple, np.ndarray)):
+                raise TypeError("Transformation matrix must be a list of 4 lists of 4 numbers")
         elif self.dimensionality == 2:
             raise NotImplementedError()
 
@@ -989,7 +1005,7 @@ class Asset(NodeMixin, object):
         if not np.array_equal(self._transformation_matrix, new_transformation_matrix):
             self._transformation_matrix = new_transformation_matrix
 
-            translation, rotation, scale = get_trs_from_transform_matrix(value)
+            translation, rotation, scale = get_trs_from_transform_matrix(self._transformation_matrix)
             self._position = translation
             self._rotation = rotation
             self._scaling = scale

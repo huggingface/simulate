@@ -48,3 +48,24 @@ class RewardsTest(unittest.TestCase):
 
         with self.assertRaises(sm.assets.anytree.TreeError):
             reward += b
+
+    def test_obj_position(self):
+        obj = sm.RewardFunction()
+        self.assertAlmostEqual(obj._position[0], 0)
+        self.assertAlmostEqual(obj._position[1], 0)
+        self.assertAlmostEqual(obj._position[2], 0)
+
+        self.assertAlmostEqual(obj.position[0], 0)
+        self.assertAlmostEqual(obj.position[1], 0)
+        self.assertAlmostEqual(obj.position[2], 0)
+
+        obj = sm.RewardFunction(position=[1, 1, 1])
+        self.assertIsInstance(obj, sm.RewardFunction)
+
+        self.assertAlmostEqual(obj._position[0], 1)
+        self.assertAlmostEqual(obj._position[1], 1)
+        self.assertAlmostEqual(obj._position[2], 1)
+
+        self.assertAlmostEqual(obj.position[0], 1)
+        self.assertAlmostEqual(obj.position[1], 1)
+        self.assertAlmostEqual(obj.position[2], 1)

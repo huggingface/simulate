@@ -37,3 +37,24 @@ class ObservationsTest(unittest.TestCase):
 
         with self.assertRaises(ValueError):
             _ = sm.StateSensor(None, None, properties=["position", "distance", "position,x"])
+
+    def test_obj_position(self):
+        obj = sm.StateSensor()
+        self.assertAlmostEqual(obj._position[0], 0)
+        self.assertAlmostEqual(obj._position[1], 0)
+        self.assertAlmostEqual(obj._position[2], 0)
+
+        self.assertAlmostEqual(obj.position[0], 0)
+        self.assertAlmostEqual(obj.position[1], 0)
+        self.assertAlmostEqual(obj.position[2], 0)
+
+        obj = sm.StateSensor(position=[1, 1, 1])
+        self.assertIsInstance(obj, sm.StateSensor)
+
+        self.assertAlmostEqual(obj._position[0], 1)
+        self.assertAlmostEqual(obj._position[1], 1)
+        self.assertAlmostEqual(obj._position[2], 1)
+
+        self.assertAlmostEqual(obj.position[0], 1)
+        self.assertAlmostEqual(obj.position[1], 1)
+        self.assertAlmostEqual(obj.position[2], 1)

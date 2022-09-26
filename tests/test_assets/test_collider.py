@@ -38,3 +38,24 @@ class ColliderTest(unittest.TestCase):
 
         root += box1
         root += box2
+
+    def test_obj_position(self):
+        obj = sm.Collider()
+        self.assertAlmostEqual(obj._position[0], 0)
+        self.assertAlmostEqual(obj._position[1], 0)
+        self.assertAlmostEqual(obj._position[2], 0)
+
+        self.assertAlmostEqual(obj.position[0], 0)
+        self.assertAlmostEqual(obj.position[1], 0)
+        self.assertAlmostEqual(obj.position[2], 0)
+
+        obj = sm.Collider(position=[1, 1, 1])
+        self.assertIsInstance(obj, sm.Collider)
+
+        self.assertAlmostEqual(obj._position[0], 1)
+        self.assertAlmostEqual(obj._position[1], 1)
+        self.assertAlmostEqual(obj._position[2], 1)
+
+        self.assertAlmostEqual(obj.position[0], 1)
+        self.assertAlmostEqual(obj.position[1], 1)
+        self.assertAlmostEqual(obj.position[2], 1)
