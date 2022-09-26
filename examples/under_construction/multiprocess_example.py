@@ -80,11 +80,11 @@ def generate_env(port):
 
 
 parser = argparse.ArgumentParser()
-parser.add_argument("--build_exe", default='', type=str, required=False, help="Pre-built unity app for simulate")
+parser.add_argument("--build_exe", default="", type=str, required=False, help="Pre-built unity app for simulate")
 parser.add_argument("--n_maps", default=12, type=int, required=False, help="Number of maps to spawn")
 parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
 args = parser.parse_args()
-#args.build_exe = "./builds/simulate_unity.x86_64"
+# args.build_exe = "./builds/simulate_unity.x86_64"
 env = sm.ParallelRLEnv(generate_env, 2)
 
 time.sleep(2.0)
