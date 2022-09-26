@@ -18,9 +18,10 @@ import itertools
 from dataclasses import InitVar, dataclass, fields
 from typing import Any, ClassVar, List, Optional, Union
 
+import numpy as np
 import pyvista as pv
 
-from .asset import Asset
+from .asset import Asset, get_transform_from_trs, get_trs_from_transform_matrix, rotation_from_euler_degrees
 from .gltf_extension import GltfExtensionMixin
 from .physic_material import PhysicMaterial
 
@@ -171,3 +172,121 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     def plot(self, **kwargs):
         if self.mesh is not None:
             self.mesh.plot(**kwargs)
+
+    ##############################
+    # Properties copied from Asset()
+    # We need to redefine them here otherwise the dataclass lose them since
+    # they are also in the __init__ signature
+    #
+    # Need to be updated if Asset() is updated
+    ##############################
+    @property
+    def position(self):
+        return self._position
+
+    @property
+    def rotation(self):
+        return self._rotation
+
+    @property
+    def scaling(self):
+        return self._scaling
+
+    @property
+    def transformation_matrix(self):
+        if self._transformation_matrix is None:
+            self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
+        return self._transformation_matrix
+
+    # setters for position/rotation/scale
+
+    @position.setter
+    def position(self, value):
+        if self.dimensionality == 3:
+            if value is None or isinstance(value, property):
+                value = [0.0, 0.0, 0.0]
+            elif isinstance(value, (list, tuple, np.ndarray)) and len(value) != 3:
+                raise ValueError("position should be of size 3 (X, Y, Z)")
+            elif isinstance(value, (list, tuple, np.ndarray)) and len(value) == 3:
+                value = [float(v) for v in value]
+            else:
+                raise TypeError("Position must be a list of 3 numbers")
+        elif self.dimensionality == 2:
+            raise NotImplementedError()
+
+        new_position = np.array(value)
+        if not np.array_equal(self._position, new_position):
+            self._position = new_position
+            self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
+
+            self._post_asset_modification()
+
+    @rotation.setter
+    def rotation(self, value):
+        if self.dimensionality == 3:
+            if value is None or isinstance(value, property):
+                value = [0.0, 0.0, 0.0, 1.0]
+            elif isinstance(value, (list, tuple, np.ndarray)) and len(value) == 3:
+                value = rotation_from_euler_degrees(*value)
+            elif isinstance(value, (list, tuple, np.ndarray)) and len(value) == 4:
+                value = [float(v) for v in value]
+            else:
+                raise ValueError("Rotation should be of size 3 (Euler angles) or 4 (Quaternions")
+        elif self.dimensionality == 2:
+            raise NotImplementedError()
+
+        new_rotation = np.array(value) / np.linalg.norm(value)
+        if not np.array_equal(self._rotation, new_rotation):
+            self._rotation = new_rotation
+            self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
+
+            self._post_asset_modification()
+
+    @scaling.setter
+    def scaling(self, value):
+        if self.dimensionality == 3:
+            if value is None or isinstance(value, property):
+                value = [1.0, 1.0, 1.0]
+            elif isinstance(value, (int, float)):
+                value = [value, value, value]
+            elif isinstance(value, (list, tuple, np.ndarray)) and len(value) == 3:
+                value = [float(v) for v in value]
+            elif not isinstance(value, np.ndarray):
+                raise TypeError("Scale must be a float or a list of 3 numbers")
+        elif self.dimensionality == 2:
+            raise NotImplementedError()
+
+        new_scaling = np.array(value)
+        if not np.array_equal(self._scaling, new_scaling):
+            self._scaling = new_scaling
+            self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
+
+            self._post_asset_modification()
+
+    @transformation_matrix.setter
+    def transformation_matrix(self, value):
+        # Default to setting up from TRS if None
+        if (value is None or isinstance(value, property)) and (
+            self._position is not None and self._rotation is not None and self._scaling is not None
+        ):
+            self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
+            return
+
+        if self.dimensionality == 3:
+            if value is None or isinstance(value, property):
+                value = [[1, 0, 0, 0], [0, 1, 0, 0], [0, 0, 1, 0], [0, 0, 0, 1]]
+            elif not isinstance(value, (list, tuple, np.ndarray)):
+                raise TypeError("Transformation matrix must be a list of 4 lists of 4 numbers")
+        elif self.dimensionality == 2:
+            raise NotImplementedError()
+
+        new_transformation_matrix = np.array(value)
+        if not np.array_equal(self._transformation_matrix, new_transformation_matrix):
+            self._transformation_matrix = new_transformation_matrix
+
+            translation, rotation, scale = get_trs_from_transform_matrix(self._transformation_matrix)
+            self._position = translation
+            self._rotation = rotation
+            self._scaling = scale
+
+            self._post_asset_modification()
