@@ -81,9 +81,9 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
         created_from_file,
     ):
         if reward_function_a is not None:
-            children = (children if children else []) + reward_function_a
+            children = (children if children else []) + [reward_function_a]
         if reward_function_b is not None:
-            children = (children if children else []) + reward_function_b
+            children = (children if children else []) + [reward_function_b]
 
         super().__init__(
             name=name,
