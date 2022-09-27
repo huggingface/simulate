@@ -46,7 +46,7 @@ public class MyCommand : Command {
     
     public override void Execute(UnityAction<string> callback) {
         Debug.Log(message);
-        callback("ack");
+        callback("{}");
     }
 }
 ```
