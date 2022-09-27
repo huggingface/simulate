@@ -69,7 +69,10 @@ def _get_digest(data: Any) -> bytes:
 
 
 def is_data_cached(data: Any, cache: Dict) -> Optional[int]:
-    """Helper function to check if data (numpy arrray, material, texture, anything hashable) is already in the cache dict"""
+    """
+    Helper function to check if data (numpy array, material, texture, anything hashable)
+    is already in the cache dict
+    """
     if not isinstance(cache, dict):
         raise ValueError("Cache should be a dict")
 
@@ -81,7 +84,10 @@ def is_data_cached(data: Any, cache: Dict) -> Optional[int]:
 
 
 def cache_data(data: Any, data_id: int, cache: Dict) -> dict:
-    """Helper function to add some data (numpy arrray, material, texture, anything hashable) in the cache dict as pointer to a provided data_id integer"""
+    """
+    Helper function to add some data (numpy array, material, texture, anything hashable)
+    in the cache dict as pointer to a provided data_id integer
+    """
     if not isinstance(cache, dict):
         raise ValueError("Cache should be a dict")
 
@@ -99,12 +105,15 @@ def add_data_to_gltf(
     buffer_id: int = 0,
     cache: Optional[Dict] = None,
 ) -> int:
-    """Add byte data to the buffer_data, create/add a new buffer view for it in the scene and return the index of the added buffer view"""
+    """
+    Add byte data to the buffer_data, create/add a new buffer view for it in the scene and
+    return the index of the added buffer view
+    """
     cached_id = is_data_cached(data=new_data, cache=cache)
     if cached_id is not None:
         return cached_id
 
-    # Pad the current buffer to a multiple of 4 bytes for GLTF alignement
+    # Pad the current buffer to a multiple of 4 bytes for GLTF alignment
     byte_offset = gl.padbytes(buffer_data, 4)
 
     # Pad new data to a multiple of 4 bytes as well
@@ -131,7 +140,10 @@ def add_numpy_to_gltf(
     buffer_id: int = 0,
     cache: Optional[Dict] = None,
 ) -> int:
-    """Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and add the numpy array in the buffer_data."""
+    """
+    Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and
+    add the numpy array in the buffer_data.
+    """
 
     cached_id = is_data_cached(data=np_array, cache=cache)
     if cached_id is not None:
@@ -159,8 +171,8 @@ def add_numpy_to_gltf(
         )
 
     count: int = np_array.shape[0]
-    max = np_array.max(axis=0).reshape(-1).tolist()
-    min = np_array.min(axis=0).reshape(-1).tolist()
+    max_value = np_array.max(axis=0).reshape(-1).tolist()
+    min_value = np_array.min(axis=0).reshape(-1).tolist()
 
     new_data = np_array.tobytes()
     buffer_view_id = add_data_to_gltf(
@@ -175,8 +187,8 @@ def add_numpy_to_gltf(
         normalized=normalized,
         type=accessor_type.value,
         count=count,
-        min=min,
-        max=max,
+        min=min_value,
+        max=max_value,
         sparse=None,
     )
     gltf_model.accessors.append(accessor)
@@ -194,7 +206,10 @@ def add_texture_to_gltf(
     buffer_id: int = 0,
     cache: Optional[Dict] = None,
 ) -> int:
-    """Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and add the numpy array in the buffer_data."""
+    """
+    Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and
+    add the numpy array in the buffer_data.
+    """
 
     inp = texture.GetInput()  # Get a UniformGrid - safety check
     if not inp or not inp.GetPointData().GetScalars():
@@ -248,7 +263,10 @@ def add_material_to_gltf(
     buffer_id: int = 0,
     cache: Optional[Dict] = None,
 ) -> int:
-    """Add GLTF accessor and bufferview to the GLTF scene to store a numpy array and add the numpy array in the buffer_data."""
+    """
+    Add GLTF accessor and bufferview to the GLTF scene to store a numpy array and
+    add the numpy array in the buffer_data.
+    """
 
     cached_id = is_data_cached(data=material, cache=cache)
     if cached_id is not None:
@@ -352,10 +370,11 @@ def add_mesh_to_model(
         attributes = gl.Attributes(POSITION=point_accessor, NORMAL=normal_accessor, TEXCOORD_0=tcoord_accessor)
         # attributes.COLOR_0 = vertex_accessor  # TODO Add back vertex color if we want to
 
-        # Add verts as a a Primitive if we have some
+        # Add verts as a Primitive if we have some
         if mesh.n_verts:
             primitive = gl.Primitive(mode=gl.PrimitiveMode.POINTS.value, attributes=attributes)
-            # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
+            # Stores and add indices (indices are written differently in gltf depending on the type
+            # (POINTS, LINES, TRIANGLES))
             np_array = mesh.verts.copy().reshape((-1, 1)).astype(NP_UINT32)
             primitive.indices = add_numpy_to_gltf(
                 np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
@@ -366,7 +385,8 @@ def add_mesh_to_model(
         # Add lines as a Primitive if we have some
         if mesh.n_lines:
             primitive = gl.Primitive(mode=gl.PrimitiveMode.LINES.value, attributes=attributes)
-            # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
+            # Stores and add indices (indices are written differently in gltf depending on the type
+            # (POINTS, LINES, TRIANGLES))
             np_array = mesh.lines.copy().reshape((-1, 1)).astype(NP_UINT32)
             primitive.indices = add_numpy_to_gltf(
                 np_array=np_array, gltf_model=gltf_model, buffer_data=buffer_data, buffer_id=buffer_id, cache=cache
@@ -377,7 +397,8 @@ def add_mesh_to_model(
         # Add faces as a Primitive if we have some
         if mesh.n_faces:
             primitive = gl.Primitive(mode=gl.PrimitiveMode.TRIANGLES.value, attributes=attributes)
-            # Stores and add indices (indices are written differently in gltf depending on the type (POINTS, LINES, TRIANGLES))
+            # Stores and add indices (indices are written differently in gltf depending on the type
+            # (POINTS, LINES, TRIANGLES))
             tri_mesh = mesh.triangulate()  # Triangulate the mesh (gltf can nly store triangulated meshes)
             np_array = (
                 tri_mesh.faces.copy().reshape((-1, 4))[:, 1:].reshape(-1, 1).astype(NP_UINT32)
@@ -526,7 +547,7 @@ def add_node_to_scene(
         )
     else:
         for cls in GLTF_NODES_EXTENSION_CLASS:
-            # One our our special type of nodes (RewardFunction, Sensors, Colliders, etc)
+            # One of our special type of nodes (RewardFunction, Sensors, Colliders, etc)
             if isinstance(node, cls):
                 # For the colliders we add the physic material and mesh manually
                 if isinstance(node, Collider):
@@ -534,7 +555,7 @@ def add_node_to_scene(
                     if material is not None:
                         material_id = is_data_cached(data=material, cache=cache)
                         if material_id is None:
-                            material_id = material._add_component_to_gltf_model(gltf_model.extensions)
+                            material_id = material.add_component_to_gltf_model(gltf_model.extensions)
                             cache_data(data=material.to_json(), data_id=material_id, cache=cache)
                         node.physic_material = material_id
                     else:
@@ -550,13 +571,14 @@ def add_node_to_scene(
                             cache=cache,
                         )
 
-                # If the special node is not cached (here we test only the fields of the dataclass and thus must add te mesh manually above)
+                # If the special node is not cached
+                # (here we test only the fields of the dataclass and thus must add te mesh manually above)
                 object_id = is_data_cached(data=node.to_json(), cache=cache)
                 if object_id is None:
-                    object_id = node._add_component_to_gltf_model(gltf_model.extensions)
+                    object_id = node.add_component_to_gltf_model(gltf_model.extensions)
                     cache_data(data=node.to_json(), data_id=object_id, cache=cache)
 
-                new_extension_used = node._add_component_to_gltf_node(
+                new_extension_used = node.add_component_to_gltf_node(
                     extensions, object_id=object_id, object_name=node.name
                 )
                 extension_used.add(new_extension_used)
@@ -566,10 +588,10 @@ def add_node_to_scene(
         # If we have already created exactly the same collider we avoid double storing
         object_id = is_data_cached(data=component.to_json(), cache=cache)
         if object_id is None:
-            object_id = component._add_component_to_gltf_model(gltf_model.extensions)
+            object_id = component.add_component_to_gltf_model(gltf_model.extensions)
             cache_data(data=component.to_json(), data_id=object_id, cache=cache)
 
-        new_extension_used = component._add_component_to_gltf_node(
+        new_extension_used = component.add_component_to_gltf_node(
             extensions, object_id=object_id, object_name=component_name
         )
         extension_used.add(new_extension_used)
@@ -646,7 +668,7 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
     # Add scene-level extensions - only config metadata for now
     config: Optional[Config] = getattr(root_node, "config", None)
     if config is not None:
-        new_extension_used = config._add_component_to_gltf_scene(gltf_model.extensions)
+        new_extension_used = config.add_component_to_gltf_scene(gltf_model.extensions)
         extension_used.add(new_extension_used)
 
     process_tree_after_gltf(root_node)

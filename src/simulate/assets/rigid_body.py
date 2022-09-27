@@ -111,7 +111,7 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
             self.constraints = []
         for constraint in self.constraints:
             if constraint not in ALLOWED_CONSTRAINTS:
-                raise ValueError(f"Contraint {constraint} not in allowed list: {ALLOWED_CONSTRAINTS}")
+                raise ValueError(f"Constraint {constraint} not in allowed list: {ALLOWED_CONSTRAINTS}")
 
         if self.use_gravity is None:
             self.use_gravity = True

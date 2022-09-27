@@ -22,8 +22,7 @@ from typing import Any, ClassVar, List, Optional, Union
 import numpy as np
 from dataclasses_json import dataclass_json
 
-from simulate import logging
-
+from ..utils import logging
 from .asset import Asset, get_transform_from_trs, get_trs_from_transform_matrix, rotation_from_euler_degrees
 from .gltf_extension import GltfExtensionMixin
 
@@ -35,7 +34,8 @@ try:
 except ImportError:
     # Our implementation of gym space classes if gym is not installed
     logger.warning(
-        "The gym library is not installed, falling back our implementation of gym.spaces. To remove this message pip install simulate[rl]"
+        "The gym library is not installed, falling back our implementation of gym.spaces. "
+        "To remove this message pip install simulate[rl]"
     )
     from . import spaces
 

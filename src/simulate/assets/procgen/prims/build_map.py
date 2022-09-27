@@ -66,7 +66,7 @@ def generate_prims_maze(size, cell_width=1.0, xmin=0.0, ymin=0.0, keep_prob=5):
             neighbours[(i, j)] = [(i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)]
 
     def valid_neighbour(i, j):
-        return i >= range_start_x and i < range_end_x and j >= range_start_y and j < range_end_y
+        return range_start_x <= i < range_end_x and range_start_y <= j < range_end_y
 
     def walk(current_i, current_j):
         visited.add((current_i, current_j))

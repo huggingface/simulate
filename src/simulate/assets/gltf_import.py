@@ -160,13 +160,13 @@ def get_texture_as_pyvista(gltf_scene: GLTF, texture_info: Optional[TextureInfo]
     gltf_image = gltf_images[gltf_texture.source]
 
     if gltf_image.bufferView is not None:
-        # Temporarly store the image for loading with vtk
-        bytes = get_buffer_as_bytes(gltf_scene=gltf_scene, buffer_view_id=gltf_image.bufferView)
+        # Temporarily store the image for loading with vtk
+        buffer_bytes = get_buffer_as_bytes(gltf_scene=gltf_scene, buffer_view_id=gltf_image.bufferView)
         with tempfile.TemporaryDirectory() as tmpdirname:
             filename = gltf_image.mimeType.replace("/", ".")  # Will convert mimeType 'image/png' in 'image.png'
             filepath = os.path.join(tmpdirname, filename)
             with open(filepath, "wb") as file:
-                file.write(bytes)
+                file.write(buffer_bytes)
             texture = pv.read_texture(filepath)
     else:
         resource = gltf_scene.get_resource(gltf_image.uri)
@@ -277,7 +277,8 @@ def build_node_tree(
             )
         else:
             raise ValueError(
-                f"Unrecognized GLTF file light type: {gltf_light.type}, please check that the file is conform with the KHR_lights_punctual specifications"
+                f"Unrecognized GLTF file light type: {gltf_light.type}, "
+                f"please check that the file is conform with the KHR_lights_punctual specifications"
             )
     # Is it an Object3D
     elif gltf_node.mesh is not None:
@@ -332,7 +333,8 @@ def build_node_tree(
         else:
             scene_node = Object3D(**common_kwargs)
     else:
-        # We now have either an empty node with a transform or one of our custom nodes without meshes (reward function, sensors, etc)
+        # We now have either an empty node with a transform or one of our custom nodes without meshes
+        # (reward function, sensors, etc)
         if "cls" in common_kwargs:
             # We have a custom node type (reward function, sensors, etc)
             scene_node = common_kwargs.pop("cls")
@@ -373,36 +375,38 @@ def load_gltf_as_tree(
     subfolder: Optional[str] = None,
     revision: Optional[str] = None,
 ) -> List[Asset]:
-    """Loading function to create a tree of asset nodes from a GLTF file.
+    """
+    Loading function to create a tree of asset nodes from a GLTF file.
     Return a list of the main nodes in the GLTF files (often only one main node).
     The tree can be walked from the main nodes.
     """
     gltf_scene = GLTF.load(file_path)  # We load the other nodes (camera, lights, our extensions) ourselves
 
-    # Let's download all the other needed ressources
+    # Let's download all the other needed resources
     if repo_id is not None:
-        updated_ressources = []
-        for ressource in gltf_scene.resources:
-            if isinstance(ressource, FileResource):
+        updated_resources = []
+        for resource in gltf_scene.resources:
+            if isinstance(resource, FileResource):
                 local_file = hf_hub_download(
                     repo_id=repo_id,
-                    filename=ressource.filename,
+                    filename=resource.filename,
                     subfolder=subfolder,
                     revision=revision,
                     repo_type="space",
                 )
                 basepath, basename = os.path.split(local_file)
-                former_file_name_and_uri = ressource.filename
+                former_file_name_and_uri = resource.filename
                 former_basename = os.path.basename(former_file_name_and_uri)
                 if former_basename != basename:
-                    raise ValueError(f"Hub file {basename} not matching expected ressource filename {former_basename}")
-                # We need to keep former_file_name_and_uri in the ressource because it's the uri used everywhere in the glTF file
-                new_ressource = FileResource(former_file_name_and_uri, basepath=basepath, mimetype=ressource.mimetype)
-                updated_ressources.append(new_ressource)
+                    raise ValueError(f"Hub file {basename} not matching expected resource filename {former_basename}")
+                # We need to keep former_file_name_and_uri in the resource
+                # because it's the uri used everywhere in the glTF file
+                new_resource = FileResource(former_file_name_and_uri, basepath=basepath, mimetype=resource.mimetype)
+                updated_resources.append(new_resource)
             else:
-                updated_ressources.append(ressource)
+                updated_resources.append(resource)
 
-        gltf_scene.resources = updated_ressources
+        gltf_scene.resources = updated_resources
 
     gltf_model = gltf_scene.model
 
@@ -412,12 +416,13 @@ def load_gltf_as_tree(
             # because it can segfault on some unsupported extensions.
             if extension_required in UNSUPPORTED_REQUIRED_EXTENSIONS:
                 raise ValueError(
-                    f"The glTF extension '{extension_required}' is required to load this scene but is not currently supported."
+                    f"The glTF extension '{extension_required}' "
+                    f"is required to load this scene but is not currently supported."
                 )
 
     pyvista_reader = GLTFReader(
         file_path
-    )  # We load the meshe already converted by pyvista/vtk instead of decoding our self
+    )  # We load the mesh already converted by pyvista/vtk instead of decoding our self
     pyvista_reader.reader.ApplyDeformationsToGeometryOff()  # We don't want to apply the transforms to the various nodes
     pyvista_meshes = pyvista_reader.read()
     gltf_main_scene = gltf_model.scenes[gltf_model.scene if gltf_model.scene else 0]

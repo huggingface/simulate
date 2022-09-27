@@ -132,7 +132,8 @@ class RLEnv(VecEnv):
                 else:
                     raise ValueError(
                         f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
-                        f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} and n_actors {self.n_actors})."
+                        f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} "
+                        f"and n_actors {self.n_actors})."
                     )
             elif isinstance(value, (list, tuple)) and len(value) > 0 and isinstance(value[0], (int, float)):
                 # A list value for the action – we add the map/actor dimensions
@@ -141,7 +142,8 @@ class RLEnv(VecEnv):
                 else:
                     raise ValueError(
                         f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
-                        f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} and n_actors {self.n_actors})."
+                        f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} "
+                        f"and n_actors {self.n_actors})."
                     )
             elif isinstance(value, np.ndarray) and len(value) > 0 and isinstance(value[0], (np.int64, np.float32)):
                 # actions are a number array
@@ -177,7 +179,8 @@ class RLEnv(VecEnv):
         obs = self._squeeze_actor_dimension(obs)
         return obs
 
-    def _convert_to_numpy(self, event_data):
+    @staticmethod
+    def _convert_to_numpy(event_data):
         if event_data["type"] == "uint8":
             shape = event_data["shape"]
             return np.array(event_data["uintBuffer"], dtype=np.uint8).reshape(shape)

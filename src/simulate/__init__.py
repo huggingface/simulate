@@ -19,15 +19,16 @@
 
 __version__ = "0.0.1.dev0"
 
-from huggingface_hub import logging
-
 from .assets import *
 from .assets.utils import *
 from .config import Config
 from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
 from .rl import ParallelRLEnv, RLEnv
 from .scene import Scene
+from .utils import logging
 
+
+logger = logging.get_logger(__name__)
 
 # Set Hugging Face hub debug verbosity (TODO remove)
 logging.set_verbosity_debug()

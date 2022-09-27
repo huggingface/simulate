@@ -20,6 +20,7 @@ from typing import List, Optional, Union
 import numpy as np
 import pyvista as pv
 
+from ..utils import logging
 from .articulation_body import ArticulationBodyComponent
 from .asset import Asset
 from .collider import Collider
@@ -27,6 +28,9 @@ from .material import Material
 from .procgen.prims import generate_prims_maze
 from .procgen.wfc import generate_2d_map, generate_map
 from .rigid_body import RigidBodyComponent
+
+
+logger = logging.get_logger(__name__)
 
 
 def translate(surf, center=(0.0, 0.0, 0.0), new_direction=(1.0, 0.0, 0.0), original_direction=(1.0, 0.0, 0.0)):
@@ -112,7 +116,7 @@ class Object3D(Asset):
     def copy(self, with_children=True, **kwargs):
         """Copy an Object3D node in a new (returned) object.
 
-        By default mesh and materials are copied in respectively new mesh and material.
+        By default, mesh and materials are copied in respectively new mesh and material.
         'share_material' and 'share_mesh' can be set to True to share mesh and/or material
         between original and copy instead of creating new one.
         """
@@ -1318,13 +1322,13 @@ class StructuredGrid(Object3D):
 
     Parameters
     ----------
-    x : np.ndarray or python list of list of floats
+    x : np.ndarray or python list of lists of floats
         Position of the points in x direction.
 
-    y : np.ndarray or python list of list of floats
+    y : np.ndarray or python list of lists of floats
         Position of the points in y direction.
 
-    z : np.ndarray or python list of list of floats
+    z : np.ndarray or python list of lists of floats
         Position of the points in z direction.
 
     Returns
@@ -1337,7 +1341,7 @@ class StructuredGrid(Object3D):
     xrng = np.arange(-2, 3, dtype=np.float32)
     zrng = np.arange(-2, 3, dtype=np.float32)
     x, z = np.meshgrid(xrng, zrng)
-    # let's make the y axis a sort of cone
+    # let's make the y-axis a sort of cone
     y = 1. / np.sqrt(x*x + z*z + 0.1)
     asset = sm.StructuredGrid(x, y, z)
 
@@ -1393,10 +1397,10 @@ class ProcgenGrid(Object3D):
 
     Parameters
     ----------
-    sample_map : np.ndarray or python list of list of floats
+    sample_map : np.ndarray or python list of lists of floats
         Map to procedurally generate from.
 
-    specific_map: np.ndarray or python list of list of floats
+    specific_map: np.ndarray or python list of lists of floats
         Map to show as it is.
 
     tiles : list of tiles
@@ -1475,7 +1479,7 @@ class ProcgenGrid(Object3D):
         if seed is None:
             seed = np.random.randint(0, 100000)
             if verbose:
-                print("Seed:", seed)
+                logger.info("Seed:", seed)
 
         # Seeding
         np.random.seed(seed)

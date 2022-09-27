@@ -10,7 +10,11 @@ from collections import OrderedDict
 
 import numpy as np
 
+from ...utils import logging
 from .space import Space
+
+
+logger = logging.get_logger(__name__)
 
 
 class Dict(Space):
@@ -61,12 +65,8 @@ class Dict(Space):
         seeds = []
         if isinstance(seed, dict):
             for key, seed_key in zip(self.spaces, seed):
-                assert key == seed_key, print(
-                    "Key value",
-                    seed_key,
-                    "in passed seed dict did not match key value",
-                    key,
-                    "in spaces Dict.",
+                assert key == seed_key, logger.error(
+                    f"Key value {seed_key} in passed seed dict did not match key value {key} in spaces Dict.",
                 )
                 seeds += self.spaces[key].seed(seed[seed_key])
         elif isinstance(seed, int):
