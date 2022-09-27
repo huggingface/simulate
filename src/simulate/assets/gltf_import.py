@@ -285,49 +285,52 @@ def build_node_tree(
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
         primitives = gltf_mesh.primitives
         base_name = common_kwargs["name"]
-        common_kwargs["with_physics_component"] = False
-        for index, primitive in enumerate(primitives):
-            mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][index]
+        common_kwargs["with_rigid_body"] = False
+        common_kwargs["with_articulation_body"] = False
+        if len(primitives) > 1:
+            mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"]  # A pv.MultiBlock
+        else:
+            mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][0]  # A pv.PolyData
 
-            if gltf_collider is None:
-                material_id = primitive.material
-                if material_id is not None:
-                    mat = gltf_model.materials[material_id]
-                    pbr = mat.pbrMetallicRoughness
+        common_kwargs["mesh"] = mesh
+        if len(primitives) > 1:
+            name = f"{base_name}_{mat.name}"
+            common_kwargs["name"] = name
 
-                    scene_material = Material(
-                        name=mat.name,
-                        base_color=pbr.baseColorFactor,
-                        base_color_texture=get_texture_as_pyvista(gltf_scene, pbr.baseColorTexture),
-                        metallic_factor=pbr.metallicFactor,
-                        metallic_roughness_texture=get_texture_as_pyvista(gltf_scene, pbr.metallicRoughnessTexture),
-                        normal_texture=get_texture_as_pyvista(gltf_scene, mat.normalTexture),
-                        occlusion_texture=get_texture_as_pyvista(gltf_scene, mat.occlusionTexture),
-                        emissive_factor=mat.emissiveFactor,
-                        emissive_texture=get_texture_as_pyvista(gltf_scene, mat.emissiveTexture),
-                        alpha_mode=mat.alphaMode,
-                        alpha_cutoff=mat.alphaCutoff,
-                    )
-                else:
-                    scene_material = Material()
-                common_kwargs["material"] = scene_material
+        if gltf_collider is None:
+            material_id = primitives[0].material
+            if material_id is not None:
+                mat = gltf_model.materials[material_id]
+                pbr = mat.pbrMetallicRoughness
 
-            common_kwargs["mesh"] = mesh
-            if len(primitives) > 1:
-                name = f"{base_name}_{mat.name}"
-                common_kwargs["name"] = name
-
-            if gltf_collider is not None:
-                scene_node = gltf_collider
-                for key, value in common_kwargs.items():
-                    # These two are different when set after creation
-                    if key == "parent":
-                        key = "tree_parent"
-                    if key == "children":
-                        key = "tree_children"
-                    setattr(scene_node, key, value)
+                scene_material = Material(
+                    name=mat.name,
+                    base_color=pbr.baseColorFactor,
+                    base_color_texture=get_texture_as_pyvista(gltf_scene, pbr.baseColorTexture),
+                    metallic_factor=pbr.metallicFactor,
+                    metallic_roughness_texture=get_texture_as_pyvista(gltf_scene, pbr.metallicRoughnessTexture),
+                    normal_texture=get_texture_as_pyvista(gltf_scene, mat.normalTexture),
+                    occlusion_texture=get_texture_as_pyvista(gltf_scene, mat.occlusionTexture),
+                    emissive_factor=mat.emissiveFactor,
+                    emissive_texture=get_texture_as_pyvista(gltf_scene, mat.emissiveTexture),
+                    alpha_mode=mat.alphaMode,
+                    alpha_cutoff=mat.alphaCutoff,
+                )
             else:
-                scene_node = Object3D(**common_kwargs)
+                scene_material = Material()
+            common_kwargs["material"] = scene_material
+
+        if gltf_collider is not None:
+            scene_node = gltf_collider
+            for key, value in common_kwargs.items():
+                # These two are different when set after creation
+                if key == "parent":
+                    key = "tree_parent"
+                if key == "children":
+                    key = "tree_children"
+                setattr(scene_node, key, value)
+        else:
+            scene_node = Object3D(**common_kwargs)
     else:
         # We now have either an empty node with a transform or one of our custom nodes without meshes (reward function, sensors, etc)
         if "cls" in common_kwargs:
