@@ -114,7 +114,7 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
         We only allow Reward Functions as child of Reward functions.
         """
         if children is not None:
-            if any(not isinstance(child, "RewardFunction") for child in children):
+            if any(not isinstance(child, self.__class__) for child in children):
                 raise TypeError("The children of a Reward Function should be Reward Functions")
 
     def _post_copy(self, actor: Any):
