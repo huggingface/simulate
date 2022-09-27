@@ -1,6 +1,6 @@
 """Functions for setting the agent in the world."""
 
-from simulate import SimpleRlAgent
+import simulate as sm
 
 from ..game.generation import add_dummy_generated_reward_fn
 from ..game.predicates import (
@@ -42,7 +42,7 @@ def create_agents(
     agents = []
 
     for i, pos in enumerate(agent_pos):
-        agent = SimpleRlAgent(
+        agent = sm.EgocentricCameraActor(
             name="agent_" + str(rank) + "_" + str(i),
             position=pos,
             camera_height=camera_height,

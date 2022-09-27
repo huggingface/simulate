@@ -137,7 +137,7 @@ def add_random_collectables_rewards(agents, objects, verbose=False):
             is_collectable=True,
         )
 
-        agent.add_reward_function(reward_function)
+        agent += reward_function
 
         if verbose:
             print("Agent {} will collect object {}".format(agent.name, objects[obj_idx].name))
@@ -166,7 +166,7 @@ def add_collect_all_rewards(agents, objects, verbose=False):
                 is_collectable=True,
             )
 
-            agent.add_reward_function(reward_function)
+            agent += reward_function
 
 
 def add_near_reward(agents, objects, verbose=False):
@@ -187,7 +187,7 @@ def add_near_reward(agents, objects, verbose=False):
                 is_collectable=False,
             )
 
-            agent.add_reward_function(reward_function)
+            agent += reward_function
 
 
 def add_timeout_rewards(agents, scalar=0.0, frame_skip=None):
@@ -203,4 +203,4 @@ def add_timeout_rewards(agents, scalar=0.0, frame_skip=None):
             scalar=scalar,
         )
 
-        agent.add_reward_function(timeout_reward_function)
+        agent += timeout_reward_function

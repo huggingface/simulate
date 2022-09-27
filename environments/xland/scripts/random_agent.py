@@ -73,7 +73,7 @@ if __name__ == "__main__":
     t = time.time()
 
     for i in range(400):
-        action = [env.action_space.sample() for i in range(args.n_show)]
+        action = env.sample_action()
         obs, reward, done, info = env.step(action)
         obs = np.array(obs["CameraSensor"][0], dtype=np.uint8).transpose((1, 2, 0))
         if args.record is not None:

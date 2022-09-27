@@ -37,33 +37,21 @@ def add_walls(x, z, height=None, thickness=0.5, invisible=False):
 
     if invisible:
         return [
-            sm.Asset(
+            sm.Collider(
                 position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[x_max - x_min, height, thickness],
-                ),
+                bounding_box=[x_max - x_min, height, thickness]
             ),
-            sm.Asset(
+            sm.Collider(
                 position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[x_max - x_min, height, thickness],
-                ),
+                bounding_box=[x_max - x_min, height, thickness]
             ),
-            sm.Asset(
+            sm.Collider(
                 position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[thickness, height, z_max - z_min],
-                ),
+                bounding_box=[thickness, height, z_max - z_min]
             ),
-            sm.Asset(
+            sm.Collider(
                 position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[thickness, height, z_max - z_min],
-                ),
+                bounding_box=[thickness, height, z_max - z_min]
             ),
         ]
     else:
@@ -72,22 +60,22 @@ def add_walls(x, z, height=None, thickness=0.5, invisible=False):
             sm.Box(
                 position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2],
                 bounds=(x_min - thickness, x_max + thickness, -height / 2, height / 2, -thickness / 2, thickness / 2),
-                material=material,
+                material=material
             ),
             sm.Box(
                 position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2],
                 bounds=(x_min - thickness, x_max + thickness, -height / 2, height / 2, -thickness / 2, thickness / 2),
-                material=material,
+                material=material
             ),
             sm.Box(
                 position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0],
                 bounds=(-thickness / 2, thickness / 2, -height / 2, height / 2, z_min - thickness, z_max + thickness),
-                material=material,
+                material=material
             ),
             sm.Box(
                 position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0],
                 bounds=(-thickness / 2, thickness / 2, -height / 2, height / 2, z_min - thickness, z_max + thickness),
-                material=material,
+                material=material
             ),
         ]
 
@@ -207,10 +195,10 @@ def generate_colliders(sg):
                     angles[2] = ramp_orientation * angle_deg
 
             collider_assets.append(
-                sm.Asset(
+                sm.Collider(
                     position=position,
                     rotation=sm.utils.rotation_from_euler_degrees(*angles),
-                    collider=sm.Collider(type="box", bounding_box=bounding_box),
+                    bounding_box=bounding_box,
                 )
             )
 
