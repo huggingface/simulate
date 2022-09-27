@@ -47,7 +47,7 @@ To create the package for pypi.
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi
 
-7. Fill release notes in the tag in github once everything is looking hunky-dory.
+7. Fill release notes in the tag in GitHub once everything is looking hunky-dory.
 
 8. Change the version in __init__.py and setup.py to X.X.X+1.dev0 (e.g. VERSION=1.18.3 -> 1.18.4.dev0).
    Then push the change with a message 'set dev version'

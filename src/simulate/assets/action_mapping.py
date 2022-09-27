@@ -39,11 +39,14 @@ class ActionMapping:
             - "add_force": apply a force to the object (at the center of mass)
                 The force is given in Newton if is_impulse is False and in Newton*second if is_impulse is True.
                 If is_impulse is False:
-                    - the value can be considered as applied during the duration of the time step (controlled by the frame rate)
-                    - changing the frame rate will change the force applied at each step but will lead to the same result over a given total duration.
+                    - the value can be considered as applied during the duration of the time step
+                        (controlled by the frame rate)
+                    - changing the frame rate will change the force applied at each step but will lead to the same
+                        result over a given total duration.
                 If is_impulse is True:
                     - the force can be considered as a velocity change applied instantaneously at the step
-                    - changing the frame rate will not change the force applied at each step but will lead to the different result over a given total duration.
+                    - changing the frame rate will not change the force applied at each step but will lead to the
+                        different result over a given total duration.
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.AddForce.html)
                 (see https://docs.unity3d.com/ScriptReference/Rigidbody.AddRelativeForce.html)
             - "add_torque": add a torque to the object
@@ -70,13 +73,17 @@ class ActionMapping:
         is_impulse (bool, default False): whether to apply the action as an impulse or a force
         max_velocity_threshold (float): when we apply a force/torque, only apply if the velocity is below this value.
 
-    The conversion is as follow (where X is the RL input action and Y the physics engine action e.g. force, torque, position):
+    The conversion is as follows
+    (where X is the RL input action and Y the physics engine action e.g. force, torque, position):
         Y = Y + (X - offset) * amplitude
-    In the case of discrete action we assume X = 1.0 so that amplitude can be used to define the discrete value to apply.
+    For discrete action we assume X = 1.0 so that amplitude can be used to define the discrete value to apply.
 
-    "max_velocity_threshold" can be used to limit the max resulting velocity or angular velocity after the action was applied :
-        - max final velocity for "add_force" actions (in m/s) – only apply the action if the current velocity is below this value
-        - max angular velocity for "add_torque" actions (in rad/s) - only apply the action if the current angular velocity is below this value
+    "max_velocity_threshold" can be used to limit the max resulting velocity or angular velocity
+    after the action was applied :
+        - max final velocity for "add_force" actions (in m/s) –
+            only apply the action if the current velocity is below this value
+        - max angular velocity for "add_torque" actions (in rad/s) -
+            only apply the action if the current angular velocity is below this value
         Long discussion on Unity here: https://forum.unity.com/threads/terminal-velocity.34667/
     """
 

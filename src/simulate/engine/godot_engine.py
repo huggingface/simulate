@@ -3,7 +3,11 @@ import base64
 import json
 import socket
 
+from ..utils import logging
 from .engine import Engine
+
+
+logger = logging.get_logger(__name__)
 
 
 class GodotEngine(Engine):
@@ -29,14 +33,14 @@ class GodotEngine(Engine):
         """Create TCP socket and listen for connections"""
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.bind((self.host, self.port))
-        print("Server started. Waiting for connection...")
+        logger.info("Server started. Waiting for connection...")
         self.socket.listen()
         self.client, self.client_address = self.socket.accept()
-        print(f"Connection from {self.client_address}")
+        logger.info(f"Connection from {self.client_address}")
 
-    def _send_bytes(self, bytes, ack):
+    def _send_bytes(self, bytes_data, ack):
         """Send bytes to socket and wait for response"""
-        self.client.sendall(bytes)
+        self.client.sendall(bytes_data)
         if ack:
             return self._get_response()
 
@@ -48,7 +52,8 @@ class GodotEngine(Engine):
         response = self._get_response()
         try:
             return json.loads(response)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Exception loading response json data: {e}")
             return response
 
     def run_command_async(self, command, **kwargs):
@@ -72,13 +77,14 @@ class GodotEngine(Engine):
         response = self._get_response()
         try:
             return json.loads(response)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Exception loading response json data: {e}")
             return response
 
     def show(self, **kwargs):
         """Show the scene in Godot"""
-        bytes = self._scene.as_glb_bytes()
-        b64bytes = base64.b64encode(bytes).decode("ascii")
+        bytes_data = self._scene.as_glb_bytes()
+        b64bytes = base64.b64encode(bytes_data).decode("ascii")
         kwargs.update({"b64bytes": b64bytes})
         return self.run_command("initialize", **kwargs)
 
@@ -106,9 +112,9 @@ class GodotEngine(Engine):
         try:
             self.run_command("close")
         except Exception as e:
-            print("exception sending close message", e)
+            logger.error(f"Exception sending close message: {e}")
         self.client.close()
         try:
             atexit.unregister(self._close)
         except Exception as e:
-            print("exception unregistering close method", e)
+            logger.error(f"Exception unregistering close method: {e}")

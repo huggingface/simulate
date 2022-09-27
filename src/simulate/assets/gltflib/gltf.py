@@ -7,6 +7,7 @@ from os import path
 from typing import BinaryIO, Iterable, Iterator, List, Optional, Set, Tuple
 from urllib.parse import unquote, urlparse
 
+from ...utils import logging
 from .gltf_resource import (
     GLB_BINARY_CHUNK_TYPE,
     GLB_JSON_CHUNK_TYPE,
@@ -18,6 +19,9 @@ from .gltf_resource import (
 )
 from .models import Buffer, BufferView, GLTFModel, Image
 from .utils import create_parent_dirs, padbytes
+
+
+logger = logging.get_logger(__name__)
 
 
 class GLTF:
@@ -40,14 +44,14 @@ class GLTF:
         :param filename: Path to the GLTF or GLB file
         :param load_file_resources: If True, external file resources that are not provided via the "resources"
             array will be loaded from the filesystem. The paths are assumed to be relative to the GLTF file.
-        :param resources: Optional list of pre-loaded resources. Any resources referenced in the GLTF file that are
+        :param resources: Optional list of preloaded resources. Any resources referenced in the GLTF file that are
             present in the resources array will be used instead of loading those resources from the external
             source.
         :param encoding: File encoding (if known) of the glTF file (if reading gltf), or the JSON block within the
             GLB (if reading glb). Per the spec, glTF should use UTF-8 without BOM for JSON data. However, to accommodate
             working with models that do not fully adhere to the spec, the file may be read with a different encoding.
             If not passed in, the encoding will be guessed from one of several supported encodings (based on BOM),
-            defaulting to UTF-8 if cannot be inferred.
+            defaulting to UTF-8 if it cannot be inferred.
         :return: GLTF instance
         """
         ext = path.splitext(filename)[1].lower()
@@ -105,7 +109,7 @@ class GLTF:
         :param filename: Path to the GLB file
         :param load_file_resources: If True, external file resources that are not provided via the "resources"
             array will be loaded from the filesystem. The paths are assumed to be relative to the GLTF file.
-        :param resources: Optional list of pre-loaded resources. Any resources referenced in the GLTF file that are
+        :param resources: Optional list of preloaded resources. Any resources referenced in the GLTF file that are
             present in the resources array will be used instead of loading those resources from the external
             source.
         :param encoding: File encoding (if known) of the JSON chunk within the GLB. Per the spec, JSON data should be
@@ -154,7 +158,7 @@ class GLTF:
         Exports the model to a GLTF file
         :param filename: Output filename
         :param save_file_resources: If True, external file resources present in the resources list will be saved
-        :return List of paths to the saved files (glTF + ressources).
+        :return List of paths to the saved files (glTF + resources).
         """
         gltf = self.clone()
         # noinspection PyProtectedMember
@@ -191,8 +195,8 @@ class GLTF:
         Return the model as a GLB bytes
         :return the model as GLB bytes.
 
-        The original GLTF instance is NOT mutated (in particular resources and associated buffers and buffer views are not modified
-            to become embedded).
+        The original GLTF instance is NOT mutated
+        (in particular resources and associated buffers and buffer views are not modified to become embedded).
         """
         glb = self.clone()
         # noinspection PyProtectedMember
@@ -222,7 +226,7 @@ class GLTF:
             None,
         )
         if next_item is None:
-            raise ValueError(f"Cannot find ressource with uri {uri}.")
+            raise ValueError(f"Cannot find resource with uri {uri}.")
         return next_item
 
     def get_glb_resource(self, resource_type: int = GLB_BINARY_CHUNK_TYPE) -> GLBResource:
@@ -527,14 +531,14 @@ class GLTF:
         create_parent_dirs(filename)
         data = self.model.to_json()
         file_names = [filename]
-        print(filename)
+        logger.info(filename)
         with open(filename, "w", encoding="utf-8") as f:
             f.write(data)
         if save_file_resources:
             self._validate_resources()
             basepath = path.dirname(filename)
-            file_names_ressources = self._export_file_resources(basepath)
-            file_names += file_names_ressources
+            file_names_resources = self._export_file_resources(basepath)
+            file_names += file_names_resources
         return file_names
 
     def _export_glb(
@@ -782,7 +786,7 @@ class GLTF:
     def _unembed_glb(self, uri: str) -> None:
         """
         Replaces the GLB buffer with a regular buffer that has its URI set to a file or other external resource.
-        Any images that refered to the GLB buffer are updated to simply reference a URL, and their corresponding
+        Any images that referred to the GLB buffer are updated to simply reference a URL, and their corresponding
         buffer views are removed (if not referenced elsewhere). If the GLB buffer was only used by images, then it
         is removed entirely (rather than replaced with another buffer), and any buffer indices in the remaining buffer
         views are updated to reflect the removed buffer.

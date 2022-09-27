@@ -46,8 +46,11 @@ def get_transform_from_trs(
     translation: Union[np.ndarray, List[float]],
     rotation: Union[np.ndarray, List[float]],
     scale: Union[np.ndarray, List[float]],
-) -> np.ndarray:
-    """Create a homogenious transform matrix (4x4) from 3D vector of translation and scale, and a quaternion vector of rotation."""
+) -> Union[np.ndarray, None]:
+    """
+    Create a homogeneous transform matrix (4x4) from 3D vector of translation and scale,
+    and a quaternion vector of rotation.
+    """
     if translation is None or rotation is None or scale is None:
         return None
 
@@ -131,29 +134,29 @@ def get_trs_from_transform_matrix(transform_matrix: np.ndarray) -> Tuple[np.ndar
     tr = m00 + m11 + m22
 
     if tr > 0:
-        S = np.sqrt(tr + 1.0) * 2  # S=4*qw
-        qw = 0.25 * S
-        qx = (m21 - m12) / S
-        qy = (m02 - m20) / S
-        qz = (m10 - m01) / S
+        s = np.sqrt(tr + 1.0) * 2  # s=4*qw
+        qw = 0.25 * s
+        qx = (m21 - m12) / s
+        qy = (m02 - m20) / s
+        qz = (m10 - m01) / s
     elif (m00 > m11) and (m00 > m22):
-        S = np.sqrt(1.0 + m00 - m11 - m22) * 2  # S=4*qx
-        qw = (m21 - m12) / S
-        qx = 0.25 * S
-        qy = (m01 + m10) / S
-        qz = (m02 + m20) / S
+        s = np.sqrt(1.0 + m00 - m11 - m22) * 2  # s=4*qx
+        qw = (m21 - m12) / s
+        qx = 0.25 * s
+        qy = (m01 + m10) / s
+        qz = (m02 + m20) / s
     elif m11 > m22:
-        S = np.sqrt(1.0 + m11 - m00 - m22) * 2  # S=4*qy
-        qw = (m02 - m20) / S
-        qx = (m01 + m10) / S
-        qy = 0.25 * S
-        qz = (m12 + m21) / S
+        s = np.sqrt(1.0 + m11 - m00 - m22) * 2  # s=4*qy
+        qw = (m02 - m20) / s
+        qx = (m01 + m10) / s
+        qy = 0.25 * s
+        qz = (m12 + m21) / s
     else:
-        S = np.sqrt(1.0 + m22 - m00 - m11) * 2  # S=4*qz
-        qw = (m10 - m01) / S
-        qx = (m02 + m20) / S
-        qy = (m12 + m21) / S
-        qz = 0.25 * S
+        s = np.sqrt(1.0 + m22 - m00 - m11) * 2  # s=4*qz
+        qw = (m10 - m01) / s
+        qx = (m02 + m20) / s
+        qy = (m12 + m21) / s
+        qz = 0.25 * s
 
     rotation = np.array([qx, qy, qz, qw])
 
@@ -209,4 +212,4 @@ def euler_from_quaternion(quaternion: Union[np.ndarray, List[float]]) -> List[fl
     t4 = +1.0 - 2.0 * (y * y + z * z)
     yaw_z = np.arctan2(t3, t4)
 
-    return roll_x, pitch_y, yaw_z  # in radians
+    return [roll_x, pitch_y, yaw_z]  # in radians

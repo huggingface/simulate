@@ -2,7 +2,7 @@ def del_none(d):
     """
     Delete keys with the value ``None`` in a dictionary, recursively.
 
-    This alters the input so you may wish to ``copy`` the dict first.
+    This alters the input, so you may wish to ``copy`` the dict first.
 
     Courtesy Chris Morgan and modified from:
     https://stackoverflow.com/questions/4255400/exclude-empty-null-values-from-json-serialization
@@ -27,7 +27,7 @@ def replace_unique_id_and_remove_none(d):
     Also delete keys with the value ``None``.
     All this recursively.
 
-    This alters the input so you may wish to ``copy`` the dict first.
+    This alters the input, so you may wish to ``copy`` the dict first.
 
     Courtesy Chris Morgan and modified from:
     https://stackoverflow.com/questions/4255400/exclude-empty-null-values-from-json-serialization

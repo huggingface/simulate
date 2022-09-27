@@ -36,11 +36,14 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
 
     Properties:
     type (str) The shape of the collider. (Optional, default "box")
-    bounding_box (number[3]) The XYZ size of the bounding box that encapsulates the collider. The collider will attempt to fill the bounding box. (Optional)
+    bounding_box (number[3]) The XYZ size of the bounding box that encapsulates the collider. The collider will attempt
+        to fill the bounding box. (Optional)
     mesh (number) A mesh when using the mesh collider type. (Optional)
-    offset (number[3]) The position offset of the collider relative to the object it's attached to. (Optional, default [0, 0, 0])
+    offset (number[3]) The position offset of the collider relative to the object it's attached to.
+        (Optional, default [0, 0, 0])
     intangible (boolean) Whether the collider should act as an intangible trigger. (Optiona, default False)
-    convex (boolean) Whether the collider is convex when using the mesh collider type -- convex mesh Colliders collide with other mesh Colliders. (Optional)
+    convex (boolean) Whether the collider is convex when using the mesh collider type --
+        convex mesh Colliders collide with other mesh Colliders. (Optional)
     physic_material (int) Index of the physic material, if any. (Optional)
     """
 
@@ -118,7 +121,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     def copy(self, with_children=True, **kwargs):
         """Copy an Object3D node in a new (returned) object.
 
-        By default mesh and materials are copied in respectively new mesh and material.
+        By default, mesh and materials are copied in respectively new mesh and material.
         'share_material' and 'share_mesh' can be set to True to share mesh and/or material
         between original and copy instead of creating new one.
         """

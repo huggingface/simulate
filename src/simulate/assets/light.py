@@ -9,7 +9,9 @@ class Light(Asset):
 
     Three type of punctual lights are implemented:
     - directional (default): an infinitely distant point source
-    - positional: point sources located in the real-world. A cone angle can be defined to limit the spatial distribution of a positional light beam in which case these are often known as spot light. a Value of None or above 90 degree means no spatial limitation.
+    - positional: point sources located in the real-world.
+        A cone angle can be defined to limit the spatial distribution of a positional light beam in which case
+        these are often known as spotlight. a Value of None or above 90 degree means no spatial limitation.
 
     Punctual lights are defined as infinitely small points that emit light in well-defined directions and intensities.
 
@@ -82,7 +84,7 @@ class Light(Asset):
 class LightSun(Light):
     """A Sun-like scene Light
 
-    Overide the default properties of the Light class to get a distant light coming from an angle.
+    Override the default properties of the Light class to get a distant light coming from an angle.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming

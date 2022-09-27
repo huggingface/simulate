@@ -66,7 +66,8 @@ class ParallelRLEnv(VecEnv):
 
         return all_obs, all_reward, all_done, all_info
 
-    def _combine_obs(self, obs):
+    @staticmethod
+    def _combine_obs(obs):
         out = defaultdict(list)
 
         for o in obs:
@@ -79,7 +80,7 @@ class ParallelRLEnv(VecEnv):
         return out
 
     def reset(self):
-        # we don't both performing this async as this happens rarely as the env auto resets
+        # we aren't performing this async as this happens rarely as the env auto resets
         all_obs = []
         for i in range(self.n_parallel):
             obs = self.envs[i].reset()

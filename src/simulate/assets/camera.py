@@ -19,8 +19,7 @@ from typing import List, Optional, Union
 
 import numpy as np
 
-from simulate import logging
-
+from ..utils import logging
 from .asset import Asset
 
 
@@ -33,7 +32,8 @@ except ImportError:
 
     # Our implementation of gym space classes if gym is not installed
     logger.warning(
-        "The gym library is not installed, falling back our implementation of gym.spaces. To remove this message pip install simulate[rl]"
+        "The gym library is not installed, falling back our implementation of gym.spaces. "
+        "To remove this message pip install simulate[rl]"
     )
 
 

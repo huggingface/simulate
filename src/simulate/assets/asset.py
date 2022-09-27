@@ -22,6 +22,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
 
+from ..utils import logging
 from .actuator import Actuator, ActuatorDict, spaces
 from .anytree import NodeMixin, TreeError
 from .articulation_body import ArticulationBodyComponent
@@ -35,6 +36,7 @@ from .utils import (
 )
 
 
+logger = logging.get_logger(__name__)
 ALLOWED_COMPONENTS_ATTRIBUTES = ["actuator", "physics_component", "actuator"]
 
 
@@ -95,9 +97,9 @@ class Asset(NodeMixin, object):
         children=None,
         created_from_file=None,
     ):
-        id = next(getattr(self.__class__, f"_{self.__class__.__name__}__NEW_ID"))
+        asset_id = next(getattr(self.__class__, f"_{self.__class__.__name__}__NEW_ID"))
         if name is None:
-            name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+            name = camelcase_to_snakecase(self.__class__.__name__ + f"_{asset_id:02d}")
         self.name = name
 
         self.tree_parent = parent
@@ -145,7 +147,7 @@ class Asset(NodeMixin, object):
         """
         for attribute in ALLOWED_COMPONENTS_ATTRIBUTES:
             if getattr(self, attribute, None) is not None:
-                yield (attribute, getattr(self, attribute))
+                yield attribute, getattr(self, attribute)
 
     @property
     def components(self) -> List[Any]:
@@ -192,7 +194,8 @@ class Asset(NodeMixin, object):
         If the returned action space Dict has a single entry, we return the single space instead of the Dict.
         """
         # [The following is NOT implemented at the moment]
-        # If the asset has multiple actuators with different ids, actuators of identical types are grouped together by tags and index
+        # If the asset has multiple actuators with different ids,
+        # actuators of identical types are grouped together by tags and index
         # in particular:
         # - Box actuators will be grouped together in a concatenated Box space along the first axis
         # - Discrete/MultiDiscrete actuators will be grouped together in a MultiDiscrete space
@@ -380,7 +383,8 @@ class Asset(NodeMixin, object):
         - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
         - or a path to a local file on the drive.
 
-        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+        When conflicting files on both, priority is given to the local file
+        (use 'is_local=True/False' to force from the Hub or from local file)
 
         Examples:
         - Scene.create_from('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
@@ -418,8 +422,8 @@ class Asset(NodeMixin, object):
                     use_auth_token=use_auth_token,
                     **kwargs,
                 )
-            except Exception:
-                print("Asset not found in Datasets. Checking Spaces...")
+            except Exception as e:
+                logger.info("Could not load Asset from Datasets:", e)
 
             if not file_path:
                 try:
@@ -432,19 +436,8 @@ class Asset(NodeMixin, object):
                         use_auth_token=use_auth_token,
                         **kwargs,
                     )
-                except Exception:
-                    print("Asset not found in Spaces. Loading default Asset instead.")
-
-            if not file_path:
-                file_path = hf_hub_download(
-                    repo_id="simulate-tests/Box",
-                    filename="Box.glb",
-                    subfolder="glTF-Binary",
-                    revision=revision,
-                    repo_type="space",
-                    use_auth_token=use_auth_token,
-                    **kwargs,
-                )
+                except Exception as e:
+                    raise RuntimeError("Could not load Asset from Spaces:", e)
 
         nodes = load_gltf_as_tree(
             file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
@@ -472,7 +465,8 @@ class Asset(NodeMixin, object):
         - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
         - or a path to a local file on the drive.
 
-        When conflicting files on both, priority is given to the local file (use 'is_local=True/False' to force from the Hub or from local file)
+        When conflicting files on both, priority is given to the local file
+        (use 'is_local=True/False' to force from the Hub or from local file)
 
         Examples:
         - Scene.create_from('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
@@ -521,10 +515,10 @@ class Asset(NodeMixin, object):
         Example:
         - scene.push_to_hub('simulate-tests/Box/glTF-Embedded/Box.gltf')
         """
-        splitted_hub_path = hub_filepath.split("/")
-        hub_repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
-        hub_filename = splitted_hub_path[-1]
-        hub_subfolder = "/".join(splitted_hub_path[2:-1])
+        split_hub_path = hub_filepath.split("/")
+        hub_repo_id = split_hub_path[0] + "/" + split_hub_path[1]
+        hub_filename = split_hub_path[-1]
+        hub_subfolder = "/".join(split_hub_path[2:-1])
 
         hub_filename_extension = hub_filename.split(".")
         if len(hub_filename_extension) == 1:
@@ -559,8 +553,8 @@ class Asset(NodeMixin, object):
         return repo_url
 
     def save(self, file_path: str) -> List[str]:
-        """Save in a GLTF file + additional (binary) ressource files if if shoulf be the case.
-        Return the list of all the path to the saved files (glTF file + ressource files)
+        """Save in a GLTF file + additional (binary) resource files if it should be the case.
+        Return the list of all the path to the saved files (glTF file + resource files)
         """
         # We import here to avoid circular deps
         from .gltf_export import save_tree_to_gltf_file
@@ -661,7 +655,7 @@ class Asset(NodeMixin, object):
 
         Parameters
         ----------
-        rotation : np.ndarray or list, optional
+        quaternion : np.ndarray or list, optional
             Rotation quaternion to apply to the object ``[x, y, z, w]``.
             Default to applying no rotation.
 
@@ -717,7 +711,7 @@ class Asset(NodeMixin, object):
 
         Parameters
         ----------
-        rotation : float, optional
+        value : float, optional
             Rotation value to apply to the object around the ``x`` axis in degree .
             Default to applying no rotation.
 
@@ -736,7 +730,7 @@ class Asset(NodeMixin, object):
 
         Parameters
         ----------
-        rotation : float, optional
+        value : float, optional
             Rotation value to apply to the object around the ``y`` axis in degree .
             Default to applying no rotation.
 
@@ -755,7 +749,7 @@ class Asset(NodeMixin, object):
 
         Parameters
         ----------
-        rotation : float, optional
+        value : float, optional
             Rotation value to apply to the object around the ``z`` axis in degree .
             Default to applying no rotation.
 
@@ -770,7 +764,8 @@ class Asset(NodeMixin, object):
         return self.rotate_around_vector(vector=[0.0, 0.0, 1.0], value=value)
 
     def scale(self, scaling: Optional[Union[float, List[float]]] = None):
-        """Scale the asset with a given scaling, either a global scaling value or a vector of ``[x, y, z]`` scaling values.
+        """Scale the asset with a given scaling, either a global scaling value
+        or a vector of ``[x, y, z]`` scaling values.
         Use ``scale_x``, ``scale_y`` or ``scale_z`` for simple scaling around a specific axis.
 
         Parameters
@@ -989,7 +984,8 @@ class Asset(NodeMixin, object):
 
         # We have a couple of restrictions on parent/children nodes
 
-        # Avoid circular imports (Reward functions are Asset) - unfortunately we cannot do this test on the Reward function side
+        # Avoid circular imports (Reward functions are Asset) -
+        # unfortunately we cannot do this test on the Reward function side
         # as this would involve calling _post_attaching_childran
         from .collider import Collider
         from .reward_functions import RewardFunction

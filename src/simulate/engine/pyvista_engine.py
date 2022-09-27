@@ -20,13 +20,17 @@ import numpy as np
 import pyvista
 
 from ..assets import Asset, Camera, Light, Material, Object3D
+from ..utils import logging
 from .engine import Engine
+
+
+logger = logging.get_logger(__name__)
 
 
 try:
     from pyvistaqt import BackgroundPlotter
 
-    # We tweak is a little bit to have Y axis towar the top
+    # We tweak it a bit to have Y axis toward the top
     class CustomBackgroundPlotter(BackgroundPlotter):
         def add_toolbars(self) -> None:
             """Add the toolbars."""
@@ -145,12 +149,12 @@ class PyVistaEngine(Engine):
                 material = node.material
                 actor = self.plotter.add_mesh(
                     located_mesh,
-                    pbr=True,  # material.base_color_texture is None,  # pyvista doesn't support having both a texture and pbr
+                    pbr=True,  # material.base_color_texture is None, pyvista doesn't support having both texture + pbr
                     color=material.base_color[:3],
                     opacity=material.base_color[-1],
                     metallic=material.metallic_factor,
                     roughness=material.roughness_factor,
-                    texture=None,  # We set all the textures ourself in _set_pbr_material_for_actor
+                    texture=None,  # We set all the textures ourselves in _set_pbr_material_for_actor
                     specular_power=1.0,  # Fixing a default of pyvista
                     point_size=1.0,  # Fixing a default of pyvista
                 )
@@ -197,8 +201,8 @@ class PyVistaEngine(Engine):
 
             if material.metallic_roughness_texture:
                 # merge ambient occlusion and metallic/roughness, then set material texture
-                pbrTexture = material.metallic_roughness_texture.copy()
-                pbrImage = pbrTexture.to_image()
+                pbr_texture = material.metallic_roughness_texture.copy()
+                pbr_image = pbr_texture.to_image()
                 if material.occlusion_texture:
                     # While glTF 2.0 uses two different textures for Ambient Occlusion and Metallic/Roughness
                     # values, VTK only uses one, so we merge both textures into one.
@@ -206,7 +210,7 @@ class PyVistaEngine(Engine):
                     # metallic/roughness texture (AO is r, Roughness g and Metallic b) If no Ambient
                     # Occlusion texture is present, we need to fill the metallic/roughness texture's first
                     # channel with 255
-                    aoTexture = material.occlusion_texture.copy()
+                    ao_texture = material.occlusion_texture.copy()
                     from vtkmodules.vtkImagingCore import (
                         vtkImageAppendComponents,
                         vtkImageExtractComponents,
@@ -215,30 +219,30 @@ class PyVistaEngine(Engine):
 
                     prop.SetOcclusionStrength(1.0)
                     # If sizes are different, resize the AO texture to the R/M texture's size
-                    pbrSize = pbrImage.GetDimensions()
-                    aoImage = aoTexture.to_image()
-                    aoSize = aoImage.GetDimensions()
-                    redAO = vtkImageExtractComponents()
-                    if pbrSize != aoSize:
+                    pbr_size = pbr_image.GetDimensions()
+                    ao_image = ao_texture.to_image()
+                    ao_size = ao_image.GetDimensions()
+                    red_ao = vtkImageExtractComponents()
+                    if pbr_size != ao_size:
                         resize = vtkImageResize()
-                        resize.SetInputData(aoImage)
-                        resize.SetOutputDimensions(pbrSize[0], pbrSize[1], pbrSize[2])
+                        resize.SetInputData(ao_image)
+                        resize.SetOutputDimensions(pbr_size[0], pbr_size[1], pbr_size[2])
                         resize.Update()
-                        redAO.SetInputConnection(resize.GetOutputPort(0))
+                        red_ao.SetInputConnection(resize.GetOutputPort(0))
                     else:
-                        redAO.SetInputData(aoImage)
-                    redAO.SetComponents(0)
-                    gbPbr = vtkImageExtractComponents()
-                    gbPbr.SetInputData(pbrImage)
-                    gbPbr.SetComponents(1, 2)
+                        red_ao.SetInputData(ao_image)
+                    red_ao.SetComponents(0)
+                    gb_pbr = vtkImageExtractComponents()
+                    gb_pbr.SetInputData(pbr_image)
+                    gb_pbr.SetComponents(1, 2)
                     append = vtkImageAppendComponents()
-                    append.AddInputConnection(redAO.GetOutputPort())
-                    append.AddInputConnection(gbPbr.GetOutputPort())
-                    append.SetOutput(pbrImage)
+                    append.AddInputConnection(red_ao.GetOutputPort())
+                    append.AddInputConnection(gb_pbr.GetOutputPort())
+                    append.SetOutput(pbr_image)
                     append.Update()
                 else:
-                    pbrImage.GetPointData().GetScalars().FillComponent(0, 255)
-                prop.SetORMTexture(pbrTexture)
+                    pbr_image.GetPointData().GetScalars().FillComponent(0, 255)
+                prop.SetORMTexture(pbr_texture)
 
             if material.emissive_texture:
                 material.emissive_texture.UseSRGBColorSpaceOn()

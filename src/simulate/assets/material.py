@@ -35,8 +35,8 @@ class classproperty(object):
         return self.fget(owner_cls)
 
 
-# TODO thom this is a very basic PBR Metrial class, mostly here to be able to load a gltf - strongly base on GLTF definitions
-# To be revamped and improved later
+# This is a very basic PBR Material class, mostly here to be able to load a gltf - strongly base on GLTF definitions
+# TODO: Revamp and improve the Material class
 
 
 @dataclass()
@@ -51,7 +51,8 @@ class Material:
 
     base_color : np.ndarray or list with 3 (RGB) or 4 (RGBA) components, optional
         The material's base RGB or RGBA color.
-        The factors for the base color of the material. This value defines linear multipliers for the sampled texels of the base color texture.
+        The factors for the base color of the material.
+        This value defines linear multipliers for the sampled texels of the base color texture.
         Default: [1,1,1,1]. If provided as RGB, Alpha is assumed to be 1.
 
     base_color_texture : pyvista.Texture, optional
@@ -85,8 +86,11 @@ class Material:
     alpha_mode : string selected in ["OPAQUE", "MASK" and "BLEND"]
         The alpha rendering mode of the material.
             "OPAQUE": The alpha value is ignored, and the rendered output is fully opaque.
-            "MASK": The rendered output is either fully opaque or fully transparent depending on the alpha value and the specified alpha_cutoff value.
-            "BLEND": The alpha value is used to composite the source and destination areas. The rendered output is combined with the background using the normal painting operation (i.e. the Porter and Duff over operator).
+            "MASK": The rendered output is either fully opaque or fully transparent depending on the alpha value
+                and the specified alpha_cutoff value.
+            "BLEND": The alpha value is used to composite the source and destination areas.
+                The rendered output is combined with the background using the normal painting operation
+                (i.e. the Porter and Duff over operator).
         Default: "OPAQUE"
 
     alpha_cutoff: float, optional
@@ -94,7 +98,7 @@ class Material:
         Default: 0.5
 
     double_sided: boolean, optional
-        Specifies whether the material is double sided.
+        Specifies whether the material is double-sided.
         Default: false
     """
 

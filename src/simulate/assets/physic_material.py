@@ -29,11 +29,16 @@ class PhysicMaterial(GltfExtensionMixin, gltf_extension_name="HF_physic_material
     A physic material.
 
     Properties:
-    dynamic_friction (number) The friction used when already moving. Usually a value from 0 to 1. (Optional, default 0.6)
-    static_friction (number) The friction used when laying still on a surface. Usually a value from 0 to 1. (Optional, default 0.6)
-    bounciness (number) How bouncy a surface is. 0 will not bounce, 1 will bounce without any loss of energy. (Optional, default 0)
-    friction_combine (str) How the friction of two surfaces are combined. (Optional, default "average")
-    bounce_combine (str) How the bounciness of two surfaces are combined. (Optional, default "average")
+    dynamic_friction (number) The friction used when already moving. Usually a value from 0 to 1.
+        (Optional, default 0.6)
+    static_friction (number) The friction used when laying still on a surface. Usually a value from 0 to 1.
+        (Optional, default 0.6)
+    bounciness (number) How bouncy a surface is. 0 will not bounce, 1 will bounce without any loss of energy.
+        (Optional, default 0)
+    friction_combine (str) How the friction of two surfaces are combined.
+        (Optional, default "average")
+    bounce_combine (str) How the bounciness of two surfaces are combined.
+        (Optional, default "average")
     """
 
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -53,14 +58,14 @@ class PhysicMaterial(GltfExtensionMixin, gltf_extension_name="HF_physic_material
         if self.bounciness is None:
             self.bounciness = 0.0
         if self.name is None:
-            id = next(self.__class__.__NEW_ID)
-            self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+            class_id = next(self.__class__.__NEW_ID)
+            self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{class_id:02d}")
 
     def __hash__(self):
         return id(self)
 
     def copy(self):
         copy_mat = copy.deepcopy(self)
-        id = next(self.__class__.__NEW_ID)
-        self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+        class_id = next(self.__class__.__NEW_ID)
+        self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{class_id:02d}")
         return copy_mat
