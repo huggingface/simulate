@@ -285,7 +285,8 @@ def build_node_tree(
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
         primitives = gltf_mesh.primitives
         base_name = common_kwargs["name"]
-        common_kwargs["with_physics_component"] = False
+        common_kwargs["with_rigid_body"] = False
+        common_kwargs["with_articulation_body"] = False
         if len(primitives) > 1:
             mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"]  # A pv.MultiBlock
         else:
