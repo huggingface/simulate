@@ -27,11 +27,11 @@ class Simulator:
 
         bpy.ops.import_scene.gltf(filepath="tmp_scene.glb")
         os.remove("tmp_scene.glb")
-        self._callback("ack")
+        self._callback("{}")
         self.client.listen(self.dispatch_command)
 
     def update_scene(self, data):
-        self._callback("ack")
+        self._callback("{}")
         self.client.listen(self.dispatch_command)
 
     def render(self, data):
@@ -49,11 +49,11 @@ class Simulator:
         bpy.context.scene.camera = bpy.data.objects.get("cam1")
         bpy.context.scene.render.filepath = os.path.join(data["path"], str(render_count) + ".png")
         bpy.ops.render.render(write_still=True)
-        self._callback("ack")
+        self._callback("{}")
         self.client.listen(self.dispatch_command)
 
     def close(self, data):
-        self._callback("ack")
+        self._callback("{}")
         self.client.close()
 
     def _callback(self, data):

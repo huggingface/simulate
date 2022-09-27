@@ -19,7 +19,7 @@ namespace Simulate {
                 callback(error);
                 return;
             }
-            callback("ack");
+            callback("{}");
         }
     }
 }

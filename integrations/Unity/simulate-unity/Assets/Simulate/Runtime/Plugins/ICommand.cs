@@ -13,7 +13,7 @@ namespace Simulate {
     ///     
     ///     public void Execute(UnityAction{string} callback) {
     ///         Debug.Log("Received message: " + message);
-    ///         callback("ack");
+    ///         callback("{}");
     ///     }
     /// }
     /// </code>
@@ -32,7 +32,7 @@ namespace Simulate {
     public interface ICommand {
         /// <summary>
         /// Executes the custom command.
-        /// <para>Don't forget to call the callback, i.e. <c>callback("ack");</c>.</para>
+        /// <para>Don't forget to call the callback, i.e. <c>callback("{}");</c>.</para>
         /// </summary>
         /// <param name="callback">Required callback for the client to continue execution.</param>
         void Execute(Dictionary<string, object> kwargs, UnityAction<string> callback);

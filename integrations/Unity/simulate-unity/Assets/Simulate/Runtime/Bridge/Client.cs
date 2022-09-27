@@ -41,7 +41,7 @@ namespace Simulate {
             Client.port = port;
             LoadCommands();
             isOpen = true;
-            if (listenCoroutine == null)
+            if(listenCoroutine == null)
                 listenCoroutine = ListenCoroutine().RunCoroutine();
         }
 
@@ -52,7 +52,7 @@ namespace Simulate {
                 .Select(x => (ICommand)Activator.CreateInstance(x))
                 .ToList().ForEach(command => {
                     string type = command.GetType().Name;
-                    if (!commands.ContainsKey(type))
+                    if(!commands.ContainsKey(type))
                         commands.Add(type, command);
                     else
                         Debug.LogWarning("Found multiple commands of type " + type);
@@ -62,9 +62,9 @@ namespace Simulate {
         private static IEnumerator ListenCoroutine() {
             int chunkSize = 1024;
             byte[] buffer = new byte[chunkSize];
-            while (isOpen) {
+            while(isOpen) {
                 NetworkStream stream = client.GetStream();
-                if (stream.DataAvailable) {
+                if(stream.DataAvailable) {
                     byte[] lengthBuffer = new byte[4];
                     stream.Read(lengthBuffer, 0, 4);
 
@@ -72,7 +72,7 @@ namespace Simulate {
                     byte[] data = new byte[messageLength];
                     int dataReceived = 0;
 
-                    while (dataReceived < messageLength)
+                    while(dataReceived < messageLength)
                         dataReceived += stream.Read(data, dataReceived, Math.Min(chunkSize, messageLength - dataReceived));
 
                     Debug.Assert(dataReceived == messageLength);
@@ -88,18 +88,17 @@ namespace Simulate {
         /// </summary>
         /// <param name="message"></param>
         public static void WriteMessage(string message) {
-            if (client == null || !isOpen) return;
+            if(client == null || !isOpen) return;
             try {
                 NetworkStream stream = client.GetStream();
-                if (stream.CanWrite) {
+                if(stream.CanWrite) {
                     byte[] buffer = Encoding.ASCII.GetBytes(message);
                     byte[] lengthBytes = BitConverter.GetBytes(buffer.Length);
                     Debug.Assert(lengthBytes.Length == 4);
                     stream.Write(lengthBytes, 0, 4);
                     stream.Write(buffer, 0, buffer.Length);
-                    //Debug.Log("Sent message: " + message);
                 }
-            } catch (Exception e) {
+            } catch(Exception e) {
                 Debug.Log("Socket error: " + e);
             }
         }
@@ -109,7 +108,7 @@ namespace Simulate {
         /// </summary>
         public static void Close() {
             isOpen = false;
-            if (client != null && client.Connected)
+            if(client != null && client.Connected)
                 client.Close();
         }
 
@@ -117,22 +116,22 @@ namespace Simulate {
             JObject jObject = JObject.Parse(json);
             Dictionary<string, JToken> tokens = jObject.Properties()
                 .ToDictionary(x => x.Name, x => x.Value);
-            if (!tokens.TryGetValue("type", out JToken type)) {
+            if(!tokens.TryGetValue("type", out JToken type)) {
                 string error = "Command doesn't contain type";
                 Debug.LogWarning(error);
                 WriteMessage(error);
                 return;
             }
             Dictionary<string, object> kwargs = new Dictionary<string, object>();
-            foreach (string key in tokens.Keys) {
-                if (key == "type")
+            foreach(string key in tokens.Keys) {
+                if(key == "type")
                     continue;
                 object value = tokens[key].ToObject<object>();
                 kwargs.Add(key, value);
             }
 
             // Try to find the command by name
-            if (!commands.TryGetValue(type.ToString(), out ICommand command)) {
+            if(!commands.TryGetValue(type.ToString(), out ICommand command)) {
                 string error = "Unknown command: " + type;
                 Debug.LogWarning(error);
                 WriteMessage(error);
@@ -145,7 +144,7 @@ namespace Simulate {
             // Try to execute the command
             try {
                 command.Execute(kwargs, result => WriteMessage(result));
-            } catch (System.Exception e) {
+            } catch(System.Exception e) {
                 Debug.LogWarning(e.ToString());
                 WriteMessage(e.ToString());
             }
