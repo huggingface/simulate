@@ -25,14 +25,15 @@ if __name__ == "__main__":
     )
 
     # Parameters still to be fixed
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate")
+    parser.add_argument("--build_exe", default="", type=str, required=False, help="Pre-built unity app for simulate")
     parser.add_argument("--n_parallel", default=1, type=int, required=False, help="Number of parallel environments")
     parser.add_argument("--n_maps", default=64, type=int, required=False, help="Total number of maps")
     parser.add_argument("--n_show", default=16, type=int, required=False, help="Number of maps to show at once")
     parser.add_argument("--seed", default=10, type=int, required=False, help="Random seed")
     parser.add_argument("--n_episodes", default=25600, type=int, required=False, help="Number of episodes")
     parser.add_argument("--save_folder", default="results", type=str, required=False, help="Where to save results")
-    parser.add_argument("--headless", default=True, type=bool, required=False, help="Headless mode")
+    parser.add_argument("--no_headless", dest='headless', action='store_false')
+    parser.set_defaults(headless=True)
     args = parser.parse_args()
 
     # TODO: add back parallel environments once refactor is done

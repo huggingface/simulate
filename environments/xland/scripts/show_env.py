@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser.add_argument("--sample_from", type=str, default=None, help="Map to sample from")
     parser.add_argument("--map", type=str, default=None, help="Specific map to be used")
     parser.add_argument("--engine", type=str, default=None, help="Engine to be used")
-    parser.add_argument("--build_exe", type=str, default=None, help="Engine application, e.g. for Unity")
+    parser.add_argument("--build_exe", type=str, default="", help="Engine application, e.g. for Unity")
 
     # Optional arguments which are related to WFC
     parser.add_argument("--periodic_output", type=bool, default=True)
