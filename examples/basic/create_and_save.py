@@ -20,10 +20,9 @@ import simulate as sm
 if __name__ == "__main__":
     # creates a basic scene and saves as gltf
     scene = sm.Scene(engine="Unity")
-
+    scene += sm.LightSun()
     # add objects to scene
     scene += [sm.Sphere(position=[1, 0, 0], with_collider=True), sm.Box(name="target", position=[0, 2.5, 0])]
-
     # create an actor with reward function
     target = scene.target
     actor = sm.EgocentricCameraActor(position=[0, 0, 3])
