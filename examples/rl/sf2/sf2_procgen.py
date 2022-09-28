@@ -14,10 +14,10 @@
 
 # Lint as: python3
 
-import sys
-import random
-import math
 import argparse
+import math
+import random
+import sys
 
 from simulate import logging
 
@@ -25,10 +25,10 @@ from simulate import logging
 logger = logging.get_logger(__name__)
 
 try:
-    from sample_factory.cfg.arguments import parse_full_cfg, parse_sf_args
-    from sample_factory.train import make_runner
-    from sample_factory.envs.env_utils import register_env
     from sample_factory.algo.utils.misc import ExperimentStatus
+    from sample_factory.cfg.arguments import parse_full_cfg, parse_sf_args
+    from sample_factory.envs.env_utils import register_env
+    from sample_factory.train import make_runner
 
 except ImportError:
     logger.warning(
@@ -39,6 +39,7 @@ except ImportError:
 import simulate as sm
 from simulate.assets.object import ProcGenPrimsMaze3D
 from simulate.assets.sensors import RaycastSensor, StateSensor
+
 
 def generate_map(index):
 
@@ -99,11 +100,19 @@ def make_env_func(full_env_name, cfg=None, env_config=None):
         port += 1 + env_config.env_id
 
     return sm.RLEnv(generate_map, cfg.n_maps, cfg.n_show, engine_exe=cfg.build_exe, engine_port=port)
-    
+
+
 def add_simulate_env_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--build_exe", default="builds/simulate_unity.x86_64", type=str, required=False, help="Pre-built unity app for simulate")
+    parser.add_argument(
+        "--build_exe",
+        default="builds/simulate_unity.x86_64",
+        type=str,
+        required=False,
+        help="Pre-built unity app for simulate",
+    )
     parser.add_argument("--n_maps", default=16, type=int, required=False, help="Number of maps to spawn")
     parser.add_argument("--n_show", default=8, type=int, required=False, help="Number of maps to show")
+
 
 def simulate_override_defaults(parser: argparse.ArgumentParser) -> None:
     parser.set_defaults(
@@ -114,14 +123,13 @@ def simulate_override_defaults(parser: argparse.ArgumentParser) -> None:
         env_framestack=1,
         num_workers=8,
         num_envs_per_worker=2,
-        
         train_for_env_steps=10000000,
         normalize_input=True,
         normalize_returns=False,
         batched_sampling=True,
         use_rnn=False,
-
     )
+
 
 def parse_simulate_args(argv=None, evaluation=False):
     parser, cfg = parse_sf_args(argv, evaluation=evaluation)

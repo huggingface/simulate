@@ -140,14 +140,20 @@ class RLEnv(VecEnv):
                 if self.n_show == 1 and self.n_actors == 1:
                     action[key] = [[value]]
                 elif self.n_show > 1 and self.n_actors_per_map == 1:
-                    action[key] = np.array(value).reshape((self.n_show, self.n_actors_per_map, -1)).tolist() # hacky reshape, sorry. (Ed)
+                    action[key] = (
+                        np.array(value).reshape((self.n_show, self.n_actors_per_map, -1)).tolist()
+                    )  # hacky reshape, sorry. (Ed)
                 else:
                     raise ValueError(
                         f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
                         f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} "
                         f"and n_actors {self.n_actors})."
                     )
-            elif isinstance(value, np.ndarray) and len(value) > 0 and isinstance(value[0], (np.int64, np.int32, np.float32)):
+            elif (
+                isinstance(value, np.ndarray)
+                and len(value) > 0
+                and isinstance(value[0], (np.int64, np.int32, np.float32))
+            ):
                 # actions are a number array
                 value = value.reshape((self.n_show, self.n_actors_per_map, -1))
                 action[key] = value.tolist()
@@ -164,7 +170,7 @@ class RLEnv(VecEnv):
         done = self._convert_to_numpy(event["actor_done_buffer"]).flatten() > 0
 
         obs = self._squeeze_actor_dimension(obs)
-        return obs, reward, done , [{}] * len(done)
+        return obs, reward, done, [{}] * len(done)
 
     def _squeeze_actor_dimension(self, obs):
         for k, v in obs.items():
