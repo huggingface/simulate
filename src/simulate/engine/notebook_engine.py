@@ -23,7 +23,6 @@ import os
 import zipfile
 from io import BytesIO, StringIO
 
-from ..assets import Asset
 from .engine import Engine
 
 

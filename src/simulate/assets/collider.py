@@ -55,7 +55,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     physic_material: Optional[int] = None
 
     name: InitVar[Optional[str]] = None
-    mesh: InitVar[Optional[Union[pv.UnstructuredGrid, pv.PolyData]]] = None
+    mesh: InitVar[Optional[Union[pv.UnstructuredGrid, pv.PolyData, pv.MultiBlock]]] = None
     material: InitVar[Optional[Any]] = None
     position: InitVar[Optional[List[float]]] = None
     rotation: InitVar[Optional[List[float]]] = None
@@ -96,7 +96,11 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
         # Avoid having averaging normals at shared points
         # (default pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
         if self.mesh is not None:
-            self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
+            if isinstance(self.mesh, pv.MultiBlock):
+                for i in range(self.mesh.n_blocks):
+                    self.mesh[i].compute_normals(inplace=True, cell_normals=False, split_vertices=True)
+            else:
+                self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
         self.material = material
         if self.material is not None and not isinstance(material, PhysicMaterial):
             raise TypeError(f"The material given to a Collider must be a PhysicsMaterial and not a {type(material)}")
@@ -112,7 +116,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
 
         # if self.bounding_box is None and self.mesh is None:
         #     raise ValueError(
-        #         "You should provide either a bounding box (for box, sphere and capsule colliders) or a mesh."
+        #         "You should provide either a bounding box (for box, sphere and capsule colliders) or a mesh"
         #     )
 
         if self.bounding_box is not None and len(self.bounding_box) != 3:
@@ -166,7 +170,10 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
         fields_str = ", ".join([f"{f.name}={getattr(self, f.name)}" for f in fields(self)])
         mesh_str = ""
         if getattr(self, "mesh", None) is not None:
-            mesh_str = f"Mesh(points={self.mesh.n_points}, cells={self.mesh.n_cells})"
+            if isinstance(self.mesh, pv.MultiBlock):
+                mesh_str = f"Mesh(Multiblock, n_blocks={self.mesh.n_blocks}"
+            else:
+                mesh_str = f"Mesh(points={self.mesh.n_points}, cells={self.mesh.n_cells})"
         material_str = ""
         if getattr(self, "material", None) is not None:
             material_str = str(self.material)
