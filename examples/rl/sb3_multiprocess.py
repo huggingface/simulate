@@ -5,6 +5,7 @@ import time
 
 from simulate import logging
 
+
 logger = logging.get_logger(__name__)
 
 try:
@@ -18,6 +19,7 @@ except ImportError:
 import simulate as sm
 from simulate.assets.object import ProcGenPrimsMaze3D
 from simulate.assets.sensors import RaycastSensor, StateSensor
+
 
 # NOTE TO USER, IN ORDER TO RUN THIS EXAMPLE, YOU MUST BUILD THE UNITY EXE YOUR SELF, SEE https://github.com/huggingface/simulate/issues/242
 def generate_map(index):
