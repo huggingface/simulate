@@ -44,3 +44,6 @@ class Engine:
 
     def __exit__(self):
         self.close()
+
+    def close(self):
+        pass

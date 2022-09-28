@@ -20,7 +20,7 @@ from typing import Dict, List, Optional, Tuple, Union
 from .assets import Asset, Camera, Light, Object3D, RaycastSensor, RewardFunction, StateSensor, spaces
 from .assets.anytree import RenderTree
 from .config import Config
-from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
+from .engine import BlenderEngine, GodotEngine, NotebookEngine, PyVistaEngine, UnityEngine, in_notebook
 
 
 class Scene(Asset):
@@ -74,8 +74,15 @@ class Scene(Asset):
             self.engine = GodotEngine(self)
         elif engine == "blender":
             self.engine = BlenderEngine(self)
-        elif engine == "pyvista" or engine is None:
+        elif engine == "pyvista":
             self.engine = PyVistaEngine(self, **kwargs)
+        elif engine == "notebook":
+            self.engine = NotebookEngine(self, **kwargs)
+        elif engine is None:
+            if in_notebook():
+                self.engine = NotebookEngine(self, **kwargs)
+            else:
+                self.engine = PyVistaEngine(self, **kwargs)
         elif engine is not None:
             raise ValueError("engine should be selected in the list [None, 'unity', 'godot', 'blender', 'pyvista']")
 
@@ -108,8 +115,8 @@ class Scene(Asset):
                     f"Check that only one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
                 )
 
-        self.engine.show(**engine_kwargs)
         self._is_shown = True
+        return self.engine.show(**engine_kwargs)
 
     def step(
         self,

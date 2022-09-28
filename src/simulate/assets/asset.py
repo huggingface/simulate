@@ -167,24 +167,15 @@ class Asset(NodeMixin, object):
     def physics_component(self):
         return self._physics_component
 
-    def check_parent_physics(self):
-        # TODO: replace with tree operations
-        if self.tree_parent is not None:
-            if self.tree_parent.physics_component is not None:
-                return True
-            else:
-                return self.tree_parent.check_parent_physics()
-        return False
-
     @physics_component.setter
     def physics_component(self, physics_component: Union[None, RigidBodyComponent, ArticulationBodyComponent]):
         self._physics_component = physics_component
 
-        if physics_component is not None:
-            # recursively check for parent with physics_component
-            multiple_physics = self.check_parent_physics()
-            if multiple_physics:
-                print("WARNING: A linked child asset and parent asset have a physics component, not supported.")
+        if isinstance(physics_component, RigidBodyComponent):
+            if any(node.physics_component is not None for node in self.tree_ancestors):
+                raise ValueError(
+                    f"Cannot add a RigidBodyComponent to {self.name} because it has a parent with already RigidBodyComponent."
+                )
 
     @property
     def action_space(self) -> Optional[spaces.Dict]:

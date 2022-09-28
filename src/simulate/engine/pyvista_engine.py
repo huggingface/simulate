@@ -28,6 +28,14 @@ logger = logging.get_logger(__name__)
 
 
 try:
+    import google.colab
+
+    IN_COLAB = True
+except:
+    IN_COLAB = False
+
+
+try:
     from pyvistaqt import BackgroundPlotter
 
     # We tweak it a bit to have Y axis toward the top
@@ -70,6 +78,10 @@ try:
 except ImportError:
     CustomBackgroundPlotter = None
 
+CAMERA_POSITION = [-1, 1, -1]
+CAMERA_FOCAL_POINT = [0, 0, 0]
+CAMERA_VIEWUP = [0, 1, 0]
+
 
 class PyVistaEngine(Engine):
     def __init__(self, scene, auto_update=True, **plotter_kwargs):
@@ -85,11 +97,12 @@ class PyVistaEngine(Engine):
         plotter_args.update(self.plotter_kwargs)
         if self.auto_update:
             self.plotter: pyvista.Plotter = CustomBackgroundPlotter(**plotter_args)
+        elif IN_COLAB:
+            self.plotter: pyvista.Plotter = pyvista.PlotterITK(**plotter_args)
         else:
             self.plotter: pyvista.Plotter = pyvista.Plotter(**plotter_args)
-        # self.plotter.camera_position = "xy"
-        self.plotter.view_vector((1, 1, 1), (0, 1, 0))
-        if not self.auto_update:
+        self.plotter.camera_position = [CAMERA_POSITION, CAMERA_FOCAL_POINT, CAMERA_VIEWUP]
+        if not self.auto_update and hasattr(self.plotter, "add_axes"):
             self.plotter.add_axes(box=True)
 
     @staticmethod
@@ -114,7 +127,8 @@ class PyVistaEngine(Engine):
             if actor is not None:
                 self.plotter.remove_actor(actor)
 
-        self.plotter.reset_camera()
+        if hasattr(self.plotter, "reset_camera"):
+            self.plotter.reset_camera()
 
     def update_asset(self, asset_node):
         """Add an asset or update its location and all its children in the scene"""
@@ -133,7 +147,8 @@ class PyVistaEngine(Engine):
 
             self._add_asset_to_scene(node, model_transform_matrix)
 
-        self.plotter.reset_camera()
+        if hasattr(self.plotter, "reset_camera"):
+            self.plotter.reset_camera()
 
     def _add_asset_to_scene(self, node, model_transform_matrix):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
@@ -272,10 +287,11 @@ class PyVistaEngine(Engine):
 
             self._add_asset_to_scene(node, model_transform_matrix)
 
-        if not self.plotter.renderer.lights:
+        if not self.plotter.renderer.lights and hasattr(self.plotter, "enable_lightkit"):
             self.plotter.enable_lightkit()  # Still add some lights
 
-        self.plotter.reset_camera()
+        if hasattr(self.plotter, "reset_camera"):
+            self.plotter.reset_camera()
 
     def show(self, auto_update: Optional[bool] = None, **plotter_kwargs):
         if auto_update is not None and auto_update != self.auto_update:
