@@ -76,6 +76,10 @@ SB3_REQUIRE = [
     "gym==0.21.0",  # For RL action spaces and API
     "stable-baselines3"
 ]
+SF2_REQUIRE = [
+   "gym==0.22.0",  # For RL action spaces and API
+   "git+https://github.com/alex-petrenko/sample-factory/tree/multi_input_model_builder" 
+]
 
 DEV_REQUIRE = [
     "gym==0.21.0",  # For RL action spaces and API
@@ -97,11 +101,12 @@ TESTS_REQUIRE = [
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 EXTRAS_REQUIRE = {
-    "rl" : RL_REQUIRE,
-    "sb3" : SB3_REQUIRE,
-     "dev": DEV_REQUIRE + TESTS_REQUIRE + QUALITY_REQUIRE,
-     "test": TESTS_REQUIRE,
-     "quality": QUALITY_REQUIRE,
+   "rl" : RL_REQUIRE,
+   "sb3" : SB3_REQUIRE,
+   "sf2" : SF2_REQUIRE,
+    "dev": DEV_REQUIRE + TESTS_REQUIRE + QUALITY_REQUIRE,
+    "test": TESTS_REQUIRE,
+    "quality": QUALITY_REQUIRE,
 }
 
 if sys.platform == 'darwin':
