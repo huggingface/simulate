@@ -17,8 +17,8 @@
 import itertools
 from typing import Dict, List, Optional, Tuple, Union
 
-from .assets import Asset, Camera, Light, Object3D, RaycastSensor, RewardFunction, StateSensor, spaces
-from .assets.anytree import RenderTree
+from .assets import Asset, Camera, Collider, Light, Object3D, RaycastSensor, RewardFunction, StateSensor, spaces
+from .assets.anytree import RenderTree, TreeError
 from .config import Config
 from .engine import BlenderEngine, GodotEngine, NotebookEngine, PyVistaEngine, UnityEngine, in_notebook
 
@@ -145,28 +145,55 @@ class Scene(Asset):
         )
         return Scene.create_from_asset(root_node, **scene_kwargs)
 
+    def _scene_check(self):
+        # We have a couple of restrictions on parent/children nodes
+        seen = set([self.name])  # O(1) lookups
+        for node in self.tree_descendants:
+            # all names have to be unique in the tree.
+            if node.name not in seen:
+                seen.add(node.name)
+            else:
+                raise ValueError("Node name '{}' is not unique".format(node.name))
+
+            # a reward function can only have reward functions as children.
+            if isinstance(node, RewardFunction):
+                if any(not isinstance(child, RewardFunction) for child in node.tree_children):
+                    raise TreeError(
+                        f"Reward functions can only have reward function as children but "
+                        f"node {node.name} has a child which is not a reward function."
+                    )
+            # a collider cannot have children.
+            if isinstance(node, Collider) and node.tree_children:
+                raise TreeError(f"Colliders can not have children but " f"node {node.name} has a child")
+
+            # Sanity check that all actuators are part of one and only one actor
+            if node.actuator is not None:
+                number_of_parent_actors = 0
+                for parent_node in node.tree_path:
+                    number_of_parent_actors += 1 if parent_node.is_actor else 0
+                if number_of_parent_actors == 0:
+                    raise ValueError(
+                        f"Node {node.name} has an actuator but is not part of an actor. "
+                        "Actuators should be part of an actor. "
+                        f"Check that at least one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
+                    )
+                elif number_of_parent_actors > 1:
+                    raise ValueError(
+                        f"Node {node.name} has an actuator but is part of more than one actor. "
+                        "Actuators should be part of one and only one actor. "
+                        f"Check that only one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
+                    )
+
+    def save(self, file_path: str) -> List[str]:
+        """Save in a GLTF file + additional (binary) resource files if it should be the case.
+        Return the list of all the path to the saved files (glTF file + resource files)
+        """
+        self._scene_check()
+        return super().save(file_path)
+
     def show(self, **engine_kwargs):
         """Send the scene to the engine for rendering or later simulation."""
-
-        # Sanity check that all actuators are part of one and only one actor
-        node_with_actuators = self.tree_filtered_descendants(lambda node: node.actuator is not None)
-        for node in node_with_actuators:
-            number_of_parent_actors = 0
-            for parent_node in node.tree_path:
-                number_of_parent_actors += 1 if parent_node.is_actor else 0
-            if number_of_parent_actors == 0:
-                raise ValueError(
-                    f"Node {node.name} has an actuator but is not part of an actor. "
-                    "Actuators should be part of an actor. "
-                    f"Check that at least one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
-                )
-            elif number_of_parent_actors > 1:
-                raise ValueError(
-                    f"Node {node.name} has an actuator but is part of more than one actor. "
-                    "Actuators should be part of one and only one actor. "
-                    f"Check that only one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
-                )
-
+        self._scene_check()
         self._is_shown = True
         return self.engine.show(**engine_kwargs)
 

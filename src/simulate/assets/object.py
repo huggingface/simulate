@@ -171,8 +171,6 @@ class Object3D(Asset):
             if isinstance(node, Collider):
                 node.name = self.name + "_collider"  # Let's keep the name of the collider in sync
 
-        self.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
-
     def _repr_info_str(self) -> str:
         """Used to add additional information to the __repr__ method."""
         mesh_str = ""

@@ -48,6 +48,7 @@ class RewardsTest(unittest.TestCase):
 
         with self.assertRaises(sm.assets.anytree.TreeError):
             reward += b
+            scene.show()
 
     def test_obj_position(self):
         obj = sm.RewardFunction()
