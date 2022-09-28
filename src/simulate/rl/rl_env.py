@@ -11,7 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, Union
+from typing import Callable, Dict, Union
 
 import numpy as np
 
@@ -37,11 +37,11 @@ class RLEnv(VecEnv):
     https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
 
     Args:
-        scene_or_map_fn: a generator function for generating instances of the desired environment
-        n_maps: the number of map instances to create, default 1
-        n_show: optionally show a subset of the maps during training and dequeue a new map at the end of each episode
-        time_step: the physics timestep of the environment
-        frame_skip: the number of times an action is repeated before the next observation is returned
+        scene_or_map_fn: a generator function for generating instances of the desired environment.
+        n_maps: the number of map instances to create, default 1.
+        n_show: optionally show a subset of the maps during training and dequeue a new map at the end of each episode.
+        time_step: the physics timestep of the environment.
+        frame_skip: the number of times an action is repeated in the backend simulation before the next observation is returned.
     """
 
     def __init__(
@@ -103,10 +103,17 @@ class RLEnv(VecEnv):
             n_show=n_show,
         )
 
-    def step(self, action):
+    def step(self, action: Dict):
         """The step function for the environment.
 
-        Action is a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
+        Args:
+            action (`Dict` or `List`): TODO verify, a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
+
+        Returns:
+            observation (`Dict`): TODO
+            reward (`float`): TODO
+            done (`bool`): TODO
+            info: TODO
         """
 
         self.step_send_async(action=action)
@@ -171,6 +178,12 @@ class RLEnv(VecEnv):
         return obs
 
     def reset(self):
+        """
+        Resets the actors and the scene of the environment.
+
+        Returns:
+            obs (`Dict`): the observation of the environment after reset.
+        """
         self.scene.reset()
 
         # To extract observations, we do a "fake" step (no actual simulation with frame_skip=0)
@@ -200,6 +213,12 @@ class RLEnv(VecEnv):
         self.scene.close()
 
     def sample_action(self):
+        """
+        Samples an action from the actors in the environment. This function loads the configuration of maps and actors to return the correct shape across multiple configurations.
+
+        Returns:
+            action: TODO
+        """
         if self.n_actors_per_map > 1:
             raise NotImplementedError("TODO: add sampling mechanism for multi-agent spaces.")
         else:

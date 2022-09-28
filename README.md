@@ -1,4 +1,21 @@
-# 🏜 Simulate
+<p align="center">
+    <br>
+    <img src="docs/source/assets/simulate_library.png" width="400"/>
+    <br>
+</p>
+<p align="center">
+    <a href="https://github.com/huggingface/simulate/blob/main/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/datasets.svg?color=blue">
+    </a>
+    <a href="https://github.com/huggingface/simulate/releases">
+        <img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/diffusers.svg">
+    </a>
+    <a href="CODE_OF_CONDUCT.md"> 
+        <img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg">
+    </a>
+</p>
+
+# Simulate
 
 Simulate is a library for easily creating and sharing simulation environments for intelligent agents (e.g. reinforcement learning) or synthetic data generation.
 
@@ -26,7 +43,7 @@ To install and contribute (from [CONTRIBUTING.md](CONTRIBUTING.md))
 
 Create a virtual env and then install the code style/quality tools as well as the code base locally
 ```
-pip install simulate
+pip install --upgrade simulate
 ```
 Before you merge a PR, fix the style (we use `isort` + `black`)
 ```
