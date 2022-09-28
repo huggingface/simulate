@@ -115,14 +115,14 @@ class GltfTest(unittest.TestCase):
             self.assertTrue(len(scene) == len(scene2))
 
     def test_create_asset_from_gltf_in_asset(self):
-        asset = sm.Asset().create_from(FIXTURE_BOX_FILE)
+        asset = sm.Asset.create_from(FIXTURE_BOX_FILE)
         child = asset.tree_children[0]
         self.assertEqual(child.mesh.n_points, 24)
         self.assertEqual(child.material.base_color, [0.800000011920929, 0.0, 0.0, 1.0])
 
     def test_load_asset_from_gltf_in_asset(self):
-        asset = sm.Asset.create_from(FIXTURE_BOX_FILE)
-        child = asset.tree_children[0]
+        scene = sm.Scene.create_from(FIXTURE_BOX_FILE)
+        child = scene.tree_children[0]
         self.assertEqual(child.mesh.n_points, 24)
         self.assertEqual(child.material.base_color, [0.800000011920929, 0.0, 0.0, 1.0])
 
@@ -138,9 +138,10 @@ class GltfTest(unittest.TestCase):
 
             self.assertEqual(len(gltf_original_asset.model.nodes), len(gltf_saved_asset.model.nodes))
 
-            asset2 = sm.Scene.create_from(file_path)
-            self.assertFalse(asset == asset2)
-            np.testing.assert_array_equal(asset.tree_children[0].mesh.points, asset2.tree_children[0].mesh.points)
+            scene = sm.Scene.create_from(FIXTURE_BOX_FILE)
+            scene2 = sm.Scene.create_from(file_path)
+            self.assertFalse(scene == scene2)
+            np.testing.assert_array_equal(scene.tree_children[0].mesh.points, scene2.tree_children[0].mesh.points)
             np.testing.assert_array_equal(
-                asset.tree_children[0].transformation_matrix, asset2.tree_children[0].transformation_matrix
+                scene.tree_children[0].transformation_matrix, scene2.tree_children[0].transformation_matrix
             )

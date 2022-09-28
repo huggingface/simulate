@@ -78,7 +78,7 @@ class Object3D(Asset):
     def __init__(
         self,
         mesh: Optional[Union[pv.UnstructuredGrid, pv.MultiBlock]] = None,
-        material: Optional[Material] = None,
+        material: Optional[Union[Material, List[Material]]] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
@@ -116,6 +116,10 @@ class Object3D(Asset):
                 self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
 
         self.material = material if material is not None else Material()
+
+        if isinstance(self.material, (list, tuple)) or isinstance(self.mesh, pv.MultiBlock):
+            if not isinstance(self.mesh, pv.MultiBlock) or len(self.material) != self.mesh.n_blocks:
+                raise ValueError("Number of materials must match number of blocks in mesh")
 
     def copy(self, with_children=True, **kwargs):
         """Copy an Object3D node in a new (returned) object.
