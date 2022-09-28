@@ -1537,7 +1537,6 @@ class ProcgenGrid(Object3D):
             # If it is a structured grid, extract the surface mesh (PolyData)
             mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
             original_mesh_direction = (0, 1, 0)
-            pv.translate(mesh, (0, 0, 0), new_direction=original_mesh_direction)
 
             super().__init__(
                 mesh=mesh,

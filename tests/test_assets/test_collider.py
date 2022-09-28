@@ -15,8 +15,6 @@
 import unittest
 
 # Lint as: python3
-from turtle import screensize
-
 import simulate as sm
 
 
