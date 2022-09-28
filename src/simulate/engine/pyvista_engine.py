@@ -28,14 +28,6 @@ logger = logging.get_logger(__name__)
 
 
 try:
-    import google.colab
-
-    IN_COLAB = True
-except:
-    IN_COLAB = False
-
-
-try:
     from pyvistaqt import BackgroundPlotter
 
     # We tweak it a bit to have Y axis toward the top
@@ -97,8 +89,6 @@ class PyVistaEngine(Engine):
         plotter_args.update(self.plotter_kwargs)
         if self.auto_update:
             self.plotter: pyvista.Plotter = CustomBackgroundPlotter(**plotter_args)
-        elif IN_COLAB:
-            self.plotter: pyvista.Plotter = pyvista.PlotterITK(**plotter_args)
         else:
             self.plotter: pyvista.Plotter = pyvista.Plotter(**plotter_args)
         self.plotter.camera_position = [CAMERA_POSITION, CAMERA_FOCAL_POINT, CAMERA_VIEWUP]
@@ -156,7 +146,12 @@ class PyVistaEngine(Engine):
 
         if isinstance(node, Object3D):
             # Copying the mesh to located meshes
-            located_mesh = node.mesh.transform(model_transform_matrix, inplace=False)
+            if isinstance(node.mesh, pyvista.MultiBlock):
+                located_mesh = node.mesh.copy()
+                for i in range(len(located_mesh)):
+                    located_mesh[i].transform(model_transform_matrix)
+            else:
+                located_mesh = node.mesh.transform(model_transform_matrix, inplace=False)
             # Material
             if node.material is None:
                 actor = self.plotter.add_mesh(located_mesh)
@@ -173,7 +168,11 @@ class PyVistaEngine(Engine):
                     specular_power=1.0,  # Fixing a default of pyvista
                     point_size=1.0,  # Fixing a default of pyvista
                 )
-                self._set_pbr_material_for_actor(actor, material)
+                if isinstance(actor, (list, tuple)):
+                    for a in actor:
+                        self._set_pbr_material_for_actor(a, material)
+                else:
+                    self._set_pbr_material_for_actor(actor, material)
 
             self._plotter_actors[node.name] = actor
 

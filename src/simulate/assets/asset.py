@@ -409,12 +409,12 @@ class Asset(NodeMixin, object):
                     filename=filename,
                     subfolder=subfolder,
                     revision=revision,
-                    repo_type="dataset",
+                    repo_type="space",
                     use_auth_token=use_auth_token,
                     **kwargs,
                 )
-            except Exception as e:
-                logger.info("Could not load Asset from Datasets:", e)
+            except Exception:
+                logger.info("Could not load Asset from Datasets.")
 
             if not file_path:
                 try:
@@ -423,12 +423,12 @@ class Asset(NodeMixin, object):
                         filename=filename,
                         subfolder=subfolder,
                         revision=revision,
-                        repo_type="space",
+                        repo_type="dataset",
                         use_auth_token=use_auth_token,
                         **kwargs,
                     )
-                except Exception as e:
-                    raise RuntimeError("Could not load Asset from Spaces:", e)
+                except Exception:
+                    raise RuntimeError("Could not load Asset from Spaces, tesing if it's a dataset")
 
         nodes = load_gltf_as_tree(
             file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision

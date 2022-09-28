@@ -285,7 +285,6 @@ def build_node_tree(
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
         primitives = gltf_mesh.primitives
-        base_name = common_kwargs["name"]
         common_kwargs["with_rigid_body"] = False
         common_kwargs["with_articulation_body"] = False
         if len(primitives) > 1:
@@ -294,9 +293,6 @@ def build_node_tree(
             mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][0]  # A pv.PolyData
 
         common_kwargs["mesh"] = mesh
-        if len(primitives) > 1:
-            name = f"{base_name}_{mat.name}"
-            common_kwargs["name"] = name
 
         if gltf_collider is None:
             material_id = primitives[0].material

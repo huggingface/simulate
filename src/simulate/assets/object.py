@@ -109,7 +109,11 @@ class Object3D(Asset):
         # Avoid having averaging normals at shared points
         # (default pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
         if self.mesh is not None:
-            self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
+            if isinstance(self.mesh, pv.MultiBlock):
+                for i in range(self.mesh.n_blocks):
+                    self.mesh[i].compute_normals(inplace=True, cell_normals=False, split_vertices=True)
+            else:
+                self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
 
         self.material = material if material is not None else Material()
 
@@ -168,7 +172,9 @@ class Object3D(Asset):
     def _repr_info_str(self) -> str:
         """Used to add additional information to the __repr__ method."""
         mesh_str = ""
-        if hasattr(self, "mesh") and self.mesh is not None:
+        if isinstance(self.mesh, pv.MultiBlock):
+            mesh_str = f"Mesh(Multiblock, n_blocks={self.mesh.n_blocks}"
+        else:
             mesh_str = f"Mesh(points={self.mesh.n_points}, cells={self.mesh.n_cells})"
         material_str = ""
         if hasattr(self, "material") and self.material is not None:
