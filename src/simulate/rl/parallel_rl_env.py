@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections import defaultdict
-from typing import Optional
+from typing import Callable, Optional
 
 import numpy as np
 
@@ -27,7 +27,18 @@ except ImportError:
 
 
 class ParallelRLEnv(VecEnv):
-    def __init__(self, env_fn, n_parallel: int, starting_port: int = 55000):
+    """
+    Parallel RL environment wrapper for Simulate scene. Spawns multiple backend executables to run in parallel, in addition to the optionality of multiple maps.
+    Uses functionality from the VecEnv in stable baselines 3. For more information on VecEnv, see the source
+    https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
+
+    Args:
+        env_fn (`Callable`): a generator function that returns a RLEnv for generating instances of the desired environment.
+        n_parallel (`int`): the number of executable instances to create.
+        starting_port (`int): initial communication port for spawned executables.
+    """
+
+    def __init__(self, env_fn: Callable, n_parallel: int, starting_port: int = 55000):
         self.n_parallel = n_parallel
         self.envs = []
         # create the environments
@@ -43,7 +54,20 @@ class ParallelRLEnv(VecEnv):
         super().__init__(num_envs, observation_space, action_space)
 
     def step(self, actions: Optional[np.array] = None):
+        """
+        The step function for the environment, follows the API from OpenAI Gym.
+
+        Args:
+            action (`Dict` or `List`): TODO verify, a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
+
+        Returns:
+            all_observation (`Dict`): TODO
+            all_reward (`float`): TODO
+            all_done (`bool`): TODO
+            all_info: TODO
+        """
         for i in range(self.n_parallel):
+            # TODO comment what is going on here
             action = actions[i * self.n_show : (i + 1) * self.n_show] if actions is not None else None
             self.envs[i].step_send_async(action)
 

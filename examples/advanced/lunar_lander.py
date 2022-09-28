@@ -75,7 +75,7 @@ LAND_POLY = (
 )
 
 
-def make_lander(engine="unity", engine_exe=None):
+def make_lander(engine="unity", engine_exe=""):
     # Add sm scene
     sc = sm.Scene(engine=engine, engine_exe=engine_exe)
 
@@ -107,7 +107,7 @@ def make_lander(engine="unity", engine_exe=None):
         mapping=[
             sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=5),
             sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=-5),
-            sm.ActionMapping("add_force", axis=[0, 1, 0], amplitude=1),
+            sm.ActionMapping("add_force", axis=[0, 1, 0], amplitude=2.5),
         ],
         n=3,
     )
@@ -115,7 +115,7 @@ def make_lander(engine="unity", engine_exe=None):
     # add an invisible box as collider until convex meshes are completed
     lander += sm.Box(
         position=[0, np.min(LEG_RIGHT_POLY, axis=0)[1], -0.5],
-        bounds=[0.01, 2 * np.max(LEG_RIGHT_POLY, axis=0)[0], 1],
+        bounds=[0.1, 2 * np.max(LEG_RIGHT_POLY, axis=0)[0], 1],
         material=sm.Material.TRANSPARENT,
         rotation=[0, 0, 90],
         with_collider=True,
@@ -155,10 +155,10 @@ def make_lander(engine="unity", engine_exe=None):
         y1, y2 = SMOOTH_Y[i], SMOOTH_Y[i + 1]
 
         # compute rotation from generated coordinates
-        rotation = [0, 0, -90 + np.degrees(np.arctan2(y2 - (y1 + y2) / 2, (x2 - x1) / 2))]
+        rotation = [0, 0, +90 + np.degrees(np.arctan2(y2 - (y1 + y2) / 2, (x2 - x1) / 2))]
         block_i = sm.Box(
             position=[(x1 + x2) / 2, (y1 + y2) / 2, -0.5],
-            bounds=[0.01, np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 1],
+            bounds=[0.2, 1.025 * np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 1],  # adjustment for better colliders
             material=sm.Material.GRAY,
             rotation=rotation,
             with_collider=True,
@@ -197,7 +197,7 @@ def make_lander(engine="unity", engine_exe=None):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate")
+    parser.add_argument("--build_exe", default="", type=str, required=False, help="Pre-built unity app for simulate")
     parser.add_argument(
         "--num_steps", default=100, type=int, required=False, help="number of steps to run the simulator"
     )
