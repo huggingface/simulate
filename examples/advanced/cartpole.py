@@ -27,16 +27,14 @@ def generate_map(index):
 
     root = sm.Asset(name=f"root_{index}")
 
-    base = sm.Cylinder(
-        radius=0.05, height=6, rotation=sm.rotation_from_euler_degrees(0, 0, 90), material=sm.Material.GRAY50
-    )
+    base = sm.Cylinder(radius=0.05, height=6, rotation=[0, 0, 90], material=sm.Material.GRAY50)
     base.physics_component = sm.ArticulationBodyComponent(
         "fixed", immovable=True, use_gravity=False
     )  # note for the base the joint type is ignored
 
     cart = sm.Box(
         bounds=[cart_width, cart_height, cart_depth],
-        rotation=sm.rotation_from_euler_degrees(0, 0, -90),
+        rotation=[0, 0, -90],
         with_collider=False,
         is_actor=True,
     )
@@ -120,7 +118,7 @@ def generate_map(index):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate")
+    parser.add_argument("--build_exe", default="", type=str, required=False, help="Pre-built unity app for simulate")
     parser.add_argument("--n_maps", default=64, type=int, required=False, help="Number of maps to spawn")
     parser.add_argument("--n_show", default=48, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
