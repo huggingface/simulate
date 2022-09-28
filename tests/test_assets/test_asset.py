@@ -246,14 +246,19 @@ class AssetTest(unittest.TestCase):
         self.assertEqual(asset_copy._n_copies, 0)
 
     def test_enforce_unique_names(self):
+        scene = sm.Scene()
         asset = sm.Asset() + [sm.Asset(name="bobby"), sm.Asset(name="alice")]
         bobby2 = sm.Asset(name="bobby")
 
         with self.assertRaises(ValueError):
             asset += bobby2
+            scene += asset
+            scene.show()
 
         bobby2.name = "bobby2"
         asset += bobby2
 
         with self.assertRaises(ValueError):
             asset.bobby2.name = "bobby"
+            scene += asset
+            scene.show()

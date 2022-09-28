@@ -12,8 +12,10 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-# Lint as: python3
 import unittest
+
+# Lint as: python3
+from turtle import screensize
 
 import simulate as sm
 
@@ -21,12 +23,15 @@ import simulate as sm
 # TODO add more tests on saving/exporting/loading in gltf files
 class ColliderTest(unittest.TestCase):
     def test_create_collider(self):
+        scene = sm.Scene()
         collider = sm.Collider(bounding_box=[1, 1, 1])
         self.assertIsInstance(collider, sm.Collider)
 
         child_asset = sm.Asset()
         with self.assertRaises(sm.assets.anytree.TreeError):
             collider += child_asset
+            scene += collider
+            scene.show()
 
     def test_several_colliders(self):
         root = sm.Asset()
