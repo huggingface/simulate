@@ -93,6 +93,58 @@ class Scene(Asset):
         spacer = "\n" if len(self) else ""
         return f"Scene(engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
 
+    @classmethod
+    def create_from_asset(cls, asset: Asset, **kwargs):
+        name = kwargs.pop("name", asset.name)
+        position = kwargs.pop("position", asset.position)
+        rotation = kwargs.pop("rotation", asset.rotation)
+        scaling = kwargs.pop("scaling", asset.scaling)
+        transformation_matrix = kwargs.pop("transformation_matrix", asset.transformation_matrix)
+        children = kwargs.pop("children", asset.tree_children)
+        created_from_file = kwargs.pop("created_from_file", asset.created_from_file)
+        return cls(
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            transformation_matrix=transformation_matrix,
+            children=children,
+            created_from_file=created_from_file,
+            **kwargs,
+        )
+
+    @classmethod
+    def create_from(
+        cls,
+        hub_or_local_filepath: str,
+        use_auth_token: Optional[str] = None,
+        revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
+        hf_hub_kwargs: Optional[dict] = None,
+        **scene_kwargs,
+    ) -> "Scene":
+        """Load a Scene or Asset from the HuggingFace hub or from a local GLTF file.
+
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
+
+        When conflicting files on both, priority is given to the local file
+        (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.create_from('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.create_from('~/documents/gltf-files/scene.gltf'): a local files in user home
+        """
+        root_node = Asset.create_from(
+            hub_or_local_filepath=hub_or_local_filepath,
+            use_auth_token=use_auth_token,
+            revision=revision,
+            is_local=is_local,
+            hf_hub_kwargs=hf_hub_kwargs,
+        )
+        return Scene.create_from_asset(root_node, **scene_kwargs)
+
     def show(self, **engine_kwargs):
         """Send the scene to the engine for rendering or later simulation."""
 

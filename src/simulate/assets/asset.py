@@ -414,7 +414,7 @@ class Asset(NodeMixin, object):
                     **kwargs,
                 )
             except Exception:
-                logger.info("Could not load Asset from Datasets.")
+                logger.info("Could not load Asset from Spaces.")
 
             if not file_path:
                 try:
@@ -427,8 +427,12 @@ class Asset(NodeMixin, object):
                         use_auth_token=use_auth_token,
                         **kwargs,
                     )
-                except Exception:
-                    raise RuntimeError("Could not load Asset from Spaces, tesing if it's a dataset")
+                except Exception as err:
+                    logger.error(
+                        "Could not load Asset from the Hub. "
+                        "If the asset is in a private repo, please provide a valid token."
+                    )
+                    raise err
 
         nodes = load_gltf_as_tree(
             file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
@@ -436,7 +440,7 @@ class Asset(NodeMixin, object):
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
         else:
-            root = Asset(name="Scene", children=nodes)  # Otherwise we build a main root node
+            root = Asset(children=nodes)  # Otherwise we build a main root node
 
         return root, file_path
 
@@ -475,19 +479,12 @@ class Asset(NodeMixin, object):
         root_node.position = kwargs.pop("position", root_node.position)
         root_node.rotation = kwargs.pop("rotation", root_node.rotation)
         root_node.scaling = kwargs.pop("scaling", root_node.scaling)
+        root_node.created_from_file = gltf_file
 
         for node in root_node.tree_children:
             node.name = root_node.name + "_" + node.name
 
-        return cls(
-            name=root_node.name,
-            position=root_node.position,
-            rotation=root_node.rotation,
-            scaling=root_node.scaling,
-            children=root_node.tree_children,
-            created_from_file=gltf_file,
-            **kwargs,
-        )
+        return root_node
 
     def push_to_hub(
         self,

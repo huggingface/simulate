@@ -114,7 +114,10 @@ class PyVistaEngine(Engine):
                 continue
 
             actor = self._plotter_actors.get(node.name)
-            if actor is not None:
+            if actor is not None and isinstance(actor, (list, tuple)):
+                for a in actor:
+                    self.plotter.remove_actor(a)
+            else:
                 self.plotter.remove_actor(actor)
 
         if hasattr(self.plotter, "reset_camera"):
@@ -130,7 +133,10 @@ class PyVistaEngine(Engine):
                 continue
 
             actor = self._plotter_actors.get(node.name)
-            if actor is not None:
+            if actor is not None and isinstance(actor, (list, tuple)):
+                for a in actor:
+                    self.plotter.remove_actor(a)
+            else:
                 self.plotter.remove_actor(actor)
 
             model_transform_matrix = self._get_node_transform(node)
@@ -145,36 +151,39 @@ class PyVistaEngine(Engine):
             return
 
         if isinstance(node, Object3D):
-            # Copying the mesh to located meshes
+            # We need to handle MultiBlock meshes
             if isinstance(node.mesh, pyvista.MultiBlock):
-                located_mesh = node.mesh.copy()
-                for i in range(len(located_mesh)):
-                    located_mesh[i].transform(model_transform_matrix)
-            else:
-                located_mesh = node.mesh.transform(model_transform_matrix, inplace=False)
-            # Material
-            if node.material is None:
-                actor = self.plotter.add_mesh(located_mesh)
-            else:
-                material = node.material
-                actor = self.plotter.add_mesh(
-                    located_mesh,
-                    pbr=True,  # material.base_color_texture is None, pyvista doesn't support having both texture + pbr
-                    color=material.base_color[:3],
-                    opacity=material.base_color[-1],
-                    metallic=material.metallic_factor,
-                    roughness=material.roughness_factor,
-                    texture=None,  # We set all the textures ourselves in _set_pbr_material_for_actor
-                    specular_power=1.0,  # Fixing a default of pyvista
-                    point_size=1.0,  # Fixing a default of pyvista
-                )
-                if isinstance(actor, (list, tuple)):
-                    for a in actor:
-                        self._set_pbr_material_for_actor(a, material)
+                located_mesh = [m.transform(model_transform_matrix, inplace=False) for m in node.mesh]
+                if isinstance(node.material, (list, tuple)):
+                    materials = node.material
                 else:
-                    self._set_pbr_material_for_actor(actor, material)
+                    materials = [node.material] * len(located_mesh)
+            else:
+                located_mesh = [node.mesh.transform(model_transform_matrix, inplace=False)]
+                materials = [node.material]
 
-            self._plotter_actors[node.name] = actor
+            actors = []
+
+            for located_mesh, material in zip(located_mesh, materials):
+                if material is None:
+                    actor = self.plotter.add_mesh(located_mesh)
+                else:
+                    material = material
+                    actor = self.plotter.add_mesh(
+                        located_mesh,
+                        pbr=True,  # material.base_color_texture is None, pyvista doesn't support having both texture + pbr
+                        color=material.base_color[:3],
+                        opacity=material.base_color[-1],
+                        metallic=material.metallic_factor,
+                        roughness=material.roughness_factor,
+                        texture=None,  # We set all the textures ourselves in _set_pbr_material_for_actor
+                        specular_power=1.0,  # Fixing a default of pyvista
+                        point_size=1.0,  # Fixing a default of pyvista
+                    )
+                    self._set_pbr_material_for_actor(actor, material)
+                actors.append(actor)
+
+            self._plotter_actors[node.name] = actors
 
         elif isinstance(node, Camera):
             camera = pyvista.Camera()
