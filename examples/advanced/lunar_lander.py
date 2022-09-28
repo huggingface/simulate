@@ -158,7 +158,7 @@ def make_lander(engine="unity", engine_exe=""):
         rotation = [0, 0, +90 + np.degrees(np.arctan2(y2 - (y1 + y2) / 2, (x2 - x1) / 2))]
         block_i = sm.Box(
             position=[(x1 + x2) / 2, (y1 + y2) / 2, -0.5],
-            bounds=[0.2, 1.025*np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 1], # adjustment for better colliders
+            bounds=[0.2, 1.025 * np.sqrt((x2 - x1) ** 2 + (y2 - y1) ** 2), 1],  # adjustment for better colliders
             material=sm.Material.GRAY,
             rotation=rotation,
             with_collider=True,

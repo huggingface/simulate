@@ -104,7 +104,8 @@ class RLEnv(VecEnv):
         )
 
     def step(self, action: Dict):
-        """The step function for the environment.
+        """
+        The step function for the environment, follows the API from OpenAI Gym.
 
         Args:
             action (`Dict` or `List`): TODO verify, a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
