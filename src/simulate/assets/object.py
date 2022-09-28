@@ -26,7 +26,7 @@ from .asset import Asset
 from .collider import Collider
 from .material import Material
 from .procgen.prims import generate_prims_maze
-# from .procgen.wfc import generate_2d_map, generate_map
+from .procgen.wfc import generate_2d_map, generate_map
 from .rigid_body import RigidBodyComponent
 
 
