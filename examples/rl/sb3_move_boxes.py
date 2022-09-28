@@ -151,15 +151,13 @@ def generate_map(index):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate")
+    parser.add_argument("--build_exe", default="", type=str, required=False, help="Pre-built unity app for simulate")
     parser.add_argument("--n_maps", default=20, type=int, required=False, help="Number of maps to spawn")
     parser.add_argument("--n_show", default=16, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
 
     env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
 
-    # for i in range(1000):
-    #     obs, reward, done, info = env.step()
     model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
     model.learn(total_timesteps=100000)
 

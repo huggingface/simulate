@@ -20,7 +20,7 @@ import simulate as sm
 # This examples showcases the different objects we have in HuggingFace Simulate
 
 scene = sm.Scene()
-
+scene += sm.LightSun()
 # Create Plane as the base of our example
 scene += sm.Plane()
 
@@ -54,6 +54,7 @@ center += sm.Text3D(position=[0, 2, 0], string="HF Rocks!", rotation=[135, 135, 
 
 # Triangle
 center += sm.Triangle(position=[-2, 0, -2], material=sm.Material.OLIVE)
+
 
 scene += center
 print(scene)

@@ -41,9 +41,9 @@ actor.physics_component = sm.RigidBodyComponent(constraints=["freeze_rotation_x"
 actor.actuator = sm.Actuator(
     n=3,
     mapping=[
-        sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-90),
-        sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=90),
-        sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=2.0),
+        sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-10),
+        sm.ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=10),
+        sm.ActionMapping("change_position", axis=[1, 0, 0], amplitude=0.1),
     ],
 )
 scene += actor

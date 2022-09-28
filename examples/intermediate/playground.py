@@ -90,7 +90,7 @@ def make_scene(build_exe, camera_width, camera_height):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate")
+    parser.add_argument("--build_exe", default='', type=str, required=False, help="Pre-built unity app for simulate")
     args = parser.parse_args()
 
     camera_width = 40
