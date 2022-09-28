@@ -172,7 +172,7 @@ class Asset(NodeMixin, object):
         self._physics_component = physics_component
 
         if isinstance(physics_component, RigidBodyComponent):
-            if any(node.physics_component is not None for node in self.tree_path):
+            if any(node.physics_component is not None for node in self.tree_ancestors):
                 raise ValueError(
                     f"Cannot add a RigidBodyComponent to {self.name} because it has a parent with already RigidBodyComponent."
                 )

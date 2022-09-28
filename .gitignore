@@ -148,3 +148,5 @@ wfc_binding.cpp
 .config/
 test.gltf
 .godot
+
+!/src/simulate/engine/viewer.zip

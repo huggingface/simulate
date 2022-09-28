@@ -4,19 +4,22 @@ Simulate is a library for easily creating and sharing simulation environments fo
 
 ## Install
 
-You can install Simulate with a simple `pip install simulate`
+Install Simulate (preferentially in a virtual environment) with a simple `pip install simulate`
 
 ## Quick tour
 
 Simulate's API is inspired by the great [Kubric's API](https://github.com/google-research/kubric).
-The user create a scene and add assets in it (objects, cameras, lights if needed).
-Once the scene is created you can save/share it and also render or do simulations using one of the backend rendering/simulation engines (at the moment Unity, Blender and Godot). The saving/sharing format is engine agnostic and using the industry standard glTF format for saving scenes.
+The user create a `Scene` and add `Assets` in it (objects, cameras, lights etc).
 
-Let's do a quick exploration together.
+Once the scene is created you can save and share it as a file (it's a glTF file, aka a JSON file with associated ressources).You can also render the scene or do simulations using one of the backend rendering/simulation engines (at the moment Unity, Blender and Godot). The saving/sharing format is engine agnostic and using a graphic industry standard.
 
-We'll use the default backend which is a simple  
+Let's do a quick exploration together.  
 
+```
+import simulate as sm
 
+scene = sm.Scene()
+```
 
 
 To install and contribute (from [CONTRIBUTING.md](CONTRIBUTING.md))
