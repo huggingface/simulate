@@ -14,11 +14,7 @@
 
 
 import argparse
-
 import simulate as sm
-
-
-# from stable_baselines3 import PPO
 
 
 def generate_map(index):
@@ -37,7 +33,12 @@ def generate_map(index):
         "fixed", immovable=True, use_gravity=False
     )  # note for the base the joint type is ignored
 
-    cart = sm.Box(bounds=[cart_width, cart_height, cart_depth], with_collider=False, is_actor=True)
+    cart = sm.Box(
+        bounds=[cart_width, cart_height, cart_depth],
+        rotation=sm.rotation_from_euler_degrees(0, 0, -90),
+        with_collider=False,
+        is_actor=True,
+    )
 
     cart.physics_component = sm.ArticulationBodyComponent("prismatic")
     mapping = [
@@ -130,8 +131,5 @@ if __name__ == "__main__":
         print(f"step {i}")
         action = env.sample_action()
         obs, reward, done, info = env.step(action)
-
-    # model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
-    # model.learn(total_timesteps=100000)
 
     env.close()
