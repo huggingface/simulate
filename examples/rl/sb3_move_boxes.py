@@ -158,8 +158,6 @@ if __name__ == "__main__":
 
     env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
 
-    # for i in range(1000):
-    #     obs, reward, done, info = env.step()
     model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
     model.learn(total_timesteps=100000)
 

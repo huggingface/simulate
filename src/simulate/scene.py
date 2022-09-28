@@ -17,10 +17,10 @@
 import itertools
 from typing import Dict, List, Optional, Tuple, Union
 
-from .assets import Asset, Camera, Light, Object3D, RaycastSensor, RewardFunction, StateSensor, spaces
-from .assets.anytree import RenderTree
+from .assets import Asset, Camera, Collider, Light, Object3D, RaycastSensor, RewardFunction, StateSensor, spaces
+from .assets.anytree import RenderTree, TreeError
 from .config import Config
-from .engine import BlenderEngine, GodotEngine, PyVistaEngine, UnityEngine
+from .engine import BlenderEngine, GodotEngine, NotebookEngine, PyVistaEngine, UnityEngine, in_notebook
 
 
 class Scene(Asset):
@@ -74,8 +74,15 @@ class Scene(Asset):
             self.engine = GodotEngine(self)
         elif engine == "blender":
             self.engine = BlenderEngine(self)
-        elif engine == "pyvista" or engine is None:
+        elif engine == "pyvista":
             self.engine = PyVistaEngine(self, **kwargs)
+        elif engine == "notebook":
+            self.engine = NotebookEngine(self, **kwargs)
+        elif engine is None:
+            if in_notebook():
+                self.engine = NotebookEngine(self, **kwargs)
+            else:
+                self.engine = PyVistaEngine(self, **kwargs)
         elif engine is not None:
             raise ValueError("engine should be selected in the list [None, 'unity', 'godot', 'blender', 'pyvista']")
 
@@ -86,30 +93,109 @@ class Scene(Asset):
         spacer = "\n" if len(self) else ""
         return f"Scene(engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
 
+    @classmethod
+    def create_from_asset(cls, asset: Asset, **kwargs):
+        name = kwargs.pop("name", asset.name)
+        position = kwargs.pop("position", asset.position)
+        rotation = kwargs.pop("rotation", asset.rotation)
+        scaling = kwargs.pop("scaling", asset.scaling)
+        transformation_matrix = kwargs.pop("transformation_matrix", asset.transformation_matrix)
+        children = kwargs.pop("children", asset.tree_children)
+        created_from_file = kwargs.pop("created_from_file", asset.created_from_file)
+        return cls(
+            name=name,
+            position=position,
+            rotation=rotation,
+            scaling=scaling,
+            transformation_matrix=transformation_matrix,
+            children=children,
+            created_from_file=created_from_file,
+            **kwargs,
+        )
+
+    @classmethod
+    def create_from(
+        cls,
+        hub_or_local_filepath: str,
+        use_auth_token: Optional[str] = None,
+        revision: Optional[str] = None,
+        is_local: Optional[bool] = None,
+        hf_hub_kwargs: Optional[dict] = None,
+        **scene_kwargs,
+    ) -> "Scene":
+        """Load a Scene or Asset from the HuggingFace hub or from a local GLTF file.
+
+        First argument is either:
+        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+        - or a path to a local file on the drive.
+
+        When conflicting files on both, priority is given to the local file
+        (use 'is_local=True/False' to force from the Hub or from local file)
+
+        Examples:
+        - Scene.create_from('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
+        - Scene.create_from('~/documents/gltf-files/scene.gltf'): a local files in user home
+        """
+        root_node = Asset.create_from(
+            hub_or_local_filepath=hub_or_local_filepath,
+            use_auth_token=use_auth_token,
+            revision=revision,
+            is_local=is_local,
+            hf_hub_kwargs=hf_hub_kwargs,
+        )
+        return Scene.create_from_asset(root_node, **scene_kwargs)
+
+    def _scene_check(self):
+        # We have a couple of restrictions on parent/children nodes
+        seen = set([self.name])  # O(1) lookups
+        for node in self.tree_descendants:
+            # all names have to be unique in the tree.
+            if node.name not in seen:
+                seen.add(node.name)
+            else:
+                raise ValueError("Node name '{}' is not unique".format(node.name))
+
+            # a reward function can only have reward functions as children.
+            if isinstance(node, RewardFunction):
+                if any(not isinstance(child, RewardFunction) for child in node.tree_children):
+                    raise TreeError(
+                        f"Reward functions can only have reward function as children but "
+                        f"node {node.name} has a child which is not a reward function."
+                    )
+            # a collider cannot have children.
+            if isinstance(node, Collider) and node.tree_children:
+                raise TreeError(f"Colliders can not have children but " f"node {node.name} has a child")
+
+            # Sanity check that all actuators are part of one and only one actor
+            if node.actuator is not None:
+                number_of_parent_actors = 0
+                for parent_node in node.tree_path:
+                    number_of_parent_actors += 1 if parent_node.is_actor else 0
+                if number_of_parent_actors == 0:
+                    raise ValueError(
+                        f"Node {node.name} has an actuator but is not part of an actor. "
+                        "Actuators should be part of an actor. "
+                        f"Check that at least one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
+                    )
+                elif number_of_parent_actors > 1:
+                    raise ValueError(
+                        f"Node {node.name} has an actuator but is part of more than one actor. "
+                        "Actuators should be part of one and only one actor. "
+                        f"Check that only one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
+                    )
+
+    def save(self, file_path: str) -> List[str]:
+        """Save in a GLTF file + additional (binary) resource files if it should be the case.
+        Return the list of all the path to the saved files (glTF file + resource files)
+        """
+        self._scene_check()
+        return super().save(file_path)
+
     def show(self, **engine_kwargs):
         """Send the scene to the engine for rendering or later simulation."""
-
-        # Sanity check that all actuators are part of one and only one actor
-        node_with_actuators = self.tree_filtered_descendants(lambda node: node.actuator is not None)
-        for node in node_with_actuators:
-            number_of_parent_actors = 0
-            for parent_node in node.tree_path:
-                number_of_parent_actors += 1 if parent_node.is_actor else 0
-            if number_of_parent_actors == 0:
-                raise ValueError(
-                    f"Node {node.name} has an actuator but is not part of an actor. "
-                    "Actuators should be part of an actor. "
-                    f"Check that at least one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
-                )
-            elif number_of_parent_actors > 1:
-                raise ValueError(
-                    f"Node {node.name} has an actuator but is part of more than one actor. "
-                    "Actuators should be part of one and only one actor. "
-                    f"Check that only one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
-                )
-
-        self.engine.show(**engine_kwargs)
+        self._scene_check()
         self._is_shown = True
+        return self.engine.show(**engine_kwargs)
 
     def step(
         self,

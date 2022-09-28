@@ -285,7 +285,6 @@ def build_node_tree(
         # Let's add a mesh
         gltf_mesh = gltf_model.meshes[gltf_node.mesh]
         primitives = gltf_mesh.primitives
-        base_name = common_kwargs["name"]
         common_kwargs["with_rigid_body"] = False
         common_kwargs["with_articulation_body"] = False
         if len(primitives) > 1:
@@ -294,31 +293,36 @@ def build_node_tree(
             mesh = pyvista_meshes[f"Mesh_{gltf_node.mesh}"][0]  # A pv.PolyData
 
         common_kwargs["mesh"] = mesh
-        if len(primitives) > 1:
-            name = f"{base_name}_{mat.name}"
-            common_kwargs["name"] = name
 
         if gltf_collider is None:
-            material_id = primitives[0].material
-            if material_id is not None:
-                mat = gltf_model.materials[material_id]
-                pbr = mat.pbrMetallicRoughness
+            material_ids = [p.material for p in primitives]
+            scene_material = []
+            for material_id in material_ids:
+                if material_id is not None:
+                    mat = gltf_model.materials[material_id]
+                    pbr = mat.pbrMetallicRoughness
 
-                scene_material = Material(
-                    name=mat.name,
-                    base_color=pbr.baseColorFactor,
-                    base_color_texture=get_texture_as_pyvista(gltf_scene, pbr.baseColorTexture),
-                    metallic_factor=pbr.metallicFactor,
-                    metallic_roughness_texture=get_texture_as_pyvista(gltf_scene, pbr.metallicRoughnessTexture),
-                    normal_texture=get_texture_as_pyvista(gltf_scene, mat.normalTexture),
-                    occlusion_texture=get_texture_as_pyvista(gltf_scene, mat.occlusionTexture),
-                    emissive_factor=mat.emissiveFactor,
-                    emissive_texture=get_texture_as_pyvista(gltf_scene, mat.emissiveTexture),
-                    alpha_mode=mat.alphaMode,
-                    alpha_cutoff=mat.alphaCutoff,
-                )
-            else:
-                scene_material = Material()
+                    scene_material.append(
+                        Material(
+                            name=mat.name,
+                            base_color=pbr.baseColorFactor,
+                            base_color_texture=get_texture_as_pyvista(gltf_scene, pbr.baseColorTexture),
+                            metallic_factor=pbr.metallicFactor,
+                            metallic_roughness_texture=get_texture_as_pyvista(
+                                gltf_scene, pbr.metallicRoughnessTexture
+                            ),
+                            normal_texture=get_texture_as_pyvista(gltf_scene, mat.normalTexture),
+                            occlusion_texture=get_texture_as_pyvista(gltf_scene, mat.occlusionTexture),
+                            emissive_factor=mat.emissiveFactor,
+                            emissive_texture=get_texture_as_pyvista(gltf_scene, mat.emissiveTexture),
+                            alpha_mode=mat.alphaMode,
+                            alpha_cutoff=mat.alphaCutoff,
+                        )
+                    )
+                else:
+                    scene_material.append(Material())
+            if len(scene_material) == 1:
+                scene_material = scene_material[0]
             common_kwargs["material"] = scene_material
 
         if gltf_collider is not None:

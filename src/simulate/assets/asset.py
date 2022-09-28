@@ -24,7 +24,7 @@ from huggingface_hub import create_repo, hf_hub_download, upload_file
 
 from ..utils import logging
 from .actuator import Actuator, ActuatorDict, spaces
-from .anytree import NodeMixin, TreeError
+from .anytree import NodeMixin
 from .articulation_body import ArticulationBodyComponent
 from .rigid_body import RigidBodyComponent
 from .utils import (
@@ -167,24 +167,15 @@ class Asset(NodeMixin, object):
     def physics_component(self):
         return self._physics_component
 
-    def check_parent_physics(self):
-        # TODO: replace with tree operations
-        if self.tree_parent is not None:
-            if self.tree_parent.physics_component is not None:
-                return True
-            else:
-                return self.tree_parent.check_parent_physics()
-        return False
-
     @physics_component.setter
     def physics_component(self, physics_component: Union[None, RigidBodyComponent, ArticulationBodyComponent]):
         self._physics_component = physics_component
 
-        if physics_component is not None:
-            # recursively check for parent with physics_component
-            multiple_physics = self.check_parent_physics()
-            if multiple_physics:
-                print("WARNING: A linked child asset and parent asset have a physics component, not supported.")
+        if isinstance(physics_component, RigidBodyComponent):
+            if any(node.physics_component is not None for node in self.tree_ancestors):
+                raise ValueError(
+                    f"Cannot add a RigidBodyComponent to {self.name} because it has a parent with already RigidBodyComponent."
+                )
 
     @property
     def action_space(self) -> Optional[spaces.Dict]:
@@ -418,12 +409,12 @@ class Asset(NodeMixin, object):
                     filename=filename,
                     subfolder=subfolder,
                     revision=revision,
-                    repo_type="dataset",
+                    repo_type="space",
                     use_auth_token=use_auth_token,
                     **kwargs,
                 )
-            except Exception as e:
-                logger.info("Could not load Asset from Datasets:", e)
+            except Exception:
+                logger.info("Could not load Asset from Spaces.")
 
             if not file_path:
                 try:
@@ -432,12 +423,16 @@ class Asset(NodeMixin, object):
                         filename=filename,
                         subfolder=subfolder,
                         revision=revision,
-                        repo_type="space",
+                        repo_type="dataset",
                         use_auth_token=use_auth_token,
                         **kwargs,
                     )
-                except Exception as e:
-                    raise RuntimeError("Could not load Asset from Spaces:", e)
+                except Exception as err:
+                    logger.error(
+                        "Could not load Asset from the Hub. "
+                        "If the asset is in a private repo, please provide a valid token."
+                    )
+                    raise err
 
         nodes = load_gltf_as_tree(
             file_path=file_path, file_type=file_type, repo_id=repo_id, subfolder=subfolder, revision=revision
@@ -445,7 +440,7 @@ class Asset(NodeMixin, object):
         if len(nodes) == 1:
             root = nodes[0]  # If we have a single root node in the GLTF, we use it for our scene
         else:
-            root = Asset(name="Scene", children=nodes)  # Otherwise we build a main root node
+            root = Asset(children=nodes)  # Otherwise we build a main root node
 
         return root, file_path
 
@@ -484,19 +479,12 @@ class Asset(NodeMixin, object):
         root_node.position = kwargs.pop("position", root_node.position)
         root_node.rotation = kwargs.pop("rotation", root_node.rotation)
         root_node.scaling = kwargs.pop("scaling", root_node.scaling)
+        root_node.created_from_file = gltf_file
 
         for node in root_node.tree_children:
             node.name = root_node.name + "_" + node.name
 
-        return cls(
-            name=root_node.name,
-            position=root_node.position,
-            rotation=root_node.rotation,
-            scaling=root_node.scaling,
-            children=root_node.tree_children,
-            created_from_file=gltf_file,
-            **kwargs,
-        )
+        return root_node
 
     def push_to_hub(
         self,
@@ -975,49 +963,7 @@ class Asset(NodeMixin, object):
         if getattr(self.tree_root, "engine", None) is not None and self.tree_root.tree_root.engine.auto_update:
             self.tree_root.engine.update_asset(self)
 
-    def _post_attach_parent(self, parent):
-        """NodeMixing method call after attaching to a `parent`."""
-        parent.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
-        if getattr(parent.tree_root, "engine", None) is not None:
-            if parent.tree_root.engine.auto_update:
-                parent.tree_root.engine.update_asset(self)
-
-        # We have a couple of restrictions on parent/children nodes
-
-        # Avoid circular imports (Reward functions are Asset) -
-        # unfortunately we cannot do this test on the Reward function side
-        # as this would involve calling _post_attaching_childran
-        from .collider import Collider
-        from .reward_functions import RewardFunction
-
-        if isinstance(parent, RewardFunction):
-            if not isinstance(self, RewardFunction):
-                raise TreeError(
-                    f"Reward functions can only have reward function as children. "
-                    f"You are trying to make node {self.name} of type {type(self)} "
-                    f"a child of node {parent.name} of type {type(parent)}"
-                )
-        elif isinstance(parent, Collider):
-            raise TreeError(
-                f"Colliders can not have children. "
-                f"You are trying to make node {self.name} of type {type(self)} "
-                f"a child of node {parent.name} of type {type(parent)}"
-            )
-
     def _post_detach_parent(self, parent):
         """NodeMixing method call after detaching from a `parent`."""
         if getattr(parent.tree_root, "engine", None) is not None and parent.tree_root.engine.auto_update:
             parent.tree_root.engine.remove_asset(self)
-
-    def _post_name_change(self, value):
-        """NodeMixing method call after changing the name of a node."""
-        self.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
-
-    def _check_all_names_unique(self):
-        """Check that all names are unique in the tree."""
-        seen = set()  # O(1) lookups
-        for node in self.tree_descendants:
-            if node.name not in seen:
-                seen.add(node.name)
-            else:
-                raise ValueError("Node name '{}' is not unique".format(node.name))

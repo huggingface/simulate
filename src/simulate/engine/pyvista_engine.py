@@ -70,6 +70,10 @@ try:
 except ImportError:
     CustomBackgroundPlotter = None
 
+CAMERA_POSITION = [-1, 1, -1]
+CAMERA_FOCAL_POINT = [0, 0, 0]
+CAMERA_VIEWUP = [0, 1, 0]
+
 
 class PyVistaEngine(Engine):
     def __init__(self, scene, auto_update=True, **plotter_kwargs):
@@ -87,9 +91,8 @@ class PyVistaEngine(Engine):
             self.plotter: pyvista.Plotter = CustomBackgroundPlotter(**plotter_args)
         else:
             self.plotter: pyvista.Plotter = pyvista.Plotter(**plotter_args)
-        # self.plotter.camera_position = "xy"
-        self.plotter.view_vector((1, 1, 1), (0, 1, 0))
-        if not self.auto_update:
+        self.plotter.camera_position = [CAMERA_POSITION, CAMERA_FOCAL_POINT, CAMERA_VIEWUP]
+        if not self.auto_update and hasattr(self.plotter, "add_axes"):
             self.plotter.add_axes(box=True)
 
     @staticmethod
@@ -111,10 +114,14 @@ class PyVistaEngine(Engine):
                 continue
 
             actor = self._plotter_actors.get(node.name)
-            if actor is not None:
+            if actor is not None and isinstance(actor, (list, tuple)):
+                for a in actor:
+                    self.plotter.remove_actor(a)
+            else:
                 self.plotter.remove_actor(actor)
 
-        self.plotter.reset_camera()
+        if hasattr(self.plotter, "reset_camera"):
+            self.plotter.reset_camera()
 
     def update_asset(self, asset_node):
         """Add an asset or update its location and all its children in the scene"""
@@ -126,41 +133,57 @@ class PyVistaEngine(Engine):
                 continue
 
             actor = self._plotter_actors.get(node.name)
-            if actor is not None:
+            if actor is not None and isinstance(actor, (list, tuple)):
+                for a in actor:
+                    self.plotter.remove_actor(a)
+            else:
                 self.plotter.remove_actor(actor)
 
             model_transform_matrix = self._get_node_transform(node)
 
             self._add_asset_to_scene(node, model_transform_matrix)
 
-        self.plotter.reset_camera()
+        if hasattr(self.plotter, "reset_camera"):
+            self.plotter.reset_camera()
 
     def _add_asset_to_scene(self, node, model_transform_matrix):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             return
 
         if isinstance(node, Object3D):
-            # Copying the mesh to located meshes
-            located_mesh = node.mesh.transform(model_transform_matrix, inplace=False)
-            # Material
-            if node.material is None:
-                actor = self.plotter.add_mesh(located_mesh)
+            # We need to handle MultiBlock meshes
+            if isinstance(node.mesh, pyvista.MultiBlock):
+                located_mesh = [m.transform(model_transform_matrix, inplace=False) for m in node.mesh]
+                if isinstance(node.material, (list, tuple)):
+                    materials = node.material
+                else:
+                    materials = [node.material] * len(located_mesh)
             else:
-                material = node.material
-                actor = self.plotter.add_mesh(
-                    located_mesh,
-                    pbr=True,  # material.base_color_texture is None, pyvista doesn't support having both texture + pbr
-                    color=material.base_color[:3],
-                    opacity=material.base_color[-1],
-                    metallic=material.metallic_factor,
-                    roughness=material.roughness_factor,
-                    texture=None,  # We set all the textures ourselves in _set_pbr_material_for_actor
-                    specular_power=1.0,  # Fixing a default of pyvista
-                    point_size=1.0,  # Fixing a default of pyvista
-                )
-                self._set_pbr_material_for_actor(actor, material)
+                located_mesh = [node.mesh.transform(model_transform_matrix, inplace=False)]
+                materials = [node.material]
 
-            self._plotter_actors[node.name] = actor
+            actors = []
+
+            for located_mesh, material in zip(located_mesh, materials):
+                if material is None:
+                    actor = self.plotter.add_mesh(located_mesh)
+                else:
+                    material = material
+                    actor = self.plotter.add_mesh(
+                        located_mesh,
+                        pbr=True,  # material.base_color_texture is None, pyvista doesn't support having both texture + pbr
+                        color=material.base_color[:3],
+                        opacity=material.base_color[-1],
+                        metallic=material.metallic_factor,
+                        roughness=material.roughness_factor,
+                        texture=None,  # We set all the textures ourselves in _set_pbr_material_for_actor
+                        specular_power=1.0,  # Fixing a default of pyvista
+                        point_size=1.0,  # Fixing a default of pyvista
+                    )
+                    self._set_pbr_material_for_actor(actor, material)
+                actors.append(actor)
+
+            self._plotter_actors[node.name] = actors
 
         elif isinstance(node, Camera):
             camera = pyvista.Camera()
@@ -272,10 +295,11 @@ class PyVistaEngine(Engine):
 
             self._add_asset_to_scene(node, model_transform_matrix)
 
-        if not self.plotter.renderer.lights:
+        if not self.plotter.renderer.lights and hasattr(self.plotter, "enable_lightkit"):
             self.plotter.enable_lightkit()  # Still add some lights
 
-        self.plotter.reset_camera()
+        if hasattr(self.plotter, "reset_camera"):
+            self.plotter.reset_camera()
 
     def show(self, auto_update: Optional[bool] = None, **plotter_kwargs):
         if auto_update is not None and auto_update != self.auto_update:

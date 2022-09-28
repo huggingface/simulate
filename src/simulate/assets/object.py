@@ -78,7 +78,7 @@ class Object3D(Asset):
     def __init__(
         self,
         mesh: Optional[Union[pv.UnstructuredGrid, pv.MultiBlock]] = None,
-        material: Optional[Material] = None,
+        material: Optional[Union[Material, List[Material]]] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         is_actor: Optional[bool] = False,
@@ -109,9 +109,17 @@ class Object3D(Asset):
         # Avoid having averaging normals at shared points
         # (default pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
         if self.mesh is not None:
-            self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
+            if isinstance(self.mesh, pv.MultiBlock):
+                for i in range(self.mesh.n_blocks):
+                    self.mesh[i].compute_normals(inplace=True, cell_normals=False, split_vertices=True)
+            else:
+                self.mesh.compute_normals(inplace=True, cell_normals=False, split_vertices=True)
 
         self.material = material if material is not None else Material()
+
+        if isinstance(self.material, (list, tuple)) or isinstance(self.mesh, pv.MultiBlock):
+            if not isinstance(self.mesh, pv.MultiBlock) or len(self.material) != self.mesh.n_blocks:
+                raise ValueError("Number of materials must match number of blocks in mesh")
 
     def copy(self, with_children=True, **kwargs):
         """Copy an Object3D node in a new (returned) object.
@@ -163,12 +171,12 @@ class Object3D(Asset):
             if isinstance(node, Collider):
                 node.name = self.name + "_collider"  # Let's keep the name of the collider in sync
 
-        self.tree_root._check_all_names_unique()  # Check that all names are unique in the tree
-
     def _repr_info_str(self) -> str:
         """Used to add additional information to the __repr__ method."""
         mesh_str = ""
-        if hasattr(self, "mesh") and self.mesh is not None:
+        if isinstance(self.mesh, pv.MultiBlock):
+            mesh_str = f"Mesh(Multiblock, n_blocks={self.mesh.n_blocks}"
+        else:
             mesh_str = f"Mesh(points={self.mesh.n_points}, cells={self.mesh.n_cells})"
         material_str = ""
         if hasattr(self, "material") and self.material is not None:
@@ -1529,7 +1537,6 @@ class ProcgenGrid(Object3D):
             # If it is a structured grid, extract the surface mesh (PolyData)
             mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
             original_mesh_direction = (0, 1, 0)
-            pv.translate(mesh, (0, 0, 0), new_direction=original_mesh_direction)
 
             super().__init__(
                 mesh=mesh,

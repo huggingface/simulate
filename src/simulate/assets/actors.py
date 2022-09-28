@@ -31,6 +31,15 @@ class SimpleActor(Sphere):
     - mass of 1 (default)
     - no attached Camera
 
+    Args:
+        mass (`float`, Optional):
+        name (`str`):
+        position: length 3 list of the position of the agent, defaults to (0,0,0)
+        rotation: length 3 list of the rotation of the agent, defaults to (0,0,0)
+        scaling:
+        transformation_matrix:
+        parent:
+        children:
     """
 
     dimensionality = 3
@@ -38,7 +47,7 @@ class SimpleActor(Sphere):
 
     def __init__(
         self,
-        name=None,
+        name: str = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
@@ -111,14 +120,17 @@ class EgocentricCameraActor(Capsule):
         - a RigidBodyComponent component with a mass of 1.0
         - a discrete actuator
 
-    Parameters
-    ----------
-
-    Returns
-    -------
-
-    Examples
-    --------
+    Args:
+        mass (`float`, Optional):
+        name (`str`):
+        position: length 3 list of the position of the agent, defaults to (0,0,0)
+        rotation: length 3 list of the rotation of the agent, defaults to (0,0,0)
+        scaling:
+        camera_height: pixel height of first-person camera observations
+        camera_width: pixel width of first-person camera observations
+        transformation_matrix:
+        parent:
+        children:
 
     """
 
@@ -128,7 +140,7 @@ class EgocentricCameraActor(Capsule):
     def __init__(
         self,
         mass: Optional[float] = 1.0,
-        name=None,
+        name: str = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,

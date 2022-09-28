@@ -1,29 +1,49 @@
-# 🏜 Simulate
+<p align="center">
+    <br>
+    <img src="docs/source/assets/simulate_library.png" width="400"/>
+    <br>
+</p>
+<p align="center">
+    <a href="https://github.com/huggingface/simulate/blob/main/LICENSE">
+        <img alt="GitHub" src="https://img.shields.io/github/license/huggingface/datasets.svg?color=blue">
+    </a>
+    <a href="https://github.com/huggingface/simulate/releases">
+        <img alt="GitHub release" src="https://img.shields.io/github/release/huggingface/diffusers.svg">
+    </a>
+    <a href="CODE_OF_CONDUCT.md"> 
+        <img alt="Contributor Covenant" src="https://img.shields.io/badge/Contributor%20Covenant-2.0-4baaaa.svg">
+    </a>
+</p>
+
+# Simulate
 
 Simulate is a library for easily creating and sharing simulation environments for intelligent agents (e.g. reinforcement learning) or synthetic data generation.
 
 ## Install
 
-You can install Simulate with a simple `pip install simulate`
+Install Simulate (preferentially in a virtual environment) with a simple `pip install simulate`
 
 ## Quick tour
 
 Simulate's API is inspired by the great [Kubric's API](https://github.com/google-research/kubric).
-The user create a scene and add assets in it (objects, cameras, lights if needed).
-Once the scene is created you can save/share it and also render or do simulations using one of the backend rendering/simulation engines (at the moment Unity, Blender and Godot). The saving/sharing format is engine agnostic and using the industry standard glTF format for saving scenes.
+The user create a `Scene` and add `Assets` in it (objects, cameras, lights etc).
 
-Let's do a quick exploration together.
+Once the scene is created you can save and share it as a file (it's a glTF file, aka a JSON file with associated ressources).You can also render the scene or do simulations using one of the backend rendering/simulation engines (at the moment Unity, Blender and Godot). The saving/sharing format is engine agnostic and using a graphic industry standard.
 
-We'll use the default backend which is a simple  
+Let's do a quick exploration together.  
 
+```
+import simulate as sm
 
+scene = sm.Scene()
+```
 
 
 To install and contribute (from [CONTRIBUTING.md](CONTRIBUTING.md))
 
 Create a virtual env and then install the code style/quality tools as well as the code base locally
 ```
-pip install simulate
+pip install --upgrade simulate
 ```
 Before you merge a PR, fix the style (we use `isort` + `black`)
 ```
