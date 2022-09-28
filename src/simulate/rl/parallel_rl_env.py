@@ -27,6 +27,19 @@ except ImportError:
 
 
 class ParallelRLEnv(VecEnv):
+    """
+    Parallel RL environment wrapper for Simulate scene. Spawns multiple backend executables to run in parallel, in addition to the optionality of multiple maps.
+    Uses functionality from the VecEnv in stable baselines 3. For more information on VecEnv, see the source
+    https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
+
+    Args:
+        env_fn: a generator function for generating instances of the desired environment
+        n_maps: the number of map instances to create, default 1
+        n_show: optionally show a subset of the maps during training and dequeue a new map at the end of each episode
+        time_step: the physics timestep of the environment
+        frame_skip: the number of times an action is repeated before the next observation is returned
+    """
+
     def __init__(self, env_fn, n_parallel: int, starting_port: int = 55000):
         self.n_parallel = n_parallel
         self.envs = []
