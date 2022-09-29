@@ -60,6 +60,8 @@
     title: GLTF Extensions
   title: "Conceptual guides"
 - sections:
+  - local: asset
+    title: asset
   - local: scene
     title: scene
   - local: quicktour
