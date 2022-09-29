@@ -32,9 +32,7 @@ class AgentRecorder:
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument(
-        "--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate."
-    )
+    parser.add_argument("--build_exe", default="", type=str, required=False, help="Pre-built unity app for simulate.")
     parser.add_argument("--record", default=None, type=str, required=False, help="Path to record agent.")
     parser.add_argument("--n_maps", default=4, type=int, required=False, help="Number of maps to create.")
     parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show.")
@@ -73,7 +71,7 @@ if __name__ == "__main__":
     t = time.time()
 
     for i in range(400):
-        action = [env.action_space.sample() for i in range(args.n_show)]
+        action = env.sample_action()
         obs, reward, done, info = env.step(action)
         obs = np.array(obs["CameraSensor"][0], dtype=np.uint8).transpose((1, 2, 0))
         if args.record is not None:

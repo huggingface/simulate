@@ -79,4 +79,4 @@ def add_dummy_generated_reward_fn(
     if verbose:
         print(predicate)
 
-    agents[0].add_reward_function(reward_function)
+    agents[0] += reward_function

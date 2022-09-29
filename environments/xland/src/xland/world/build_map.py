@@ -37,33 +37,17 @@ def add_walls(x, z, height=None, thickness=0.5, invisible=False):
 
     if invisible:
         return [
-            sm.Asset(
-                position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[x_max - x_min, height, thickness],
-                ),
+            sm.Collider(
+                position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2], bounding_box=[x_max - x_min, height, thickness]
             ),
-            sm.Asset(
-                position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[x_max - x_min, height, thickness],
-                ),
+            sm.Collider(
+                position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2], bounding_box=[x_max - x_min, height, thickness]
             ),
-            sm.Asset(
-                position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[thickness, height, z_max - z_min],
-                ),
+            sm.Collider(
+                position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0], bounding_box=[thickness, height, z_max - z_min]
             ),
-            sm.Asset(
-                position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0],
-                collider=sm.Collider(
-                    type="box",
-                    bounding_box=[thickness, height, z_max - z_min],
-                ),
+            sm.Collider(
+                position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0], bounding_box=[thickness, height, z_max - z_min]
             ),
         ]
     else:
@@ -207,10 +191,10 @@ def generate_colliders(sg):
                     angles[2] = ramp_orientation * angle_deg
 
             collider_assets.append(
-                sm.Asset(
+                sm.Collider(
                     position=position,
                     rotation=sm.utils.rotation_from_euler_degrees(*angles),
-                    collider=sm.Collider(type="box", bounding_box=bounding_box),
+                    bounding_box=bounding_box,
                 )
             )
 
