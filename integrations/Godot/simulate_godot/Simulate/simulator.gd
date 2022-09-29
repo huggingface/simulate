@@ -4,7 +4,7 @@ extends Node
 
 
 const HOST : String = "127.0.0.1"
-const PORT : int = 55000
+const PORT : int = 55001
 const RECONNECT_TIMEOUT: float = 3.0
 
 var _client : Client = Client.new()

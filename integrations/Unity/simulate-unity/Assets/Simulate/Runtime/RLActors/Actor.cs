@@ -53,6 +53,10 @@ namespace Simulate.RlAgents {
             foreach (Node node2 in Simulator.nodes.Values) {
                 // search children for Cameras and create CameraSensors
                 if (node2.camera != null && node2.gameObject.transform.IsChildOf(node.gameObject.transform)) {
+                    Debug.Log("Found camera sensor: " + node2.name);
+                    Debug.Log("Found camera data: " + node2.cameraData);
+                    Debug.Log("Found camera data extra: " + node2.cameraData.extras);
+                    Debug.Log("Found camera data extra sensor tag: " + node2.cameraData.extras.sensor_tag);
                     CameraSensor cameraSensor = new CameraSensor(node2.camera, node2.cameraData.extras.sensor_tag);
                     sensors.Add(cameraSensor);
                 }

@@ -53,7 +53,7 @@ namespace Simulate {
         }
 
         static void GetCommandLineArgs(out int port) {
-            port = 55000;
+            port = 55001;
             string[] args = System.Environment.GetCommandLineArgs();
             for (int i = 0; i < args.Length - 1; i++) {
                 if (args[i] == "port")

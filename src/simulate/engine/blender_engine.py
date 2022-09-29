@@ -20,7 +20,7 @@ class BlenderEngine(Engine):
         self.time_step = time_step
 
         self.host = "127.0.0.1"
-        self.port = 55000
+        self.port = 55001
         self._initialize_server()
         atexit.register(self._close)
 

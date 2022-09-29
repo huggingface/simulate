@@ -38,7 +38,7 @@ class ParallelRLEnv(VecEnv):
         starting_port (`int): initial communication port for spawned executables.
     """
 
-    def __init__(self, env_fn: Callable, n_parallel: int, starting_port: int = 55000):
+    def __init__(self, env_fn: Callable, n_parallel: int, starting_port: int = 55001):
         self.n_parallel = n_parallel
         self.envs = []
         # create the environments
