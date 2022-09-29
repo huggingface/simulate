@@ -147,13 +147,21 @@ class RLEnv(VecEnv):
                 # A list value for the action – we add the map/actor dimensions
                 if self.n_show == 1 and self.n_actors == 1:
                     action[key] = [[value]]
+                elif self.n_show > 1 and self.n_actors_per_map == 1:
+                    action[key] = (
+                        np.array(value).reshape((self.n_show, self.n_actors_per_map, -1)).tolist()
+                    )  # hacky reshape, sorry. (Ed)
                 else:
                     raise ValueError(
                         f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
                         f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} "
                         f"and n_actors {self.n_actors})."
                     )
-            elif isinstance(value, np.ndarray) and len(value) > 0 and isinstance(value[0], (np.int64, np.float32)):
+            elif (
+                isinstance(value, np.ndarray)
+                and len(value) > 0
+                and isinstance(value[0], (np.int64, np.int32, np.float32))
+            ):
                 # actions are a number array
                 value = value.reshape((self.n_show, self.n_actors_per_map, -1))
                 action[key] = value.tolist()
@@ -167,10 +175,9 @@ class RLEnv(VecEnv):
         # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
         obs = self._extract_sensor_obs(event["actor_sensor_buffers"])
         reward = self._convert_to_numpy(event["actor_reward_buffer"]).flatten()
-        done = self._convert_to_numpy(event["actor_done_buffer"]).flatten()
+        done = self._convert_to_numpy(event["actor_done_buffer"]).flatten() > 0
 
         obs = self._squeeze_actor_dimension(obs)
-
         return obs, reward, done, [{}] * len(done)
 
     def _squeeze_actor_dimension(self, obs):
@@ -226,8 +233,16 @@ class RLEnv(VecEnv):
             action = [self.action_space.sample() for _ in range(self.n_show)]
         return np.array(action)
 
+    @property
+    def num_agents(self) -> int:
+        return self.n_show
+
+    @property
+    def is_multiagent(self) -> bool:
+        return self.n_show > 1
+
     def env_is_wrapped(self):
-        return [False] * self.n_agents * self.n_parallel
+        return [False] * self.n_show * self.n_parallel
 
     # required abstract methods
 
