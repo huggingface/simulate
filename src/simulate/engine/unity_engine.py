@@ -54,25 +54,16 @@ class UnityEngine(Engine):
         scene,
         auto_update=True,
         engine_exe="",
-        engine_port=55000,
+        engine_host="127.0.0.1",
+        engine_port=55001,
         engine_headless=False,
     ):
         super().__init__(scene=scene, auto_update=auto_update)
 
-        self.host = "127.0.0.1"
-        self.port = engine_port
+        self._initialize_server(
+            engine_exe=engine_exe, engine_host=engine_host, engine_port=engine_port, engine_headless=engine_headless
+        )
 
-        if engine_exe:
-            self._launch_executable(executable=engine_exe, port=str(engine_port), headless=engine_headless)
-        elif engine_exe == "":
-            engine_exe = self._get_unity_from_hub()
-            self._launch_executable(executable=engine_exe, port=str(engine_port), headless=engine_headless)
-        elif engine_exe is None:
-            pass  # We run with the editor
-        else:
-            raise ValueError("engine_exe must be a string, None or empty")
-
-        self._initialize_server()
         atexit.register(self._close)
         signal.signal(signal.SIGTERM, self._close)
         signal.signal(signal.SIGINT, self._close)
@@ -109,11 +100,28 @@ class UnityEngine(Engine):
 
         self.proc = subprocess.Popen(launch_command, env=environ)
 
-    def _initialize_server(self):
+    @staticmethod
+    def _find_port_number(starting_engine_port: int) -> int:
+        """use a different port in each xdist worker"""
+        port_tests = list(range(starting_engine_port, starting_engine_port + 1024))
+        for port in port_tests:
+            with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
+                if s.connect_ex(("localhost", port)) == 0:
+                    continue
+                else:
+                    return port
+        raise RuntimeError("Could not find a free port")
+
+    def _initialize_server(self, engine_exe: str, engine_host: str, engine_port: int, engine_headless: bool):
+        """Initialize the locak server and launch the Unity executable and
+        connect to it.
+        """
+        # Initializing on our side
+        self.host = engine_host
+        self.port = self._find_port_number(engine_port)
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-
-        logger.info(f"Server started. Waiting for connection on {self.host} {self.port}...")
+        logger.info(f"Starting the server. Waiting for connection on {self.host} {self.port}...")
         try:
             self.socket.bind((self.host, self.port))
         except OSError:
@@ -127,6 +135,21 @@ class UnityEngine(Engine):
             raise logger.error(f"Could not bind to port {self.port}")
 
         self.socket.listen()
+
+        # Starting the Unity executable
+        logger.info(f"Starting Unity executable {engine_exe}...")
+        if engine_exe:
+            self._launch_executable(executable=engine_exe, port=str(engine_port), headless=engine_headless)
+        elif engine_exe == "":
+            engine_exe = self._get_unity_from_hub()
+            self._launch_executable(executable=engine_exe, port=str(engine_port), headless=engine_headless)
+        elif engine_exe is None:
+            pass  # We run with the editor
+        else:
+            raise ValueError("engine_exe must be a string, None or empty")
+
+        # Connecting both
+        logger.info(f"Connecting to Unity executable on {self.host} {self.port}...")
         self.client, self.client_address = self.socket.accept()
         # self.client.setblocking(0)  # Set to non-blocking
         self.client.settimeout(SOCKET_TIME_OUT)  # Set a timeout

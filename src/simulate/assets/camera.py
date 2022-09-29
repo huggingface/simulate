@@ -176,7 +176,7 @@ class CameraDistant(Camera):
     ):
 
         if position is None:
-            position = [0.0, 0.0, -10.0]
+            position = [0.0, 5.0, -10.0]
         if rotation is None:
             rotation = [0.0, 1.0, 0.0, 0.0]
 

@@ -19,6 +19,7 @@ from typing import List, Optional, Union
 
 from .actuator import ActionMapping, Actuator
 from .camera import Camera
+from .material import Material
 from .object import Capsule, Sphere
 from .rigid_body import RigidBodyComponent
 
@@ -52,8 +53,10 @@ class SimpleActor(Sphere):
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
         transformation_matrix=None,
+        material: Optional[Material] = None,
         parent=None,
         children=None,
+        **kwargs,
     ):
 
         if position is None:
@@ -67,8 +70,10 @@ class SimpleActor(Sphere):
             parent=parent,
             children=children,
             transformation_matrix=transformation_matrix,
+            material=material,
             is_actor=True,
             with_collider=True,
+            **kwargs,
         )
 
         # Rescale the actor
@@ -146,19 +151,15 @@ class EgocentricCameraActor(Capsule):
         scaling: Optional[Union[float, List[float]]] = None,
         camera_height: Optional[int] = 40,
         camera_width: Optional[int] = 40,
+        camera_name: Optional[str] = None,
         transformation_matrix=None,
+        material: Optional[Material] = None,
         parent=None,
         children=None,
+        **kwargs,
     ):
-
         if position is None:
             position = [0, 1.05, 0]  # A bit above the reference plane
-
-        camera_name = None
-        if name is not None:
-            camera_name = f"{name}_camera"
-        self.camera = Camera(name=camera_name, width=camera_width, height=camera_height, position=[0, 0.25, 0])
-        children = children + self.camera if children is not None else self.camera
 
         super().__init__(
             name=name,
@@ -168,20 +169,26 @@ class EgocentricCameraActor(Capsule):
             parent=parent,
             children=children,
             transformation_matrix=transformation_matrix,
+            material=material,
             is_actor=True,
             with_collider=True,
+            with_rigid_body=True,
+            **kwargs,
         )
 
-        # Rescale the actor
-        if scaling is not None:
-            self.scale(scaling)
+        # Add our camera
+        camera_name = f"{self.name}_camera" if camera_name is None else camera_name
+        camera = Camera(
+            name=camera_name, sensor_tag=camera_name, width=camera_width, height=camera_height, position=[0, 0.25, 0]
+        )
+        children = self.tree_children
+        self.tree_children = children + (camera,)
 
         # Add our physics component (by default the actor can only rotation along y axis)
-        self.physics_component = RigidBodyComponent(
-            mass=mass, constraints=["freeze_rotation_x", "freeze_rotation_z", "freeze_position_y"]
-        )
+        self.physics_component.mass = mass
+        self.physics_component.constraints = ["freeze_rotation_x", "freeze_rotation_z", "freeze_position_y"]
 
-        # Create our action maps to physics engine effects
+        # Add our actuator with 3 actions mapped to physics engine effects
         mapping = [
             ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=-10),
             ActionMapping("change_rotation", axis=[0, 1, 0], amplitude=10),

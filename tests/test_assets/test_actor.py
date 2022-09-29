@@ -32,7 +32,7 @@ class ActorTest(unittest.TestCase):
 
     def test_egocentric_actor(self):
         actor = sm.EgocentricCameraActor()
-        self.assertIsInstance(actor.tree_children[0], sm.Camera)
+        self.assertIsInstance(actor.tree_children[1], sm.Camera)
         self.assertIsInstance(actor, sm.EgocentricCameraActor)
         self.assertIsInstance(actor, sm.Capsule)
 

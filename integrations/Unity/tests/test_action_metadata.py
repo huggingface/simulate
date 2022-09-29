@@ -246,4 +246,4 @@ if __name__ == "__main__":
     build_exe = os.environ.get("BUILD_EXE")
     if not build_exe:
         build_exe = None
-    test_add_force_frame_skip(build_exe, port_number=55000)
+    test_add_force_frame_skip(build_exe, port_number=55001)

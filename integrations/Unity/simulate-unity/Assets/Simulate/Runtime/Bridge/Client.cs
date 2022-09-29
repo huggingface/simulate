@@ -36,7 +36,7 @@ namespace Simulate {
         /// <summary>
         /// Connect to server and begin listening for commands.
         /// </summary>
-        public static void Initialize(string host = "localhost", int port = 55000) {
+        public static void Initialize(string host = "localhost", int port = 55001) {
             Client.host = host;
             Client.port = port;
             LoadCommands();

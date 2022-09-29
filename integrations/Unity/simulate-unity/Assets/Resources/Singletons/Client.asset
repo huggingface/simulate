@@ -13,6 +13,6 @@ MonoBehaviour:
   m_Name: Client
   m_EditorClassIdentifier: 
   host: localhost
-  port: 55000
+  port: 55001
   physicsUpdateRate: 30
   frameSkip: 15

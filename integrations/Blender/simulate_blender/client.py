@@ -4,7 +4,7 @@ import socket
 class Client:
     def __init__(self):
         self.host = "127.0.0.1"
-        self.port = 55000
+        self.port = 55001
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self._connect()
 
