@@ -94,6 +94,10 @@ TESTS_REQUIRE = [
     "stable-baselines3",  # For training with SB3
 ]
 
+DOCS_REQUIRE = [
+    "s3fs"
+]
+
 QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 EXTRAS_REQUIRE = {
@@ -102,6 +106,7 @@ EXTRAS_REQUIRE = {
      "dev": DEV_REQUIRE + TESTS_REQUIRE + QUALITY_REQUIRE,
      "test": TESTS_REQUIRE,
      "quality": QUALITY_REQUIRE,
+     "docs": DOCS_REQUIRE,
 }
 
 if sys.platform == 'darwin':
