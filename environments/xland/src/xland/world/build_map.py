@@ -38,20 +38,16 @@ def add_walls(x, z, height=None, thickness=0.5, invisible=False):
     if invisible:
         return [
             sm.Collider(
-                position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2],
-                bounding_box=[x_max - x_min, height, thickness]
+                position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2], bounding_box=[x_max - x_min, height, thickness]
             ),
             sm.Collider(
-                position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2],
-                bounding_box=[x_max - x_min, height, thickness]
+                position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2], bounding_box=[x_max - x_min, height, thickness]
             ),
             sm.Collider(
-                position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0],
-                bounding_box=[thickness, height, z_max - z_min]
+                position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0], bounding_box=[thickness, height, z_max - z_min]
             ),
             sm.Collider(
-                position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0],
-                bounding_box=[thickness, height, z_max - z_min]
+                position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0], bounding_box=[thickness, height, z_max - z_min]
             ),
         ]
     else:
@@ -60,22 +56,22 @@ def add_walls(x, z, height=None, thickness=0.5, invisible=False):
             sm.Box(
                 position=[0, -HEIGHT_CONSTANT, z_max + thickness / 2],
                 bounds=(x_min - thickness, x_max + thickness, -height / 2, height / 2, -thickness / 2, thickness / 2),
-                material=material
+                material=material,
             ),
             sm.Box(
                 position=[0, -HEIGHT_CONSTANT, z_min - thickness / 2],
                 bounds=(x_min - thickness, x_max + thickness, -height / 2, height / 2, -thickness / 2, thickness / 2),
-                material=material
+                material=material,
             ),
             sm.Box(
                 position=[x_max + thickness / 2, -HEIGHT_CONSTANT, 0],
                 bounds=(-thickness / 2, thickness / 2, -height / 2, height / 2, z_min - thickness, z_max + thickness),
-                material=material
+                material=material,
             ),
             sm.Box(
                 position=[x_min - thickness / 2, -HEIGHT_CONSTANT, 0],
                 bounds=(-thickness / 2, thickness / 2, -height / 2, height / 2, z_min - thickness, z_max + thickness),
-                material=material
+                material=material,
             ),
         ]
 

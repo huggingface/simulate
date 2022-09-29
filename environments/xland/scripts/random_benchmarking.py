@@ -32,7 +32,7 @@ if __name__ == "__main__":
     parser.add_argument("--seed", default=10, type=int, required=False, help="Random seed")
     parser.add_argument("--n_episodes", default=25600, type=int, required=False, help="Number of episodes")
     parser.add_argument("--save_folder", default="results", type=str, required=False, help="Where to save results")
-    parser.add_argument("--no_headless", dest='headless', action='store_false')
+    parser.add_argument("--no_headless", dest="headless", action="store_false")
     parser.set_defaults(headless=True)
     args = parser.parse_args()
 
