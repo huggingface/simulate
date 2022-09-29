@@ -43,7 +43,7 @@ In the future, this will be built as an executable, and spawned by the Python AP
 
 ## Loading a scene from the hub or a local file
 
-Loading a scene from a local file or the hu is done with `Scene.create_from()`, saving or pushing to the hub with `scene.save()` or `scene.push_to_hub()`:
+Loading a scene from a local file or the hub is done with `Scene.create_from()`, saving or pushing to the hub with `scene.save()` or `scene.push_to_hub()`:
 
 ```
 from simulate import Scene

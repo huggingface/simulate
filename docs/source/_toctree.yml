@@ -1,30 +1,88 @@
-- sections:
+- sections: 
   - local: index
-    title: Simulate
-  - local: quicktour
-    title: Quicktour
+    title: 🤗 Simulate
+  - local: installation
+    title: Installation
+  - local: quickstart
+    title: Quickstart
+
   title: Get started
+
 - sections:
+  - local: tutorial
+    title: Overview
+  - local: load_hub
+    title: Load an environment from the Hub
   - sections:
-    - local: examples/example1
-      title: Simulate for ...
-    - local: examples/example2
-      title: Simulate for ...
-    title: Examples
-  - sections:
-     - local: integrations/backends
-       title: Rendering Backends
-     - local: integrations/gltf
-       title: GLTF Extensions
-     - local: integrations/rl
-       title: Reinforcement Learning
-    title: Integrations
-  title: Using Simulate
+    - local: examples/basic_examples
+      title: Basic Examples
+    - local: examples/intermediate_examples
+      title: Intermediate Examples
+    - local: examples/advanced_examples
+      title: Advanced Examples
+    - local: examples/rl_examples
+      title: Reinforcement Learning Examples
+    title : Examples
+  title: "Tutorials"
+
 - sections:
+  - local: how_to
+    title: Overview
   - sections:
-     - local: scene
-       title: Scene
-     - local: asset
-       title: Asset
-    title: Main Classes
-  title: API
+    - local: creating
+      title: Creating the Scene
+    - local: lighting
+      title: Lighting
+    - local: objects
+      title: Built in Objects
+    title: "General usage"
+  - sections:
+    - local: actors
+      title: Actors
+    - local: sensors
+      title: Sensors
+    - local: actuators
+      title: Actuators
+    - local: reward_functions
+      title: Reward Functions
+    title: "Reinforcement Learning"
+  - sections:
+    - local: backends
+      title: Backends
+    - local: saving_data
+      title: Saving Data
+    title: "Synthetic Data Generation"
+  - sections:
+    - local: joints
+      title: Joints
+    title: "Articulation Bodies"
+  - sections:
+    - local: map_pools
+      title: Map Pools
+    - local: sample_factory
+      title: Sample Factory
+    - local: run_on_gcp 
+      title: Running on GCP instances
+    title: "Advanced Usage"
+  - title: "Hot-to guides"
+- sections:
+  - local: scene_tree
+    title: The Scene Tree
+  - local: backends
+    title: Backends
+  - local: integrations/gltf
+    title: GLTF Extensions
+  title: "Conceptual guides"
+- sections:
+  - local: asset
+    title: asset
+  - local: scene
+    title: scene
+  - local: quicktour
+    title: quicktour
+  - local: integrations/rl
+    title: rl
+  - local: integrations/backends
+    title: backends
+  title: "Old files"
+  
