@@ -22,6 +22,7 @@
       title: Advanced Examples
     - local: examples/rl_examples
       title: Reinforcement Learning Examples
+    title : Examples
   title: "Tutorials"
 
 - sections:
