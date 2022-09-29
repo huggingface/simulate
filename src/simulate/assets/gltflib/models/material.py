@@ -29,7 +29,7 @@ class Material(NamedBaseModel):
     emissiveFactor (number[3]) The emissive color of the material. (Optional, default: [0,0,0])
     alphaMode (string) The alpha rendering mode of the material. (Optional, default: "OPAQUE")
     alphaCutoff (number) The alpha cutoff value of the material. (Optional, default: 0.5)
-    doubleSided (boolean) Specifies whether the material is double sided. (Optional, default: false)
+    doubleSided (boolean) Specifies whether the material is double-sided. (Optional, default: false)
     """
 
     pbrMetallicRoughness: Optional[PBRMetallicRoughness] = None

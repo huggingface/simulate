@@ -33,8 +33,6 @@ def create_scene(build_exe=None):
         position=[0, 0, 0],
         bounds=[-10, 10, -0.1, 0, -10, 10],
         material=sm.Material.GRAY75,
-        with_collider=True,
-        with_physics_component=False,
     )
 
     # Add a cube that will fall
@@ -43,8 +41,7 @@ def create_scene(build_exe=None):
         position=[0, 3, 0],
         scaling=[1, 1, 1],
         material=sm.Material.GRAY50,
-        with_collider=True,
-        with_physics_component=True,
+        with_rigid_body=True,
     )
 
     # Add a camera to record the scene
@@ -85,7 +82,7 @@ def simulate(scene, n_frames=30):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--build_exe", help="path to unity engine build executable", required=False, type=str, default=""
+        "--build_exe", help="path to unity engine build executable", required=False, type=str, default=None
     )
     parser.add_argument("-n", "--n_frames", help="number of frames to simulate", required=False, type=int, default=30)
     args = parser.parse_args()

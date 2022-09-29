@@ -19,8 +19,7 @@ from typing import Dict, List, Optional, Union
 
 import numpy as np
 
-from simulate import logging
-
+from ..utils import logging
 from .action_mapping import ActionMapping
 from .gltf_extension import GltfExtensionMixin
 
@@ -32,7 +31,8 @@ try:
 except ImportError:
     # Our implementation of gym space classes if gym is not installed
     logger.warning(
-        "The gym library is not installed, falling back our implementation of gym.spaces. To remove this message pip install simulate[rl]"
+        "The gym library is not installed, falling back our implementation of gym.spaces. "
+        "To remove this message pip install simulate[rl]"
     )
     from . import spaces
 
@@ -51,9 +51,11 @@ class Actuator(GltfExtensionMixin, gltf_extension_name="HF_actuators", object_ty
 
     Args:
         mapping: a list of ActionMapping (to physics engine behaviors)
-        actuator_tag: A string tag for the actuator that is used to group actuators together when sending actions (we always have a scene-level gym dict space).
+        actuator_tag: A string tag for the actuator that is used to group actuators together when sending actions
+        (we always have a scene-level gym dict space).
         n (int or List[int]): for discrete actions, the number of possible actions
-            for multi-binary actions, the number of possible binary actions or a list of the number of possible actions for each dimension
+            for multi-binary actions, the number of possible binary actions or a list of the number of possible actions
+            for each dimension
         low: low bound of continuous action space dimensions, either a float or list of floats
         high: high bound of continuous action space dimensions, either a float or list of floats
         shape: shape of continuous action space, should match low/high
@@ -117,7 +119,8 @@ class Actuator(GltfExtensionMixin, gltf_extension_name="HF_actuators", object_ty
         #     self._action_space = spaces.MultiDiscrete(nvec=self.nvec, seed=self.seed)
 
         #     if len(self.mapping) != sum(self.nvec):
-        #         raise ValueError(f"Number of mapping ({len(self.mapping)}) does not match the total number of actions ({sum(self.nvec)})")
+        #         raise ValueError(f"Number of mapping ({len(self.mapping)})
+        #         does not match the total number of actions ({sum(self.nvec)})")
 
         # else create box (continuous) action space
         else:
@@ -126,7 +129,8 @@ class Actuator(GltfExtensionMixin, gltf_extension_name="HF_actuators", object_ty
 
             if self.low is None and self.high is None and self.shape is None:
                 raise ValueError(
-                    "Action space unspecified: you should specify `n` or `nvec` (for discrete action space) or at least one of `high`, `low`, `shape` (for continous action space)."
+                    "Action space unspecified: you should specify `n` or `nvec` (for discrete action space) "
+                    "or at least one of `high`, `low`, `shape` (for continous action space)."
                 )
 
             dtype = np.dtype(self.dtype)

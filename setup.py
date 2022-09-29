@@ -47,7 +47,7 @@ To create the package for pypi.
 6. Upload the final version to actual pypi:
    twine upload dist/* -r pypi
 
-7. Fill release notes in the tag in github once everything is looking hunky-dory.
+7. Fill release notes in the tag in GitHub once everything is looking hunky-dory.
 
 8. Change the version in __init__.py and setup.py to X.X.X+1.dev0 (e.g. VERSION=1.18.3 -> 1.18.4.dev0).
    Then push the change with a message 'set dev version'
@@ -132,7 +132,7 @@ ext_modules = cythonize(ext_modules, force=True)
 
 setup(
     name="simulate",
-    version="0.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version="0.0.0.1",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of simulation environments",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",

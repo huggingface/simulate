@@ -24,7 +24,7 @@ from .rigid_body import RigidBodyComponent
 
 
 class SimpleActor(Sphere):
-    """Creates a barebones RL agent in the scene.
+    """Creates a bare-bones RL agent in the scene.
 
     A SimpleActor is a sphere asset with:
     - basic XYZ positional control (continuous),

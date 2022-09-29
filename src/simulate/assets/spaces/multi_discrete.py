@@ -8,8 +8,7 @@
 
 import numpy as np
 
-from simulate import logging
-
+from ...utils import logging
 from .discrete import Discrete
 from .space import Space
 
@@ -19,9 +18,12 @@ logger = logging.get_logger(__name__)
 
 class MultiDiscrete(Space):
     """
-    - The multi-discrete action space consists of a series of discrete action spaces with different number of actions in each
-    - It is useful to represent game controllers or keyboards where each key can be represented as a discrete action space
-    - It is parametrized by passing an array of positive integers specifying number of actions for each discrete action space
+    - The multi-discrete action space consists of a series of discrete action spaces
+        with different number of actions in each
+    - It is useful to represent game controllers or keyboards
+        where each key can be represented as a discrete action space
+    - It is parametrized by passing an array of positive integers specifying number of actions
+        for each discrete action space
 
     Note: Some environment wrappers assume a value of 0 always represents the NOOP action.
 

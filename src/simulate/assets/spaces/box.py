@@ -10,8 +10,7 @@ import warnings
 
 import numpy as np
 
-from simulate import logging
-
+from ...utils import logging
 from .space import Space
 
 
@@ -64,9 +63,9 @@ class Box(Space):
         self.low = low
         self.high = high
 
-        def _get_precision(dtype):
-            if np.issubdtype(dtype, np.floating):
-                return np.finfo(dtype).precision
+        def _get_precision(np_dtype):
+            if np.issubdtype(np_dtype, np.floating):
+                return np.finfo(np_dtype).precision
             else:
                 return np.inf
 
@@ -74,7 +73,7 @@ class Box(Space):
         high_precision = _get_precision(self.high.dtype)
         dtype_precision = _get_precision(self.dtype)
         if min(low_precision, high_precision) > dtype_precision:
-            logger.warning("Box bound precision lowered by casting to {}".format(self.dtype))
+            logger.warning(f"Box bound precision lowered by casting to {self.dtype}")
         self.low = self.low.astype(self.dtype)
         self.high = self.high.astype(self.dtype)
 

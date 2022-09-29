@@ -117,17 +117,17 @@ class GltfExtensionMixin(DataClassJsonMixin):
     def gltf_copy(self) -> "GltfExtensionMixin":
         """Create a deep copy of the object with a deep copy of only the dataclass fields.
 
-        In several cases we are modifying this asset and want to create pikable copies (e.g. at importation from GLTF or during the
-        GLTF conversion to replace node pointers with string names)
+        In several cases we are modifying this asset and want to create pikable copies
+        (e.g. at importation from GLTF or during the GLTF conversion to replace node pointers with string names)
 
         We then want to deep copy only the fields of the dataclass, thus we don't
-        use copy.deepcpy since some other properties (renderer, etc) are not picklable
+        use copy.deepcpy since some other properties (renderer, etc.) are not picklable
         """
         self_dict = {f.name: copy.deepcopy(getattr(self, f.name)) for f in fields(self)}
         copy_self = type(self)(**self_dict)
         return copy_self
 
-    def _add_component_to_gltf_scene(self, gltf_model_extensions) -> str:
+    def add_component_to_gltf_scene(self, gltf_model_extensions) -> str:
         """Add a scene level object to a glTF scene (e.g. config).
             Only one object of each such type can be added to a scene.
 
@@ -147,7 +147,7 @@ class GltfExtensionMixin(DataClassJsonMixin):
             raise ValueError(f"The glTF model extensions already has the {self._gltf_extension_name} extension.")
         return self._gltf_extension_name
 
-    def _add_component_to_gltf_model(self, gltf_model_extensions) -> int:
+    def add_component_to_gltf_model(self, gltf_model_extensions) -> int:
         """Add a component to a glTF model.
 
         Args:
@@ -171,7 +171,7 @@ class GltfExtensionMixin(DataClassJsonMixin):
         object_id = len(objects) - 1
         return object_id
 
-    def _add_component_to_gltf_node(self, gltf_node_extensions, object_id: int, object_name: str) -> str:
+    def add_component_to_gltf_node(self, gltf_node_extensions, object_id: int, object_name: str) -> str:
         """
         Add a component to a glTF node.
 
@@ -193,19 +193,23 @@ def _process_dataclass_after(obj_dataclass, node, object_name):
     for f in fields(obj_dataclass):
         value = getattr(obj_dataclass, f.name)
         type_ = f.type
-        # If the attribute of the component has the right type: "Any" or "Optional[Any]" with a name attribute in the pointed object
-        # Then we assume it's a node in the tree and we replace a name of a pointed node by a direct pointer to the node
+        # If the attribute of the component has the right type:
+        # "Any" or "Optional[Any]" with a name attribute in the pointed object
+        # Then we assume it's a node in the tree + we replace a name of a pointed node by a direct pointer to the node
         # We check the named node exist for safety
-        # Note that this only investigate the fields of the dataclass and thus not the "children" or "parent" attribute of an Asset, thus keeping the tree in good shape
+        # Note that this only investigate the fields of the dataclass
+        # and thus not the "children" or "parent" attribute of an Asset, thus keeping the tree in good shape
         if type_ == Any or type_ == Optional[Any]:
             if isinstance(value, str):
                 node_pointer = node.get_node(value)
                 if node_pointer is None:
                     raise ValueError(
-                        f"The field {f.name} '{'of component' + object_name if object_name is not None else ''}' of node '{node.name}' has type 'Any' "
+                        f"The field {f.name} '{'of component' + object_name if object_name is not None else ''}'"
+                        f" of node '{node.name}' has type 'Any' "
                         f"point to a second asset called '{value}' but this second asset cannot be found "
                         f"in the asset tree. Please check the name of the second asset is correct "
-                        "and the second asset is present in the scene or change the type of the component to be a string."
+                        f"and the second asset is present in the scene or "
+                        f"change the type of the component to be a string."
                     )
                 setattr(obj_dataclass, f.name, node_pointer)  # We convert it in the node pointer
         # Recursively explore child and nested dataclasses
@@ -224,8 +228,8 @@ def _process_dataclass_after(obj_dataclass, node, object_name):
 
 
 def process_tree_after_gltf(node: "Asset"):
-    """Setup the attributes of each components of the asset which refere to assets.
-    Sometime components refered to assets by names (when loading from a glTF file)
+    """Set up the attributes of each component of the asset which refers to assets.
+    Sometime components referred to assets by names (when loading from a glTF file)
     We convert them to references to the asset
     """
     if node.__class__ in GLTF_NODES_EXTENSION_CLASS:
@@ -244,19 +248,23 @@ def _process_dataclass_before(obj_dataclass, node, object_name):
     for f in fields(obj_dataclass):
         value = getattr(obj_dataclass, f.name)
         type_ = f.type
-        # If the attribute of the component has the right type: "Any" or "Optional[Any]" with a name attribute in the pointed object
-        # Then we assume it's a node in the tree and we replace a pointer with a name of the node
+        # If the attribute of the component has the right type:
+        # "Any" or "Optional[Any]" with a name attribute in the pointed object
+        # Then we assume it's a node in the tree + we replace a pointer with a name of the node
         # We check the named node exist for safety
-        # Note that this only investigate the fields of the dataclass and thus not the "children" or "parent" attribute of an Asset, thus keeping the tree in good shape
+        # Note that this only investigate the fields of the dataclass
+        # and thus not the "children" or "parent" attribute of an Asset, thus keeping the tree in good shape
         if type_ == Any or type_ == Optional[Any]:
             if isinstance(value, str):
                 node_pointer = node.get_node(value)
                 if node_pointer is None:
                     raise ValueError(
-                        f"The field {f.name} '{'of component' + object_name if object_name is not None else ''}' of node '{node.name}' has type 'Any' "
+                        f"The field {f.name} '{'of component' + object_name if object_name is not None else ''}' "
+                        f"of node '{node.name}' has type 'Any' "
                         f"point to a second asset called '{value}' but this second asset cannot be found "
                         f"in the asset tree. Please check the name of the second asset is correct "
-                        "and the second asset is present in the scene or change the type of the component to be a string."
+                        f"and the second asset is present in the scene "
+                        f"or change the type of the component to be a string."
                     )
             # And is the value of the attribute is currently a node
             if not isinstance(value, str) and hasattr(value, "name"):
@@ -277,8 +285,8 @@ def _process_dataclass_before(obj_dataclass, node, object_name):
 
 
 def process_tree_before_gltf(node: "Asset"):
-    """Setup the attributes of each GLTFExtension tree/components of the asset which refere to assets.
-    Sometime components refered to assets by names (when loading from a glTF file)
+    """Set up the attributes of each GLTFExtension tree/components of the asset which refers to assets.
+    Sometime components referred to assets by names (when loading from a glTF file)
     We convert them to string of the names of the assets (which are unique)
     """
 

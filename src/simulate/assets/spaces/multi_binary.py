@@ -23,7 +23,7 @@ class MultiBinary(Space):
 
     >> self.observation_space.sample()
 
-        array([0,1,0,1,0], dtype =int8)
+        array([0,1,0,1,0], dtype=int8)
 
     >> self.observation_space = spaces.MultiBinary([3,2])
 

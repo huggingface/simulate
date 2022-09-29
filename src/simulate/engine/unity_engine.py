@@ -12,7 +12,11 @@ from sys import platform
 from huggingface_hub import hf_hub_download
 from huggingface_hub.constants import hf_cache_home
 
+from ..utils import logging
 from .engine import Engine
+
+
+logger = logging.get_logger(__name__)
 
 
 NUM_BIND_RETRIES = 20
@@ -59,10 +63,10 @@ class UnityEngine(Engine):
         self.port = engine_port
 
         if engine_exe:
-            self._launch_executable(executable=engine_exe, port=engine_port, headless=engine_headless)
+            self._launch_executable(executable=engine_exe, port=str(engine_port), headless=engine_headless)
         elif engine_exe == "":
             engine_exe = self._get_unity_from_hub()
-            self._launch_executable(executable=engine_exe, port=engine_port, headless=engine_headless)
+            self._launch_executable(executable=engine_exe, port=str(engine_port), headless=engine_headless)
         elif engine_exe is None:
             pass  # We run with the editor
         else:
@@ -75,7 +79,8 @@ class UnityEngine(Engine):
 
         self._map_pool = False
 
-    def _get_unity_from_hub(self) -> str:
+    @staticmethod
+    def _get_unity_from_hub() -> str:
         unity_compressed = hf_hub_download(
             repo_id=UNITY_BUILD_REPO,
             filename=UNITY_COMPRESSED_FILENAME,
@@ -95,7 +100,7 @@ class UnityEngine(Engine):
     def _launch_executable(self, executable: str, port: str, headless: bool):
         # TODO: improve headless training check on a headless machine
         if headless:
-            print("launching env headless")
+            logger.info("launching env headless")
             launch_command = f"{executable} -batchmode -nographics --args port {port}".split(" ")
         else:
             launch_command = f"{executable} --args port {port}".split(" ")
@@ -108,7 +113,7 @@ class UnityEngine(Engine):
         self.socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
         self.socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 
-        print(f"Server started. Waiting for connection on {self.host} {self.port}...")
+        logger.info(f"Server started. Waiting for connection on {self.host} {self.port}...")
         try:
             self.socket.bind((self.host, self.port))
         except OSError:
@@ -118,14 +123,14 @@ class UnityEngine(Engine):
                     self.socket.bind((self.host, self.port))
                     break
                 except OSError:
-                    print(f"port {self.port} is still in use, trying again")
-            raise Exception(f"Could not bind to port {self.port}")
+                    logger.error(f"port {self.port} is still in use, trying again")
+            raise logger.error(f"Could not bind to port {self.port}")
 
         self.socket.listen()
         self.client, self.client_address = self.socket.accept()
         # self.client.setblocking(0)  # Set to non-blocking
         self.client.settimeout(SOCKET_TIME_OUT)  # Set a timeout
-        print(f"Connection from {self.client_address}")
+        logger.info(f"Connection from {self.client_address}")
 
     def _get_response(self):
         while True:
@@ -138,7 +143,6 @@ class UnityEngine(Engine):
                 while len(response) < data_length:
                     response += self.client.recv(data_length - len(response)).decode()
 
-                # print(f"Received response: {response}")
                 return response
 
     def update_asset(self, root_node):
@@ -150,8 +154,8 @@ class UnityEngine(Engine):
         pass
 
     def show(self, **kwargs):
-        bytes = self._scene.as_glb_bytes()
-        b64_bytes = base64.b64encode(bytes).decode("ascii")
+        bytes_data = self._scene.as_glb_bytes()
+        b64_bytes = base64.b64encode(bytes_data).decode("ascii")
         kwargs.update({"b64bytes": b64_bytes})
         return self.run_command("Initialize", **kwargs)
 
@@ -184,7 +188,8 @@ class UnityEngine(Engine):
             response = self._get_response()
             try:
                 return json.loads(response)
-            except Exception:
+            except Exception as e:
+                logger.warning(f"Exception loading response json data: {e}")
                 return response
 
     def run_command_async(self, command, **kwargs):
@@ -196,20 +201,19 @@ class UnityEngine(Engine):
         response = self._get_response()
         try:
             return json.loads(response)
-        except Exception:
+        except Exception as e:
+            logger.warning(f"Exception loading response json data: {e}")
             return response
 
     def _close(self):
-        # print("exit was not clean, using atexit to close env")
         self.close()
 
     def close(self):
         try:
             self.run_command("Close", wait_for_response=False)
         except Exception as e:
-            print("exception sending close message", e)
+            logger.error(f"Exception sending close message: {e}")
 
-        # print("closing client")
         # self.client.shutdown(socket.SHUT_RDWR)
         self.client.close()
         self.socket.close()
@@ -217,4 +221,4 @@ class UnityEngine(Engine):
         try:
             atexit.unregister(self._close)
         except Exception as e:
-            print("exception unregistering close method", e)
+            logger.error(f"Exception unregistering close method: {e}")
