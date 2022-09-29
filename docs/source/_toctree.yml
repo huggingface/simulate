@@ -12,6 +12,15 @@
     title: Overview
   - local: load_hub
     title: Load an environment from the Hub
+  - sections:
+    - local: examples/basic_examples
+      title: Basic Examples
+    - local: examples/intermediate_examples
+      title: Intermediate Examples
+    - local: examples/advanced_examples
+      title: Advanced Examples
+    - local: examples/rl_examples
+      title: Reinforcement Learning Examples
   title: "Tutorials"
 
 - sections:
@@ -69,10 +78,6 @@
     title: scene
   - local: quicktour
     title: quicktour
-  - local: examples/example1
-    title: example1
-  - local: examples/example2
-    title: example2
   - local: integrations/rl
     title: rl
   - local: integrations/backends
