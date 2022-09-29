@@ -1,10 +1,11 @@
 - sections: 
   - local: index
     title: 🤗 Simulate
-  - local: quickstart
-    title: Quickstart
   - local: installation
     title: Installation
+  - local: quickstart
+    title: Quickstart
+
   title: Get started
 
 - sections:
