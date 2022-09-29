@@ -59,20 +59,18 @@
   - local: integrations/gltf
     title: GLTF Extensions
   title: "Conceptual guides"
-
-
 - sections:
- - local: scene
-   title: scene
- - local: quicktour
-   title: quicktour
- - local: examples/example1
-   title: example1
- - local: examples/example2
-   title: example2
- - local: integrations/rl
-   title: rl
- - local: integrations/backends
-   title: backends
- title: "Old files"
+  - local: scene
+    title: scene
+  - local: quicktour
+    title: quicktour
+  - local: examples/example1
+    title: example1
+  - local: examples/example2
+    title: example2
+  - local: integrations/rl
+    title: rl
+  - local: integrations/backends
+    title: backends
+  title: "Old files"
   
