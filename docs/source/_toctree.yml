@@ -6,12 +6,14 @@
   - local: installation
     title: Installation
   title: Get started
+
 - sections:
   - local: tutorial
     title: Overview
   - local: load_hub
     title: Load an environment from the Hub
   title: "Tutorials"
+
 - sections:
   - local: how_to
     title: Overview
@@ -51,6 +53,7 @@
     - local: run_on_gcp 
       title: Running on GCP instances
     title: "Advanced Usage"
+  - title: "Hot-to guides"
 - sections:
   - local: scene_tree
     title: The Scene Tree
