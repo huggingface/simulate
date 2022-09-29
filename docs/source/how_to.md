@@ -16,6 +16,6 @@ The guides are organized into five sections:
 - <span class="underline decoration-pink-400 decoration-2 font-semibold">Reinforcement Learning</span>: How to create you Actors, Sensors, Actuators and Reward Functions
 - <span class="underline decoration-yellow-400 decoration-2 font-semibold">Synthetic data generation</span>: How to use the Simulate library to create synthetic datasets.
 - <span class="underline decoration-green-400 decoration-2 font-semibold">Articulation bodies</span>: How to set up robotic limbs, with hinges, joints and sliders.
-- <span class="underline decoration-indigo-400 decoration-2 font-semibold">Advanced usage</span>: How to achieve high throughput training with Map Pools and the [sample-factory](https://alex-petrenko.github.io/sample-factory/) RL framework</a>.
+- <span class="underline decoration-indigo-400 decoration-2 font-semibold">Advanced usage</span>: How to achieve high throughput training with Map Pools, the [sample-factory](https://alex-petrenko.github.io/sample-factory/) RL framework and running Simulate on a GCP instance</a>.
 
 If you have any questions about 🤗 Datasets, feel free to join and ask the community on our [forum](https://discuss.huggingface.co/c/datasets/10).
