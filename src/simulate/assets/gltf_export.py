@@ -321,7 +321,7 @@ def add_material_to_gltf(
 
 def add_mesh_to_model(
     meshes: Union[pv.UnstructuredGrid, pv.MultiBlock],
-    material: Material,
+    materials: Material,
     gltf_model: gl.GLTFModel,
     buffer_data: ByteString,
     buffer_id: int = 0,
@@ -330,10 +330,13 @@ def add_mesh_to_model(
 
     if not isinstance(meshes, pv.MultiBlock):
         meshes = [meshes]
+        materials = [materials]
+    else:
+        pass
 
     primitives = []
 
-    for mesh in meshes:
+    for mesh, material in zip(meshes, materials):
         if mesh.n_verts == 0 and mesh.n_lines == 0 and mesh.n_faces == 0:
             raise NotImplementedError()
 
@@ -539,7 +542,7 @@ def add_node_to_scene(
         # For Object3D and for Collider we can have a mesh
         gl_node.mesh = add_mesh_to_model(
             meshes=node.mesh,
-            material=getattr(node, "material", None),
+            materials=getattr(node, "material", None),
             gltf_model=gltf_model,
             buffer_data=buffer_data,
             buffer_id=buffer_id,
@@ -564,7 +567,7 @@ def add_node_to_scene(
                     if node.mesh is not None:
                         gl_node.mesh = add_mesh_to_model(
                             meshes=node.mesh,
-                            material=None,
+                            materials=None,
                             gltf_model=gltf_model,
                             buffer_data=buffer_data,
                             buffer_id=buffer_id,
