@@ -23,23 +23,7 @@ Simulate is a library for easily creating and sharing simulation environments fo
 
 Install Simulate (preferentially in a virtual environment) with a simple `pip install simulate`
 
-## Quick tour
-
-Simulate's API is inspired by the great [Kubric's API](https://github.com/google-research/kubric).
-The user create a `Scene` and add `Assets` in it (objects, cameras, lights etc).
-
-Once the scene is created you can save and share it as a file (it's a glTF file, aka a JSON file with associated ressources).You can also render the scene or do simulations using one of the backend rendering/simulation engines (at the moment Unity, Blender and Godot). The saving/sharing format is engine agnostic and using a graphic industry standard.
-
-Let's do a quick exploration together.  
-
-```
-import simulate as sm
-
-scene = sm.Scene()
-```
-
-
-To install and contribute (from [CONTRIBUTING.md](CONTRIBUTING.md))
+### Install for contribution (from [CONTRIBUTING.md](CONTRIBUTING.md))
 
 Create a virtual env and then install the code style/quality tools as well as the code base locally
 ```
@@ -50,7 +34,26 @@ Before you merge a PR, fix the style (we use `isort` + `black`)
 make style
 ```
 
-## Project Structure
+## Quick tour
+
+Simulate's API is inspired by the great [Kubric's API](https://github.com/google-research/kubric).
+The user create a `Scene` and add `Assets` in it (objects, cameras, lights etc).
+
+Once the scene is created, you can save and share it as a file. This is a gIFT file, aka a JSON file with associated resources.
+
+You can also render the scene or do simulations using one of the backend rendering/simulation engines (at the moment Unity, Blender and Godot).
+
+The saving/sharing format is engine agnostic and using a graphic industry standard.
+
+Let's do a quick exploration together.  
+
+```
+import simulate as sm
+
+scene = sm.Scene()
+```
+
+### Project Structure
 
 The Python API is located in src/simulate. It allows creation and loading of scenes, and sending commands to the backend.
 
@@ -58,18 +61,18 @@ The backend, currently just Unity, is located in [integrations/Unity](integratio
 This is currently a Unity editor project, which must be opened in Unity 2021.3.2f1. 
 In the future, this will be built as an executable, and spawned by the Python API.
 
-## Loading a scene from the hub or a local file
+### Loading a scene from the Hub or a local file
 
-Loading a scene from a local file or the hu is done with `Scene.create_from()`, saving or pushing to the hub with `scene.save()` or `scene.push_to_hub()`:
+Loading a scene from a local file or the Hub is done with `Scene.create_from()`, saving or pushing to the Hub with `scene.save()` or `scene.push_to_hub()`:
 
 ```
 from simulate import Scene
 
-scene = Scene.create_from('tests/test_assets/fixtures/Box.gltf')  # either local (priority) or on the hub with full path to file
-scene = Scene.create_from('simulate-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the hub file
+scene = Scene.create_from('tests/test_assets/fixtures/Box.gltf')  # either local (priority) or on the Hub with full path to file
+scene = Scene.create_from('simulate-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the Hub file
 
 scene.save('local_dir/file.gltf')  # Save to a local file
-scene.push_to_hub('simulate-tests/Debug/glTF/Box.gltf')  # Save to the hub
+scene.push_to_hub('simulate-tests/Debug/glTF/Box.gltf')  # Save to the Hub
 ```
 <p align="center">
     <br>
@@ -77,7 +80,7 @@ scene.push_to_hub('simulate-tests/Debug/glTF/Box.gltf')  # Save to the hub
     <br>
 <p>
 
-## Creating a Scene and adding/managing Objects in the scene
+### Creating a Scene and adding/managing Objects in the scene
 
 Basic example of creating a scene with a plane and a sphere above it:
 ```
@@ -176,7 +179,7 @@ print(scene.sphere_03.scaling)
 # We can also translate from a vector and rotate from a quaternion or along the various axis
 ```
 
-### Visualization engine
+## Visualization engine
 
 A default vizualization engine is provided with the vtk backend of `pyvista`.
 
@@ -187,6 +190,6 @@ scene.show()
 
 You can find bridges to other rendering/simulation engines in the `integrations` directory.
 
-### Tips
+## Tips
 
 If you are running on GCP, remember to not install `pyvistaqt`, and if you did so, uninstall it in your environment, since QT doesn't work well on GCP.
