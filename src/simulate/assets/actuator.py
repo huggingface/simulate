@@ -72,10 +72,10 @@ class Actuator(GltfExtensionMixin, gltf_extension_name="HF_actuators", object_ty
     # nvec: Optional[List[int]] = None  # TODO: implement multidiscrete
 
     # Set for a Box space
-    low: Optional[Union[float, List[float]]] = None
-    high: Optional[Union[float, List[float]]] = None
+    low: Optional[Union[float, List[float], np.ndarray]] = None
+    high: Optional[Union[float, List[float], np.ndarray]] = None
     shape: Optional[List[int]] = None
-    dtype: Optional[str] = "float32"
+    dtype: str = "float32"
 
     seed: Optional[int] = None
 
@@ -130,7 +130,7 @@ class Actuator(GltfExtensionMixin, gltf_extension_name="HF_actuators", object_ty
             if self.low is None and self.high is None and self.shape is None:
                 raise ValueError(
                     "Action space unspecified: you should specify `n` or `nvec` (for discrete action space) "
-                    "or at least one of `high`, `low`, `shape` (for continous action space)."
+                    "or at least one of `high`, `low`, `shape` (for continuous action space)."
                 )
 
             dtype = np.dtype(self.dtype)
@@ -144,13 +144,14 @@ class Actuator(GltfExtensionMixin, gltf_extension_name="HF_actuators", object_ty
                 low=self.low, high=self.high, shape=self.shape, dtype=dtype, seed=self.seed
             )
 
-            self.low = self.action_space.low.tolist()  # gym Box spaces does some shape adjustements
+            self.low = self.action_space.low.tolist()  # gym Box spaces does some shape adjustments
             self.high = self.action_space.high.tolist()  # We reuse it here to make sure we have the same arrays
             self.shape = self.action_space.shape
 
             if len(self.mapping) != sum(self.shape):
                 raise ValueError(
-                    f"Number of mapping ({len(self.mapping)}) does not match the total number of dimensions ({sum(self.shape)})"
+                    f"Number of mapping ({len(self.mapping)}) does not match the total number of dimensions "
+                    f"({sum(self.shape)})"
                 )
 
     @property
@@ -200,9 +201,9 @@ class ActuatorDict(GltfExtensionMixin, gltf_extension_name="HF_actuators_dicts",
             raise ValueError("All the actuators must be Actuator classes")
         self.mapping = {key: actuator.mapping for key, actuator in self.actuators.items()}
         self._action_space = spaces.Dict(
-            {key: actuator.space for key, actuator in self.actuators.items()}, seed=self.seed
+            {key: actuator.action_space for key, actuator in self.actuators.items()}, seed=self.seed
         )
-        self.id = list(act.id for act in self.actuators.values())
+        self.id = list(actuator.id for actuator in self.actuators.values())
 
     @property
     def action_space(self) -> spaces.Dict:

@@ -25,4 +25,4 @@ class Skin(NamedBaseModel):
 
     inverseBindMatrices: Optional[int] = None
     skeleton: Optional[int] = None
-    joints: List[int] = None
+    joints: Optional[List[int]] = None

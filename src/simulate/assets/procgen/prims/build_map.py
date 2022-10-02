@@ -14,9 +14,12 @@
 
 # Lint as: python3
 import random
+from typing import List, Tuple
 
 
-def generate_prims_maze(size, cell_width=1.0, xmin=0.0, ymin=0.0, keep_prob=5):
+def generate_prims_maze(
+    size: Tuple[int, int], cell_width: float = 1.0, xmin: float = 0.0, ymin: float = 0.0, keep_prob: int = 5
+) -> list:
     range_start_x = 0  # (-size //2)
     range_end_x = size[0]  # //2
     range_start_y = 0  # (-size //2)
@@ -65,10 +68,10 @@ def generate_prims_maze(size, cell_width=1.0, xmin=0.0, ymin=0.0, keep_prob=5):
         for j in range(range_start_y, range_end_y):
             neighbours[(i, j)] = [(i - 1, j), (i + 1, j), (i, j - 1), (i, j + 1)]
 
-    def valid_neighbour(i, j):
-        return range_start_x <= i < range_end_x and range_start_y <= j < range_end_y
+    def valid_neighbour(a: int, b: int) -> bool:
+        return range_start_x <= a < range_end_x and range_start_y <= b < range_end_y
 
-    def walk(current_i, current_j):
+    def walk(current_i: int, current_j: int):
         visited.add((current_i, current_j))
         n = neighbours[(current_i, current_j)]
         random.shuffle(n)
@@ -86,9 +89,9 @@ def generate_prims_maze(size, cell_width=1.0, xmin=0.0, ymin=0.0, keep_prob=5):
     start_j = random.randint(range_start_y, range_end_y - 1)
     walk(start_i, start_j)
 
-    walls = [w for w in walls.values()]
+    walls_list: List = [w for w in walls.values()]
     exterior_walls = [(x, y) for x, y in zip(extents_x, extents_y)]
     for i in range(4):
-        walls.append([*exterior_walls[i], *exterior_walls[i + 1]])
+        walls_list.append([*exterior_walls[i], *exterior_walls[i + 1]])
 
-    return walls
+    return walls_list

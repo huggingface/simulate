@@ -1,6 +1,6 @@
 import itertools
 from dataclasses import InitVar, dataclass
-from typing import Any, ClassVar, List, Optional, Union
+from typing import Any, ClassVar, List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -48,11 +48,11 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
     entity_b: Optional[Any] = None
     distance_metric: Optional[str] = None
     direction: Optional[List[float]] = None
-    scalar: Optional[float] = 1.0
-    threshold: Optional[float] = 1.0
-    is_terminal: Optional[bool] = False
-    is_collectable: Optional[bool] = False
-    trigger_once: Optional[bool] = True
+    scalar: float = 1.0
+    threshold: float = 1.0
+    is_terminal: bool = False
+    is_collectable: bool = False
+    trigger_once: bool = True
     reward_function_a: InitVar[Optional["RewardFunction"]] = None  # There are in the tree structure now
     reward_function_b: InitVar[Optional["RewardFunction"]] = None
 
@@ -109,7 +109,7 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
         if self.direction is None:
             self.direction = [1.0, 0.0, 0.0]
 
-    def _post_attach_children(self, children):
+    def _post_attach_children(self, children: Union["Asset", List["Asset"]]):
         """Method call after attaching `children`.
         We only allow Reward Functions as child of Reward functions.
         """
@@ -117,13 +117,13 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
             if any(not isinstance(child, self.__class__) for child in children):
                 raise TypeError("The children of a Reward Function should be Reward Functions")
 
-    def _post_copy(self, actor: Any):
+    def _post_copy(self, actor: "Asset"):
         root = actor.tree_root
 
-        copy_name = self.name + f"_copy{self._n_copies}"
+        copy_name = getattr(self, "name") + f"_copy{self._n_copies}"
         self._n_copies += 1
 
-        new_instance = type(self)(
+        new_instance = RewardFunction(
             name=copy_name,
             type=self.type,
             entity_a=root.get_node(self.entity_a._get_last_copy_name()),
@@ -148,19 +148,19 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
     # Need to be updated if Asset() is updated
     ##############################
     @property
-    def position(self):
+    def position(self) -> Union[List[float], np.ndarray]:
         return self._position
 
     @property
-    def rotation(self):
+    def rotation(self) -> Union[List[float], np.ndarray]:
         return self._rotation
 
     @property
-    def scaling(self):
+    def scaling(self) -> Union[List[float], np.ndarray]:
         return self._scaling
 
     @property
-    def transformation_matrix(self):
+    def transformation_matrix(self) -> np.ndarray:
         if self._transformation_matrix is None:
             self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
         return self._transformation_matrix
@@ -168,7 +168,7 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
     # setters for position/rotation/scale
 
     @position.setter
-    def position(self, value):
+    def position(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
@@ -189,7 +189,7 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
             self._post_asset_modification()
 
     @rotation.setter
-    def rotation(self, value):
+    def rotation(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
@@ -210,7 +210,7 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
             self._post_asset_modification()
 
     @scaling.setter
-    def scaling(self, value):
+    def scaling(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
@@ -231,7 +231,7 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
             self._post_asset_modification()
 
     @transformation_matrix.setter
-    def transformation_matrix(self, value):
+    def transformation_matrix(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         # Default to setting up from TRS if None
         if (value is None or isinstance(value, property)) and (
             self._position is not None and self._rotation is not None and self._scaling is not None

@@ -11,16 +11,23 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Callable, Dict, Union
+from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
+import gym
 import numpy as np
 
 
 try:
-    from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+    from stable_baselines3.common.vec_env.base_vec_env import VecEnv, VecEnvIndices, VecEnvStepReturn
 except ImportError:
 
     class VecEnv:
+        pass  # Dummy class if SB3 is not installed
+
+    class VecEnvIndices:
+        pass  # Dummy class if SB3 is not installed
+
+    class VecEnvStepReturn:
         pass  # Dummy class if SB3 is not installed
 
 
@@ -47,10 +54,10 @@ class RLEnv(VecEnv):
     def __init__(
         self,
         scene_or_map_fn: Union[Callable, Scene],
-        n_maps: int = 1,
-        n_show: int = 1,
-        time_step: float = 1 / 30.0,
-        frame_skip: int = 4,
+        n_maps: Optional[int] = 1,
+        n_show: Optional[int] = 1,
+        time_step: Optional[float] = 1 / 30.0,
+        frame_skip: Optional[int] = 4,
         **engine_kwargs,
     ):
 
@@ -103,7 +110,7 @@ class RLEnv(VecEnv):
             n_show=n_show,
         )
 
-    def step(self, action: Dict):
+    def step(self, action: Union[Dict, List, np.ndarray]) -> Tuple[Dict, np.ndarray, np.ndarray, List[Dict]]:
         """
         The step function for the environment, follows the API from OpenAI Gym.
 
@@ -120,7 +127,7 @@ class RLEnv(VecEnv):
         self.step_send_async(action=action)
         return self.step_recv_async()
 
-    def step_send_async(self, action):
+    def step_send_async(self, action: Union[Dict, List, np.ndarray]):
         if not isinstance(action, dict):
             if len(self.action_tags) != 1:
                 raise ValueError(
@@ -160,7 +167,7 @@ class RLEnv(VecEnv):
 
         self.scene.engine.step_send_async(action=action)
 
-    def step_recv_async(self):
+    def step_recv_async(self) -> Tuple[Dict, np.ndarray, np.ndarray, List[Dict]]:
         event = self.scene.engine.step_recv_async()
 
         # Extract observations, reward, and done from event data
@@ -173,12 +180,12 @@ class RLEnv(VecEnv):
 
         return obs, reward, done, [{}] * len(done)
 
-    def _squeeze_actor_dimension(self, obs):
+    def _squeeze_actor_dimension(self, obs: Dict) -> Dict:
         for k, v in obs.items():
             obs[k] = obs[k].reshape((self.n_show * self.n_actors_per_map, *obs[k].shape[2:]))
         return obs
 
-    def reset(self):
+    def reset(self) -> Dict:
         """
         Resets the actors and the scene of the environment.
 
@@ -194,7 +201,7 @@ class RLEnv(VecEnv):
         return obs
 
     @staticmethod
-    def _convert_to_numpy(event_data):
+    def _convert_to_numpy(event_data: Dict) -> np.ndarray:
         if event_data["type"] == "uint8":
             shape = event_data["shape"]
             return np.array(event_data["uintBuffer"], dtype=np.uint8).reshape(shape)
@@ -204,7 +211,7 @@ class RLEnv(VecEnv):
         else:
             raise TypeError
 
-    def _extract_sensor_obs(self, sim_event_data):
+    def _extract_sensor_obs(self, sim_event_data: Dict) -> Dict:
         sensor_obs = {}
         for sensor_tag, sensor_data in sim_event_data.items():
             sensor_obs[sensor_tag] = self._convert_to_numpy(sensor_data)
@@ -213,7 +220,7 @@ class RLEnv(VecEnv):
     def close(self):
         self.scene.close()
 
-    def sample_action(self):
+    def sample_action(self) -> np.ndarray:
         """
         Samples an action from the actors in the environment. This function loads the configuration of maps and actors to return the correct shape across multiple configurations.
 
@@ -226,7 +233,7 @@ class RLEnv(VecEnv):
             action = [self.action_space.sample() for _ in range(self.n_show)]
         return np.array(action)
 
-    def env_is_wrapped(self):
+    def env_is_wrapped(self, wrapper_class: Type[gym.Wrapper], indices: Optional[VecEnvIndices] = None) -> List[bool]:
         return [False] * self.n_agents * self.n_parallel
 
     # required abstract methods
@@ -234,22 +241,25 @@ class RLEnv(VecEnv):
     def step_async(self, actions: np.ndarray) -> None:
         raise NotImplementedError()
 
-    def env_method(self):
+    def get_attr(self, attr_name: str, indices: VecEnvIndices = None) -> List[Any]:
         raise NotImplementedError()
 
-    def get_attr(self):
+    def env_method(self, method_name: str, *method_args, indices: VecEnvIndices = None, **method_kwargs) -> List[Any]:
         raise NotImplementedError()
 
-    def seed(self, value):
+    def seed(self, seed: Optional[int] = None):  # -> List[Union[None, int]]:
         # this should be done when the env is initialized
         return
         # raise NotImplementedError()
 
-    def set_attr(self):
+    def set_attr(self, attr_name: str, value: Any, indices: VecEnvIndices = None) -> None:
         raise NotImplementedError()
 
-    def step_send(self):
+    def step_send(self) -> Any:
         raise NotImplementedError()
 
-    def step_wait(self):
+    def step_wait(self) -> VecEnvStepReturn:
+        raise NotImplementedError()
+
+    def get_images(self) -> Sequence[np.ndarray]:
         raise NotImplementedError()

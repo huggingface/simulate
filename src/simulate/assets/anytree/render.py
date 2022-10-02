@@ -10,13 +10,17 @@ Tree Rendering.
 """
 
 import collections
+from typing import TYPE_CHECKING
 
+
+if TYPE_CHECKING:
+    from .nodemixin import NodeMixin
 
 Row = collections.namedtuple("Row", ("pre", "fill", "node"))
 
 
 class AbstractStyle(object):
-    def __init__(self, vertical, cont, end):
+    def __init__(self, vertical: str, cont: str, end: str):
         """
         Tree Render Style.
 
@@ -39,11 +43,11 @@ class AbstractStyle(object):
         )
 
     @property
-    def empty(self):
+    def empty(self) -> str:
         """Empty string as placeholder."""
         return " " * len(self.end)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         classname = self.__class__.__name__
         return "%s()" % classname
 
@@ -138,7 +142,7 @@ class DoubleStyle(AbstractStyle):
 
 
 class RenderTree(object):
-    def __init__(self, node, style=ContStyle(), childiter=list, maxlevel=None):
+    def __init__(self, node: "NodeMixin", style: ContStyle = ContStyle(), childiter=list, maxlevel: int = None):
         """
         Render tree starting at `node`.
 
@@ -263,7 +267,7 @@ class RenderTree(object):
     def __iter__(self):
         return self.__next(self.node, tuple())
 
-    def __next(self, node, continues, level=0):
+    def __next(self, node: "NodeMixin", continues, level: int = 0):
         yield RenderTree.__item(node, continues, self.style)
         children = node.tree_children
         level += 1
@@ -274,7 +278,7 @@ class RenderTree(object):
                     yield grandchild
 
     @staticmethod
-    def __item(node, continues, style):
+    def __item(node: "NodeMixin", continues, style: AbstractStyle) -> Row:
         if not continues:
             return Row("", "", node)
         else:
@@ -285,16 +289,16 @@ class RenderTree(object):
             fill = "".join(items)
             return Row(pre, fill, node)
 
-    def __str__(self):
+    def __str__(self) -> str:
         lines = ["%s%r" % (pre, node) for pre, _, node in self]
         return "\n".join(lines)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         classname = self.__class__.__name__
         args = [repr(self.node), "style=%s" % repr(self.style), "childiter=%s" % repr(self.childiter)]
         return "%s(%s)" % (classname, ", ".join(args))
 
-    def by_attr(self, attrname="name"):
+    def by_attr(self, attrname: str = "name") -> str:
         """
         Return rendered tree with node attribute `attrname`.
 
@@ -334,7 +338,7 @@ class RenderTree(object):
 
         return "\n".join(get())
 
-    def print_tree(self):
+    def print_tree(self) -> str:
         """
         Return rendered tree with node representation and without root node.
 

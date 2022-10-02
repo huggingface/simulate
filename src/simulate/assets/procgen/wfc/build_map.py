@@ -2,6 +2,8 @@
 Builds map using Wave Function Collapse.
 """
 
+from typing import List, Optional, Tuple
+
 import numpy as np
 
 from ..constants import TILE_SIZE
@@ -10,21 +12,21 @@ from .wfc_wrapping import apply_wfc
 
 
 def generate_2d_map(
-    width,
-    height,
-    periodic_output=True,
-    N=2,
-    periodic_input=False,
-    ground=False,
-    nb_samples=1,
-    symmetry=1,
-    sample_map=None,
-    verbose=False,
-    tiles=None,
-    neighbors=None,
-    symmetries=None,
-    weights=None,
-):
+    width: int,
+    height: int,
+    periodic_output: bool = True,
+    N: int = 2,
+    periodic_input: bool = False,
+    ground: bool = False,
+    nb_samples: int = 1,
+    symmetry: int = 1,
+    sample_map: Optional[np.ndarray] = None,
+    verbose: bool = False,
+    tiles: Optional[np.ndarray] = None,
+    neighbors: Optional[np.ndarray] = None,
+    symmetries: Optional[np.ndarray] = None,
+    weights: Optional[np.ndarray] = None,
+) -> Optional[np.ndarray]:
     """
     Generate 2d map.
 
@@ -65,23 +67,23 @@ def generate_2d_map(
 
 
 def generate_map(
-    width=9,
-    height=9,
-    periodic_output=False,
-    final_tile_size=1,
-    specific_map=None,
-    sample_map=None,
-    N=2,
-    periodic_input=False,
-    ground=False,
-    nb_samples=1,
-    symmetry=1,
-    verbose=False,
-    tiles=None,
-    neighbors=None,
-    symmetries=None,
-    weights=None,
-):
+    width: int = 9,
+    height: int = 9,
+    periodic_output: bool = False,
+    final_tile_size: int = 1,
+    specific_map: Optional[np.ndarray] = None,
+    sample_map: Optional[np.ndarray] = None,
+    N: int = 2,
+    periodic_input: bool = False,
+    ground: bool = False,
+    nb_samples: int = 1,
+    symmetry: int = 1,
+    verbose: bool = False,
+    tiles: Optional[np.ndarray] = None,
+    neighbors: Optional[np.ndarray] = None,
+    symmetries: Optional[np.ndarray] = None,
+    weights: Optional[np.ndarray] = None,
+) -> Tuple[List[np.ndarray], np.ndarray]:
     """
     Generate the map.
 
@@ -97,8 +99,13 @@ def generate_map(
         ground: Whether to use the lowest middle pattern to initialize the bottom of the map (WFC param).
         nb_samples: Number of samples to generate at once (WFC param).
         symmetry: Levels of symmetry to be used when sampling from a map. Values
-            larger than one might imply in new tiles, which might be a unwanted behaviour
+            larger than one might imply in new tiles, which might be an unwanted behaviour
             (WFC param).
+        verbose: Whether to print information about the generation process.
+        tiles: List of tiles to be used by WFC.
+        neighbors: List of neighbors to be used by WFC.
+        symmetries: List of symmetries to be used by WFC.
+        weights: List of weights to be used by WFC.
     """
 
     if specific_map is not None:
@@ -126,7 +133,7 @@ def generate_map(
     # Get the dimensions of map - since if plotting a specific_map, we might have different ones
     true_nb_samples, width, height, tile_width, tile_height = samples.shape
 
-    def build_single_map(sample):
+    def build_single_map(sample: np.ndarray) -> np.ndarray:
         # We create the mesh centered in (0,0)
         x = np.zeros((tile_height * height))
         z = np.zeros((tile_width * width))
@@ -145,7 +152,7 @@ def generate_map(
 
         # Here, we must get the y values
         # Basically, we just have to take the map which is of shape (width, height, tile_width, tile_height)
-        # and transform it into (width * tile_width, height * tile_height) doing the reshape properly
+        # and transform it into (width * tile_width, height * tile_height) reshaping properly
         y = np.hstack(np.hstack(sample))
         coordinates = np.stack([x, y, z])
 

@@ -57,14 +57,14 @@ class ArticulationBodyComponent(
     anchor_rotation: List[float] = None
     anchor_position: Optional[List[float]] = None
     immovable: Optional[bool] = None
-    linear_damping: Optional[float] = 0.0
-    angular_damping: Optional[float] = 0.0
-    joint_friction: Optional[float] = 0.0
-    drive_stiffness: Optional[float] = 0.0
-    drive_damping: Optional[float] = 0.0
-    drive_force_limit: Optional[float] = 0.0
-    drive_target: Optional[float] = 0.0
-    drive_target_velocity: Optional[float] = 0.0
+    linear_damping: float = 0.0
+    angular_damping: float = 0.0
+    joint_friction: float = 0.0
+    drive_stiffness: float = 0.0
+    drive_damping: float = 0.0
+    drive_force_limit: float = 0.0
+    drive_target: float = 0.0
+    drive_target_velocity: float = 0.0
     upper_limit: Optional[float] = None
     lower_limit: Optional[float] = None
 

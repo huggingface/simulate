@@ -6,6 +6,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from typing import Any, Optional
+
 import numpy as np
 
 from .space import Space
@@ -20,15 +22,15 @@ class Discrete(Space):
 
     """
 
-    def __init__(self, n, seed=None):
+    def __init__(self, n: int, seed: Optional[int] = None):
         assert n >= 0
         self.n = n
         super(Discrete, self).__init__((), np.int64, seed)
 
-    def sample(self):
+    def sample(self) -> int:
         return self.np_random.randint(self.n)
 
-    def contains(self, x):
+    def contains(self, x: Any) -> bool:
         if isinstance(x, int):
             as_int = x
         elif isinstance(x, (np.generic, np.ndarray)) and (
@@ -39,8 +41,8 @@ class Discrete(Space):
             return False
         return 0 <= as_int < self.n
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Discrete(%d)" % self.n
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return isinstance(other, Discrete) and self.n == other.n

@@ -20,16 +20,24 @@ and jupyter notebooks by saving them in gltf and loading the gltf with three.js
 """
 import base64
 import os
+import typing
 import zipfile
 from io import BytesIO, StringIO
+from typing import Any, Dict, Optional, Union
 
+from ..utils import logging
 from .engine import Engine
 
 
+if typing.TYPE_CHECKING:
+    from ..scene import Scene
+
+
+logger = logging.get_logger(__name__)
 VIEWER_TEMPLATE = os.path.join(os.path.dirname(__file__), "viewer.zip")
 
 
-def in_notebook():
+def in_notebook() -> bool:
     """
     Check to see if we are in an IPython or Jypyter notebook.
 
@@ -50,16 +58,17 @@ def in_notebook():
         spyder = "_" in os.environ and "spyder" in os.environ["_"]
 
         # assume we are in a notebook if we are not in
-        # a terminal and we haven't been run by spyder
+        # a terminal, and we haven't been run by spyder
         notebook = (not terminal) and (not spyder)
 
         return notebook
 
-    except BaseException:
+    except BaseException as e:
+        logger.error(f"Not in a notebook: {e}")
         return False
 
 
-def wrap_as_stream(item):
+def wrap_as_stream(item: Union[bytes, str]) -> Union[BytesIO, StringIO]:
     """
     Wrap a string or bytes object as a file object.
 
@@ -77,10 +86,10 @@ def wrap_as_stream(item):
         return StringIO(item)
     elif isinstance(item, bytes):
         return BytesIO(item)
-    raise ValueError("{} is not wrappable!".format(type(item).__name__))
+    raise ValueError(f"{type(item).__name__} is not wrappable!")
 
 
-def decompress(file_obj, file_type):
+def decompress(file_obj: Any, file_type: str) -> Dict:
     """
     Given an open file object and a file type, return all components
     of the archive as open file objects in a dict.
@@ -122,12 +131,17 @@ def decompress(file_obj, file_type):
 
 
 class NotebookEngine(Engine):
-    def __init__(self, scene, auto_update=False, **plotter_kwargs):
-        super().__init__(scene, auto_update=auto_update, **plotter_kwargs)
+    def __init__(
+        self,
+        scene: "Scene",
+        auto_update: Optional[bool] = False,
+        **plotter_kwargs,
+    ):
+        super().__init__(scene, auto_update=auto_update)
         with open(VIEWER_TEMPLATE, "rb") as f:
             self._template = decompress(f, file_type="zip")["viewer.html.template"].read().decode("utf-8")
 
-    def show(self, height=500, **plotter_kwargs):
+    def show(self, height: Optional[int] = 500, **plotter_kwargs):
         # keep as soft dependency
         from IPython import display
 

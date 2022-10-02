@@ -126,5 +126,5 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
         if self.kinematic is None:
             self.kinematic = False
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return id(self)

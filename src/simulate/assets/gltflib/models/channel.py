@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from dataclasses_json import dataclass_json
 
@@ -19,5 +20,5 @@ class Channel(BaseModel):
     extras (any) Application-specific data. (Optional)
     """
 
-    sampler: int = None
-    target: Target = None
+    sampler: Optional[int] = None
+    target: Optional[Target] = None

@@ -19,20 +19,20 @@ class GLTFResource(ABC):
     data may or may not actually be available to be consumed directly.
     """
 
-    def __init__(self, uri: Optional[str], data: bytes = None):
+    def __init__(self, uri: Optional[str] = None, data: Optional[bytes] = None):
         self._uri = uri
         self._data = data
 
     @property
-    def uri(self):
+    def uri(self) -> str:
         return self._uri
 
     @property
-    def data(self):
+    def data(self) -> Optional[bytes]:
         return self._data
 
     @data.setter
-    def data(self, data):
+    def data(self, data: bytes):
         self._data = data
 
     @abstractmethod
@@ -48,7 +48,12 @@ class FileResource(GLTFResource):
     """
 
     def __init__(
-        self, filename: str = None, basepath: str = None, autoload=False, data: bytes = None, mimetype: str = None
+        self,
+        filename: Optional[str] = None,
+        basepath: Optional[str] = None,
+        autoload: bool = False,
+        data: Optional[bytes] = None,
+        mimetype: Optional[str] = None,
     ):
         super(FileResource, self).__init__(quote(filename), data)
         self._filename = filename
@@ -58,26 +63,26 @@ class FileResource(GLTFResource):
         if autoload:
             self.load()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f'FileResource("{self._filename}")'
 
     @property
-    def filename(self):
+    def filename(self) -> str:
         return self._filename
 
     @property
-    def loaded(self):
+    def loaded(self) -> bool:
         return self._loaded
 
     @property
-    def mimetype(self):
+    def mimetype(self) -> Optional[str]:
         return self._mimetype
 
     @property
-    def fullpath(self):
+    def fullpath(self) -> str:
         return path.join(self._basepath, self._filename) if self._basepath is not None else self._filename
 
-    def load(self, force_reload=False):
+    def load(self, force_reload: bool = False):
         if self._loaded and not force_reload:
             return
         if not self._filename:
@@ -88,7 +93,7 @@ class FileResource(GLTFResource):
             self._mimetype = self._mimetype or mimetypes.guess_type(filename)[0]
         self._loaded = True
 
-    def export(self, basepath: str = None) -> str:
+    def export(self, basepath: Optional[str] = None) -> str:
         if not self._filename:
             raise ValueError("Attempted to export FileResource without filename")
         self.load()
@@ -114,7 +119,7 @@ class ExternalResource(GLTFResource):
     def __init__(self, uri: str):
         super(ExternalResource, self).__init__(uri)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"FileResource({self.uri})"
 
     @property
@@ -122,11 +127,11 @@ class ExternalResource(GLTFResource):
         raise ValueError("Data is not accessible for an external GLTF resource")
 
     @property
-    def uri(self):
+    def uri(self) -> str:
         return self._uri
 
     @uri.setter
-    def uri(self, value):
+    def uri(self, value: str):
         self._uri = value
 
     def clone(self) -> "ExternalResource":
@@ -178,7 +183,7 @@ class Base64Resource(GLTFResource):
         data = base64.b64decode(encoded_data)
         return Base64Resource(data, mime_type)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Base64Resource({len(self.data)} bytes)"
 
     def clone(self) -> "Base64Resource":

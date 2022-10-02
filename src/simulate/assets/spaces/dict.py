@@ -5,8 +5,9 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
-
+import typing
 from collections import OrderedDict
+from typing import Any, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
@@ -47,7 +48,17 @@ class Dict(Space):
     })
     """
 
-    def __init__(self, spaces=None, seed=None, **spaces_kwargs):
+    def __init__(
+        self,
+        spaces: Optional[
+            Union[
+                typing.Dict[str, Space],
+                Sequence[Tuple[str, Space]],
+            ]
+        ] = None,
+        seed: Optional[int] = None,
+        **spaces_kwargs: Any,
+    ):
         assert (spaces is None) or (not spaces_kwargs), "Use either Dict(spaces=dict(...)) or Dict(foo=x, bar=z)"
 
         if spaces is None:
@@ -61,7 +72,7 @@ class Dict(Space):
             assert isinstance(space, Space), "Values of the dict should be instances of gym.Space"
         super(Dict, self).__init__(None, None, seed)  # None for shape and dtype, since it'll require special handling
 
-    def seed(self, seed=None):
+    def seed(self, seed: Optional[Union[int, dict]] = None):
         seeds = []
         if isinstance(seed, dict):
             for key, seed_key in zip(self.spaces, seed):
@@ -94,10 +105,10 @@ class Dict(Space):
 
         return seeds
 
-    def sample(self):
+    def sample(self) -> OrderedDict:
         return OrderedDict([(k, space.sample()) for k, space in self.spaces.items()])
 
-    def contains(self, x):
+    def contains(self, x: Any) -> bool:
         if not isinstance(x, dict) or len(x) != len(self.spaces):
             return False
         for k, space in self.spaces.items():
@@ -107,31 +118,32 @@ class Dict(Space):
                 return False
         return True
 
-    def __getitem__(self, key):
+    def __getitem__(self, key: Union[int, str]) -> Space:
         return self.spaces[key]
 
-    def __setitem__(self, key, value):
+    def __setitem__(self, key: Union[int, str], value: Space):
         self.spaces[key] = value
 
     def __iter__(self):
         for key in self.spaces:
             yield key
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.spaces)
 
-    def __contains__(self, item):
+    def __contains__(self, item: Any) -> bool:
         return self.contains(item)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Dict(" + ", ".join([str(k) + ":" + str(s) for k, s in self.spaces.items()]) + ")"
 
-    def to_jsonable(self, sample_n):
+    def to_jsonable(self, sample_n: List[Any]) -> dict:
         # serialize as dict-repr of vectors
         return {key: space.to_jsonable([sample[key] for sample in sample_n]) for key, space in self.spaces.items()}
 
-    def from_jsonable(self, sample_n):
+    def from_jsonable(self, sample_n: dict) -> List[Any]:
         dict_of_list = {}
+        key = None
         for key, space in self.spaces.items():
             dict_of_list[key] = space.from_jsonable(sample_n[key])
         ret = []
@@ -142,7 +154,7 @@ class Dict(Space):
             ret.append(entry)
         return ret
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return isinstance(other, Dict) and self.spaces == other.spaces
 
     def keys(self):

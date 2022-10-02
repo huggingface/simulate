@@ -15,7 +15,7 @@
 # Lint as: python3
 """ A simulate Camera."""
 import itertools
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
 
 import numpy as np
 
@@ -60,23 +60,23 @@ class Camera(Asset):
 
     def __init__(
         self,
-        width=256,
-        height=256,
-        camera_type: Optional[str] = "perspective",
-        znear: Optional[float] = 0.3,
-        yfov: Optional[float] = 60,
+        width: int = 256,
+        height: int = 256,
+        camera_type: str = "perspective",
+        znear: float = 0.3,
+        yfov: Optional[Union[float, np.ndarray]] = 60,
         aspect_ratio: Optional[float] = None,
         zfar: Optional[float] = None,
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,
         name: Optional[str] = None,
-        sensor_tag: Optional[str] = "CameraSensor",
+        sensor_tag: str = "CameraSensor",
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        is_actor: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
+        is_actor: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[List["Asset"]] = None,
     ):
         super().__init__(
             name=name,
@@ -109,10 +109,10 @@ class Camera(Asset):
         self.ymag = ymag
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> spaces.Box:
         return spaces.Box(low=0, high=255, shape=[3, self.height, self.width], dtype=np.uint8)
 
-    def copy(self, with_children=True, **kwargs):
+    def copy(self, with_children: bool = True, **kwargs: Any):
         """Return a copy of the Camera with copy of the children attached to the copy."""
 
         copy_name = self.name + f"_copy{self._n_copies}"
@@ -156,23 +156,23 @@ class CameraDistant(Camera):
 
     def __init__(
         self,
-        width=256,
-        height=256,
+        width: int = 256,
+        height: int = 256,
         aspect_ratio: Optional[float] = None,
-        yfov: Optional[float] = 60,
-        znear: Optional[float] = 0.3,
+        yfov: float = 60,
+        znear: float = 0.3,
         zfar: Optional[float] = None,
-        camera_type: Optional[str] = "perspective",
+        camera_type: str = "perspective",
         xmag: Optional[float] = None,
         ymag: Optional[float] = None,
         name: Optional[str] = None,
-        sensor_tag: Optional[str] = "CameraSensor",
+        sensor_tag: str = "CameraSensor",
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        is_actor: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
+        is_actor: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[List["Asset"]] = None,
     ):
 
         if position is None:

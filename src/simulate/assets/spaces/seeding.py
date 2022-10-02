@@ -9,22 +9,22 @@
 import hashlib
 import os
 import struct
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
 
-def np_random(seed=None):
+def np_random(seed: Optional[Union[int, str]] = None) -> Tuple[np.random.RandomState, int]:
     if seed is not None and not (isinstance(seed, int) and 0 <= seed):
         raise ValueError("Seed must be a non-negative integer or omitted, not {}".format(seed))
 
     seed = create_seed(seed)
-
     rng = np.random.RandomState()
     rng.seed(_int_list_from_bigint(hash_seed(seed)))
     return rng, seed
 
 
-def hash_seed(seed=None, max_bytes=8):
+def hash_seed(seed: Optional[int] = None, max_bytes: int = 8) -> int:
     """Any given evaluation is likely to have many PRNG's active at
     once. (Most commonly, because the environment is running in
     multiple processes.) There's literature indicating that having
@@ -49,7 +49,7 @@ def hash_seed(seed=None, max_bytes=8):
     return _bigint_from_bytes(seed_hash[:max_bytes])
 
 
-def create_seed(a=None, max_bytes=8):
+def create_seed(a: Optional[Union[int, str]] = None, max_bytes: int = 8) -> int:
     """Create a strong random seed. Otherwise, Python 2 would seed using
     the system time, which might be non-robust especially in the
     presence of concurrency.
@@ -69,12 +69,11 @@ def create_seed(a=None, max_bytes=8):
         a = a % 2 ** (8 * max_bytes)
     else:
         raise ValueError("Invalid type for seed: {} ({})".format(type(a), a))
-
     return a
 
 
 # TODO: don't hardcode sizeof_int here
-def _bigint_from_bytes(bytes_data):
+def _bigint_from_bytes(bytes_data: bytes) -> int:
     sizeof_int = 4
     padding = sizeof_int - len(bytes_data) % sizeof_int
     bytes_data += b"\0" * padding
@@ -86,7 +85,7 @@ def _bigint_from_bytes(bytes_data):
     return accum
 
 
-def _int_list_from_bigint(bigint):
+def _int_list_from_bigint(bigint: int) -> List[int]:
     # Special case 0
     if bigint < 0:
         raise ValueError("Seed must be non-negative, not {}".format(bigint))

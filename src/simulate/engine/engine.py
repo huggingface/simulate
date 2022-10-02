@@ -19,19 +19,20 @@ import typing
 
 
 if typing.TYPE_CHECKING:
+    from ..assets.asset import Asset
     from ..scene import Scene
 
 
 class Engine:
-    def __init__(self, scene: "Scene", auto_update=True):
+    def __init__(self, scene: "Scene", auto_update: bool = True):
         self._scene = scene
         self.auto_update = auto_update
 
-    def update_asset(self, asset_node):
+    def update_asset(self, asset_node: "Asset"):
         """Add an asset or update its location and all its children in the scene"""
         pass
 
-    def remove_asset(self, asset_node):
+    def remove_asset(self, asset_node: "Asset"):
         """Remove an asset and all its children in the scene"""
         pass
 

@@ -4,7 +4,7 @@ import io
 import struct
 import warnings
 from os import path
-from typing import BinaryIO, Iterable, Iterator, List, Optional, Set, Tuple
+from typing import BinaryIO, Iterable, Iterator, List, Optional, Set, Tuple, Union
 from urllib.parse import unquote, urlparse
 
 from ...utils import logging
@@ -35,9 +35,9 @@ class GLTF:
     def load(
         cls: "GLTF",
         filename: str,
-        load_file_resources=False,
-        resources: List[GLTFResource] = None,
-        encoding: str = None,
+        load_file_resources: bool = False,
+        resources: Optional[List[GLTFResource]] = None,
+        encoding: Optional[str] = None,
     ) -> "GLTF":
         """
         Loads a GLTF or GLB model from a filename. The model format will be inferred from the filename extension.
@@ -69,22 +69,22 @@ class GLTF:
     def load_gltf(
         cls: "GLTF",
         filename: str,
-        load_file_resources=False,
-        resources: List[GLTFResource] = None,
-        encoding: str = None,
+        load_file_resources: bool = False,
+        resources: Optional[List[GLTFResource]] = None,
+        encoding: Optional[str] = None,
     ) -> "GLTF":
         """
         Loads a model in GLTF format from a filename
         :param filename: Path to the GLTF file
         :param load_file_resources: If True, external file resources that are not provided via the "resources"
             array will be loaded from the filesystem. The paths are assumed to be relative to the GLTF file.
-        :param resources: Optional list of pre-loaded resources. Any resources referenced in the GLTF file that are
+        :param resources: Optional list of preloaded resources. Any resources referenced in the GLTF file that are
             present in the resources array will be used instead of loading those resources from the external
             source.
         :param encoding: File encoding (if known). Per the spec, glTF should use UTF-8 without BOM. However, to
             accommodate working with models that do not fully adhere to the spec, the file may be read with a different
             encoding. If not passed in, the encoding will be guessed from one of several supported encodings (based on
-            BOM), defaulting to UTF-8 if cannot be inferred.
+            BOM), defaulting to UTF-8 if it cannot be inferred.
         :return: GLTF instance
         """
         gltf = GLTF(model=None, resources=resources)
@@ -100,9 +100,9 @@ class GLTF:
     def load_glb(
         cls: "GLTF",
         filename: str,
-        load_file_resources=False,
-        resources: List[GLTFResource] = None,
-        encoding: str = None,
+        load_file_resources: bool = False,
+        resources: Optional[List[GLTFResource]] = None,
+        encoding: Optional[str] = None,
     ) -> "GLTF":
         """
         Loads a model in GLB format from a filename
@@ -126,10 +126,10 @@ class GLTF:
         return gltf
 
     @property
-    def glb_resources(self):
+    def glb_resources(self) -> List[GLBResource]:
         return [resource for resource in self.resources if isinstance(resource, GLBResource)]
 
-    def export(self, filename: str, save_file_resources=True) -> "GLTF":
+    def export(self, filename: str, save_file_resources: bool = True) -> Union[List[str], "GLTF"]:
         """
         Exports the model to a GLTF or GLB (inferred from filename extension).
         :param filename: Output filename
@@ -153,7 +153,7 @@ class GLTF:
             f"the appropriate extension (.gltf or .glb), or call export_gltf or export_glb directly."
         )
 
-    def export_gltf(self, filename: str, save_file_resources=True) -> List[str]:
+    def export_gltf(self, filename: str, save_file_resources: bool = True) -> List[str]:
         """
         Exports the model to a GLTF file
         :param filename: Output filename
@@ -166,7 +166,11 @@ class GLTF:
         return file_names
 
     def export_glb(
-        self, filename: str, embed_buffer_resources=True, embed_image_resources=True, save_file_resources=True
+        self,
+        filename: str,
+        embed_buffer_resources: bool = True,
+        embed_image_resources: bool = True,
+        save_file_resources: bool = True,
     ) -> "GLTF":
         """
         Exports the model to a GLB file
@@ -229,7 +233,7 @@ class GLTF:
             raise ValueError(f"Cannot find resource with uri {uri}.")
         return next_item
 
-    def get_glb_resource(self, resource_type: int = GLB_BINARY_CHUNK_TYPE) -> GLBResource:
+    def get_glb_resource(self, resource_type: int = GLB_BINARY_CHUNK_TYPE) -> Optional[GLBResource]:
         for resource in self.glb_resources:
             if resource.resource_type == resource_type:
                 return resource
@@ -237,7 +241,7 @@ class GLTF:
     def get_glb_resources_of_type(self, resource_type: int) -> List[GLBResource]:
         return [resource for resource in self.glb_resources if resource.resource_type == resource_type]
 
-    def remove_resource_by_uri(self, uri: str) -> None:
+    def remove_resource_by_uri(self, uri: str):
         resource = self.get_resource(uri)
         if resource is not None:
             self.resources.remove(resource)
@@ -422,7 +426,7 @@ class GLTF:
             return resource
 
     @classmethod
-    def _decode_bytes(cls: "GLTF", data: bytes, encoding: str = None) -> str:
+    def _decode_bytes(cls: "GLTF", data: bytes, encoding: Optional[str] = None) -> str:
         if encoding is not None:
             return data.decode(encoding, errors="replace")
         elif data.startswith(codecs.BOM_UTF16_BE):
@@ -434,14 +438,14 @@ class GLTF:
             # If BOM is present, it will be automatically stripped out.
             return data.decode("utf-8-sig", errors="replace")
 
-    def _load_resources(self, basepath: str, autoload=False) -> None:
+    def _load_resources(self, basepath: str, autoload: bool = False):
         self.resources = self.resources or []
         for uri in self._get_resource_uris_from_model():
             resource = _get_resource(uri, basepath, autoload)
             if resource is not None:
                 self.resources.append(resource)
 
-    def _validate_resources(self) -> None:
+    def _validate_resources(self):
         for uri in self._get_resource_uris_from_model():
             resource = self.get_resource(uri)
             if resource is None:
@@ -457,7 +461,7 @@ class GLTF:
                 file_names += file_name_ressource
         return file_names
 
-    def _load_glb(self, f: BinaryIO, json_encoding: str = None) -> None:
+    def _load_glb(self, f: BinaryIO, json_encoding: Optional[str] = None):
         self.resources = []
         bytelen = self._load_glb_header(f)
         self._load_glb_chunks(f, json_encoding)
@@ -480,11 +484,11 @@ class GLTF:
         (bytelen,) = struct.unpack_from("<I", b, 8)
         return bytelen
 
-    def _load_glb_chunks(self, f: BinaryIO, json_encoding: str = None) -> None:
+    def _load_glb_chunks(self, f: BinaryIO, json_encoding: Optional[str] = None):
         while self._load_glb_chunk(f, json_encoding):
             pass
 
-    def _load_glb_chunk(self, f: BinaryIO, json_encoding: str = None) -> bool:
+    def _load_glb_chunk(self, f: BinaryIO, json_encoding: Optional[str] = None) -> bool:
         b = f.read(8)
         if b == b"":
             return False
@@ -501,7 +505,7 @@ class GLTF:
             self._load_glb_binary_chunk_body(f, chunk_type, chunk_length)
         return True
 
-    def _load_glb_json_chunk_body(self, f: BinaryIO, bytelen: int, json_encoding: str = None) -> None:
+    def _load_glb_json_chunk_body(self, f: BinaryIO, bytelen: int, json_encoding: Optional[str] = None):
         if bytelen == 0:
             raise RuntimeError("JSON chunk may not be empty")
         b = f.read(bytelen)
@@ -510,7 +514,7 @@ class GLTF:
         model_json = GLTF._decode_bytes(b, json_encoding)
         self.model = GLTFModel.from_json(model_json)
 
-    def _load_glb_binary_chunk_body(self, f: BinaryIO, chunk_type: int, bytelen: int) -> None:
+    def _load_glb_binary_chunk_body(self, f: BinaryIO, chunk_type: int, bytelen: int):
         b = f.read(bytelen)
         if len(b) != bytelen:
             warnings.warn(
@@ -519,7 +523,7 @@ class GLTF:
         resource = GLBResource(b, chunk_type)
         self.resources.append(resource)
 
-    def _export_gltf(self, filename: str, save_file_resources=True) -> List[str]:
+    def _export_gltf(self, filename: str, save_file_resources: bool = True) -> List[str]:
         if any(isinstance(resource, GLBResource) for resource in (self.resources or [])):
             raise TypeError(
                 "Model may not contain resources of type GLBResource when exporting to GLTF. "
@@ -542,8 +546,12 @@ class GLTF:
         return file_names
 
     def _export_glb(
-        self, filename: str, embed_buffer_resources=True, embed_image_resources=True, save_file_resources=True
-    ) -> None:
+        self,
+        filename: str,
+        embed_buffer_resources: bool = True,
+        embed_image_resources: bool = True,
+        save_file_resources: bool = True,
+    ):
         if embed_buffer_resources:
             self._embed_buffer_resources()
         if embed_image_resources:
@@ -573,21 +581,21 @@ class GLTF:
             )
         return uris
 
-    def _get_buffers_by_uri(self, uri) -> Iterator[Tuple[int, Buffer]]:
+    def _get_buffers_by_uri(self, uri: str) -> Iterator[Tuple[int, Buffer]]:
         if self.model.buffers is None:
             return
         for i, buffer in enumerate(self.model.buffers):
             if buffer.uri == uri:
                 yield i, buffer
 
-    def _get_images_by_uri(self, uri) -> Iterator[Tuple[int, Image]]:
+    def _get_images_by_uri(self, uri: str) -> Iterator[Tuple[int, Image]]:
         if self.model.images is None:
             return
         for i, image in enumerate(self.model.images):
             if image.uri == uri:
                 yield i, image
 
-    def _update_model_resources_by_uri(self, old_uri: str, new_uri: str) -> None:
+    def _update_model_resources_by_uri(self, old_uri: str, new_uri: str):
         for _, buffer in self._get_buffers_by_uri(old_uri):
             buffer.uri = new_uri
         for _, image in self._get_images_by_uri(old_uri):
@@ -668,7 +676,7 @@ class GLTF:
                 enumerated_images = None
                 break
 
-    def _get_glb_buffer(self):
+    def _get_glb_buffer(self) -> Optional[Buffer]:
         """
         Returns the GLB buffer if present. The GLB buffer must be the first in the list, and have its URI undefined.
         """
@@ -695,7 +703,7 @@ class GLTF:
             return first_buffer
         return None
 
-    def _get_or_create_glb_buffer(self):
+    def _get_or_create_glb_buffer(self) -> Buffer:
         glb_buffer = self._get_glb_buffer()
         if glb_buffer is not None:
             return glb_buffer
@@ -733,14 +741,14 @@ class GLTF:
         # Return the GLBResource, as well as the offset and bytelength of the inserted data
         return glb_resource, offset, bytelen
 
-    def _embed_buffer_views(self, buffer_index, glb_offset):
+    def _embed_buffer_views(self, buffer_index: int, glb_offset: int):
         if self.model.bufferViews is not None:
             for buffer_view in self.model.bufferViews:
                 if buffer_view.buffer == buffer_index:
                     buffer_view.buffer = 0
                     buffer_view.byteOffset = (buffer_view.byteOffset or 0) + glb_offset
 
-    def _create_embedded_image_buffer_view(self, byte_offset: int, byte_length: int):
+    def _create_embedded_image_buffer_view(self, byte_offset: int, byte_length: int) -> int:
         buffer_view = BufferView(buffer=0, byteOffset=byte_offset, byteLength=byte_length)
         if self.model.bufferViews is None or len(self.model.bufferViews) == 0:
             self.model.bufferViews = [buffer_view]
@@ -783,7 +791,7 @@ class GLTF:
                     buffer_view.buffer = 0
                     buffer_view.byteOffset = (buffer_view.byteOffset or 0) + offset
 
-    def _unembed_glb(self, uri: str) -> None:
+    def _unembed_glb(self, uri: str):
         """
         Replaces the GLB buffer with a regular buffer that has its URI set to a file or other external resource.
         Any images that referred to the GLB buffer are updated to simply reference a URL, and their corresponding
@@ -846,11 +854,11 @@ class GLTF:
                     buffer_view_indices.add(accessor.sparse.values.bufferView)
         return buffer_view_indices
 
-    def _remove_buffer_views_by_indices(self, indices: Iterable[int]) -> None:
+    def _remove_buffer_views_by_indices(self, indices: Iterable[int]):
         for i in sorted(indices, reverse=True):
             self._remove_buffer_view_by_index(i)
 
-    def _remove_buffer_view_by_index(self, i: int) -> None:
+    def _remove_buffer_view_by_index(self, i: int):
         """
         Removes a buffer view from the model by index. Assumes the model has buffer views and the index is valid, and
         that the buffer view is not being referenced by any other parts of the model (i.e., accessors or images).
@@ -874,7 +882,7 @@ class GLTF:
                 image.bufferView -= 1
 
 
-def _get_resource(uri, basepath: str, autoload=False) -> Optional[GLTFResource]:
+def _get_resource(uri, basepath: str, autoload: bool = False) -> Optional[GLTFResource]:
     scheme, netloc, urlpath, params, query, fragment = urlparse(uri)
     if netloc:
         return ExternalResource(uri)

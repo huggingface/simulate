@@ -23,4 +23,4 @@ class Target(BaseModel):
     """
 
     node: Optional[int] = None
-    path: str = None
+    path: Optional[str] = None

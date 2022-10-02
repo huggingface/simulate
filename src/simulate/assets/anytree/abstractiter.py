@@ -1,5 +1,18 @@
+from typing import TYPE_CHECKING, Callable, List, Optional, Union
+
+
+if TYPE_CHECKING:
+    from .nodemixin import NodeMixin
+
+
 class AbstractIter(object):
-    def __init__(self, node, filter_=None, stop=None, maxlevel=None):
+    def __init__(
+        self,
+        node: "NodeMixin",
+        filter_: Optional[Union[Callable[["NodeMixin"], bool]]] = None,
+        stop=None,
+        maxlevel: Optional[int] = None,
+    ):
         """
         Iterate over tree starting at `node`.
 
@@ -25,14 +38,14 @@ class AbstractIter(object):
         return self._iter(children, filter_, stop, maxlevel)
 
     @staticmethod
-    def __default_filter(node):
+    def __default_filter(node: "NodeMixin") -> bool:
         return True
 
     @staticmethod
-    def __default_stop(node):
+    def __default_stop(node: "NodeMixin") -> bool:
         return False
 
-    def __iter__(self):
+    def __iter__(self) -> "AbstractIter":
         return self
 
     def __next__(self):
@@ -41,13 +54,13 @@ class AbstractIter(object):
         return next(self.__iter)
 
     @staticmethod
-    def _iter(children, filter_, stop, maxlevel):
+    def _iter(children: List["NodeMixin"], filter_: Callable[["NodeMixin"], bool], stop, maxlevel: int):
         raise NotImplementedError()  # pragma: no cover
 
     @staticmethod
-    def _abort_at_level(level, maxlevel):
+    def _abort_at_level(level: int, maxlevel: int) -> bool:
         return maxlevel is not None and level > maxlevel
 
     @staticmethod
-    def _get_children(children, stop):
+    def _get_children(children: List["NodeMixin"], stop) -> List["NodeMixin"]:
         return [child for child in children if not stop(child)]

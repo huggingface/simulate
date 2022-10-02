@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from dataclasses_json import dataclass_json
 
@@ -20,7 +21,7 @@ class OrthographicCameraInfo(BaseModel):
     extras (any) Application-specific data. (Optional)
     """
 
-    xmag: float = None
-    ymag: float = None
-    zfar: float = None
-    znear: float = None
+    xmag: Optional[float] = None
+    ymag: Optional[float] = None
+    zfar: Optional[float] = None
+    znear: Optional[float] = None

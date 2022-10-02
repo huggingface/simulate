@@ -22,5 +22,5 @@ class Mesh(NamedBaseModel):
     extras (any): Application-specific data. (Optional)
     """
 
-    primitives: List[Primitive] = None
+    primitives: Optional[List[Primitive]] = None
     weights: Optional[List[float]] = None

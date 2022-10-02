@@ -30,11 +30,11 @@ class KHRLightsPunctualLight:
     """
 
     color: Optional[List[float]] = None
-    intensity: Optional[float] = 1.0
-    type: str = None
+    intensity: float = 1.0
+    type: Optional[str] = None
     range: Optional[float] = None
-    innerConeAngle: Optional[float] = 0.0
-    outerConeAngle: Optional[float] = np.pi / 4.0
+    innerConeAngle: float = 0.0
+    outerConeAngle: float = np.pi / 4.0
     name: Optional[str] = None
 
 

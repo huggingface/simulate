@@ -16,7 +16,7 @@
 """ A simulate Collider."""
 import itertools
 from dataclasses import InitVar, dataclass, fields
-from typing import Any, ClassVar, List, Optional, Union
+from typing import Any, ClassVar, List, Optional, Tuple, Union
 
 import numpy as np
 import pyvista as pv
@@ -61,24 +61,24 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     rotation: InitVar[Optional[List[float]]] = None
     scaling: InitVar[Optional[Union[float, List[float]]]] = None
     transformation_matrix: InitVar[Optional[List[float]]] = None
-    parent: InitVar[Optional[Any]] = None
-    children: InitVar[Optional[List[Any]]] = None
+    parent: InitVar[Optional["Asset"]] = None
+    children: InitVar[Optional[List["Asset"]]] = None
     created_from_file: InitVar[Optional[str]] = None
 
     __NEW_ID: ClassVar[Any] = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __post_init__(
         self,
-        name,
-        mesh,
-        material,
-        position,
-        rotation,
-        scaling,
-        transformation_matrix,
-        parent,
-        children,
-        created_from_file,
+        name: Optional[str] = None,
+        mesh: Optional[Union[pv.UnstructuredGrid, pv.PolyData, pv.MultiBlock]] = None,
+        material: Optional[Any] = None,
+        position: Optional[List[float]] = None,
+        rotation: Optional[List[float]] = None,
+        scaling: Optional[Union[float, List[float]]] = None,
+        transformation_matrix: Optional[List[float]] = None,
+        parent: Optional["Asset"] = None,
+        children: Optional[List["Asset"]] = None,
+        created_from_file: Optional[str] = None,
     ):
         super().__init__(
             name=name,
@@ -94,7 +94,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
         # Handle mesh and material
         self.mesh = mesh
         # Avoid having averaging normals at shared points
-        # (default pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
+        # (pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
         if self.mesh is not None:
             if isinstance(self.mesh, pv.MultiBlock):
                 for i in range(self.mesh.n_blocks):
@@ -122,7 +122,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
         if self.bounding_box is not None and len(self.bounding_box) != 3:
             raise ValueError("Collider bounding_box must be a list of 3 numbers")
 
-    def copy(self, with_children=True, **kwargs):
+    def copy(self, with_children: bool = True, **kwargs: Any) -> "Collider":
         """Copy an Object3D node in a new (returned) object.
 
         By default, mesh and materials are copied in respectively new mesh and material.
@@ -166,7 +166,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
 
         return instance_copy
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         fields_str = ", ".join([f"{f.name}={getattr(self, f.name)}" for f in fields(self)])
         mesh_str = ""
         if getattr(self, "mesh", None) is not None:
@@ -191,27 +191,26 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     # Need to be updated if Asset() is updated
     ##############################
     @property
-    def position(self):
+    def position(self) -> np.ndarray:
         return self._position
 
     @property
-    def rotation(self):
+    def rotation(self) -> np.ndarray:
         return self._rotation
 
     @property
-    def scaling(self):
+    def scaling(self) -> np.ndarray:
         return self._scaling
 
     @property
-    def transformation_matrix(self):
+    def transformation_matrix(self) -> np.ndarray:
         if self._transformation_matrix is None:
             self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
         return self._transformation_matrix
 
     # setters for position/rotation/scale
-
     @position.setter
-    def position(self, value):
+    def position(self, value: Optional[Union[property, List, Tuple, np.ndarray]]):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
@@ -232,7 +231,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
             self._post_asset_modification()
 
     @rotation.setter
-    def rotation(self, value):
+    def rotation(self, value: Optional[Union[property, List, Tuple, np.ndarray]]):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
@@ -253,7 +252,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
             self._post_asset_modification()
 
     @scaling.setter
-    def scaling(self, value):
+    def scaling(self, value: Optional[Union[property, List, Tuple, np.ndarray]]):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
@@ -274,7 +273,7 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
             self._post_asset_modification()
 
     @transformation_matrix.setter
-    def transformation_matrix(self, value):
+    def transformation_matrix(self, value: Optional[Union[property, List, Tuple, np.ndarray]]):
         # Default to setting up from TRS if None
         if (value is None or isinstance(value, property)) and (
             self._position is not None and self._rotation is not None and self._scaling is not None

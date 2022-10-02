@@ -1,5 +1,7 @@
 import itertools
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
+
+import numpy as np
 
 from .asset import Asset
 
@@ -24,20 +26,22 @@ class Light(Asset):
 
     def __init__(
         self,
-        intensity: Optional[float] = 1.0,
-        color: Optional[List[float]] = [1.0, 1.0, 1.0],
+        intensity: float = 1.0,
+        color: Optional[List[float]] = None,
         range: Optional[float] = None,
-        inner_cone_angle: Optional[float] = 0.0,
-        outer_cone_angle: Optional[float] = 45.0,
-        light_type: Optional[str] = "directional",
+        inner_cone_angle: Union[float, np.ndarray] = 0.0,
+        outer_cone_angle: Union[float, np.ndarray] = 45.0,
+        light_type: str = "directional",
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        is_actor: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
+        is_actor: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[List["Asset"]] = None,
     ):
+        if color is None:
+            color = [1.0, 1.0, 1.0]
         super().__init__(
             name=name,
             position=position,
@@ -57,7 +61,7 @@ class Light(Asset):
         self.inner_cone_angle = inner_cone_angle
         self.outer_cone_angle = outer_cone_angle
 
-    def copy(self, with_children=True, **kwargs):
+    def copy(self, with_children: bool = True, **kwargs: Any) -> "Light":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
         instance_copy = type(self)(
             name=None,
@@ -91,21 +95,22 @@ class LightSun(Light):
 
     def __init__(
         self,
-        intensity: Optional[float] = 1.0,
-        color: Optional[List[float]] = [1.0, 1.0, 1.0],
+        intensity: float = 1.0,
+        color: Optional[List[float]] = None,
         range: Optional[float] = None,
-        inner_cone_angle: Optional[float] = 0.0,
-        outer_cone_angle: Optional[float] = 45.0,
-        light_type: Optional[str] = "directional",
+        inner_cone_angle: float = 0.0,
+        outer_cone_angle: float = 45.0,
+        light_type: str = "directional",
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        is_actor: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
+        is_actor: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[List["Asset"]] = None,
     ):
-
+        if color is None:
+            color = [1.0, 1.0, 1.0]
         if rotation is None:
             rotation = [-60, 225, 0]
 
