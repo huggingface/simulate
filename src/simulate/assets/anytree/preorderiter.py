@@ -1,4 +1,10 @@
+from typing import TYPE_CHECKING, Callable, Iterator, Tuple
+
 from .abstractiter import AbstractIter
+
+
+if TYPE_CHECKING:
+    from ..asset import Asset
 
 
 class PreOrderIter(AbstractIter):
@@ -39,7 +45,9 @@ class PreOrderIter(AbstractIter):
     """
 
     @staticmethod
-    def _iter(children, filter_, stop, maxlevel):
+    def _iter(
+        children: Tuple["Asset", ...], filter_: Callable[["Asset"], bool], stop, maxlevel: int
+    ) -> Iterator["Asset"]:
         for child_ in children:
             if stop(child_):
                 continue

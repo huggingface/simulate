@@ -14,7 +14,7 @@
 
 # Lint as: python3
 """ A PyVista plotting rendered as engine."""
-from typing import Any, Optional
+from typing import TYPE_CHECKING, Any, Optional, Union
 
 import numpy as np
 import pyvista
@@ -22,6 +22,10 @@ import pyvista
 from ..assets import Asset, Camera, Light, Material, Object3D
 from ..utils import logging
 from .engine import Engine
+
+
+if TYPE_CHECKING:
+    from ..scene import Scene
 
 
 logger = logging.get_logger(__name__)
@@ -76,12 +80,18 @@ CAMERA_VIEWUP = [0, 1, 0]
 
 
 class PyVistaEngine(Engine):
-    def __init__(self, scene, auto_update=True, **plotter_kwargs):
-        self.plotter: pyvista.Plotter = None
+    def __init__(
+        self,
+        scene: "Scene",
+        auto_update: bool = True,
+        **plotter_kwargs: Any,
+    ):
+        super().__init__(scene, auto_update)
+        self.plotter: Union[pyvista.Plotter, None] = None
         self.plotter_kwargs = plotter_kwargs
         self.auto_update = bool(CustomBackgroundPlotter is not None and auto_update)
 
-        self._scene: Asset = scene
+        self._scene: "Asset" = scene
         self._plotter_actors = {}
 
     def _initialize_plotter(self):
@@ -96,7 +106,7 @@ class PyVistaEngine(Engine):
             self.plotter.add_axes(box=True)
 
     @staticmethod
-    def _get_node_transform(node) -> np.ndarray:
+    def _get_node_transform(node: "Asset") -> np.ndarray:
         transforms = list(n.transformation_matrix for n in node.tree_path)
         if len(transforms) > 1:
             model_transform_matrix = np.linalg.multi_dot(transforms)  # Compute transform from the tree parents
@@ -104,7 +114,7 @@ class PyVistaEngine(Engine):
             model_transform_matrix = transforms[0]
         return model_transform_matrix
 
-    def remove_asset(self, asset_node):
+    def remove_asset(self, asset_node: "Asset"):
         """Remove an asset and all its children in the scene"""
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             return
@@ -123,7 +133,7 @@ class PyVistaEngine(Engine):
         if hasattr(self.plotter, "reset_camera"):
             self.plotter.reset_camera()
 
-    def update_asset(self, asset_node):
+    def update_asset(self, asset_node: "Asset"):
         """Add an asset or update its location and all its children in the scene"""
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             return
@@ -146,7 +156,7 @@ class PyVistaEngine(Engine):
         if hasattr(self.plotter, "reset_camera"):
             self.plotter.reset_camera()
 
-    def _add_asset_to_scene(self, node, model_transform_matrix):
+    def _add_asset_to_scene(self, node: "Asset", model_transform_matrix: np.ndarray):
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             return
 
@@ -301,14 +311,21 @@ class PyVistaEngine(Engine):
         if hasattr(self.plotter, "reset_camera"):
             self.plotter.reset_camera()
 
-    def show(self, auto_update: Optional[bool] = None, **plotter_kwargs):
+    def show(self, auto_update: Optional[bool] = None, **plotter_kwargs: Any):
         if auto_update is not None and auto_update != self.auto_update:
             self.plotter = None
             self.auto_update = auto_update
 
         self.regenerate_scene()
-        self.plotter.show(**plotter_kwargs if not self.auto_update else {})
+        if self.plotter is not None:
+            self.plotter.show(**plotter_kwargs if not self.auto_update else {})
 
     def close(self):
         if self.plotter is not None:
             self.plotter.close()
+
+    def reset(self):
+        raise NotImplementedError()
+
+    def step(self, action=None, **kwargs):
+        raise NotImplementedError()

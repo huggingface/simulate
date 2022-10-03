@@ -13,16 +13,20 @@
 # limitations under the License.
 
 from collections import defaultdict
-from typing import Callable, Optional
+from typing import Any, Callable, List, Optional, Sequence, Type
 
+import gym
 import numpy as np
 
 
 try:
-    from stable_baselines3.common.vec_env.base_vec_env import VecEnv
+    from stable_baselines3.common.vec_env.base_vec_env import VecEnv, VecEnvIndices
 except ImportError:
 
     class VecEnv:
+        pass  # Dummy class if SB3 is not installed
+
+    class VecEnvIndices:
         pass  # Dummy class if SB3 is not installed
 
 
@@ -41,15 +45,17 @@ class ParallelRLEnv(VecEnv):
     def __init__(self, env_fn: Callable, n_parallel: int, starting_port: int = 55001):
         self.n_parallel = n_parallel
         self.envs = []
+        observation_space = None
+        action_space = None
+
         # create the environments
         for i in range(n_parallel):
             env = env_fn(starting_port + i)
             self.n_show = env.n_show
-
             observation_space = env.observation_space
             action_space = env.action_space
-
             self.envs.append(env)
+
         num_envs = self.n_show * self.n_parallel
         super().__init__(num_envs, observation_space, action_space)
 
@@ -58,7 +64,7 @@ class ParallelRLEnv(VecEnv):
         The step function for the environment, follows the API from OpenAI Gym.
 
         Args:
-            action (`Dict` or `List`): TODO verify, a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
+            actions (`Dict` or `List`): TODO verify, a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
 
         Returns:
             all_observation (`Dict`): TODO
@@ -93,15 +99,16 @@ class ParallelRLEnv(VecEnv):
     @staticmethod
     def _combine_obs(obs):
         out = defaultdict(list)
+        np_out = defaultdict(np.ndarray)
 
         for o in obs:
             for key, value in o.items():
                 out[key].append(value)
 
         for key in out.keys():
-            out[key] = np.concatenate(out[key], axis=0)
+            np_out[key] = np.concatenate(out[key], axis=0)
 
-        return out
+        return np_out
 
     def reset(self):
         # we aren't performing this async as this happens rarely as the env auto resets
@@ -114,9 +121,10 @@ class ParallelRLEnv(VecEnv):
         return all_obs
 
     def close(self):
-        self.scene.close()
+        for env in self.envs:
+            env.scene.close()
 
-    def env_is_wrapped(self):
+    def env_is_wrapped(self, wrapper_class: Type[gym.Wrapper], indices: VecEnvIndices = None) -> List[bool]:
         return [False] * self.n_show * self.n_parallel
 
     # required abstract methods
@@ -124,18 +132,21 @@ class ParallelRLEnv(VecEnv):
     def step_async(self, actions: np.ndarray) -> None:
         raise NotImplementedError()
 
-    def env_method(self):
-        raise NotImplementedError()
-
-    def get_attr(self):
-        raise NotImplementedError()
-
-    def seed(self, value):
+    def seed(self, seed: Optional[int] = None):  # -> List[Union[None, int]]:
         # this should be done when the env is initialized
         return
         # raise NotImplementedError()
 
-    def set_attr(self):
+    def get_attr(self, attr_name: str, indices: VecEnvIndices = None) -> List[Any]:
+        raise NotImplementedError()
+
+    def set_attr(self, attr_name: str, value: Any, indices: VecEnvIndices = None) -> None:
+        raise NotImplementedError()
+
+    def env_method(self, method_name: str, *method_args, indices: VecEnvIndices = None, **method_kwargs) -> List[Any]:
+        raise NotImplementedError()
+
+    def get_images(self) -> Sequence[np.ndarray]:
         raise NotImplementedError()
 
     def step_send(self):

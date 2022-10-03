@@ -8,7 +8,7 @@ var content : Variant
 var _commands : Dictionary
 
 
-func load_commands():
+func load_commands() -> void:
 	var directory: Directory = Directory.new()
 	var com_path : String = "res://Simulate/Commands"
 	directory.open(com_path)
@@ -34,5 +34,5 @@ func execute(type: String) -> void:
 		emit_signal("callback", PackedByteArray([97, 99, 107]))
 		
 		
-func _handle_callback(callback_data: PackedByteArray):
+func _handle_callback(callback_data: PackedByteArray) -> void:
 	emit_signal("callback", callback_data)

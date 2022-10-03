@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from dataclasses_json import dataclass_json
 
@@ -20,6 +21,6 @@ class SparseIndices(BaseModel):
     extras (any) Application-specific data. (Optional)
     """
 
-    bufferView: int = None
-    byteOffset: int = None
-    componentType: int = None
+    bufferView: Optional[int] = None
+    byteOffset: Optional[int] = None
+    componentType: Optional[int] = None

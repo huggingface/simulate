@@ -7,16 +7,18 @@
 # THE SOFTWARE.
 
 import operator as op
+import typing
 from collections import OrderedDict
 from functools import reduce, singledispatch
+from typing import Union
 
 import numpy as np
 
-from . import Box, Dict, Discrete, MultiBinary, MultiDiscrete, Tuple
+from . import Box, Dict, Discrete, MultiBinary, MultiDiscrete, Space, Tuple
 
 
 @singledispatch
-def flatdim(space):
+def flatdim(space: Space) -> int:
     """Return the number of dimensions a flattened equivalent of this space
     would have.
 
@@ -28,32 +30,32 @@ def flatdim(space):
 
 @flatdim.register(Box)
 @flatdim.register(MultiBinary)
-def flatdim_box_multibinary(space):
+def flatdim_box_multibinary(space: Union[Box, MultiBinary]) -> int:
     return reduce(op.mul, space.shape, 1)
 
 
 @flatdim.register(Discrete)
-def flatdim_discrete(space):
+def flatdim_discrete(space: Discrete) -> int:
     return int(space.n)
 
 
 @flatdim.register(MultiDiscrete)
-def flatdim_multidiscrete(space):
+def flatdim_multidiscrete(space: MultiDiscrete) -> int:
     return int(np.sum(space.nvec))
 
 
 @flatdim.register(Tuple)
-def flatdim_tuple(space):
+def flatdim_tuple(space: Tuple) -> int:
     return sum([flatdim(s) for s in space.spaces])
 
 
 @flatdim.register(Dict)
-def flatdim_dict(space):
+def flatdim_dict(space: Dict) -> int:
     return sum([flatdim(s) for s in space.spaces.values()])
 
 
 @singledispatch
-def flatten(space, x):
+def flatten(space: Space, x: np.ndarray) -> np.ndarray:
     """Flatten a data point from a space.
 
     This is useful when e.g. points from spaces must be passed to a neural
@@ -68,19 +70,19 @@ def flatten(space, x):
 
 @flatten.register(Box)
 @flatten.register(MultiBinary)
-def flatten_box_multibinary(space, x):
+def flatten_box_multibinary(space: Union[Box, MultiBinary], x: np.ndarray) -> np.ndarray:
     return np.asarray(x, dtype=space.dtype).flatten()
 
 
 @flatten.register(Discrete)
-def flatten_discrete(space, x):
+def flatten_discrete(space: Discrete, x: np.ndarray) -> np.ndarray:
     onehot = np.zeros(space.n, dtype=space.dtype)
     onehot[x] = 1
     return onehot
 
 
 @flatten.register(MultiDiscrete)
-def flatten_multidiscrete(space, x):
+def flatten_multidiscrete(space: MultiDiscrete, x: np.ndarray) -> np.ndarray:
     offsets = np.zeros((space.nvec.size + 1,), dtype=space.dtype)
     offsets[1:] = np.cumsum(space.nvec.flatten())
 
@@ -90,17 +92,17 @@ def flatten_multidiscrete(space, x):
 
 
 @flatten.register(Tuple)
-def flatten_tuple(space, x):
+def flatten_tuple(space: Tuple, x: np.ndarray) -> np.ndarray:
     return np.concatenate([flatten(s, x_part) for x_part, s in zip(x, space.spaces)])
 
 
 @flatten.register(Dict)
-def flatten_dict(space, x):
+def flatten_dict(space: Dict, x: np.ndarray) -> np.ndarray:
     return np.concatenate([flatten(s, x[key]) for key, s in space.spaces.items()])
 
 
 @singledispatch
-def unflatten(space, x):
+def unflatten(space: Space, x: np.ndarray) -> np.ndarray:
     """Unflatten a data point from a space.
 
     This reverses the transformation applied by ``flatten()``. You must ensure
@@ -115,17 +117,17 @@ def unflatten(space, x):
 
 @unflatten.register(Box)
 @unflatten.register(MultiBinary)
-def unflatten_box_multibinary(space, x):
+def unflatten_box_multibinary(space: Union[Box, MultiBinary], x: np.ndarray) -> np.ndarray:
     return np.asarray(x, dtype=space.dtype).reshape(space.shape)
 
 
 @unflatten.register(Discrete)
-def unflatten_discrete(space, x):
+def unflatten_discrete(space: Discrete, x: np.ndarray) -> int:
     return int(np.nonzero(x)[0][0])
 
 
 @unflatten.register(MultiDiscrete)
-def unflatten_multidiscrete(space, x):
+def unflatten_multidiscrete(space: MultiDiscrete, x: np.ndarray) -> np.ndarray:
     offsets = np.zeros((space.nvec.size + 1,), dtype=space.dtype)
     offsets[1:] = np.cumsum(space.nvec.flatten())
 
@@ -134,14 +136,14 @@ def unflatten_multidiscrete(space, x):
 
 
 @unflatten.register(Tuple)
-def unflatten_tuple(space, x):
+def unflatten_tuple(space: Tuple, x: np.ndarray) -> typing.Tuple[np.ndarray, ...]:
     dims = np.asarray([flatdim(s) for s in space.spaces], dtype=np.int_)
     list_flattened = np.split(x, np.cumsum(dims[:-1]))
     return tuple(unflatten(s, flattened) for flattened, s in zip(list_flattened, space.spaces))
 
 
 @unflatten.register(Dict)
-def unflatten_dict(space, x):
+def unflatten_dict(space: Dict, x: np.ndarray) -> OrderedDict:
     dims = np.asarray([flatdim(s) for s in space.spaces.values()], dtype=np.int_)
     list_flattened = np.split(x, np.cumsum(dims[:-1]))
     return OrderedDict(
@@ -150,7 +152,7 @@ def unflatten_dict(space, x):
 
 
 @singledispatch
-def flatten_space(space):
+def flatten_space(space: Space) -> Box:
     """Flatten a space into a single ``Box``.
 
     This is equivalent to ``flatten()``, but operates on the space itself. The
@@ -192,19 +194,19 @@ def flatten_space(space):
 
 
 @flatten_space.register(Box)
-def flatten_space_box(space):
+def flatten_space_box(space: Box) -> Box:
     return Box(space.low.flatten(), space.high.flatten(), dtype=space.dtype)
 
 
 @flatten_space.register(Discrete)
 @flatten_space.register(MultiBinary)
 @flatten_space.register(MultiDiscrete)
-def flatten_space_binary(space):
+def flatten_space_binary(space: Union[Discrete, MultiBinary, MultiDiscrete]) -> Box:
     return Box(low=0, high=1, shape=(flatdim(space),), dtype=space.dtype)
 
 
 @flatten_space.register(Tuple)
-def flatten_space_tuple(space):
+def flatten_space_tuple(space: Tuple) -> Box:
     space = [flatten_space(s) for s in space.spaces]
     return Box(
         low=np.concatenate([s.low for s in space]),
@@ -214,7 +216,7 @@ def flatten_space_tuple(space):
 
 
 @flatten_space.register(Dict)
-def flatten_space_dict(space):
+def flatten_space_dict(space: Dict) -> Box:
     space = [flatten_space(s) for s in space.spaces.values()]
     return Box(
         low=np.concatenate([s.low for s in space]),

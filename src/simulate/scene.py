@@ -15,7 +15,7 @@
 # Lint as: python3
 """ A simulate Scene - Host a level or Scene."""
 import itertools
-from typing import Dict, List, Optional, Tuple, Union
+from typing import Any, Dict, List, Optional, Tuple, Union
 
 from .assets import Asset, Camera, Collider, Light, Object3D, RaycastSensor, RewardFunction, StateSensor, spaces
 from .assets.anytree import RenderTree, TreeError
@@ -41,16 +41,16 @@ class Scene(Asset):
 
     def __init__(
         self,
-        engine: Optional[str] = "pyvista",
+        engine: str = "pyvista",
         config: Optional[Config] = None,
         name: Optional[str] = None,
         created_from_file: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        transformation_matrix=None,
-        children=None,
-        **kwargs,
+        transformation_matrix: Optional[List[float]] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         super().__init__(
             name=name,
@@ -84,17 +84,19 @@ class Scene(Asset):
             else:
                 self.engine = PyVistaEngine(self, **kwargs)
         elif engine is not None:
-            raise ValueError("engine should be selected in the list [None, 'unity', 'godot', 'blender', 'pyvista']")
+            raise ValueError(
+                "engine should be selected in the list [None, 'unity', 'godot', 'blender', 'pyvista', 'notebook']"
+            )
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__repr__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         spacer = "\n" if len(self) else ""
         return f"Scene(engine='{self.engine}'){spacer}{RenderTree(self).print_tree()}"
 
     @classmethod
-    def create_from_asset(cls, asset: Asset, **kwargs):
+    def create_from_asset(cls, asset: "Asset", **kwargs: Any) -> "Scene":
         name = kwargs.pop("name", asset.name)
         position = kwargs.pop("position", asset.position)
         rotation = kwargs.pop("rotation", asset.rotation)
@@ -121,7 +123,7 @@ class Scene(Asset):
         revision: Optional[str] = None,
         is_local: Optional[bool] = None,
         hf_hub_kwargs: Optional[dict] = None,
-        **scene_kwargs,
+        **scene_kwargs: Any,
     ) -> "Scene":
         """Load a Scene or Asset from the HuggingFace hub or from a local GLTF file.
 
@@ -147,7 +149,7 @@ class Scene(Asset):
 
     def _scene_check(self):
         # We have a couple of restrictions on parent/children nodes
-        seen = set([self.name])  # O(1) lookups
+        seen = {self.name}  # O(1) lookups
         for node in self.tree_descendants:
             # all names have to be unique in the tree.
             if node.name not in seen:
@@ -175,13 +177,15 @@ class Scene(Asset):
                     raise ValueError(
                         f"Node {node.name} has an actuator but is not part of an actor. "
                         "Actuators should be part of an actor. "
-                        f"Check that at least one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
+                        f"Check that at least one parent node of "
+                        f"{node.name} {tuple(n.name for n in node.tree_path)} is an actor."
                     )
                 elif number_of_parent_actors > 1:
                     raise ValueError(
                         f"Node {node.name} has an actuator but is part of more than one actor. "
                         "Actuators should be part of one and only one actor. "
-                        f"Check that only one parent node of {node.name} {tuple(n.name for n in node.tree_path)} is an actor."
+                        f"Check that only one parent node of "
+                        f"{node.name} {tuple(n.name for n in node.tree_path)} is an actor."
                     )
 
     def save(self, file_path: str) -> List[str]:
@@ -191,7 +195,7 @@ class Scene(Asset):
         self._scene_check()
         return super().save(file_path)
 
-    def show(self, **engine_kwargs):
+    def show(self, **engine_kwargs: Any) -> None:
         """Send the scene to the engine for rendering or later simulation."""
         self._scene_check()
         self._is_shown = True
@@ -199,20 +203,21 @@ class Scene(Asset):
 
     def step(
         self,
-        action: Dict[str, Union[int, float, List[float]]] = None,
+        action: Optional[Dict[str, Union[int, float, List[float]]]] = None,
         time_step: Optional[float] = None,
         frame_skip: Optional[int] = None,
         return_nodes: Optional[bool] = None,
         return_frames: Optional[bool] = None,
-        **engine_kwargs,
-    ):
+        **engine_kwargs: Any,
+    ) -> Any:
         """Step the Scene.
 
         Parameters
         ----------
         action: Dict[str, List[Any]]
             The action to apply to the actors in the scene.
-            Keys are actuator_id and values are actions to apply as tensors of shapes (n_maps, n_actors, action_space...)
+            Keys are actuator_id and values are actions to apply as tensors of shapes
+            (n_maps, n_actors, action_space...)
         time_step: Optional[float]
             The time step to apply to the scene. If None, the time_step of the config is used.
         frame_skip: Optional[int]
@@ -236,7 +241,7 @@ class Scene(Asset):
             engine_kwargs.update({"return_frames": return_frames})
         return self.engine.step(action=action, **engine_kwargs)
 
-    def reset(self):
+    def reset(self) -> Any:
         """Reset the Scene"""
         return self.engine.reset()
 
@@ -270,32 +275,32 @@ class Scene(Asset):
         return None
 
     @property
-    def lights(self):
+    def lights(self) -> Tuple["Asset"]:
         """Tuple with all Light in the Scene"""
         return self.tree_filtered_descendants(lambda node: isinstance(node, Light))
 
     @property
-    def cameras(self):
+    def cameras(self) -> Tuple["Asset"]:
         """Tuple with all Camera in the Scene"""
         return self.tree_filtered_descendants(lambda node: isinstance(node, Camera))
 
     @property
-    def objects(self):
+    def objects(self) -> Tuple["Asset"]:
         """Tuple with all Object3D in the Scene"""
         return self.tree_filtered_descendants(lambda node: isinstance(node, Object3D))
 
     @property
-    def reward_functions(self):
+    def reward_functions(self) -> Tuple["Asset"]:
         """Tuple with all Reward functions in the Scene"""
         return self.tree_filtered_descendants(lambda node: isinstance(node, RewardFunction))
 
     @property
-    def sensors(self):
+    def sensors(self) -> Tuple["Asset"]:
         """Tuple with all sensors in the Scene"""
         return self.tree_filtered_descendants(lambda node: isinstance(node, (Camera, StateSensor, RaycastSensor)))
 
     @property
-    def actors(self) -> Tuple[Asset]:
+    def actors(self) -> Tuple["Asset"]:
         """Return the actors in the scene, sorted by names."""
         unsorted_actors = self.tree_filtered_descendants(lambda node: node.is_actor)
         sorted_actors = sorted(unsorted_actors, key=lambda actor: actor.name)

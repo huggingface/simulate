@@ -16,7 +16,7 @@
 """Utilities."""
 import itertools
 import re
-from typing import List, Tuple, Union
+from typing import List, Optional, Tuple, Union
 
 import numpy as np
 
@@ -46,7 +46,7 @@ def get_transform_from_trs(
     translation: Union[np.ndarray, List[float]],
     rotation: Union[np.ndarray, List[float]],
     scale: Union[np.ndarray, List[float]],
-) -> Union[np.ndarray, None]:
+) -> Optional[np.ndarray]:
     """
     Create a homogeneous transform matrix (4x4) from 3D vector of translation and scale,
     and a quaternion vector of rotation.

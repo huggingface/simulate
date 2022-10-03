@@ -17,7 +17,8 @@
 import itertools
 import os
 import tempfile
-from typing import Any, Dict, List, Optional, Tuple, Union
+import typing
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 from huggingface_hub import create_repo, hf_hub_download, upload_file
@@ -27,6 +28,7 @@ from .actuator import Actuator, ActuatorDict, spaces
 from .anytree import NodeMixin
 from .articulation_body import ArticulationBodyComponent
 from .rigid_body import RigidBodyComponent
+from .spaces import Space
 from .utils import (
     camelcase_to_snakecase,
     get_product_of_quaternions,
@@ -67,7 +69,7 @@ class Asset(NodeMixin, object):
         identified actor in the scene.
     parent : Asset, optional
         Parent of the asset, by default None
-    children : List[Asset], optional
+    children : Union["Asset", List["Asset"]], optional
         Children of the asset, by default None
     created_from_file : str, optional
         Path to the file from which the asset was created if relevant, by default None
@@ -85,17 +87,17 @@ class Asset(NodeMixin, object):
 
     def __init__(
         self,
-        name=None,
+        name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        transformation_matrix=None,
+        transformation_matrix: Optional[List[float]] = None,
         actuator: Optional[Union[Actuator, ActuatorDict]] = None,
         physics_component: Optional[Union[RigidBodyComponent, ArticulationBodyComponent]] = None,
         is_actor: bool = False,
-        parent=None,
-        children=None,
-        created_from_file=None,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        created_from_file: Optional[str] = None,
     ):
         asset_id = next(getattr(self.__class__, f"_{self.__class__.__name__}__NEW_ID"))
         if name is None:
@@ -129,7 +131,7 @@ class Asset(NodeMixin, object):
         """Used to add additional information to the __repr__ method."""
         return ""
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         asset_str = ""
         if self.is_actor:
             asset_str += "is_actor=True, "
@@ -141,8 +143,8 @@ class Asset(NodeMixin, object):
 
     @property
     def named_components(self) -> List[Tuple[str, Any]]:
-        """Return a list of the components of the asset with their attributes name.
-
+        """
+        Return a list of the components of the asset with their attributes name.
         We strip the beginning "_" of the attribute names (if stored as private).
         """
         for attribute in ALLOWED_COMPONENTS_ATTRIBUTES:
@@ -160,27 +162,30 @@ class Asset(NodeMixin, object):
         return self._actuator
 
     @actuator.setter
-    def actuator(self, actuator: Optional[Union[Actuator, ActuatorDict]]):
+    def actuator(self, actuator: Union[Actuator, ActuatorDict]):
         self._actuator = actuator
 
     @property
-    def physics_component(self):
+    def physics_component(self) -> Union[None, RigidBodyComponent, ArticulationBodyComponent]:
         return self._physics_component
 
     @physics_component.setter
-    def physics_component(self, physics_component: Union[None, RigidBodyComponent, ArticulationBodyComponent]):
+    def physics_component(
+        self, physics_component: Optional[Union[RigidBodyComponent, ArticulationBodyComponent]] = None
+    ):
         self._physics_component = physics_component
 
         if isinstance(physics_component, RigidBodyComponent):
             if any(node.physics_component is not None for node in self.tree_ancestors):
                 raise ValueError(
-                    f"Cannot add a RigidBodyComponent to {self.name} because it has a parent with already RigidBodyComponent."
+                    f"Cannot add a RigidBodyComponent to {self.name} "
+                    f"because it has a parent with already RigidBodyComponent."
                 )
 
     @property
-    def action_space(self) -> Optional[spaces.Dict]:
+    def action_space(self) -> Optional[Union[Space, spaces.Dict]]:
         """Build and return the action space of the actor if the asset is an actor (is_actor=True).
-        The action space is a space Dict with keys coresponding to the tags of the actuators.
+        The action space is a space Dict with keys corresponding to the tags of the actuators.
         If some actuators have space Dict action spaces, they are flattened.
         If the returned action space Dict has a single entry, we return the single space instead of the Dict.
         """
@@ -193,20 +198,20 @@ class Asset(NodeMixin, object):
         # - MultiBinary actuators will be grouped together in a larger MultiBinary space
         # Actuators with different tags will be grouped together in a Dict space.
 
-        def update_dict_space(act: Union[Actuator, ActuatorDict], actions_space_dict: Dict[str, spaces.Space]):
+        def update_dict_space(act: Union[Actuator, ActuatorDict], _actions_space_dict: typing.Dict[str, spaces.Space]):
             """Helper function to update a Dict space with the action space associated to an actuator."""
             if act is None:
                 return
             if isinstance(act, Actuator):
-                if act.actuator_tag not in actions_space_dict:
-                    actions_space_dict[act.actuator_tag] = act.action_space
+                if act.actuator_tag not in _actions_space_dict:
+                    _actions_space_dict[act.actuator_tag] = act.action_space
                 else:
                     raise ValueError(f"Actuator with tag {act.actuator_tag} already exists in the action space. ")
                     # actions_space_dict[act.actuator_tag].append((act.index, act.action_space))
             elif isinstance(act, ActuatorDict):
                 for value in act.actuators.values():
-                    if value.actuator_tag not in actions_space_dict:
-                        actions_space_dict[value.actuator_tag] = value.action_space
+                    if value.actuator_tag not in _actions_space_dict:
+                        _actions_space_dict[value.actuator_tag] = value.action_space
                     else:
                         raise ValueError(
                             f"Actuator with tag {value.actuator_tag} already exists in the action space. "
@@ -218,7 +223,7 @@ class Asset(NodeMixin, object):
         if not self.is_actor:
             return None
 
-        actions_space_dict: Dict[str, spaces.Space] = dict()
+        actions_space_dict: typing.Dict[str, spaces.Space] = dict()
 
         # Let's populate the action space dict with the actuator of the actor root node and of it's descendants
         update_dict_space(self.actuator, actions_space_dict)
@@ -261,19 +266,19 @@ class Asset(NodeMixin, object):
     def action_tags(self) -> Optional[List[str]]:
         """Return the list of all action tags of the actor (keys of the action_space)."""
 
-        def update_tag_list(act: Union[Actuator, ActuatorDict], tag_list: List[str]):
+        def update_tag_list(act: Union[Actuator, ActuatorDict], _tag_list: List[str]):
             """Helper function to update a list of all the action tags."""
             if act is None:
                 return
             if isinstance(act, Actuator):
-                if act.actuator_tag not in tag_list:
-                    tag_list.append(act.actuator_tag)
+                if act.actuator_tag not in _tag_list:
+                    _tag_list.append(act.actuator_tag)
                 else:
                     raise ValueError(f"Actuator with tag {act.actuator_tag} already exists in the action space. ")
             elif isinstance(act, ActuatorDict):
                 for value in act.actuators.values():
-                    if value.actuator_tag not in tag_list:
-                        tag_list.append(value.actuator_tag)
+                    if value.actuator_tag not in _tag_list:
+                        _tag_list.append(value.actuator_tag)
                     else:
                         raise ValueError(
                             f"Actuator with tag {value.actuator_tag} already exists in the action space. "
@@ -299,7 +304,7 @@ class Asset(NodeMixin, object):
             return None
         else:
             sensors = self.tree_filtered_descendants(lambda node: getattr(node, "sensor_tag", None) is not None)
-            return spaces.Dict({sensor.sensor_tag: sensor.observation_space for sensor in sensors})
+            return spaces.Dict({getattr(sensor, "sensor_tag"): sensor.observation_space for sensor in sensors})
 
     @property
     def sensor_tags(self) -> Optional[List[str]]:
@@ -308,9 +313,9 @@ class Asset(NodeMixin, object):
 
         sensors = self.tree_filtered_descendants(lambda node: getattr(node, "sensor_tag", None) is not None)
 
-        return [sensor.sensor_tag for sensor in sensors]
+        return [getattr(sensor, "sensor_tag") for sensor in sensors]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.tree_descendants)
 
     def get_node(self, name: str) -> Optional["Asset"]:
@@ -324,7 +329,7 @@ class Asset(NodeMixin, object):
                 return node
         return None
 
-    def copy(self, with_children=True, **kwargs):
+    def copy(self, with_children: bool = True, **kwargs: Any) -> "Asset":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
 
         copy_name = self.name + f"_copy{self._n_copies}"
@@ -347,7 +352,7 @@ class Asset(NodeMixin, object):
 
         return instance_copy
 
-    def clear(self):
+    def clear(self) -> "Asset":
         """Remove all assets in the scene or children to the asset."""
         self.tree_children = []
         return self
@@ -355,7 +360,7 @@ class Asset(NodeMixin, object):
     def _post_copy(self):
         pass
 
-    def _get_last_copy_name(self):
+    def _get_last_copy_name(self) -> str:
         assert self._n_copies > 0, "this object is yet to be copied"
         return self.name + f"_copy{self._n_copies-1}"
 
@@ -366,7 +371,7 @@ class Asset(NodeMixin, object):
         revision: Optional[str] = None,
         is_local: Optional[bool] = None,
         file_type: Optional[str] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> Tuple["Asset", str]:
         """Return a root tree loaded from the HuggingFace hub or from a local GLTF file.
 
@@ -390,15 +395,15 @@ class Asset(NodeMixin, object):
         if os.path.exists(hub_or_local_filepath) and os.path.isfile(hub_or_local_filepath) and is_local is not False:
             file_path = hub_or_local_filepath
         else:
-            splitted_hub_path = hub_or_local_filepath.split("/")
-            repo_id = splitted_hub_path[0] + "/" + splitted_hub_path[1]
+            split_hub_path = hub_or_local_filepath.split("/")
+            repo_id = split_hub_path[0] + "/" + split_hub_path[1]
 
-            filename = splitted_hub_path[-1]
+            filename = split_hub_path[-1]
             filename_extension = filename.split(".")
             if len(filename_extension) == 1:
                 filename += ".gltf"
 
-            subfolder = "/".join(splitted_hub_path[2:-1])
+            subfolder = "/".join(split_hub_path[2:-1])
 
             # remove when release with https://github.com/huggingface/huggingface_hub/pull/1021 is out
             subfolder = subfolder if subfolder else None
@@ -413,8 +418,8 @@ class Asset(NodeMixin, object):
                     use_auth_token=use_auth_token,
                     **kwargs,
                 )
-            except Exception:
-                logger.info("Could not load Asset from Spaces.")
+            except Exception as e:
+                logger.info(f"Could not load Asset from Spaces: {e}\nTrying to load from Spaces...")
 
             if not file_path:
                 try:
@@ -452,7 +457,7 @@ class Asset(NodeMixin, object):
         revision: Optional[str] = None,
         is_local: Optional[bool] = None,
         hf_hub_kwargs: Optional[dict] = None,
-        **kwargs,
+        **kwargs: Any,
     ) -> "Asset":
         """Load a Scene or Asset from the HuggingFace hub or from a local GLTF file.
 
@@ -493,7 +498,7 @@ class Asset(NodeMixin, object):
         revision: Optional[str] = None,
         identical_ok: bool = True,
         private: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> List[str]:
         """Push a GLTF Scene to the hub.
 
@@ -555,7 +560,7 @@ class Asset(NodeMixin, object):
 
         return tree_as_glb_bytes(self)
 
-    def translate(self, vector: Optional[List[float]] = None):
+    def translate(self, vector: Optional[List[float]] = None) -> "Asset":
         """Translate the asset from a given translation vector
 
         Parameters
@@ -577,7 +582,7 @@ class Asset(NodeMixin, object):
         self.position += np.array(vector)
         return self
 
-    def translate_x(self, amount: Optional[float] = 0.0):
+    def translate_x(self, amount: float = 0.0) -> "Asset":
         """Translate the asset along the ``x`` axis of the given amount
 
         Parameters
@@ -597,7 +602,7 @@ class Asset(NodeMixin, object):
         self.position += np.array((float(amount), 0.0, 0.0))
         return self
 
-    def translate_y(self, amount: Optional[float] = 0.0):
+    def translate_y(self, amount: float = 0.0) -> "Asset":
         """Translate the asset along the ``y`` axis of the given amount
 
         Parameters
@@ -617,7 +622,7 @@ class Asset(NodeMixin, object):
         self.position += np.array((0.0, float(amount), 0.0))
         return self
 
-    def translate_z(self, amount: Optional[float] = 0.0):
+    def translate_z(self, amount: float = 0.0) -> "Asset":
         """Translate the asset along the ``z`` axis of the given amount
 
         Parameters
@@ -637,7 +642,7 @@ class Asset(NodeMixin, object):
         self.position += np.array((0.0, 0.0, float(amount)))
         return self
 
-    def rotate_by_quaternion(self, quaternion: Optional[List[float]] = None):
+    def rotate_by_quaternion(self, quaternion: Optional[List[float]] = None) -> "Asset":
         """Rotate the asset with a given rotation quaternion.
         Use ``rotate_x``, ``rotate_y`` or ``rotate_z`` for simple rotations around a specific axis.
 
@@ -663,7 +668,7 @@ class Asset(NodeMixin, object):
         self.rotation = get_product_of_quaternions(normalized_quaternion, self.rotation)
         return self
 
-    def rotate_around_vector(self, vector: Optional[List[float]] = None, value: Optional[float] = None):
+    def rotate_around_vector(self, vector: Optional[List[float]] = None, value: Optional[float] = None) -> "Asset":
         """Rotate around a vector from a specific amount.
         Use ``rotate_x``, ``rotate_y`` or ``rotate_z`` for simple rotations around a specific axis.
 
@@ -694,7 +699,7 @@ class Asset(NodeMixin, object):
         self.rotation = get_product_of_quaternions(new_rotation, self.rotation)
         return self
 
-    def rotate_x(self, value: Optional[float] = None):
+    def rotate_x(self, value: Optional[float] = None) -> "Asset":
         """Rotate the asset around the ``x`` axis with a given rotation value in degree.
 
         Parameters
@@ -713,7 +718,7 @@ class Asset(NodeMixin, object):
         """
         return self.rotate_around_vector(vector=[1.0, 0.0, 0.0], value=value)
 
-    def rotate_y(self, value: Optional[float] = None):
+    def rotate_y(self, value: Optional[float] = None) -> "Asset":
         """Rotate the asset around the ``y`` axis with a given rotation value in degree.
 
         Parameters
@@ -732,7 +737,7 @@ class Asset(NodeMixin, object):
         """
         return self.rotate_around_vector(vector=[0.0, 1.0, 0.0], value=value)
 
-    def rotate_z(self, value: Optional[float] = None):
+    def rotate_z(self, value: Optional[float] = None) -> "Asset":
         """Rotate the asset around the ``z`` axis with a given rotation value in degree.
 
         Parameters
@@ -751,7 +756,7 @@ class Asset(NodeMixin, object):
         """
         return self.rotate_around_vector(vector=[0.0, 0.0, 1.0], value=value)
 
-    def scale(self, scaling: Optional[Union[float, List[float]]] = None):
+    def scale(self, scaling: Optional[Union[float, List[float]]] = None) -> "Asset":
         """Scale the asset with a given scaling, either a global scaling value
         or a vector of ``[x, y, z]`` scaling values.
         Use ``scale_x``, ``scale_y`` or ``scale_z`` for simple scaling around a specific axis.
@@ -781,7 +786,7 @@ class Asset(NodeMixin, object):
         self.scaling = np.multiply(self.scaling, scaling)
         return self
 
-    def scale_x(self, value: Optional[float] = None):
+    def scale_x(self, value: Optional[float] = None) -> "Asset":
         """scale the asset around the ``x`` axis with a given scaling value.
 
         Parameters
@@ -799,9 +804,9 @@ class Asset(NodeMixin, object):
 
         """
 
-        return self.scale(vector=[1.0, 0.0, 0.0], value=value)
+        return self.scale(scaling=[value, 0.0, 0.0])
 
-    def scale_y(self, value: Optional[float] = None):
+    def scale_y(self, value: Optional[float] = None) -> "Asset":
         """scale the asset around the ``y`` axis with a given scaling value.
 
         Parameters
@@ -819,9 +824,9 @@ class Asset(NodeMixin, object):
 
         """
 
-        return self.scale(vector=[0.0, 1.0, 0.0], value=value)
+        return self.scale(scaling=[0.0, value, 0.0])
 
-    def scale_z(self, value: Optional[float] = None):
+    def scale_z(self, value: Optional[float] = None) -> "Asset":
         """scale the asset around the ``z`` axis with a given value.
 
         Parameters
@@ -839,7 +844,7 @@ class Asset(NodeMixin, object):
 
         """
 
-        return self.scale(vector=[0.0, 0.0, 1.0], value=value)
+        return self.scale(scaling=[0.0, 0.0, value])
 
     ##############################
     # Properties copied from Asset()
@@ -849,19 +854,19 @@ class Asset(NodeMixin, object):
     # Need to be updated if Asset() is updated
     ##############################
     @property
-    def position(self):
+    def position(self) -> Union[List[float], np.ndarray]:
         return self._position
 
     @property
-    def rotation(self):
+    def rotation(self) -> Union[List[float], np.ndarray]:
         return self._rotation
 
     @property
-    def scaling(self):
+    def scaling(self) -> Union[List[float], np.ndarray]:
         return self._scaling
 
     @property
-    def transformation_matrix(self):
+    def transformation_matrix(self) -> np.ndarray:
         if self._transformation_matrix is None:
             self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
         return self._transformation_matrix
@@ -869,7 +874,7 @@ class Asset(NodeMixin, object):
     # setters for position/rotation/scale
 
     @position.setter
-    def position(self, value):
+    def position(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
@@ -890,7 +895,7 @@ class Asset(NodeMixin, object):
             self._post_asset_modification()
 
     @rotation.setter
-    def rotation(self, value):
+    def rotation(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
@@ -911,7 +916,7 @@ class Asset(NodeMixin, object):
             self._post_asset_modification()
 
     @scaling.setter
-    def scaling(self, value):
+    def scaling(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
@@ -932,7 +937,7 @@ class Asset(NodeMixin, object):
             self._post_asset_modification()
 
     @transformation_matrix.setter
-    def transformation_matrix(self, value):
+    def transformation_matrix(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         # Default to setting up from TRS if None
         if (value is None or isinstance(value, property)) and (
             self._position is not None and self._rotation is not None and self._scaling is not None
@@ -960,10 +965,14 @@ class Asset(NodeMixin, object):
             self._post_asset_modification()
 
     def _post_asset_modification(self):
-        if getattr(self.tree_root, "engine", None) is not None and self.tree_root.tree_root.engine.auto_update:
-            self.tree_root.engine.update_asset(self)
+        if (
+            getattr(self.tree_root, "engine", None) is not None
+            and getattr(self.tree_root.tree_root, "engine").auto_update
+        ):
+            getattr(self.tree_root, "engine").update_asset(self)
 
-    def _post_detach_parent(self, parent):
+    def _post_detach_parent(self, parent: "Asset"):
         """NodeMixing method call after detaching from a `parent`."""
-        if getattr(parent.tree_root, "engine", None) is not None and parent.tree_root.engine.auto_update:
-            parent.tree_root.engine.remove_asset(self)
+        engine = getattr(self.tree_root, "engine", None)
+        if engine is not None and engine.auto_update:
+            engine.remove_asset(self)

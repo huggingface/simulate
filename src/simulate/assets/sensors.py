@@ -17,7 +17,7 @@
 import itertools
 from cmath import inf
 from dataclasses import InitVar, dataclass
-from typing import Any, ClassVar, List, Optional, Union
+from typing import Any, ClassVar, List, Optional, Tuple, Union
 
 import numpy as np
 from dataclasses_json import dataclass_json
@@ -61,10 +61,10 @@ ALLOWED_STATE_SENSOR_PROPERTIES = {
 }
 
 
-def get_state_sensor_n_properties(sensor):
+def get_state_sensor_n_properties(sensor: Union["StateSensor", "RaycastSensor"]) -> int:
     n_features = 0
-    for property in sensor.properties:
-        n_features += ALLOWED_STATE_SENSOR_PROPERTIES[property]
+    for sensor_property in sensor.properties:
+        n_features += ALLOWED_STATE_SENSOR_PROPERTIES[sensor_property]
 
     return n_features
 
@@ -85,7 +85,7 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 
     target_entity: Optional[Any] = None
     reference_entity: Optional[Any] = None
-    properties: Optional[List[str]] = None
+    properties: Optional[Union[str, List[str]]] = None
     sensor_tag: str = "StateSensor"
 
     name: InitVar[Optional[str]] = None
@@ -124,7 +124,7 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
             )
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> spaces.Box:
         return spaces.Box(low=-inf, high=inf, shape=[get_state_sensor_n_properties(self)], dtype=np.float32)
 
     ##############################
@@ -135,19 +135,19 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
     # Need to be updated if Asset() is updated
     ##############################
     @property
-    def position(self):
+    def position(self) -> Union[List[float], np.ndarray]:
         return self._position
 
     @property
-    def rotation(self):
+    def rotation(self) -> Union[List[float], np.ndarray]:
         return self._rotation
 
     @property
-    def scaling(self):
+    def scaling(self) -> Union[List[float], np.ndarray]:
         return self._scaling
 
     @property
-    def transformation_matrix(self):
+    def transformation_matrix(self) -> Union[List[float], np.ndarray]:
         if self._transformation_matrix is None:
             self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
         return self._transformation_matrix
@@ -155,7 +155,7 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
     # setters for position/rotation/scale
 
     @position.setter
-    def position(self, value):
+    def position(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
@@ -176,7 +176,7 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
             self._post_asset_modification()
 
     @rotation.setter
-    def rotation(self, value):
+    def rotation(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
@@ -197,7 +197,7 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
             self._post_asset_modification()
 
     @scaling.setter
-    def scaling(self, value):
+    def scaling(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
@@ -218,7 +218,7 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
             self._post_asset_modification()
 
     @transformation_matrix.setter
-    def transformation_matrix(self, value):
+    def transformation_matrix(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         # Default to setting up from TRS if None
         if (value is None or isinstance(value, property)) and (
             self._position is not None and self._rotation is not None and self._scaling is not None
@@ -253,9 +253,9 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
 
     n_horizontal_rays: int = 1
     n_vertical_rays: int = 1
-    horizontal_fov: float = 0
-    vertical_fov: float = 0
-    ray_length: float = 100
+    horizontal_fov: float = 0.0
+    vertical_fov: float = 0.0
+    ray_length: float = 100.0
     sensor_tag: str = "RaycastSensor"
 
     name: InitVar[Optional[str]] = None
@@ -284,7 +284,7 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
         )
 
     @property
-    def observation_space(self):
+    def observation_space(self) -> spaces.Box:
         return spaces.Box(low=-inf, high=inf, shape=[self.n_horizontal_rays * self.n_vertical_rays], dtype=np.float32)
 
     ##############################
@@ -295,19 +295,19 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
     # Need to be updated if Asset() is updated
     ##############################
     @property
-    def position(self):
+    def position(self) -> Union[List[float], np.ndarray]:
         return self._position
 
     @property
-    def rotation(self):
+    def rotation(self) -> Union[List[float], np.ndarray]:
         return self._rotation
 
     @property
-    def scaling(self):
+    def scaling(self) -> Union[List[float], np.ndarray]:
         return self._scaling
 
     @property
-    def transformation_matrix(self):
+    def transformation_matrix(self) -> Union[List[float], np.ndarray]:
         if self._transformation_matrix is None:
             self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
         return self._transformation_matrix
@@ -315,7 +315,7 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
     # setters for position/rotation/scale
 
     @position.setter
-    def position(self, value):
+    def position(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
@@ -336,7 +336,7 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
             self._post_asset_modification()
 
     @rotation.setter
-    def rotation(self, value):
+    def rotation(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
@@ -357,7 +357,7 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
             self._post_asset_modification()
 
     @scaling.setter
-    def scaling(self, value):
+    def scaling(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
@@ -378,7 +378,7 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
             self._post_asset_modification()
 
     @transformation_matrix.setter
-    def transformation_matrix(self, value):
+    def transformation_matrix(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
         # Default to setting up from TRS if None
         if (value is None or isinstance(value, property)) and (
             self._position is not None and self._rotation is not None and self._scaling is not None

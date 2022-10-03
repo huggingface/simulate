@@ -2,7 +2,7 @@ from os import path
 from pathlib import Path
 
 
-def create_parent_dirs(filename: str) -> None:
+def create_parent_dirs(filename: str):
     """
     Creates any missing parent directories for a given path. For example, given a path like "/a/b/c.jpg", if the
     directories "/a" or "/a/b" do not exist, they will be created.

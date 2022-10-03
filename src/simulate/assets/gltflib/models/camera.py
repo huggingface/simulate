@@ -29,6 +29,6 @@ class Camera(NamedBaseModel):
 
     orthographic: Optional[OrthographicCameraInfo] = None
     perspective: Optional[PerspectiveCameraInfo] = None
-    type: str = None
-    width: int = None
-    height: int = None
+    type: Optional[str] = None
+    width: Optional[int] = None
+    height: Optional[int] = None

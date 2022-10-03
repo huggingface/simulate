@@ -5,7 +5,7 @@ Utils function for Wave function collapse.
 import numpy as np
 
 
-def generate_seed():
+def generate_seed() -> int:
     """
     Generate seeds to pass to the C++ side.
     """

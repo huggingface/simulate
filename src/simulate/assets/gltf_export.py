@@ -26,7 +26,7 @@ from . import gltflib as gl
 from .gltf_extension import GLTF_NODES_EXTENSION_CLASS, process_tree_after_gltf, process_tree_before_gltf
 
 
-# Conversion of Numnpy dtype and shapes in GLTF equivalents
+# Conversion of Numpy dtype and shapes in GLTF equivalents
 NP_FLOAT32 = np.dtype("<f4")
 NP_UINT32 = np.dtype("<u4")
 NP_UINT8 = np.dtype("<u1")
@@ -92,14 +92,12 @@ def cache_data(data: Any, data_id: int, cache: Dict) -> dict:
         raise ValueError("Cache should be a dict")
 
     digest = _get_digest(data)
-
     cache[digest] = data_id
-
     return cache
 
 
 def add_data_to_gltf(
-    new_data: bytearray,
+    new_data: Union[bytes, bytearray],
     gltf_model: gl.GLTFModel,
     buffer_data: bytearray,
     buffer_id: int = 0,
@@ -128,15 +126,14 @@ def add_data_to_gltf(
     buffer_view_id = len(gltf_model.bufferViews) - 1
 
     cache_data(data=new_data, data_id=buffer_view_id, cache=cache)
-
     return buffer_view_id
 
 
 def add_numpy_to_gltf(
     np_array: np.ndarray,
     gltf_model: gl.GLTFModel,
-    buffer_data: bytearray,
-    normalized: Optional[bool] = False,
+    buffer_data: Union[bytearray, ByteString],
+    normalized: bool = False,
     buffer_id: int = 0,
     cache: Optional[Dict] = None,
 ) -> int:
@@ -259,7 +256,7 @@ def add_texture_to_gltf(
 def add_material_to_gltf(
     material: Material,
     gltf_model: gl.GLTFModel,
-    buffer_data: bytearray,
+    buffer_data: Union[bytearray, ByteString],
     buffer_id: int = 0,
     cache: Optional[Dict] = None,
 ) -> int:
@@ -321,7 +318,7 @@ def add_material_to_gltf(
 
 def add_mesh_to_model(
     meshes: Union[pv.UnstructuredGrid, pv.MultiBlock],
-    materials: Material,
+    materials: Union[Material, None],
     gltf_model: gl.GLTFModel,
     buffer_data: ByteString,
     buffer_id: int = 0,
@@ -497,7 +494,7 @@ def add_light_to_model(
 
 
 def add_node_to_scene(
-    node: Asset,
+    node: "Asset",
     gltf_model: gl.GLTFModel,
     buffer_data: ByteString,
     gl_parent_node_id: Optional[int] = None,
@@ -638,7 +635,7 @@ def add_node_to_scene(
     return extension_used
 
 
-def tree_as_gltf(root_node: Asset) -> gl.GLTF:
+def tree_as_gltf(root_node: "Asset") -> gl.GLTF:
     """Return the tree of Assets as GLTF object."""
     buffer_data = bytearray()
     gltf_model = gl.GLTFModel(
@@ -696,21 +693,22 @@ def tree_as_gltf(root_node: Asset) -> gl.GLTF:
     return gl.GLTF(model=gltf_model, resources=[resource])
 
 
-def tree_as_glb_bytes(root_node: Asset) -> bytes:
+def tree_as_glb_bytes(root_node: "Asset") -> bytes:
     """Return the tree of Assets as GLB bytes."""
     gltf = tree_as_gltf(root_node=root_node)
     return gltf.as_glb_bytes()
 
 
-def save_tree_to_gltf_file(file_path: str, root_node: Asset) -> List[str]:
-    """Save the tree in a GLTF file + additional (binary) ressource files if if shoulf be the case.
-    Return the list of all the path to the saved files (glTF file + ressource files)
+def save_tree_to_gltf_file(file_path: str, root_node: "Asset") -> List[str]:
+    """
+    Save the tree in a GLTF file + additional (binary) resource files if it should be the case.
+    Return the list of all the path to the saved files (glTF file + resource files)
     """
     gltf = tree_as_gltf(root_node=root_node)
 
-    # For now let's convert all in GLTF with embedded ressources
-    for ressource in gltf.resources:
-        gltf.convert_to_base64_resource(ressource)
+    # For now let's convert all in GLTF with embedded resources
+    for resource in gltf.resources:
+        gltf.convert_to_base64_resource(resource)
 
     file_names = gltf.export_gltf(file_path)
     return file_names

@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing import List, Optional
 
 from dataclasses_json import dataclass_json
 
@@ -24,5 +24,5 @@ class Animation(NamedBaseModel):
     extras (any): Application-specific data. (Optional)
     """
 
-    channels: List[Channel] = None
-    samplers: List[AnimationSampler] = None
+    channels: Optional[List[Channel]] = None
+    samplers: Optional[List[AnimationSampler]] = None

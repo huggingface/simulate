@@ -1,6 +1,6 @@
 import json
 from dataclasses import asdict, dataclass
-from typing import List, Optional
+from typing import Any, List, Optional
 
 from dataclasses_json import DataClassJsonMixin
 
@@ -26,7 +26,7 @@ from .texture import Texture
 class GLTFModel(DataClassJsonMixin, BaseModel):
     accessors: Optional[List[Accessor]] = None
     animations: Optional[List[Animation]] = None
-    asset: Asset = None
+    asset: Optional[Asset] = None
     buffers: Optional[List[Buffer]] = None
     bufferViews: Optional[List[BufferView]] = None
     cameras: Optional[List[Camera]] = None
@@ -42,6 +42,6 @@ class GLTFModel(DataClassJsonMixin, BaseModel):
     extensionsRequired: Optional[List[str]] = None
     extensionsUsed: Optional[List[str]] = None
 
-    def to_json(self, **kwargs):
+    def to_json(self, **kwargs: Any) -> str:
         data = replace_unique_id_and_remove_none(asdict(self))
         return json.dumps(data, **kwargs)

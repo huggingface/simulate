@@ -7,6 +7,7 @@
 # THE SOFTWARE.
 
 import warnings
+from typing import Any, List, Optional, Sequence, Type, Union
 
 import numpy as np
 
@@ -35,7 +36,14 @@ class Box(Space):
 
     """
 
-    def __init__(self, low, high, shape=None, dtype=np.float32, seed=None):
+    def __init__(
+        self,
+        low: Union[np.ndarray, float, int],
+        high: Union[np.ndarray, float, int],
+        shape: Optional[Sequence[int]] = None,
+        dtype: Union[Type, str, object] = np.float32,
+        seed: Optional[int] = None,
+    ):
         assert dtype is not None, "dtype must be explicitly provided. "
         self.dtype = np.dtype(dtype)
 
@@ -63,7 +71,7 @@ class Box(Space):
         self.low = low
         self.high = high
 
-        def _get_precision(np_dtype):
+        def _get_precision(np_dtype: Union[Type, str, dtype]) -> int:
             if np.issubdtype(np_dtype, np.floating):
                 return np.finfo(np_dtype).precision
             else:
@@ -83,7 +91,7 @@ class Box(Space):
 
         super(Box, self).__init__(self.shape, self.dtype, seed)
 
-    def is_bounded(self, manner="both"):
+    def is_bounded(self, manner: str = "both"):
         below = np.all(self.bounded_below)
         above = np.all(self.bounded_above)
         if manner == "both":
@@ -95,9 +103,9 @@ class Box(Space):
         else:
             raise ValueError("manner is not in {'below', 'above', 'both'}")
 
-    def sample(self):
+    def sample(self) -> np.ndarray:
         """
-        Generates a single random sample inside of the Box.
+        Generates a single random sample inside the Box.
 
         In creating a sample of the box, each coordinate is sampled according to
         the form of the interval:
@@ -132,7 +140,7 @@ class Box(Space):
 
         return sample.astype(self.dtype)
 
-    def contains(self, x):
+    def contains(self, x: Any) -> bool:
         if not isinstance(x, np.ndarray):
             warnings.warn("Casting input x to numpy array.")
             x = np.asarray(x, dtype=self.dtype)
@@ -144,16 +152,16 @@ class Box(Space):
             and np.all(x <= self.high)
         )
 
-    def to_jsonable(self, sample_n):
+    def to_jsonable(self, sample_n: List[Any]):
         return np.array(sample_n).tolist()
 
-    def from_jsonable(self, sample_n):
+    def from_jsonable(self, sample_n: List[Any]) -> List[Any]:
         return [np.asarray(sample) for sample in sample_n]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return f"Box({self.low}, {self.high}, {self.shape}, {self.dtype})"
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return (
             isinstance(other, Box)
             and (self.shape == other.shape)

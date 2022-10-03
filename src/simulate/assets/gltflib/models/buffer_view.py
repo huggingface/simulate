@@ -23,8 +23,8 @@ class BufferView(NamedBaseModel):
     extras (any): Application-specific data. (Optional)
     """
 
-    buffer: int = None
+    buffer: Optional[int] = None
     byteOffset: Optional[int] = None
-    byteLength: int = None
+    byteLength: Optional[int] = None
     byteStride: Optional[int] = None
     target: Optional[int] = None

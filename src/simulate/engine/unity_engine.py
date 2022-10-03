@@ -8,12 +8,18 @@ import subprocess
 import tarfile
 import time
 from sys import platform
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from huggingface_hub import hf_hub_download
 from huggingface_hub.constants import hf_cache_home
 
 from ..utils import logging
 from .engine import Engine
+
+
+if TYPE_CHECKING:
+    from ..assets.asset import Asset
+    from ..scene import Scene
 
 
 logger = logging.get_logger(__name__)
@@ -51,12 +57,12 @@ HUGGINGFACE_UNITY_CACHE = os.getenv("HUGGINGFACE_UNITY_CACHE", default_cache_pat
 class UnityEngine(Engine):
     def __init__(
         self,
-        scene,
-        auto_update=True,
-        engine_exe="",
+        scene: "Scene",
+        auto_update: bool = True,
+        engine_exe: str = "",
         engine_host="127.0.0.1",
-        engine_port=55001,
-        engine_headless=False,
+        engine_port: int = 55001,
+        engine_headless: bool = False,
     ):
         super().__init__(scene=scene, auto_update=auto_update)
 
@@ -155,7 +161,7 @@ class UnityEngine(Engine):
         self.client.settimeout(SOCKET_TIME_OUT)  # Set a timeout
         logger.info(f"Connection from {self.client_address}")
 
-    def _get_response(self):
+    def _get_response(self) -> str:
         while True:
 
             data_length = self.client.recv(4)
@@ -168,21 +174,21 @@ class UnityEngine(Engine):
 
                 return response
 
-    def update_asset(self, root_node):
+    def update_asset(self, root_node: "Asset"):
         # TODO update and make this API more consistent with all the
         # update_asset, update, show
-        pass
+        raise NotImplementedError()
 
     def update_all_assets(self):
-        pass
+        raise NotImplementedError()
 
-    def show(self, **kwargs):
+    def show(self, **kwargs: Any) -> Union[Dict, str]:
         bytes_data = self._scene.as_glb_bytes()
         b64_bytes = base64.b64encode(bytes_data).decode("ascii")
         kwargs.update({"b64bytes": b64_bytes})
         return self.run_command("Initialize", **kwargs)
 
-    def step(self, action=None, **kwargs):
+    def step(self, action: Optional[Dict] = None, **kwargs: Any) -> Union[Dict, str]:
         """Step the environment with the given action.
 
         Args:
@@ -194,16 +200,16 @@ class UnityEngine(Engine):
             kwargs.update({"action": action})
         return self.run_command("Step", **kwargs)
 
-    def step_send_async(self, **kwargs):
+    def step_send_async(self, **kwargs: Any):
         self.run_command_async("Step", **kwargs)
 
-    def step_recv_async(self):
+    def step_recv_async(self) -> str:
         return self.get_response_async()
 
     def reset(self):
         return self.run_command("Reset")
 
-    def run_command(self, command, wait_for_response=True, **kwargs):
+    def run_command(self, command: str, wait_for_response: bool = True, **kwargs: Any) -> Union[Dict, str]:
         message = json.dumps({"type": command, **kwargs})
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         self.client.sendall(message_bytes)
@@ -215,12 +221,12 @@ class UnityEngine(Engine):
                 logger.warning(f"Exception loading response json data: {e}")
                 return response
 
-    def run_command_async(self, command, **kwargs):
+    def run_command_async(self, command: str, **kwargs: Any):
         message = json.dumps({"type": command, **kwargs})
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         self.client.sendall(message_bytes)
 
-    def get_response_async(self):
+    def get_response_async(self) -> Union[Dict, str]:
         response = self._get_response()
         try:
             return json.loads(response)

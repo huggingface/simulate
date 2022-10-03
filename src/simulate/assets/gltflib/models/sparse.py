@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from typing import Optional
 
 from dataclasses_json import dataclass_json
 
@@ -24,6 +25,6 @@ class Sparse(BaseModel):
     extras (any) Application-specific data. (Optional)
     """
 
-    count: int = None
-    indices: SparseIndices = None
-    values: SparseValues = None
+    count: Optional[int] = None
+    indices: Optional[SparseIndices] = None
+    values: Optional[SparseValues] = None

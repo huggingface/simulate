@@ -1,4 +1,4 @@
-def del_none(d):
+def del_none(d: dict) -> dict:
     """
     Delete keys with the value ``None`` in a dictionary, recursively.
 
@@ -21,7 +21,7 @@ def del_none(d):
     return d  # For convenience
 
 
-def replace_unique_id_and_remove_none(d):
+def replace_unique_id_and_remove_none(d: dict) -> dict:
     """
     Replace objects in values which have a "_unique_id" attribute by their unique id.
     Also delete keys with the value ``None``.

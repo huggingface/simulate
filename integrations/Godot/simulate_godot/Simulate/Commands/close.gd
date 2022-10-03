@@ -5,7 +5,7 @@ extends Node
 signal callback
 
 
-func execute(_content):
+func execute(_content: Variant) -> void:
 	get_tree().paused = false
 	get_tree().quit()
 	print("Close called!")

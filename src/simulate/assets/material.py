@@ -157,79 +157,79 @@ class Material:
             self.double_sided = False
 
         if self.name is None:
-            id = next(self.__class__.__NEW_ID)
-            self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+            mat_id = next(self.__class__.__NEW_ID)
+            self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{mat_id:02d}")
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return id(self)
 
-    def copy(self):
+    def copy(self) -> "Material":
         copy_mat = copy.deepcopy(self)
-        id = next(self.__class__.__NEW_ID)
-        self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{id:02d}")
+        mat_id = next(self.__class__.__NEW_ID)
+        self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{mat_id:02d}")
         return copy_mat
 
     # Various default colors
     @classproperty
-    def RED(cls):
-        return cls(base_color=(1.0, 0.0, 0.0))
+    def RED(cls) -> "Material":
+        return cls(base_color=[1.0, 0.0, 0.0])
 
     @classproperty
-    def GREEN(cls):
-        return cls(base_color=(0.0, 1.0, 0.0))
+    def GREEN(cls) -> "Material":
+        return cls(base_color=[0.0, 1.0, 0.0])
 
     @classproperty
-    def BLUE(cls):
-        return cls(base_color=(0.0, 0.0, 1.0))
+    def BLUE(cls) -> "Material":
+        return cls(base_color=[0.0, 0.0, 1.0])
 
     @classproperty
-    def CYAN(cls):
-        return cls(base_color=(0.0, 1.0, 1.0))
+    def CYAN(cls) -> "Material":
+        return cls(base_color=[0.0, 1.0, 1.0])
 
     @classproperty
-    def MAGENTA(cls):
-        return cls(base_color=(1.0, 0.0, 1.0))
+    def MAGENTA(cls) -> "Material":
+        return cls(base_color=[1.0, 0.0, 1.0])
 
     @classproperty
-    def YELLOW(cls):
-        return cls(base_color=(1.0, 1.0, 0.0))
+    def YELLOW(cls) -> "Material":
+        return cls(base_color=[1.0, 1.0, 0.0])
 
     @classproperty
-    def BLACK(cls):
-        return cls(base_color=(0.0, 0.0, 0.0))
+    def BLACK(cls) -> "Material":
+        return cls(base_color=[0.0, 0.0, 0.0])
 
     @classproperty
-    def WHITE(cls):
-        return cls(base_color=(1.0, 1.0, 1.0))
+    def WHITE(cls) -> "Material":
+        return cls(base_color=[1.0, 1.0, 1.0])
 
     @classproperty
-    def GRAY(cls):
+    def GRAY(cls) -> "Material":
         return cls.GRAY50
 
     @classproperty
-    def GRAY25(cls):
-        return cls(base_color=(0.25, 0.25, 0.25))
+    def GRAY25(cls) -> "Material":
+        return cls(base_color=[0.25, 0.25, 0.25])
 
     @classproperty
-    def GRAY50(cls):
-        return cls(base_color=(0.5, 0.5, 0.5))
+    def GRAY50(cls) -> "Material":
+        return cls(base_color=[0.5, 0.5, 0.5])
 
     @classproperty
-    def GRAY75(cls):
-        return cls(base_color=(0.75, 0.75, 0.75))
+    def GRAY75(cls) -> "Material":
+        return cls(base_color=[0.75, 0.75, 0.75])
 
     @classproperty
-    def TEAL(cls):
-        return cls(base_color=(0.0, 0.5, 0.5))
+    def TEAL(cls) -> "Material":
+        return cls(base_color=[0.0, 0.5, 0.5])
 
     @classproperty
-    def PURPLE(cls):
-        return cls(base_color=(0.5, 0.0, 0.5))
+    def PURPLE(cls) -> "Material":
+        return cls(base_color=[0.5, 0.0, 0.5])
 
     @classproperty
-    def OLIVE(cls):
-        return cls(base_color=(0.5, 0.5, 0.0))
+    def OLIVE(cls) -> "Material":
+        return cls(base_color=[0.5, 0.5, 0.0])
 
     @classproperty
-    def TRANSPARENT(cls):
-        return cls(base_color=(0.0, 0.0, 0.0, 0.0), alpha_mode="BLEND")
+    def TRANSPARENT(cls) -> "Material":
+        return cls(base_color=[0.0, 0.0, 0.0, 0.0], alpha_mode="BLEND")

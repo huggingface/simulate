@@ -18,7 +18,7 @@ var _warmed_up: bool = false
 func _ready() -> void:
 	_status = _stream.get_status()
 
-func _physics_process(_delta):
+func _physics_process(_delta) -> void:
 	# this is called at a fixed rate
 	update_status()
 	print("------------physic step--------------")
@@ -27,7 +27,7 @@ func _physics_process(_delta):
 		get_tree().paused = true
 		read()
 
-func update_status():
+func update_status() -> void:
 	# Get the current stream status
 	_stream.poll()
 	var new_status: int = _stream.get_status()
@@ -46,7 +46,7 @@ func update_status():
 				print("Error with socket stream.")
 				emit_signal("error")
 
-func read():
+func read() -> void:
 	# Get data from TCP stream, only reads 1 command at a time
 	while true:
 		update_status()

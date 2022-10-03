@@ -5,7 +5,7 @@ extends Node
 signal callback
 
 
-func execute(content):
+func execute(content: Variant) -> void:
 	var content_bytes : PackedByteArray = Marshalls.base64_to_raw(content["b64bytes"])
 	
 	var gltf_state : GLTFState = GLTFState.new()

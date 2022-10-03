@@ -20,5 +20,5 @@ class TextureInfo(BaseModel):
     extras (any) Application-specific data. (Optional)
     """
 
-    index: int = None
+    index: Optional[int] = None
     texCoord: Optional[int] = None

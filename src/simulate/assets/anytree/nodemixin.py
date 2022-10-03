@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 
-from typing import TYPE_CHECKING, Callable, Iterator, Optional, Sequence, Tuple, Union
+from typing import TYPE_CHECKING, Any, Callable, Iterator, List, Optional, Sequence, Tuple, Union
 
 from .exceptions import LoopError, TreeError
 from .preorderiter import PreOrderIter
@@ -91,7 +91,7 @@ class NodeMixin(object):
             return self.__name
 
     @name.setter
-    def name(self, value):
+    def name(self, value: str):
         if not isinstance(value, str):
             raise TypeError("Name should be a string.")
         if self.tree_parent is not None:
@@ -102,12 +102,12 @@ class NodeMixin(object):
         self.__name = value
         self._post_name_change(value)
 
-    def _post_name_change(self, value):
+    def _post_name_change(self, value: Any):
         """Method called after changing the name."""
         pass
 
     @property
-    def tree_parent(self) -> "Asset":
+    def tree_parent(self) -> Optional["Asset"]:
         """
         Parent Node.
 
@@ -161,7 +161,7 @@ class NodeMixin(object):
             self.__detach(parent)
             self.__attach(value)
 
-    def __check_loop(self, node):
+    def __check_loop(self, node: "Asset"):
         if node is not None:
             if node is self:
                 msg = "Cannot set parent. %r cannot be parent of itself."
@@ -170,7 +170,7 @@ class NodeMixin(object):
                 msg = "Cannot set parent. %r is parent of %r."
                 raise LoopError(msg % (self, node))
 
-    def __detach(self, parent):
+    def __detach(self, parent: "Asset"):
         if parent is not None:
             self._pre_detach_parent(parent)
             parentchildren = parent.__children_or_empty
@@ -187,7 +187,7 @@ class NodeMixin(object):
 
             self._post_detach_parent(parent)
 
-    def __attach(self, parent):
+    def __attach(self, parent: "Asset"):
         if parent is not None:
             self._pre_attach_parent(parent)
             parentchildren = parent.__children_or_empty
@@ -207,7 +207,7 @@ class NodeMixin(object):
             self._post_attach_parent(parent)
 
     @property
-    def __children_or_empty(self):
+    def __children_or_empty(self) -> List["Asset"]:
         try:
             return self.__children
         except AttributeError:
@@ -266,7 +266,7 @@ class NodeMixin(object):
         return tuple(self.__children_or_empty)
 
     @staticmethod
-    def __check_children(children):
+    def __check_children(children: Tuple["Asset", ...]):
         seen = set()
         for child in children:
             if not isinstance(child, NodeMixin):
@@ -280,7 +280,7 @@ class NodeMixin(object):
                 raise TreeError(msg)
 
     @tree_children.setter
-    def tree_children(self, children: Optional[Tuple["Asset"]]):
+    def tree_children(self, children: Tuple["Asset", ...]):
         # convert iterable to tuple
         children = tuple(children)
         NodeMixin.__check_children(children)
@@ -319,39 +319,39 @@ class NodeMixin(object):
 
         self._post_detach_children(children)
 
-    def _pre_detach_children(self, children):
+    def _pre_detach_children(self, children: Tuple["Asset", ...]):
         """Method call before detaching `children`."""
         pass
 
-    def _pre_attach_children(self, children):
+    def _pre_attach_children(self, children: Tuple["Asset", ...]):
         """Method call before attaching `children`."""
         pass
 
-    def _post_detach_children(self, children):
+    def _post_detach_children(self, children: Tuple["Asset", ...]):
         """Method call after detaching `children`"""
         pass
 
-    def _post_attach_children(self, children):
+    def _post_attach_children(self, children: Tuple["Asset", ...]):
         """Method call after attaching `children`."""
         pass
 
-    def _pre_detach_parent(self, parent):
+    def _pre_detach_parent(self, parent: "Asset"):
         """Method call before detaching from `parent`."""
         pass
 
-    def _pre_attach_parent(self, parent):
+    def _pre_attach_parent(self, parent: "Asset"):
         """Method call when attaching to `parent`."""
         pass
 
-    def _post_detach_parent(self, parent):
+    def _post_detach_parent(self, parent: "Asset"):
         """Method call before attaching to `parent`."""
         pass
 
-    def _post_attach_parent(self, parent):
+    def _post_attach_parent(self, parent: "Asset"):
         """Method call after attaching to `parent`."""
         pass
 
-    def remove(self, assets: Union["Asset", Sequence["Asset"]]):
+    def remove(self, assets: Union["Asset", Sequence["Asset"]]) -> "NodeMixin":
         if isinstance(assets, NodeMixin):
             assets.tree_parent = None
         else:
@@ -359,7 +359,7 @@ class NodeMixin(object):
                 asset.tree_parent = None
         return self
 
-    def add(self, assets: Union["Asset", Sequence["Asset"]]):
+    def add(self, assets: Union["Asset", Sequence["Asset"]]) -> "NodeMixin":
         if isinstance(assets, NodeMixin):
             assets.tree_parent = self
         else:
@@ -367,31 +367,31 @@ class NodeMixin(object):
                 asset.tree_parent = self
         return self
 
-    def __iadd__(self, assets: Union["Asset", Sequence["Asset"]]):
+    def __iadd__(self, assets: Union["Asset", Sequence["Asset"]]) -> "NodeMixin":
         return self.add(assets)
 
-    def __add__(self, assets: Union["Asset", Sequence["Asset"]]):
+    def __add__(self, assets: Union["Asset", Sequence["Asset"]]) -> "NodeMixin":
         return self.add(assets)
 
-    def __isub__(self, assets: Union["Asset", Sequence["Asset"]]):
+    def __isub__(self, assets: Union["Asset", Sequence["Asset"]]) -> "NodeMixin":
         return self.remove(assets)
 
-    def __sub__(self, assets: Union["Asset", Sequence["Asset"]]):
+    def __sub__(self, assets: Union["Asset", Sequence["Asset"]]) -> "NodeMixin":
         return self.remove(assets)
 
-    def _get_one_line_repr(self):
+    def _get_one_line_repr(self) -> str:
         return f"{self.name} ({self.__class__.__name__})"
 
-    def __str__(self):
+    def __str__(self) -> str:
         return self.__repr__()
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         node_str = self._get_one_line_repr() + ("\n" if self.tree_children else "")
         return f"{node_str}{RenderTree(self).print_tree()}"
 
     def tree_filtered_descendants(
-        self, filter_fn: Callable[["Asset"], bool], stop=None, maxlevel=None
-    ) -> Tuple["Asset"]:
+        self, filter_fn: Callable[["Asset"], bool], stop=None, maxlevel: Optional[int] = None
+    ) -> Tuple["Asset", ...]:
         """
         Iterate over tree starting at node.
         Keyword Args:
@@ -402,7 +402,7 @@ class NodeMixin(object):
         return tuple(PreOrderIter(self, filter_=filter_fn, stop=stop, maxlevel=maxlevel))
 
     @property
-    def tree_path(self) -> Tuple["Asset"]:
+    def tree_path(self) -> Tuple["Asset", ...]:
         """
         Path of this `Node`.
 
@@ -445,15 +445,15 @@ class NodeMixin(object):
             yield node
             node = node.tree_parent
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator["Asset"]:
         return PreOrderIter(self)
 
     @property
-    def _path(self):
+    def _path(self) -> Tuple["Asset", ...]:
         return tuple(reversed(list(self.tree_iter_path_reverse())))
 
     @property
-    def tree_ancestors(self):
+    def tree_ancestors(self) -> Tuple["Asset", ...]:
         """
         All parent nodes and their parent nodes.
 
@@ -631,6 +631,7 @@ class NodeMixin(object):
         >>> lian.tree_depth
         2
         """
+        i = 0
         # count without storing the entire path
         for i, _ in enumerate(self.tree_iter_path_reverse()):
             continue

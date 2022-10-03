@@ -21,4 +21,4 @@ class Buffer(NamedBaseModel):
     """
 
     uri: Optional[str] = None
-    byteLength: int = None
+    byteLength: Optional[int] = None

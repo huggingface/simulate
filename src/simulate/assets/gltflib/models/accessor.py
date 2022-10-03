@@ -32,10 +32,10 @@ class Accessor(NamedBaseModel):
 
     bufferView: Optional[int] = None
     byteOffset: Optional[int] = None
-    componentType: int = None
+    componentType: Optional[int] = None
     normalized: Optional[bool] = None
-    count: int = None
-    type: str = None
+    count: Optional[int] = None
+    type: Optional[str] = None
     max: Optional[List[float]] = None
     min: Optional[List[float]] = None
     sparse: Optional[Sparse] = None

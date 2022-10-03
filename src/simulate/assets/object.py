@@ -15,7 +15,7 @@
 # Lint as: python3
 """ A simulate Scene Object."""
 import itertools
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 import pyvista as pv
@@ -33,7 +33,12 @@ from .rigid_body import RigidBodyComponent
 logger = logging.get_logger(__name__)
 
 
-def translate(surf, center=(0.0, 0.0, 0.0), new_direction=(1.0, 0.0, 0.0), original_direction=(1.0, 0.0, 0.0)):
+def translate(
+    surf,
+    center: Union[Tuple[float, float, float], List[float], np.ndarray] = (0.0, 0.0, 0.0),
+    new_direction: Union[Tuple[float, float, float], List[float], np.ndarray] = (1.0, 0.0, 0.0),
+    original_direction: Union[Tuple[float, float, float], List[float], np.ndarray] = (1.0, 0.0, 0.0),
+):
     """Translate and orient a mesh to a new center and direction.
 
     By default, the input mesh is considered centered at the origin
@@ -48,10 +53,10 @@ def translate(surf, center=(0.0, 0.0, 0.0), new_direction=(1.0, 0.0, 0.0), origi
     if s > 0:
         c = np.dot(original_direction, new_direction)
         vx = np.array([[0, -v[2], v[1]], [v[2], 0, -v[0]], [-v[1], v[0], 0]])
-        R = np.eye(3) + vx + vx.dot(vx) * ((1 - c) / (s**2))
+        r = np.eye(3) + vx + vx.dot(vx) * ((1 - c) / (s**2))
 
         trans = np.zeros((4, 4))
-        trans[:3, :3] = R
+        trans[:3, :3] = r
         trans[3, 3] = 1
         surf.transform(trans)
 
@@ -77,18 +82,18 @@ class Object3D(Asset):
 
     def __init__(
         self,
-        mesh: Optional[Union[pv.UnstructuredGrid, pv.MultiBlock]] = None,
+        mesh: Optional[Union[pv.UnstructuredGrid, pv.MultiBlock, pv.PolyData, pv.DataSet]] = None,
         material: Optional[Union[Material, List[Material]]] = None,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        is_actor: Optional[bool] = False,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
         original_mesh_direction: Optional[List[float]] = None,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         super().__init__(name=name, position=position, is_actor=is_actor, parent=parent, children=children, **kwargs)
 
@@ -107,7 +112,7 @@ class Object3D(Asset):
             translate(mesh, (0, 0, 0), new_direction=set_mesh_direction, original_direction=original_mesh_direction)
 
         # Avoid having averaging normals at shared points
-        # (default pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
+        # (pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
         if self.mesh is not None:
             if isinstance(self.mesh, pv.MultiBlock):
                 for i in range(self.mesh.n_blocks):
@@ -121,7 +126,7 @@ class Object3D(Asset):
             if not isinstance(self.mesh, pv.MultiBlock) or len(self.material) != self.mesh.n_blocks:
                 raise ValueError("Number of materials must match number of blocks in mesh")
 
-    def copy(self, with_children=True, **kwargs):
+    def copy(self, with_children: bool = True, **kwargs: Any) -> "Object3D":
         """Copy an Object3D node in a new (returned) object.
 
         By default, mesh and materials are copied in respectively new mesh and material.
@@ -165,7 +170,7 @@ class Object3D(Asset):
 
         return instance_copy
 
-    def _post_name_change(self, value):
+    def _post_name_change(self, value: Any):
         """NodeMixing method call after changing the name of a node."""
         for node in self.tree_children:
             if isinstance(node, Collider):
@@ -173,7 +178,6 @@ class Object3D(Asset):
 
     def _repr_info_str(self) -> str:
         """Used to add additional information to the __repr__ method."""
-        mesh_str = ""
         if isinstance(self.mesh, pv.MultiBlock):
             mesh_str = f"Mesh(Multiblock, n_blocks={self.mesh.n_blocks}"
         else:
@@ -225,23 +229,23 @@ class Plane(Object3D):
 
     def __init__(
         self,
-        i_size: Optional[float] = 10,
-        j_size: Optional[float] = 10,
-        i_resolution: Optional[int] = 1,
-        j_resolution: Optional[int] = 1,
+        i_size: float = 10,
+        j_size: float = 10,
+        i_resolution: int = 1,
+        j_resolution: int = 1,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        is_actor: Optional[bool] = False,
+        is_actor: bool = False,
         with_collider: bool = True,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
         collider_thickness: Optional[float] = None,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
-        original_mesh_direction = (0, -1, 0)
+        original_mesh_direction = [0, -1, 0]
         mesh = pv.Plane(
             direction=original_mesh_direction,
             i_size=i_size,
@@ -269,8 +273,8 @@ class Plane(Object3D):
             collider = Collider(
                 name=self.name + "_collider",
                 type="box",
-                bounding_box=(i_size, collider_thickness, j_size),
-                position=(0, -collider_thickness / 2, 0),
+                bounding_box=[i_size, collider_thickness, j_size],
+                position=[0, -collider_thickness / 2, 0],
             )
             self.tree_children = (children if children is not None else []) + [collider]
 
@@ -323,23 +327,23 @@ class Sphere(Object3D):
     def __init__(
         self,
         position: Optional[List[float]] = None,
-        radius: Optional[float] = 1.0,
-        theta_resolution: Optional[int] = 10,
-        phi_resolution: Optional[int] = 10,
-        start_theta: Optional[float] = 0,
-        end_theta: Optional[float] = 360,
-        start_phi: Optional[float] = 0,
-        end_phi: Optional[float] = 180,
-        sphere_type: Optional[str] = "uv",
+        radius: float = 1.0,
+        theta_resolution: int = 10,
+        phi_resolution: int = 10,
+        start_theta: float = 0.0,
+        end_theta: float = 360.0,
+        start_phi: float = 0.0,
+        end_phi: float = 180.0,
+        sphere_type: str = "uv",
         with_collider: bool = True,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         if sphere_type not in ["uv", "ico"]:
             raise ValueError("Sphere type should be one of 'uv' or 'ico'.")
@@ -365,7 +369,7 @@ class Sphere(Object3D):
             position=position,
             is_actor=is_actor,
             set_mesh_direction=set_mesh_direction,
-            original_mesh_direction=(0, 1, 0),
+            original_mesh_direction=[0, 1, 0],
             with_rigid_body=with_rigid_body,
             with_articulation_body=with_articulation_body,
             parent=parent,
@@ -377,7 +381,7 @@ class Sphere(Object3D):
             collider = Collider(
                 name=self.name + "_collider",
                 type="sphere",
-                bounding_box=(radius, radius, radius),
+                bounding_box=[radius, radius, radius],
             )
             self.tree_children = (children if children is not None else []) + [collider]
 
@@ -424,20 +428,20 @@ class Capsule(Object3D):
     def __init__(
         self,
         position: Optional[List[float]] = None,
-        height: Optional[float] = 1.0,
-        radius: Optional[float] = 0.2,
-        theta_resolution: Optional[int] = 4,
-        phi_resolution: Optional[int] = 4,
-        sphere_type: Optional[str] = "uv",
+        height: float = 1.0,
+        radius: float = 0.2,
+        theta_resolution: int = 4,
+        phi_resolution: int = 4,
+        sphere_type: str = "uv",
         with_collider: bool = True,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         if sphere_type not in ["uv", "ico"]:
             raise ValueError("Sphere type should be one of 'uv' or 'ico'.")
@@ -446,7 +450,7 @@ class Capsule(Object3D):
 
         capsule = vtkCapsuleSource()  # TODO pyvista capsules are aranged on the side
         capsule.SetRadius(radius)
-        capsule.SetCylinderLength(max(0, height - radius * 2))
+        capsule.SetCylinderLength(max(0.0, height - radius * 2))
         capsule.SetThetaResolution(theta_resolution)
         capsule.SetPhiResolution(phi_resolution)
         capsule.SetLatLongTessellation(bool(sphere_type == "uv"))
@@ -460,7 +464,7 @@ class Capsule(Object3D):
             position=position,
             is_actor=is_actor,
             set_mesh_direction=set_mesh_direction,
-            original_mesh_direction=(0, 1, 0),
+            original_mesh_direction=[0, 1, 0],
             with_rigid_body=with_rigid_body,
             with_articulation_body=with_articulation_body,
             parent=parent,
@@ -472,7 +476,7 @@ class Capsule(Object3D):
             collider = Collider(
                 name=self.name + "_collider",
                 type="capsule",
-                bounding_box=(radius, height, radius),
+                bounding_box=[radius, height, radius],
             )
             self.tree_children = (children if children is not None else []) + [collider]
 
@@ -513,21 +517,21 @@ class Cylinder(Object3D):
 
     def __init__(
         self,
-        height: Optional[float] = 1.0,
-        radius: Optional[float] = 1.0,
-        resolution: Optional[int] = 16,
-        capping: Optional[bool] = True,
+        height: float = 1.0,
+        radius: float = 1.0,
+        resolution: int = 16,
+        capping: bool = True,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         set_mesh_direction: Optional[List[float]] = None,
-        is_actor: Optional[bool] = False,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
-        original_mesh_direction = (0, 1, 0)
+        original_mesh_direction = [0, 1, 0]
         mesh = pv.Cylinder(
             direction=original_mesh_direction, radius=radius, height=height, resolution=resolution, capping=capping
         )
@@ -568,7 +572,7 @@ class Box(Object3D):
             => bounds are ``(-xSize/2, xSize/2, ySize/2, ySize/2, -zSize/2, zSize/2)``
         - a single float: size
             => bounds are ``(-size/2, size/2, size/2, size/2, -size/2, size/2)``
-        If no value is provide, create a centered unit box
+        If no value is provided, create a centered unit box
 
     level : int, optional
         Level of subdivision of the faces.
@@ -590,18 +594,18 @@ class Box(Object3D):
     def __init__(
         self,
         bounds: Optional[Union[float, List[float]]] = None,
-        level: Optional[int] = 0,
-        quads: Optional[bool] = True,
+        level: int = 0,
+        quads: bool = True,
         with_collider: bool = True,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         set_mesh_direction: Optional[List[float]] = None,
-        is_actor: Optional[bool] = False,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         if bounds is None:
             bounds = (-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)
@@ -625,7 +629,7 @@ class Box(Object3D):
             position=position,
             is_actor=is_actor,
             set_mesh_direction=set_mesh_direction,
-            original_mesh_direction=(0, 1, 0),
+            original_mesh_direction=[0, 1, 0],
             with_rigid_body=with_rigid_body,
             with_articulation_body=with_articulation_body,
             parent=parent,
@@ -634,12 +638,12 @@ class Box(Object3D):
         )
 
         if with_collider:
-            bounding_box = (bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4])
-            offset = (
+            bounding_box = [bounds[1] - bounds[0], bounds[3] - bounds[2], bounds[5] - bounds[4]]
+            offset = [
                 (bounds[0] + bounds[1]) / 2.0,
                 (bounds[2] + bounds[3]) / 2.0,
                 (bounds[4] + bounds[5]) / 2.0,
-            )
+            ]
             collider = Collider(name=self.name + "_collider", type="box", bounding_box=bounding_box, offset=offset)
             self.tree_children = (children if children is not None else []) + [collider]
 
@@ -678,20 +682,20 @@ class Cone(Object3D):
 
     def __init__(
         self,
-        height: Optional[float] = 1.0,
-        radius: Optional[float] = 1.0,
-        resolution: Optional[int] = 6,
+        height: float = 1.0,
+        radius: float = 1.0,
+        resolution: int = 6,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         set_mesh_direction: Optional[List[float]] = None,
-        is_actor: Optional[bool] = False,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
-        original_mesh_direction = (0, 1, 0)
+        original_mesh_direction = [0, 1, 0]
         mesh = pv.Cone(direction=original_mesh_direction, height=height, radius=radius, resolution=resolution)
         super().__init__(
             mesh=mesh,
@@ -736,15 +740,15 @@ class Line(Object3D):
         self,
         pointa: Optional[List[float]] = None,
         pointb: Optional[List[float]] = None,
-        resolution: Optional[int] = 1,
+        resolution: int = 1,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
+        is_actor: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         if pointa is None:
             pointa = [-1.0, 0.0, 0.0]
@@ -757,7 +761,7 @@ class Line(Object3D):
             name=name,
             is_actor=is_actor,
             set_mesh_direction=set_mesh_direction,
-            original_mesh_direction=(1, 0, 0),
+            original_mesh_direction=[1, 0, 0],
             with_rigid_body=with_rigid_body,
             with_articulation_body=with_articulation_body,
             parent=parent,
@@ -788,13 +792,13 @@ class MultipleLines(Object3D):
         self,
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
+        is_actor: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         if points is None:
             points = [[-1.0, 0.0, 0.0], [1.0, 0.0, 0.0]]
@@ -805,7 +809,7 @@ class MultipleLines(Object3D):
             name=name,
             is_actor=is_actor,
             set_mesh_direction=set_mesh_direction,
-            original_mesh_direction=(1, 0, 0),
+            original_mesh_direction=[1, 0, 0],
             with_rigid_body=with_rigid_body,
             with_articulation_body=with_articulation_body,
             parent=parent,
@@ -848,17 +852,17 @@ class Tube(Object3D):
         self,
         pointa: Optional[List[float]] = None,
         pointb: Optional[List[float]] = None,
-        resolution: Optional[int] = 1,
-        radius: Optional[float] = 1.0,
-        n_sides: Optional[int] = 16,
+        resolution: int = 1,
+        radius: float = 1.0,
+        n_sides: int = 16,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
+        is_actor: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         if pointa is None:
             pointa = [-1.0, 0.0, 0.0]
@@ -871,7 +875,7 @@ class Tube(Object3D):
             name=name,
             is_actor=is_actor,
             set_mesh_direction=set_mesh_direction,
-            original_mesh_direction=(0, 1, 0),
+            original_mesh_direction=[0, 1, 0],
             with_rigid_body=with_rigid_body,
             with_articulation_body=with_articulation_body,
             parent=parent,
@@ -916,14 +920,14 @@ class Polygon(Object3D):
         points: List[List[float]],
         position: Optional[List[float]] = None,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
+        is_actor: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
         with_collider: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ):
         from vtkmodules.vtkCommonDataModel import vtkCellArray, vtkPolyData, vtkPolygon
 
@@ -942,11 +946,11 @@ class Polygon(Object3D):
         polygons.InsertNextCell(polygon)
 
         # Create a PolyData
-        polygonPolyData = vtkPolyData()
-        polygonPolyData.SetPoints(v_points)
-        polygonPolyData.SetPolys(polygons)
+        polygon_poly_data = vtkPolyData()
+        polygon_poly_data.SetPoints(v_points)
+        polygon_poly_data.SetPolys(polygons)
 
-        mesh = pv.PolyData(polygonPolyData)
+        mesh = pv.PolyData(polygon_poly_data)
 
         super().__init__(
             mesh=mesh,
@@ -954,7 +958,7 @@ class Polygon(Object3D):
             position=position,
             is_actor=is_actor,
             set_mesh_direction=set_mesh_direction,
-            original_mesh_direction=(0, 1, 0),
+            original_mesh_direction=[0, 1, 0],
             with_rigid_body=with_rigid_body,
             with_articulation_body=with_articulation_body,
             parent=parent,
@@ -1002,19 +1006,19 @@ class RegularPolygon(Object3D):
 
     def __init__(
         self,
-        radius: Optional[float] = 1.0,
-        n_sides: Optional[int] = 6,
+        radius: float = 1.0,
+        n_sides: int = 6,
         position: Optional[List[float]] = None,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
+        is_actor: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
-        original_mesh_direction = (0, 1, 0)
+        original_mesh_direction = [0, 1, 0]
         mesh = pv.Polygon(radius=radius, normal=original_mesh_direction, n_sides=n_sides)
 
         super().__init__(
@@ -1074,21 +1078,21 @@ class Ring(Object3D):
     # TODO(thomas) add back center and normal and see how to handle that for 2D/3D stuff
     def __init__(
         self,
-        inner: Optional[float] = 0.25,
-        outer: Optional[float] = 0.5,
-        r_res: Optional[int] = 1,
-        c_res: Optional[int] = 6,
+        inner: float = 0.25,
+        outer: float = 0.5,
+        r_res: int = 1,
+        c_res: int = 6,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         set_mesh_direction: Optional[List[float]] = None,
-        is_actor: Optional[bool] = False,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
-        original_mesh_direction = (0, 1, 0)
+        original_mesh_direction = [0, 1, 0]
         mesh = pv.Disc(inner=inner, outer=outer, normal=original_mesh_direction, r_res=r_res, c_res=c_res)
 
         super().__init__(
@@ -1137,21 +1141,21 @@ class Text3D(Object3D):
 
     def __init__(
         self,
-        string: Optional[str] = "Hello",
-        depth: Optional[float] = 0.5,
+        string: str = "Hello",
+        depth: float = 0.5,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         set_mesh_direction: Optional[List[float]] = None,
-        is_actor: Optional[bool] = False,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         mesh = pv.Text3D(string=string, depth=depth)
         mesh.rotate_y(-90, inplace=True)
-        original_mesh_direction = (0, 0, -1)
+        original_mesh_direction = [0, 0, -1]
         translate(mesh, (0, 0, 0), new_direction=original_mesh_direction)
 
         super().__init__(
@@ -1192,13 +1196,13 @@ class Triangle(Object3D):
         self,
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
+        is_actor: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         mesh = pv.Triangle(points=points)
 
@@ -1207,7 +1211,7 @@ class Triangle(Object3D):
             name=name,
             is_actor=is_actor,
             set_mesh_direction=set_mesh_direction,
-            original_mesh_direction=(0, 1, 0),
+            original_mesh_direction=[0, 1, 0],
             with_rigid_body=with_rigid_body,
             with_articulation_body=with_articulation_body,
             parent=parent,
@@ -1238,13 +1242,13 @@ class Rectangle(Object3D):
         self,
         points: Optional[List[List[float]]] = None,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
+        is_actor: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         mesh = pv.Rectangle(points=points)
 
@@ -1253,7 +1257,7 @@ class Rectangle(Object3D):
             name=name,
             is_actor=is_actor,
             set_mesh_direction=set_mesh_direction,
-            original_mesh_direction=(0, 1, 0),
+            original_mesh_direction=[0, 1, 0],
             with_rigid_body=with_rigid_body,
             with_articulation_body=with_articulation_body,
             parent=parent,
@@ -1293,21 +1297,21 @@ class Circle(Object3D):
 
     def __init__(
         self,
-        radius: Optional[float] = 0.5,
-        resolution: Optional[int] = 100,
+        radius: float = 0.5,
+        resolution: int = 100,
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
-        is_actor: Optional[bool] = False,
+        is_actor: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         mesh = pv.Circle(radius=radius, resolution=resolution)
         mesh.rotate_y(-90, inplace=True)
-        original_mesh_direction = (0, 1, 0)
+        original_mesh_direction = [0, 1, 0]
         translate(mesh, (0, 0, 0), new_direction=original_mesh_direction)
 
         super().__init__(
@@ -1365,12 +1369,12 @@ class StructuredGrid(Object3D):
         name: Optional[str] = None,
         position: Optional[List[float]] = None,
         set_mesh_direction: Optional[List[float]] = None,
-        is_actor: Optional[bool] = False,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         if not isinstance(x, np.ndarray):
             x = np.array(x)
@@ -1381,7 +1385,7 @@ class StructuredGrid(Object3D):
 
         # If it is a structured grid, extract the surface mesh (PolyData)
         mesh = pv.StructuredGrid(x, y, z).extract_surface()
-        original_mesh_direction = (0, 1, 0)
+        original_mesh_direction = [0, 1, 0]
         translate(mesh, (0, 0, 0), new_direction=original_mesh_direction, original_direction=(0, 1, 0))
 
         super().__init__(
@@ -1467,21 +1471,21 @@ class ProcgenGrid(Object3D):
         neighbors: Optional[List] = None,
         symmetries: Optional[List] = None,
         weights: Optional[List] = None,
-        width: Optional[int] = 9,
-        height: Optional[int] = 9,
-        shallow: Optional[bool] = False,
+        width: int = 9,
+        height: int = 9,
+        shallow: bool = False,
         algorithm_args: Optional[dict] = None,
         seed: int = None,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
+        is_actor: bool = False,
         position: Optional[List[float]] = None,
         set_mesh_direction: Optional[List[float]] = None,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        verbose: Optional[bool] = False,
-        **kwargs,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        verbose: bool = False,
+        **kwargs: Any,
     ):
 
         if seed is None:
@@ -1536,7 +1540,7 @@ class ProcgenGrid(Object3D):
 
             # If it is a structured grid, extract the surface mesh (PolyData)
             mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
-            original_mesh_direction = (0, 1, 0)
+            original_mesh_direction = [0, 1, 0]
 
             super().__init__(
                 mesh=mesh,
@@ -1555,12 +1559,12 @@ class ProcgenGrid(Object3D):
     def generate_3D(
         self,
         name: Optional[str] = None,
-        is_actor: Optional[bool] = False,
-        with_rigid_body: Optional[bool] = False,
-        with_articulation_body: Optional[bool] = False,
-        parent: Optional[Asset] = None,
-        children: Optional[List[Asset]] = None,
-        **kwargs,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
     ):
         """
         Function for creating the mesh in case the creation of map was shallow.
@@ -1585,12 +1589,20 @@ class ProcgenGrid(Object3D):
 class ProcGenPrimsMaze3D(Asset):
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
-    def __init__(self, width: int, depth: int, name=None, wall_keep_prob=0.5, wall_material=None, **kwargs):
+    def __init__(
+        self,
+        width: int,
+        depth: int,
+        name: Optional[str] = None,
+        wall_keep_prob: float = 0.5,
+        wall_material: Optional[Material] = None,
+        **kwargs: Any,
+    ):
         self.width = width
         self.depth = depth
         self.wall_keep_prob = wall_keep_prob * 10
         if wall_material is None:
-            wall_material = Material(base_color=(0.8, 0.8, 0.8))
+            wall_material = Material(base_color=[0.8, 0.8, 0.8])
         self.wall_material = wall_material
         if name is not None:
             self.name = name

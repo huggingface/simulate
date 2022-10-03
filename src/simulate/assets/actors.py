@@ -15,9 +15,12 @@
 # Lint as: python3
 """ Some pre-built simple agents."""
 import itertools
-from typing import List, Optional, Union
+from typing import Any, List, Optional, Union
+
+import numpy as np
 
 from .actuator import ActionMapping, Actuator
+from .asset import Asset
 from .camera import Camera
 from .material import Material
 from .object import Capsule, Sphere
@@ -33,7 +36,6 @@ class SimpleActor(Sphere):
     - no attached Camera
 
     Args:
-        mass (`float`, Optional):
         name (`str`):
         position: length 3 list of the position of the agent, defaults to (0,0,0)
         rotation: length 3 list of the rotation of the agent, defaults to (0,0,0)
@@ -48,14 +50,14 @@ class SimpleActor(Sphere):
 
     def __init__(
         self,
-        name: str = None,
+        name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        transformation_matrix=None,
+        transformation_matrix: Optional[np.ndarray] = None,
         material: Optional[Material] = None,
-        parent=None,
-        children=None,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
         **kwargs,
     ):
 
@@ -91,7 +93,7 @@ class SimpleActor(Sphere):
         ]
         self.actuator = Actuator(n=3, mapping=mapping)
 
-    def copy(self, with_children=True, **kwargs) -> "SimpleActor":
+    def copy(self, with_children: bool = True, **kwargs: Any) -> "SimpleActor":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
 
         copy_name = self.name + f"_copy{self._n_copies}"
@@ -144,18 +146,18 @@ class EgocentricCameraActor(Capsule):
 
     def __init__(
         self,
-        mass: Optional[float] = 1.0,
-        name: str = None,
+        mass: float = 1.0,
+        name: Optional[str] = None,
         position: Optional[List[float]] = None,
         rotation: Optional[List[float]] = None,
         scaling: Optional[Union[float, List[float]]] = None,
-        camera_height: Optional[int] = 40,
-        camera_width: Optional[int] = 40,
+        camera_height: int = 40,
+        camera_width: int = 40,
         camera_name: Optional[str] = None,
-        transformation_matrix=None,
+        transformation_matrix: Optional[np.ndarray] = None,
         material: Optional[Material] = None,
-        parent=None,
-        children=None,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
         **kwargs,
     ):
         if position is None:
@@ -196,7 +198,7 @@ class EgocentricCameraActor(Capsule):
         ]
         self.actuator = Actuator(n=3, mapping=mapping)
 
-    def copy(self, with_children=True, **kwargs) -> "EgocentricCameraActor":
+    def copy(self, with_children: bool = True, **kwargs: Any) -> "EgocentricCameraActor":
         """Return a copy of the Asset. Parent and children are not attached to the copy."""
 
         copy_name = self.name + f"_copy{self._n_copies}"

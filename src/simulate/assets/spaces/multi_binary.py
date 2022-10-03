@@ -6,6 +6,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from typing import Any, List, Optional, Union
+
 import numpy as np
 
 from .space import Space
@@ -35,7 +37,7 @@ class MultiBinary(Space):
 
     """
 
-    def __init__(self, n, seed=None):
+    def __init__(self, n: int, seed: Optional[int] = None):
         self.n = n
         if type(n) in [tuple, list, np.ndarray]:
             input_n = n
@@ -43,24 +45,24 @@ class MultiBinary(Space):
             input_n = (n,)
         super(MultiBinary, self).__init__(input_n, np.int8, seed)
 
-    def sample(self):
+    def sample(self) -> Union[np.ndarray, List[np.ndarray]]:
         return self.np_random.randint(low=0, high=2, size=self.n, dtype=self.dtype)
 
-    def contains(self, x):
+    def contains(self, x: Any) -> bool:
         if isinstance(x, list) or isinstance(x, tuple):
             x = np.array(x)  # Promote list to array for contains check
         if self.shape != x.shape:
             return False
         return ((x == 0) | (x == 1)).all()
 
-    def to_jsonable(self, sample_n):
+    def to_jsonable(self, sample_n: List[Any]):
         return np.array(sample_n).tolist()
 
-    def from_jsonable(self, sample_n):
+    def from_jsonable(self, sample_n: List[Any]) -> List[Any]:
         return [np.asarray(sample) for sample in sample_n]
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "MultiBinary({})".format(self.n)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return isinstance(other, MultiBinary) and self.n == other.n

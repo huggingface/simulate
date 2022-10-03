@@ -6,6 +6,8 @@
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
 
+from typing import Any, List, Optional, Tuple, Type, Union
+
 import numpy as np
 
 from ...utils import logging
@@ -40,7 +42,7 @@ class MultiDiscrete(Space):
 
     """
 
-    def __init__(self, nvec, dtype=np.int64, seed=None):
+    def __init__(self, nvec: List[int], dtype: Union[Type, str] = np.int64, seed: Optional[int] = None):
         """
         nvec: vector of counts of each categorical variable
         """
@@ -49,26 +51,26 @@ class MultiDiscrete(Space):
 
         super(MultiDiscrete, self).__init__(self.nvec.shape, dtype, seed)
 
-    def sample(self):
+    def sample(self) -> Tuple[Any, ...]:
         return (self.np_random.random_sample(self.nvec.shape) * self.nvec).astype(self.dtype)
 
-    def contains(self, x):
+    def contains(self, x: Any) -> bool:
         if isinstance(x, list):
             x = np.array(x)  # Promote list to array for contains check
         # if nvec is uint32 and space dtype is uint32, then 0 <= x < self.nvec guarantees that x
         # is within correct bounds for space dtype (even though x does not have to be unsigned)
         return x.shape == self.shape and (0 <= x).all() and (x < self.nvec).all()
 
-    def to_jsonable(self, sample_n):
+    def to_jsonable(self, sample_n: np.ndarray) -> List[Any]:
         return [sample.tolist() for sample in sample_n]
 
-    def from_jsonable(self, sample_n):
+    def from_jsonable(self, sample_n: List[Any]) -> np.ndarray:
         return np.array(sample_n)
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "MultiDiscrete({})".format(self.nvec)
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: int) -> Union[Discrete, "MultiDiscrete"]:
         nvec = self.nvec[index]
         if nvec.ndim == 0:
             subspace = Discrete(nvec)
@@ -77,10 +79,10 @@ class MultiDiscrete(Space):
         subspace.np_random.set_state(self.np_random.get_state())  # for reproducibility
         return subspace
 
-    def __len__(self):
+    def __len__(self) -> int:
         if self.nvec.ndim >= 2:
             logger.warning("Get length of a multi-dimensional MultiDiscrete space.")
         return len(self.nvec)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return isinstance(other, MultiDiscrete) and np.all(self.nvec == other.nvec)

@@ -61,10 +61,10 @@ class PhysicMaterial(GltfExtensionMixin, gltf_extension_name="HF_physic_material
             class_id = next(self.__class__.__NEW_ID)
             self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{class_id:02d}")
 
-    def __hash__(self):
+    def __hash__(self) -> int:
         return id(self)
 
-    def copy(self):
+    def copy(self) -> "PhysicMaterial":
         copy_mat = copy.deepcopy(self)
         class_id = next(self.__class__.__NEW_ID)
         self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{class_id:02d}")

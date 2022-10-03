@@ -20,6 +20,6 @@ class AnimationSampler(BaseModel):
     extras (any) Application-specific data. (Optional)
     """
 
-    input: int = None
+    input: Optional[int] = None
     interpolation: Optional[str] = None
-    output: int = None
+    output: Optional[int] = None

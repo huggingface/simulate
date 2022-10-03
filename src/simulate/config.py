@@ -10,14 +10,22 @@ class Config(GltfExtensionMixin, gltf_extension_name="HF_config", object_type="s
     A scene simulation configuration object.
 
     Attributes:
-        time_step: The amount of time in seconds to simulate per frame. (Optional, default 0.02)
-        frame_skip: The number of frames to simulate per step(). (Optional, default 1)
-        return_nodes: Whether to return node data by default from step(). (Optional, default True)
-        return_frames: Whether to return camera rendering by default from step(). (Optional, default True)
-        node_filter: If not None, constrain returned nodes to only the provided node names. (Optional, default None)
-        camera_filter: If not None, constrain return camera renderings to only the provided camera names. (Optional, default None)
-        ambient_color: The color for the ambient lighting in the scene. (Optional, default Gray30)
-        gravity: The 3-dimensional vector to use for gravity. (Optional, default [0, -9.81, 0])
+        time_step: The amount of time in seconds to simulate per frame.
+            (Optional, default 0.02)
+        frame_skip: The number of frames to simulate per step().
+            (Optional, default 1)
+        return_nodes: Whether to return node data by default from step().
+            (Optional, default True)
+        return_frames: Whether to return camera rendering by default from step().
+            (Optional, default True)
+        node_filter: If not None, constrain returned nodes to only the provided node names.
+            (Optional, default None)
+        camera_filter: If not None, constrain return camera renderings to only the provided camera names.
+            (Optional, default None)
+        ambient_color: The color for the ambient lighting in the scene.
+            (Optional, default Gray30)
+        gravity: The 3-dimensional vector to use for gravity.
+            (Optional, default [0, -9.81, 0])
     """
 
     time_step: Optional[float] = None

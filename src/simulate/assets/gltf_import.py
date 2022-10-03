@@ -17,7 +17,7 @@
 import io
 import os
 import tempfile
-from typing import ByteString, List, Optional
+from typing import ByteString, List, Optional, Union
 
 import numpy as np
 import PIL.Image
@@ -143,7 +143,7 @@ def get_texture_as_pillow(gltf_scene: GLTF, texture_info: Optional[TextureInfo])
             resource.load()
         data = resource.data
 
-    image = PIL.Image.open(io.BytesIO(data))  # TODO checkk all this image stuff
+    image = PIL.Image.open(io.BytesIO(data))  # TODO check all this image stuff
 
     return image
 
@@ -166,7 +166,7 @@ def get_texture_as_pyvista(gltf_scene: GLTF, texture_info: Optional[TextureInfo]
             filename = gltf_image.mimeType.replace("/", ".")  # Will convert mimeType 'image/png' in 'image.png'
             filepath = os.path.join(tmpdirname, filename)
             with open(filepath, "wb") as file:
-                file.write(buffer_bytes)
+                file.write(bytearray(buffer_bytes))
             texture = pv.read_texture(filepath)
     else:
         resource = gltf_scene.get_resource(gltf_image.uri)
@@ -181,7 +181,10 @@ def get_texture_as_pyvista(gltf_scene: GLTF, texture_info: Optional[TextureInfo]
 
 # Build a tree of simulate nodes from a GLTF object
 def build_node_tree(
-    gltf_scene: GLTF, pyvista_meshes: pv.MultiBlock, gltf_node_id: int, parent: Optional[Asset] = None
+    gltf_scene: GLTF,
+    pyvista_meshes: Union[np.ndarray, pv.MultiBlock],
+    gltf_node_id: int,
+    parent: Optional["Asset"] = None,
 ) -> List:
     """Build the node tree of simulate objects from the GLTF scene"""
     gltf_model = gltf_scene.model
@@ -378,7 +381,7 @@ def load_gltf_as_tree(
     repo_id: Optional[str] = None,
     subfolder: Optional[str] = None,
     revision: Optional[str] = None,
-) -> List[Asset]:
+) -> Union[List[List], List["Asset"]]:
     """
     Loading function to create a tree of asset nodes from a GLTF file.
     Return a list of the main nodes in the GLTF files (often only one main node).

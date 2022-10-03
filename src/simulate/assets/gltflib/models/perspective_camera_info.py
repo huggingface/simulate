@@ -22,6 +22,6 @@ class PerspectiveCameraInfo(BaseModel):
     """
 
     aspectRatio: Optional[float] = None
-    yfov: float = None
+    yfov: Optional[float] = None
     zfar: Optional[float] = None
-    znear: float = None
+    znear: Optional[float] = None

@@ -16,7 +16,7 @@
 """ Store a python dataclass as a glTF extension."""
 import copy
 from dataclasses import field, fields, is_dataclass, make_dataclass
-from typing import TYPE_CHECKING, Any, List, Optional
+from typing import TYPE_CHECKING, Any, List, Optional, Union
 
 from dataclasses_json import DataClassJsonMixin, dataclass_json
 
@@ -59,7 +59,7 @@ class GltfExtensionMixin(DataClassJsonMixin):
                               object_type="node"):
     """
 
-    def __init_subclass__(cls, gltf_extension_name, object_type, **kwargs):
+    def __init_subclass__(cls, gltf_extension_name: str, object_type: str, **kwargs: Any):
         super().__init_subclass__(**kwargs)
         if not gltf_extension_name:
             raise ValueError("A glTF extension name must be provided.")
@@ -96,6 +96,8 @@ class GltfExtensionMixin(DataClassJsonMixin):
                     ],
                 )
             )
+        else:
+            gltf_extension_cls = None
 
         cls._gltf_extension_cls = gltf_extension_cls
 
@@ -178,6 +180,7 @@ class GltfExtensionMixin(DataClassJsonMixin):
         Args:
             gltf_node_extensions: The glTF node extensions dataclass_json.
             object_id: The index of the component in the glTF model extensions.
+            object_name: The name of the component in the glTF model extensions.
 
         Returns:
             The name of the glTF node extensions.
@@ -189,7 +192,7 @@ class GltfExtensionMixin(DataClassJsonMixin):
         return self._gltf_extension_name
 
 
-def _process_dataclass_after(obj_dataclass, node, object_name):
+def _process_dataclass_after(obj_dataclass, node: "Asset", object_name: Optional[str] = None):
     for f in fields(obj_dataclass):
         value = getattr(obj_dataclass, f.name)
         type_ = f.type
@@ -227,7 +230,7 @@ def _process_dataclass_after(obj_dataclass, node, object_name):
                         _process_dataclass_after(obj, node, object_name)
 
 
-def process_tree_after_gltf(node: "Asset"):
+def process_tree_after_gltf(node: Union["Asset", List]):
     """Set up the attributes of each component of the asset which refers to assets.
     Sometime components referred to assets by names (when loading from a glTF file)
     We convert them to references to the asset
@@ -244,7 +247,7 @@ def process_tree_after_gltf(node: "Asset"):
         process_tree_after_gltf(child)
 
 
-def _process_dataclass_before(obj_dataclass, node, object_name):
+def _process_dataclass_before(obj_dataclass, node: "Asset", object_name: Optional[str] = None):
     for f in fields(obj_dataclass):
         value = getattr(obj_dataclass, f.name)
         type_ = f.type

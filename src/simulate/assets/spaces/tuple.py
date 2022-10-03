@@ -5,6 +5,8 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+import typing
+from typing import Any, List, Optional, Union
 
 import numpy as np
 
@@ -19,13 +21,13 @@ class Tuple(Space):
     self.observation_space = spaces.Tuple((spaces.Discrete(2), spaces.Discrete(3)))
     """
 
-    def __init__(self, spaces, seed=None):
+    def __init__(self, spaces: typing.Tuple[Space, ...], seed: Optional[int] = None):
         self.spaces = spaces
         for space in spaces:
             assert isinstance(space, Space), "Elements of the tuple must be instances of gym.Space"
         super(Tuple, self).__init__(None, None, seed)
 
-    def seed(self, seed=None):
+    def seed(self, seed: Optional[int] = None) -> List[int]:
         seeds = []
 
         if isinstance(seed, list):
@@ -56,10 +58,10 @@ class Tuple(Space):
 
         return seeds
 
-    def sample(self):
+    def sample(self) -> typing.Tuple[Any, ...]:
         return tuple([space.sample() for space in self.spaces])
 
-    def contains(self, x):
+    def contains(self, x: Any) -> bool:
         if isinstance(x, list):
             x = tuple(x)  # Promote list to tuple for contains check
         return (
@@ -68,21 +70,21 @@ class Tuple(Space):
             and all(space.contains(part) for (space, part) in zip(self.spaces, x))
         )
 
-    def __repr__(self):
+    def __repr__(self) -> str:
         return "Tuple(" + ", ".join([str(s) for s in self.spaces]) + ")"
 
-    def to_jsonable(self, sample_n):
+    def to_jsonable(self, sample_n: List[Any]) -> List[Any]:
         # serialize as list-repr of tuple of vectors
         return [space.to_jsonable([sample[i] for sample in sample_n]) for i, space in enumerate(self.spaces)]
 
-    def from_jsonable(self, sample_n):
+    def from_jsonable(self, sample_n: List[Any]) -> List[Any]:
         return [sample for sample in zip(*[space.from_jsonable(sample_n[i]) for i, space in enumerate(self.spaces)])]
 
-    def __getitem__(self, index):
+    def __getitem__(self, index: Union[int, slice]) -> Union[Space, typing.Tuple[Space, ...]]:
         return self.spaces[index]
 
-    def __len__(self):
+    def __len__(self) -> int:
         return len(self.spaces)
 
-    def __eq__(self, other):
+    def __eq__(self, other: Any) -> bool:
         return isinstance(other, Tuple) and self.spaces == other.spaces

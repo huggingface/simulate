@@ -5,6 +5,7 @@
 # LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 # OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 # THE SOFTWARE.
+from typing import Any, Iterable, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
 from . import seeding
 
@@ -24,7 +25,12 @@ class Space(object):
     not handle custom spaces properly. Use custom spaces with care.
     """
 
-    def __init__(self, shape=None, dtype=None, seed=None):
+    def __init__(
+        self,
+        shape: Optional[Sequence[int]] = None,
+        dtype: Optional[Union[Type, str]] = None,
+        seed: Optional[int] = None,
+    ):
         import numpy as np  # takes about 300-400ms to import, so we load lazily
 
         self._shape = None if shape is None else tuple(shape)
@@ -44,31 +50,31 @@ class Space(object):
         return self._np_random
 
     @property
-    def shape(self):
+    def shape(self) -> Tuple[int, ...]:
         """Return the shape of the space as an immutable property"""
         return self._shape
 
-    def sample(self):
+    def sample(self) -> Any:
         """Randomly sample an element of this space. Can be
         uniform or non-uniform sampling based on boundedness of space."""
         raise NotImplementedError
 
-    def seed(self, seed=None):
+    def seed(self, seed: Optional[int] = None) -> List[int]:
         """Seed the PRNG of this space."""
         self._np_random, seed = seeding.np_random(seed)
         return [seed]
 
-    def contains(self, x):
+    def contains(self, x: Any) -> bool:
         """
         Return boolean specifying if x is a valid
         member of this space
         """
         raise NotImplementedError
 
-    def __contains__(self, x):
+    def __contains__(self, x: Any) -> bool:
         return self.contains(x)
 
-    def __setstate__(self, state):
+    def __setstate__(self, state: Union[Iterable, Mapping]):
         # Don't mutate the original state
         state = dict(state)
 
@@ -87,12 +93,12 @@ class Space(object):
         # Update our state
         self.__dict__.update(state)
 
-    def to_jsonable(self, sample_n):
+    def to_jsonable(self, sample_n: List[Any]) -> List[Any]:
         """Convert a batch of samples from this space to a JSONable data type."""
         # By default, assume identity is JSONable
         return sample_n
 
-    def from_jsonable(self, sample_n):
+    def from_jsonable(self, sample_n: List[Any]) -> List[Any]:
         """Convert a JSONable data type to a batch of samples from this space."""
         # By default, assume identity is JSONable
         return sample_n
