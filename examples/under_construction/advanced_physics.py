@@ -25,22 +25,24 @@ import simulate as sm
 
 
 def create_scene(build_exe=None, size=32):
-    # scene = sm.Scene(engine="Unity", engine_exe=build_exe)
-    scene = sm.Scene()
+    scene = sm.Scene(engine="Unity", engine_exe=build_exe)
+    # scene = sm.Scene()
     scene += sm.LightSun()
+    scene.config.ambient_color = [0.5, 0.5, 0.5]
 
-    sphere_asset = sm.Object3D.create_from("simulate-tests/advanced-physics/Sphere.gltf")
-    print(sphere_asset)
-    scene += sphere_asset
+    sphere_asset = sm.Object3D.create_from("simulate-tests/advanced-physics/Sphere.gltf", scaling=0.4)
 
-    """ image_fpath = hf_hub_download(repo_id="simulate-tests/advanced-physics", filename="logo.png", repo_type="space")
+    image_fpath = hf_hub_download(repo_id="simulate-tests/advanced-physics", filename="logo.png", repo_type="space")
     im = np.array(Image.open(image_fpath).resize((size, size))) / 255.0
     height, width = im.shape[:2]
     print("Creating spheres from image")
     for y in tqdm(range(height)):
         for x in range(width):
             if im[y, x, 3] > 0:
-                scene += sm.Sphere(position=[x, height - y, 0], radius=0.5) """
+                sphere = sphere_asset.copy()
+                sphere.position = [x, height - y, 0]
+                sphere.material = sm.Material(base_color=im[y, x, :3])
+                scene += sphere
 
     scene.show()
 
@@ -51,7 +53,7 @@ if __name__ == "__main__":
         "--build_exe", help="path to unity engine build executable", required=False, type=str, default=None
     )
     parser.add_argument("-n", "--n_frames", help="number of frames to simulate", required=False, type=int, default=30)
-    parser.add_argument("-s", "--size", help="square size of the logo", required=False, type=int, default=16)
+    parser.add_argument("-s", "--size", help="square size of the logo", required=False, type=int, default=48)
     args = parser.parse_args()
 
     scene = create_scene(build_exe=args.build_exe, size=args.size)
