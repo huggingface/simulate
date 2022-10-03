@@ -73,14 +73,16 @@ def get_state_sensor_n_properties(sensor: Union["StateSensor", "RaycastSensor"])
 class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_sensors", object_type="node"):
     """A State sensor: pointer to two assets whose positions/rotations are used to compute an observation
 
-    Attributes:
-        target_entity: Reference (or string name) of the target Asset in the scene
-        reference_entity: Reference (or string name) of the reference Asset in the scene
-            If no reference is provided we use the world as a reference
-        type: How should we compute the observation, selected in the list of:
+    Args:
+        target_entity: Reference (or string name) of the target Asset in the scene.
+        reference_entity: Reference (or string name) of the reference Asset in the scene,
+            If no reference is provided we use the world as a reference.
+        properties: How should we compute the observation, selected in the list of:
             - "position": the position of the target asset
             - "rotation": the rotation of the target asset
             - "distance": the distance to the target asset (default)
+        properties: TODO
+        sensor_tag (`str`): name of sensor in Simulate Tree.
     """
 
     target_entity: Optional[Any] = None
@@ -249,7 +251,19 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 @dataclass_json
 @dataclass
 class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_sensors", object_type="node"):
-    """A Raycast sensor: cast a ray to get an observation"""
+    """A Raycast sensor: cast a ray to get an observation. TODO expand this.
+
+    Args:
+        target_entity: Reference (or string name) of the target Asset in the scene.
+        reference_entity: Reference (or string name) of the reference Asset in the scene,
+            If no reference is provided we use the world as a reference.
+        properties: How should we compute the observation, selected in the list of:
+            - "position": the position of the target asset
+            - "rotation": the rotation of the target asset
+            - "distance": the distance to the target asset (default)
+        properties: TODO
+        sensor_tag (`str`): name of sensor in Simulate Tree.
+    """
 
     n_horizontal_rays: int = 1
     n_vertical_rays: int = 1
