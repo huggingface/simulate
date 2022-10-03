@@ -170,6 +170,24 @@ scene.show()
 
 You can find bridges to other rendering/simulation engines in the `integrations` directory.
 
+# Reinforcement Learning (RL) with Simulate
+
+Simulate is designed to provide easy and scalable integration with reinforcement learning algorithms.
+The core abstraction is through the [`RLEnv`] class that wraps a [`Scene`].
+The [`RLEnv`] allows an [`Actuator`] to be manipulated by an external agent or policy.
+
+It is core to the design of Simulate that we are *not creating* Agents, but rather providing an interface for applications of machine learning and embodied AI.
+The core API for RL applications can be seen below, where Simulate constrains the information that flows from the Scene to the external agent through an Actuator abstraction.
+
+<p align="center">
+    <br>
+    <img src="https://user-images.githubusercontent.com/10695622/192663853-a7543091-8d45-4fba-b8dc-2b632d66a35f.png" width="500"/>
+    <br>
+</p>
+
+At release, we include a set of pre-designed `Actor`'s that can act or navigate a scene. An `Actor` inherits from an `Object3D` and has sensors, actuators, and action mappings.
+
+
 ### Tips
 
 If you are running on GCP, remember to not install `pyvistaqt`, and if you did so, uninstall it in your environment, since QT doesn't work well on GCP.

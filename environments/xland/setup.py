@@ -82,7 +82,7 @@ setup(
     author="HuggingFace Inc.",
     author_email="alicia@huggingface.co",
     license="Apache 2.0",
-    version="0.0.0.1",
+    version="0.0.0.1.dev0",
     package_dir={"": "src"},
     packages=find_packages("src"),
     install_requires=REQUIRED_PKGS,
