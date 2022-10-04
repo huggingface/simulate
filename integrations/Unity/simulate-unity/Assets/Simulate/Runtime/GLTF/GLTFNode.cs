@@ -25,7 +25,6 @@ namespace Simulate.GLTF {
             public bool? is_actor;
         }
 
-
         public bool ShouldSerializematrix() { return matrix != Matrix4x4.identity; }
         public bool ShouldSerializetranslation() { return translation != Vector3.zero; }
         public bool ShouldSerializerotation() { return rotation != Quaternion.identity; }
@@ -127,7 +126,7 @@ namespace Simulate.GLTF {
                 }
 
                 // Set position, rotation, scale
-                for (int i = 0; i < result.Length; i++)
+                for(int i = 0; i < result.Length; i++)
                     nodes[i].ApplyMatrix(result[i].transform);
 
                 // Now we add the more complex properties to the nodes (Mesh, Lights, Colliders, Cameras, Actor, etc)

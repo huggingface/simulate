@@ -22,7 +22,7 @@ import numpy as np
 import simulate as sm
 
 
-def create_scene(build_exe=None):
+def create_scene(build_exe):
     # Create a scene with Unity engine backend
     scene = sm.Scene(engine="Unity", engine_exe=build_exe)
     scene += sm.LightSun()
@@ -53,7 +53,7 @@ def create_scene(build_exe=None):
     return scene
 
 
-def simulate(scene, n_frames=30):
+def simulate(scene, n_frames):
     plt.ion()
     _, (ax1, ax2) = plt.subplots(1, 2)
     heights = []

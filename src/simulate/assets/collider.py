@@ -114,10 +114,8 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
         if self.type not in ALLOWED_COLLIDER_TYPES:
             raise ValueError(f"Collider type {self.type} is not supported.")
 
-        # if self.bounding_box is None and self.mesh is None:
-        #     raise ValueError(
-        #         "You should provide either a bounding box (for box, sphere and capsule colliders) or a mesh"
-        #     )
+        if self.bounding_box is None and self.mesh is None:
+            self.bounding_box = [1, 1, 1]
 
         if self.bounding_box is not None and len(self.bounding_box) != 3:
             raise ValueError("Collider bounding_box must be a list of 3 numbers")
