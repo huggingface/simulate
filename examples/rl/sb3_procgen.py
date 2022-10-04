@@ -39,8 +39,8 @@ from simulate.assets.sensors import RaycastSensor, StateSensor
 
 def generate_map(index):
 
-    maze_width = 3
-    maze_depth = 3
+    maze_width = 6
+    maze_depth = 6
     n_objects = 1
     maze = ProcGenPrimsMaze3D(maze_width, maze_depth, wall_material=sm.Material.YELLOW)
     maze += sm.Box(
