@@ -9,7 +9,7 @@ from .gltf_extension import GltfExtensionMixin
 
 
 ALLOWED_REWARD_TYPES = ["dense", "sparse", "or", "and", "not", "see", "timeout", "angle_to"]
-ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean"]  # TODO: other metrics?
+ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean", "best_euclidean", "cosine"]  # TODO: other metrics?
 
 
 @dataclass
