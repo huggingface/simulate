@@ -14,13 +14,14 @@
 
 # Lint as: python3
 
+import argparse
+import itertools
+import random
 from turtle import left, right
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
-import argparse
-import random
-import numpy as np
+
 import matplotlib.pyplot as plt
-import itertools
+import numpy as np
 
 from simulate import logging
 
@@ -58,28 +59,24 @@ class TakeCoverEnv(sm.RLEnv):
             n_show=n_show,
             time_step=time_step,
             frame_skip=frame_skip,
-            **engine_kwargs
+            **engine_kwargs,
         )
         self.action_tags = ["actor_action", "projectile_action_0", "projectile_action_1", "projectile_action_2"]
 
         self.projectile_nodes = ["projectile_0_0", "projectile_1_0", "projectile_2_0"]
         self.projectile_actions = ["projectile_action_0", "projectile_action_1", "projectile_action_2"]
 
-        self.projectile_position_control_indices = np.arange(2,9)
+        self.projectile_position_control_indices = np.arange(2, 9)
 
     def check_projectile_wall_collision(self, event):
         needs_reset = False
-        nodes = event['nodes']
+        nodes = event["nodes"]
         action_dict = {}
         random_positions = list(np.random.choice(self.projectile_position_control_indices, 3, replace=False))
         for i, projectile in enumerate(self.projectile_nodes):
-            if nodes[projectile]['position'][-1] <= -4.8:
+            if nodes[projectile]["position"][-1] <= -4.8:
                 needs_reset = True
-                action_dict[self.projectile_actions[i]] = [
-                    [
-                        [int(random_positions[i])]
-                    ]
-                ]
+                action_dict[self.projectile_actions[i]] = [[[int(random_positions[i])]]]
 
         return needs_reset, action_dict
 
@@ -99,15 +96,14 @@ class TakeCoverEnv(sm.RLEnv):
         obs["actor_0_camera"] = obs["actor_0_camera"][0:1]
         return obs
 
-
     def step(self, action: Union[Dict, List, np.ndarray]) -> Tuple[Dict, np.ndarray, np.ndarray, List[Dict]]:
         action_dict = {
-                "actor_action":[
-                    [
-                        [int(action[0])],
-                    ],
+            "actor_action": [
+                [
+                    [int(action[0])],
                 ],
-            }
+            ],
+        }
 
         for projectile in self.projectile_actions:
             action_dict[projectile] = [
@@ -128,9 +124,7 @@ class TakeCoverEnv(sm.RLEnv):
         needs_reset, projectile_reset_action_dict = self.check_projectile_wall_collision(event)
 
         if needs_reset:
-            self.step_send_async(
-                projectile_reset_action_dict
-            )
+            self.step_send_async(projectile_reset_action_dict)
             self.scene.engine.step_recv_async()
 
         return obs, reward, done, [{}]
@@ -139,11 +133,11 @@ class TakeCoverEnv(sm.RLEnv):
 def create_target_projectiles(index: int, num_projectiles: int = 3):
     projectiles = []
     for i in range(num_projectiles):
-        target_position = [0.5*i + 0.1, 0.2, 4.0]
+        target_position = [0.5 * i + 0.1, 0.2, 4.0]
         projectile = sm.Box(
             name=f"projectile_{i}_{index}",
             position=target_position,
-            bounds = (-0.1, 0.1, 0.1, 0.3, -0.1, 0.1),
+            bounds=(-0.1, 0.1, 0.1, 0.3, -0.1, 0.1),
             material=sm.Material.RED,
             is_actor=True,
             physics_component=sm.RigidBodyComponent(mass=0),
@@ -152,10 +146,8 @@ def create_target_projectiles(index: int, num_projectiles: int = 3):
         projectile.physics_component.constraints = ["freeze_rotation_x", "freeze_rotation_z", "freeze_rotation_y"]
         mapping = [
             sm.ActionMapping("do_nothing"),
-
             # acceleration
             sm.ActionMapping("change_position", axis=[0, 0, -1], amplitude=0.15),
-
             # set positions
             sm.ActionMapping("set_position", position=[-3.0, 0.2, 4.0], use_local_coordinates=False),
             sm.ActionMapping("set_position", position=[-2.0, 0.2, 4.0], use_local_coordinates=False),
@@ -174,15 +166,20 @@ def generate_map(index):
     root = sm.Asset(name=f"root_{index}")
 
     floor = sm.Box(name=f"floor_{index}", position=[0, 0, 0], bounds=[-5, 5, 0, 0.1, -5, 5], material=sm.Material.BLUE)
-    right_wall = sm.Box(name=f"wall1_{index}", position=[-3.1, 0, 0], bounds=[0, 0.1, 0, 1, -5, 5], material=sm.Material.WHITE)
-    left_wall = sm.Box(name=f"wall2_{index}", position=[3.1, 0, 0], bounds=[0, 0.1, 0, 1, -5, 5], material=sm.Material.WHITE)
-    close_wall = sm.Box(name=f"wall4_{index}", position=[0, 0, -5], bounds=[-5, 5, 0, 1, 0, 0.1], material=sm.Material.WHITE)
+    right_wall = sm.Box(
+        name=f"wall1_{index}", position=[-3.1, 0, 0], bounds=[0, 0.1, 0, 1, -5, 5], material=sm.Material.WHITE
+    )
+    left_wall = sm.Box(
+        name=f"wall2_{index}", position=[3.1, 0, 0], bounds=[0, 0.1, 0, 1, -5, 5], material=sm.Material.WHITE
+    )
+    close_wall = sm.Box(
+        name=f"wall4_{index}", position=[0, 0, -5], bounds=[-5, 5, 0, 1, 0, 0.1], material=sm.Material.WHITE
+    )
 
     root += floor
     root += right_wall
     root += left_wall
     root += close_wall
-
 
     actor = sm.EgocentricCameraActor(
         name=f"actor_{index}",
@@ -191,7 +188,12 @@ def generate_map(index):
     )
 
     actor.physics_component.mass = 0.0
-    actor.physics_component.constraints = ["freeze_rotation_x", "freeze_rotation_z", "freeze_position_y", "freeze_position_z"]
+    actor.physics_component.constraints = [
+        "freeze_rotation_x",
+        "freeze_rotation_z",
+        "freeze_position_y",
+        "freeze_position_z",
+    ]
 
     mapping = [
         sm.ActionMapping("change_position", axis=[-1, 0, 0], amplitude=0.1),
@@ -204,7 +206,9 @@ def generate_map(index):
 
     # add target terminals, if the agent gets hit by any of the projectiles, the episode should end
     for projectile in projectiles:
-        actor += sm.RewardFunction(type="sparse", entity_a=projectile, entity_b=actor, scalar=-100.0, threshold=0.5, is_terminal=True)
+        actor += sm.RewardFunction(
+            type="sparse", entity_a=projectile, entity_b=actor, scalar=-100.0, threshold=0.5, is_terminal=True
+        )
 
     actor += sm.RewardFunction("timeout", scalar=1.0, threshold=200, is_terminal=True)
     root += actor
@@ -234,7 +238,7 @@ if __name__ == "__main__":
     for i in range(4000):
         action, _ = model.predict(obs)
         obs, rewards, dones, info = env.step(action)
-        frame = np.flip(np.array(obs['actor_0_camera'][0], dtype=np.uint8).transpose(1, 2, 0), axis=0).astype(np.uint8)
+        frame = np.flip(np.array(obs["actor_0_camera"][0], dtype=np.uint8).transpose(1, 2, 0), axis=0).astype(np.uint8)
         ax1.clear()
         ax1.imshow(frame)
         plt.pause(0.1)
