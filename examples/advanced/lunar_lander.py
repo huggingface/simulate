@@ -94,7 +94,7 @@ def make_lander(engine="unity", engine_exe=""):
     sc = sm.Scene(engine=engine, engine_exe=engine_exe)
 
     # initial lander position sampling
-    lander_init_pos = (10, 10, 0) + np.random.uniform(2, 4, 3)
+    lander_init_pos = (10, 15, 0) + np.random.uniform(2, 4, 3)
     lander_init_pos[2] = 0.0  # z axis is always 0, for 2D
 
     lander_material = sm.Material(base_color=LANDER_COLOR)
@@ -133,7 +133,23 @@ def make_lander(engine="unity", engine_exe=""):
         material=sm.Material.TRANSPARENT,
         rotation=[0, 0, 90],
         with_collider=True,
-        name="lander_collider_box",
+        name="lander_collider_box_bottom",
+    )
+    lander += sm.Box(
+        position=[-.6, 0, -0.5],
+        bounds=[0.1, 26/SCALE, 1],
+        material=sm.Material.TRANSPARENT,
+        rotation=[0, 0, -15],
+        with_collider=True,
+        name="lander_collider_box_right",
+    )
+    lander += sm.Box(
+        position=[0.6, 0, -0.5],
+        bounds=[0.1, 26/SCALE, 1],
+        material=sm.Material.TRANSPARENT,
+        rotation=[0, 0, 15],
+        with_collider=True,
+        name="lander_collider_box_left",
     )
 
     # add legs as children objects (they take positions as local coordinates!)
@@ -220,7 +236,7 @@ if __name__ == "__main__":
     sc = make_lander(engine="unity", engine_exe=args.build_exe)
     sc += sm.LightSun()
 
-    env = sm.RLEnv(sc)
+    env = sm.RLEnv(sc, frame_skip=1)
     env.reset()
 
     for i in range(500):
