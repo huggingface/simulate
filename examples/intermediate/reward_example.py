@@ -19,15 +19,24 @@ import numpy as np
 
 import simulate as sm
 
+
 if __name__ == "__main__":
     scene = sm.Scene(engine="unity")
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
     scene += sm.Box(
-        name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material.BLUE, with_collider=True
+        name="floor",
+        position=[0, 0, 0],
+        bounds=[-50, 50, 0, 0.1, -50, 50],
+        material=sm.Material.BLUE,
+        with_collider=True,
     )
     scene += sm.Box(
-        name="wall1", position=[-10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.RED, with_collider=True
+        name="wall1",
+        position=[-10, 0, 0],
+        bounds=[0, 0.1, 0, 1, -10, 10],
+        material=sm.Material.RED,
+        with_collider=True,
     )
     scene += sm.Box(
         name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.RED, with_collider=True
@@ -36,7 +45,11 @@ if __name__ == "__main__":
         name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.RED, with_collider=True
     )
     scene += sm.Box(
-        name="wall4", position=[0, 0, -10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.RED, with_collider=True
+        name="wall4",
+        position=[0, 0, -10],
+        bounds=[-10, 10, 0, 1, 0, 0.1],
+        material=sm.Material.RED,
+        with_collider=True,
     )
 
     material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
@@ -72,7 +85,6 @@ if __name__ == "__main__":
     target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
     scene += target
 
-
     and_reward = sm.RewardFunction(type="and")
     and_child1 = sm.RewardFunction(type="sparse", entity_a=target, entity_b=actor)
     and_child2 = sm.RewardFunction(type="sparse", entity_a=target, entity_b=target)
@@ -102,7 +114,6 @@ if __name__ == "__main__":
     fig1, ax1 = plt.subplots()
     dummy_obs = np.zeros(shape=(actor.camera.height, actor.camera.width, 3), dtype=np.uint8)
     axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
-
 
     for i in range(1000):
         obs, reward, done, info = env.step(env.sample_action())

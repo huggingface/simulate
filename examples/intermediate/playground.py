@@ -22,8 +22,10 @@ import numpy as np
 
 import simulate as sm
 
+
 # This example showcases how to build a small world, add objects, and add actors to interact with the world.
 # The actor must find a randomly colored box labelled `target`.
+
 
 def make_scene(build_exe):
     scene = sm.Scene(engine="unity", engine_exe=build_exe)
@@ -47,18 +49,10 @@ def make_scene(build_exe):
         with_collider=True,
     )
     scene += sm.Box(
-        name="wall2",
-        position=[10, 0, 0],
-        bounds=[0, 0.1, 0, 1, -10, 10],
-        material=sm.Material.RED,
-        with_collider=True
+        name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.RED, with_collider=True
     )
     scene += sm.Box(
-        name="wall3",
-        position=[0, 0, 10],
-        bounds=[-10, 10, 0, 1, 0, 0.1],
-        material=sm.Material.RED,
-        with_collider=True
+        name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.RED, with_collider=True
     )
     scene += sm.Box(
         name="wall4",
@@ -67,7 +61,6 @@ def make_scene(build_exe):
         material=sm.Material.RED,
         with_collider=True,
     )
-
 
     # add a camera to the scene to observe the activity
     scene += sm.Camera(sensor_tag="SecurityCamera", position=[0, 32, 0], rotation=[90, 0, 0])
@@ -95,7 +88,9 @@ def make_scene(build_exe):
     scene += target
 
     # create a randomly colored cube to distract the actor
-    random_material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
+    random_material = sm.Material(
+        base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)]
+    )
     scene += sm.Box(
         name=f"cube_random",
         position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)],

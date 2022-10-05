@@ -22,7 +22,6 @@ import numpy as np
 import simulate as sm
 
 
-
 # CONSTANTS From source
 # TODO implement scaling
 SCALE = 30.0  # affects how fast-paced the game is, forces should be adjusted as well

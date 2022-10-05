@@ -18,13 +18,14 @@ import numpy as np
 
 import simulate as sm
 
+
 # This example shows how we can create procgen grids from numpy arrays
 
 if __name__ == "__main__":
     print("First scene")
     scene = sm.Scene()
 
-    # Create mesh eight map (this could easily be generated with wave function collapse, but is not used in this example for simplicity)
+    # Create mesh height map (this could easily be generated with wave function collapse, but is not used in this example for simplicity)
     specific_map = (
         np.array(
             [
