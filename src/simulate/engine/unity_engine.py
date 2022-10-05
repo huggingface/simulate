@@ -119,7 +119,7 @@ class UnityEngine(Engine):
         raise RuntimeError("Could not find a free port")
 
     def _initialize_server(self, engine_exe: str, engine_host: str, engine_port: int, engine_headless: bool):
-        """Initialize the locak server and launch the Unity executable and
+        """Initialize the local server and launch the Unity executable and
         connect to it.
         """
         # Initializing on our side
@@ -144,13 +144,13 @@ class UnityEngine(Engine):
 
         # Starting the Unity executable
         logger.info(f"Starting Unity executable {engine_exe}...")
-        if engine_exe:
+        if engine_exe is None or "debug":
+            pass  # We run with the editor
+        elif engine_exe:
             self._launch_executable(executable=engine_exe, port=str(engine_port), headless=engine_headless)
         elif engine_exe == "":
             engine_exe = self._get_unity_from_hub()
             self._launch_executable(executable=engine_exe, port=str(engine_port), headless=engine_headless)
-        elif engine_exe is None:
-            pass  # We run with the editor
         else:
             raise ValueError("engine_exe must be a string, None or empty")
 

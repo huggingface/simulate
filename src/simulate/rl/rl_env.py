@@ -68,7 +68,7 @@ class RLEnv(VecEnv):
                 return_frames=False,
                 return_nodes=False,
             )
-            self.scene = Scene(engine="Unity", config=scene_config, **engine_kwargs)
+            self.scene = Scene(engine="unity", config=scene_config, **engine_kwargs)
             self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
             self.map_roots = []
             for i in range(n_maps):

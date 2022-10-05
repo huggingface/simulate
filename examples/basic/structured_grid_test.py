@@ -19,18 +19,21 @@ import numpy as np
 import simulate as sm
 
 
+# This example tests the StructuredGrid object in Simulate
 if __name__ == "__main__":
-    scene = sm.Scene(engine="Unity")
+    scene = sm.Scene(engine="unity")
 
-    # Create mesh
-
+    # Create mesh data
     x = np.arange(-5, 5, 0.25)
     z = np.arange(-5, 5, 0.25)
     x, z = np.meshgrid(x, z)
     r = np.sqrt(x**2 + z**2)
     y = np.sin(r)
 
+    # convert the array to a 3d object
     scene += sm.StructuredGrid(x, y, z)
+
+    # add a lightsun for rendering
     scene += sm.LightSun()
     scene += sm.Camera(position=[0, 5, -15], rotation=[0, 1, 0, 0])
     scene.show()

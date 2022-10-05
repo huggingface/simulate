@@ -18,7 +18,7 @@ You can also copy the simulate-godot folder to a different place and load it fro
 ```
 import simulate as sm
 
-scene = sm.Scene(engine="Godot")
+scene = sm.Scene(engine="godot")
 scene += sm.Sphere()
 scene.render()
 ```

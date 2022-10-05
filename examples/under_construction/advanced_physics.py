@@ -24,8 +24,8 @@ from tqdm import tqdm
 import simulate as sm
 
 
-def create_scene(build_exe=None, size=32):
-    # scene = sm.Scene(engine="Unity", engine_exe=build_exe)
+def create_scene(build_exe="", size=32):
+    # scene = sm.Scene(engine="unity", engine_exe=build_exe)
     scene = sm.Scene()
     scene += sm.LightSun()
 
@@ -48,7 +48,7 @@ def create_scene(build_exe=None, size=32):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument(
-        "--build_exe", help="path to unity engine build executable", required=False, type=str, default=None
+        "--build_exe", help="path to unity engine build executable", required=False, type=str, default=""
     )
     parser.add_argument("-n", "--n_frames", help="number of frames to simulate", required=False, type=int, default=30)
     parser.add_argument("-s", "--size", help="square size of the logo", required=False, type=int, default=16)

@@ -10,11 +10,11 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 -->
 
-# Basic examples using 🤗 Simulate
+# Basic examples in Simulate
 
-We provide several basic, intermediate, advanced and rl-based examples for the Simulate library.
-The basic examples include:
-* Creating a scene, saving and loading in a custom GLTF format - examples/basic/create_and_save.py TODO LINK
-* An demostrated of all primitive objects available in the Simulate Library - examples/basic/objects.py TODO LINK
-* Adding custom sensors and running a simple physics simulation - examples/basic/simple_physics.py TODO LINK
-* Creating terrain maps using a Simulate StructuredGrid - examples/basic/structure_grid_test.py TODO LINK
+These examples are intended to showcase the basic usage of Simulate: creating a scene, adding objects, and observing physics.
+
+* [`create_and_save.py`](https://github.com/huggingface/simulate/examples/basic/create_and_save.py): This example showcases basic scene assembly and saving as a gltf.
+* [`objects.py`](https://github.com/huggingface/simulate/examples/basic/objects.py): This examples showcases the different objects we have in HuggingFace Simulate.
+* [`simple_physics.py`](https://github.com/huggingface/simulate/examples/basic/simple_physics.py): This example showcases a basic falling object physics experiment with sensors.
+* [`structured_grid_test.py`](https://github.com/huggingface/simulate/examples/basic/structured_grid_test.py): This example tests the StructuredGrid object in Simulate

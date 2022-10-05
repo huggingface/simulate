@@ -23,10 +23,17 @@ import numpy as np
 import simulate as sm
 
 
-def make_scene(build_exe, camera_width, camera_height):
+# This example showcases how to build a small world, add objects, and add actors to interact with the world.
+# The actor must find a randomly colored box labelled `target`.
+
+
+def make_scene(build_exe):
     scene = sm.Scene(engine="unity", engine_exe=build_exe)
+
+    # add light to our scene
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
+    # create the walls of the agent's world
     scene += sm.Box(
         name="floor",
         position=[0, 0, 0],
@@ -55,26 +62,22 @@ def make_scene(build_exe, camera_width, camera_height):
         with_collider=True,
     )
 
-    material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
-    for i in range(1):
-        scene += sm.Box(
-            name=f"cube{i}",
-            position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)],
-            material=material,
-            with_collider=True,
-        )
-
+    # add a camera to the scene to observe the activity
     scene += sm.Camera(sensor_tag="SecurityCamera", position=[0, 32, 0], rotation=[90, 0, 0])
 
-    # Let"s add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
+    # Let's add a default actor in the scene, a capsule mesh with associated actions and a camera as observation device
+    # You can create an actor by adding an actuator to an object with physics enabled.
     actor = sm.EgocentricCameraActor(
         name="actor", position=[0.0, 0.5, 0.0], camera_tag="CameraSensor"
-    )  # Has a collider
+    )  # Has a collider by default
 
     scene += actor
+
+    # add sensors to the actor, so it can understand its position
     actor += sm.StateSensor(target_entity=actor, reference_entity=scene.floor, properties="position")
     actor += sm.RaycastSensor(n_horizontal_rays=12, n_vertical_rays=4, horizontal_fov=120, vertical_fov=45)
-    # # Let's add a target and a reward function
+
+    # add a target of a differently colored cube and a reward function
     material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
     target = sm.Box(
         name="cube",
@@ -84,7 +87,21 @@ def make_scene(build_exe, camera_width, camera_height):
     )
     scene += target
 
-    reward = sm.RewardFunction(type="not")  # By default a dense reward equal to the distance between 2 entities
+    # create a randomly colored cube to distract the actor
+    random_material = sm.Material(
+        base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)]
+    )
+    scene += sm.Box(
+        name=f"cube_random",
+        position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)],
+        material=random_material,
+        with_collider=True,
+    )
+
+    # create a reward function for finding the target cube
+    # by default a reward is dense and equal to the distance between 2 entities
+    # adding the `not` reward to the distance is like creating a cost between the objects
+    reward = sm.RewardFunction(type="not")
     reward += sm.RewardFunction(entity_a=target, entity_b=actor)
     actor += reward
     return scene
@@ -97,11 +114,16 @@ if __name__ == "__main__":
 
     camera_width = 40
     camera_height = 40
-    scene = make_scene(args.build_exe, camera_width, camera_height)
+    scene = make_scene(args.build_exe)
+
+    # examine the scene we built
     print(scene)
     scene.save("test.gltf")
 
+    # we must wrap our scene with an RLEnv if we want to take actions
     env = sm.RLEnv(scene)
+
+    # reset prepares the environment for stepping
     env.reset()
 
     plt.ion()
@@ -114,6 +136,7 @@ if __name__ == "__main__":
     dummy_obs2 = np.zeros(shape=(256, 256, 3), dtype=np.uint8)
     axim2 = ax2.imshow(dummy_obs2, vmin=0, vmax=255)
 
+    # act!
     for i in range(100):
         action = [env.action_space.sample()]
         obs, reward, done, info = env.step(action=action)

@@ -23,6 +23,13 @@ If you're already familiar with these, feel free to check out the [quickstart](.
 The examples only cover the basic skills you need to use 🤗 Simulate. There are many other useful functionalities and applications that aren't discussed here. You can find more here TODO
 </Tip>
 
+To make it easy to run the examples, most of them will download an engine build from the hub.
+You can change this in many examples by specifying a `build_exe` at runtime, e.g. if you are adding a new backend feature!
+Here are the three cases for `build_exe` at runtime:
+1. (default) `--build_exe=""`: download appropriate executable from the hub and run. This will cache a version for you to re-run!
+2. `--build_exe=/local/path/`: run a local development version of an executable.
+3. `--build_exe=debug`: run the example in the engine editor (requires installation). This can also be triggered when `build_exe` is set to `None` in the example.
+
 If you have any questions about 🤗 Simulate, feel free to join and ask the community on our [forum](https://discuss.huggingface.co/c/simulate/10).
 
 ## Advanced Usage

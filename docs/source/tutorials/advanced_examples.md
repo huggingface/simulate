@@ -10,6 +10,10 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 -->
 
-# Using Simulate for ...
+# Advanced examples in Simulate
 
-Under construction 🚧.
+These examples showcase complete products of Simulate: challenging and visually appealing examples.
+
+* [`cartpole.py`](https://github.com/huggingface/simulate/examples/advanced/cartpole.py): reimplements the famous cartpole example, with parallel execution and rendering.
+* [`lunarlander.py`](https://github.com/huggingface/simulate/examples/advanced/lunarlander.py): reimplements the famous lunar lander reinforcement learning environment.
+* [`mountaincar.py`](https://github.com/huggingface/simulate/examples/advanced/mountaincar.py): adds an impressive recreation of the mountain car Gym environment.
