@@ -10,7 +10,7 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 -->
 
-# Using Simulate to learn Agent behaviors with Stable-Baselines3
+# Using 🤗 Simulate to learn Agent behaviors with Stable-Baselines3
 
 
 We provide several example RL integrations with the Stable-Baselines3 (LINK) library. To install this dependancy use `pip install simulate[sb3]`.
