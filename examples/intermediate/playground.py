@@ -68,7 +68,7 @@ def make_scene(build_exe, camera_width, camera_height):
 
     # Let"s add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
     actor = sm.EgocentricCameraActor(
-        name="actor", position=[0.0, 0.5, 0.0], camera_name="CameraSensor"
+        name="actor", position=[0.0, 0.5, 0.0], camera_tag="CameraSensor"
     )  # Has a collider
 
     scene += actor
