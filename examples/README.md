@@ -4,14 +4,15 @@ The examples are organized by level of complexity or application.
 Currently, Simulate has the following examples running:
 
 ### Basic
-* `create_and_save.py`: This example showcases basic scene assembly and saving as a gltf.
-* `objects.py`: This examples showcases the different objects we have in HuggingFace Simulate.
-* `simple_physics.py`: This example showcases a basic falling object physics experiment.
-* `structured_grid_test.py`: This example tests the StructuredGrid object in Simulate
+* `create_and_save.py`: showcases basic scene assembly and saving as a gltf.
+* `objects.py`: showcases the different objects we have in HuggingFace Simulate.
+* `simple_physics.py`: showcases a basic falling object physics experiment.
+* `structured_grid_test.py`: tests the StructuredGrid object in Simulate.
 
 ### Intermediate
 * `playground.py`:
 * `procgren_grid.py`:
+* `reward_example`:
 * `tmaze.py`:
 
 ### Advanced
