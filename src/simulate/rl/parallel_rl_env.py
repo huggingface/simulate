@@ -13,34 +13,71 @@
 # limitations under the License.
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
+import gym
 import numpy as np
+
+
+try:
+    from stable_baselines3.common.vec_env.base_vec_env import VecEnv, VecEnvIndices, VecEnvStepReturn
+except ImportError:
+
+    class VecEnv:
+        pass  # Dummy class if SB3 is not installed
+
+    class VecEnvIndices:
+        pass  # Dummy class if SB3 is not installed
+
+    class VecEnvStepReturn:
+        pass  # Dummy class if SB3 is not installed
+
 
 import simulate as sm
 
 # Lint as: python3
 from simulate.scene import Scene
 
-class RLEnv:
-    """
-    The basic RL environment wrapper for Simulate scene.
 
+class ParallelRLEnv(VecEnv):
+    """
+    RL environment wrapper for Simulate scene. Uses functionality from the VecEnv in stable baselines 3
+    For more information on VecEnv, see the source
+    https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
 
     Args:
-        scene: a Simulate Scene.
+        scene_or_map_fn: a Simulate Scene or a generator function for generating instances of the desired environment.
+        n_maps: the number of map instances to create, default 1.
+        n_show: optionally show a subset of the maps during training and dequeue a new map at the end of each episode.
         time_step: the physics timestep of the environment.
         frame_skip: the number of times an action is repeated in the backend simulation before the next observation is returned.
     """
 
     def __init__(
         self,
-        scene: Scene,
+        scene_or_map_fn: Union[Callable, Scene],
+        n_maps: Optional[int] = 1,
+        n_show: Optional[int] = 1,
         time_step: Optional[float] = 1 / 30.0,
         frame_skip: Optional[int] = 4,
         **engine_kwargs,
     ):
 
-        self.scene = scene
-        self.map_roots = [self.scene]
+        if hasattr(scene_or_map_fn, "__call__"):
+            scene_config = sm.Config(
+                time_step=time_step,
+                frame_skip=frame_skip,
+                return_frames=False,
+                return_nodes=False,
+            )
+            self.scene = Scene(engine="unity", config=scene_config, **engine_kwargs)
+            self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+            self.map_roots = []
+            for i in range(n_maps):
+                map_root = scene_or_map_fn(i)
+                self.scene += map_root
+                self.map_roots.append(map_root)
+        else:
+            self.scene = scene_or_map_fn
+            self.map_roots = [self.scene]
 
         self.actors = {actor.name: actor for actor in self.scene.actors}
         self.n_actors = len(self.actors)
@@ -48,6 +85,9 @@ class RLEnv:
             raise ValueError(
                 "No actors found in scene. At least one of your Assets should have the is_actor=True property."
             )
+        self.n_maps = n_maps
+        self.n_show = n_show
+        self.n_actors_per_map = self.n_actors // self.n_maps
 
         self.actor = next(iter(self.actors.values()))
 
@@ -67,7 +107,7 @@ class RLEnv:
         maps = [root.name for root in self.map_roots]
         self.scene.show(
             maps=maps,
-            n_show=1,
+            n_show=n_show,
         )
 
     def step(self, action: Union[Dict, List, np.ndarray]) -> Tuple[Dict, np.ndarray, np.ndarray, List[Dict]]:
@@ -192,3 +232,34 @@ class RLEnv:
         else:
             action = [self.action_space.sample() for _ in range(self.n_show)]
         return np.array(action)
+
+    def env_is_wrapped(self, wrapper_class: Type[gym.Wrapper], indices: Optional[VecEnvIndices] = None) -> List[bool]:
+        return [False] * self.n_agents * self.n_parallel
+
+    # required abstract methods
+
+    def step_async(self, actions: np.ndarray) -> None:
+        raise NotImplementedError()
+
+    def get_attr(self, attr_name: str, indices: VecEnvIndices = None) -> List[Any]:
+        raise NotImplementedError()
+
+    def env_method(self, method_name: str, *method_args, indices: VecEnvIndices = None, **method_kwargs) -> List[Any]:
+        raise NotImplementedError()
+
+    def seed(self, seed: Optional[int] = None):  # -> List[Union[None, int]]:
+        # this should be done when the env is initialized
+        return
+        # raise NotImplementedError()
+
+    def set_attr(self, attr_name: str, value: Any, indices: VecEnvIndices = None) -> None:
+        raise NotImplementedError()
+
+    def step_send(self) -> Any:
+        raise NotImplementedError()
+
+    def step_wait(self) -> VecEnvStepReturn:
+        raise NotImplementedError()
+
+    def get_images(self) -> Sequence[np.ndarray]:
+        raise NotImplementedError()
