@@ -50,7 +50,7 @@ namespace Simulate.RlAgents {
 
     public static class RewardFunctionBuilder {
         public static readonly string[] LEAF_REWARD_FUNCTION_TYPES = { "dense", "sparse", "timeout", "see", "angle_to" };
-        public static readonly string[] NODE_REWARD_FUNCTION_TYPES = { "and", "or", "not" };
+        public static readonly string[] NODE_REWARD_FUNCTION_TYPES = { "and", "or", "not", "xor" };
         public static RewardFunction Build(Node node) {
             Debug.Assert(node.rewardFunctionData != null);
 

@@ -16,5 +16,5 @@ These examples are intended to showcase the basic usage of Simulate: creating a 
 
 * [`create_and_save.py`](https://github.com/huggingface/simulate/examples/basic/create_and_save.py): This example showcases basic scene assembly and saving as a gltf.
 * [`objects.py`](https://github.com/huggingface/simulate/examples/basic/objects.py): This examples showcases the different objects we have in HuggingFace Simulate.
-* [`simple_physics.py`](https://github.com/huggingface/simulate/examples/basic/simple_physics.py): This example showcases a basic falling object physics experiment.
+* [`simple_physics.py`](https://github.com/huggingface/simulate/examples/basic/simple_physics.py): This example showcases a basic falling object physics experiment with sensors.
 * [`structured_grid_test.py`](https://github.com/huggingface/simulate/examples/basic/structured_grid_test.py): This example tests the StructuredGrid object in Simulate

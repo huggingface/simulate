@@ -39,8 +39,8 @@ from simulate.assets.sensors import RaycastSensor, StateSensor
 
 def generate_map(index):
 
-    maze_width = 3
-    maze_depth = 3
+    maze_width = 6
+    maze_depth = 6
     n_objects = 1
     maze = ProcGenPrimsMaze3D(maze_width, maze_depth, wall_material=sm.Material.YELLOW)
     maze += sm.Box(
@@ -52,8 +52,6 @@ def generate_map(index):
     actor_position = [math.floor(maze_width / 2.0) + 0.5, 0.5, math.floor(maze_depth / 2.0) + 0.5]
 
     actor = sm.EgocentricCameraActor(position=actor_position)
-    actor += StateSensor(actor, maze)
-    actor += RaycastSensor()
 
     maze += actor
 
@@ -81,7 +79,7 @@ def generate_map(index):
         entity_a=actor,
         entity_b=actor,
         distance_metric="euclidean",
-        threshold=100,
+        threshold=500,
         is_terminal=True,
         scalar=-1.0,
     )

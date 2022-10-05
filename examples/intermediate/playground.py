@@ -68,7 +68,7 @@ def make_scene(build_exe):
     # Let's add a default actor in the scene, a capsule mesh with associated actions and a camera as observation device
     # You can create an actor by adding an actuator to an object with physics enabled.
     actor = sm.EgocentricCameraActor(
-        name="actor", position=[0.0, 0.5, 0.0], camera_name="CameraSensor"
+        name="actor", position=[0.0, 0.5, 0.0], camera_tag="CameraSensor"
     )  # Has a collider by default
 
     scene += actor
