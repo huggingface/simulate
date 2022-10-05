@@ -42,9 +42,6 @@ CAMERA_HEIGHT = 40
 CAMERA_WIDTH = 64
 
 
-def rgb2gray(rgb):
-    return np.dot(rgb[...,:3], [0.2989, 0.5870, 0.1140])
-
 class TakeCoverEnv(sm.RLEnv):
     def __init__(
         self,
@@ -68,8 +65,6 @@ class TakeCoverEnv(sm.RLEnv):
         self.projectile_nodes = ["projectile_0_0", "projectile_1_0", "projectile_2_0"]
         self.projectile_actions = ["projectile_action_0", "projectile_action_1", "projectile_action_2"]
 
-        # self.projectile_action_acceleration_indices = 1
-
         self.projectile_position_control_indices = np.arange(2,9)
 
     def check_projectile_wall_collision(self, event):
@@ -87,21 +82,6 @@ class TakeCoverEnv(sm.RLEnv):
                 ]
 
         return needs_reset, action_dict
-
-    def set_random_positions(self):
-        action_dict = {}
-        random_positions = list(np.random.choice(self.projectile_position_control_indices, 3, replace=False))
-        for i, projectile in enumerate(self.projectile_nodes):
-            action_dict[self.projectile_actions[i]] = [
-                [
-                    [int(random_positions[i])]
-                ]
-            ]
-        self.step_send_async(
-            action_dict
-        )
-        self.scene.engine.step_recv_async()
-
 
     def reset(self) -> Dict:
         """
@@ -144,11 +124,6 @@ class TakeCoverEnv(sm.RLEnv):
         done = self._convert_to_numpy(event["actor_done_buffer"]).flatten()[0:1]
         obs = self._squeeze_actor_dimension(obs)
         obs["actor_0_camera"] = obs["actor_0_camera"][0:1]
-        # obs = self._squeeze_actor_dimension(obs)['actor_0_camera']
-        # print("REWARD", reward)
-        # print("DONE", done)
-        # obs = np.flip(np.array(obs, dtype=np.uint8).transpose(1, 2, 0), axis=0).astype(np.uint8)
-        # obs = rgb2gray(obs)
 
         needs_reset, projectile_reset_action_dict = self.check_projectile_wall_collision(event)
 
@@ -180,8 +155,6 @@ def create_target_projectiles(index: int, num_projectiles: int = 3):
 
             # acceleration
             sm.ActionMapping("change_position", axis=[0, 0, -1], amplitude=0.15),
-            # sm.ActionMapping("change_position", axis=[0, 0, -1], amplitude=0.3),
-            # sm.ActionMapping("change_position", axis=[0, 0, -1], amplitude=0.1),
 
             # set positions
             sm.ActionMapping("set_position", position=[-3.0, 0.2, 4.0], use_local_coordinates=False),
@@ -259,7 +232,7 @@ if __name__ == "__main__":
     plt.ion()
     _, ax1 = plt.subplots(1, 1)
     for i in range(4000):
-        action, _states = model.predict(obs)
+        action, _ = model.predict(obs)
         obs, rewards, dones, info = env.step(action)
         frame = np.flip(np.array(obs['actor_0_camera'][0], dtype=np.uint8).transpose(1, 2, 0), axis=0).astype(np.uint8)
         ax1.clear()
