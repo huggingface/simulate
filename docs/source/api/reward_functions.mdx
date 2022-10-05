@@ -12,4 +12,30 @@ specific language governing permissions and limitations under the License.
 
 # Reward Functions
 
-Under construction 🚧.
+🤗 Simulate provides a system to define simple and complex reward functions. This is achieved through the combination of "leaf" reward 
+functions, such as Sparse and Dense rewards functions, and predicate reward functions.
+
+(LINK TO REWARD PREDICATE DIAGRAM)
+
+
+Reward functions can be parameterized with a variety of distance metrics. Currently "euclidean", "cosine" and "best_euclidean" are supported.
+Through the combination of predicates and leaf rewards, complex reward functions can be created. A good example of the is the 
+[Move Boxes](https://github.com/huggingface/simulate/blob/main/examples/rl/sb3_move_boxes.py) example.
+
+The following "leaf" rewards are available in Simulate: 
+-  "dense": A reward that is non-zero at every time-step
+-  "sparse": A reward that is triggered by the proximity of another object
+-  "timeout": A timeout reward that is triggered after a certain number of time-steps.
+-  "see": Triggered when an object is in the field of view of an Actor
+-  "angle_to": Triggered when the angle between two objects and a certain direction is less that a threshold.
+
+The "leaf" reward functions can be combined in a tree structure with the following predicate functions: 
+-  "not": Triggers when a reward is not triggered
+-  "and": Triggers when both children of this node are returning a positive reward
+-  "or": Triggers when one or both of the children of this node are returning a positive reward
+-  "xor": Triggers when  only one of the children of this node are returning a positive reward
+
+[[autodoc]] RewardFunction
+
+
+
