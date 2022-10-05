@@ -101,9 +101,9 @@ def generate_map(index):
     collectable = sm.Sphere(name=f"collectable_{index}", position=[2, 0.5, 3.4], radius=0.3, with_collider=True)
     root += collectable
 
-    actor = sm.EgocentricCameraActor(name=f"actor_{index}", position=[0.0, 0.0, 0.0])
+    actor = sm.EgocentricCameraActor(name=f"actor_{index}", position=[0.0, 0.5, 0.0])
     root += actor
-    actor += sm.RewardFunction(entity_a=actor, entity_b=collectable)
+    actor += sm.RewardFunction(entity_a=actor, entity_b=collectable, distance_metric="best_euclidean")
 
     sparse_reward = sm.RewardFunction(
         type="sparse",
@@ -116,7 +116,7 @@ def generate_map(index):
     )
 
     # varying the timeout to test staggered pooling
-    timeout = (index % 3) * 50 + 100
+    timeout = 200
     timeout_reward = sm.RewardFunction(
         type="timeout",
         distance_metric="euclidean",
@@ -132,7 +132,7 @@ def generate_map(index):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--build_exe", default="", type=str, required=False, help="Pre-built unity app for simulate")
+    parser.add_argument("--build_exe", default=None, type=str, required=False, help="Pre-built unity app for simulate")
     parser.add_argument("--n_maps", default=12, type=int, required=False, help="Number of maps to spawn")
     parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()

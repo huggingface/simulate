@@ -153,7 +153,7 @@ class EgocentricCameraActor(Capsule):
         scaling: Optional[Union[float, List[float]]] = None,
         camera_height: int = 40,
         camera_width: int = 40,
-        camera_name: Optional[str] = None,
+        camera_tag: Optional[str] = "CameraSensor",
         transformation_matrix: Optional[np.ndarray] = None,
         material: Optional[Material] = None,
         parent: Optional["Asset"] = None,
@@ -179,10 +179,7 @@ class EgocentricCameraActor(Capsule):
         )
 
         # Add our camera
-        camera_name = f"{self.name}_camera" if camera_name is None else camera_name
-        camera = Camera(
-            name=camera_name, sensor_tag=camera_name, width=camera_width, height=camera_height, position=[0, 0.25, 0]
-        )
+        camera = Camera(sensor_tag=camera_tag, width=camera_width, height=camera_height, position=[0, 0.25, 0])
         children = self.tree_children
         self.tree_children = children + (camera,)
 

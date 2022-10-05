@@ -40,7 +40,7 @@ if __name__ == "__main__":
     scene += sm.Box(name="wall8", position=[0, 0.5, -2.5], scaling=[1.9, 1, 0.1])
 
     agent = sm.EgocentricCameraActor(
-        camera_width=CAMERA_WIDTH, camera_height=CAMERA_HEIGHT, position=[0.0, 0.0, 0.0], camera_name="CameraSensor"
+        camera_width=CAMERA_WIDTH, camera_height=CAMERA_HEIGHT, position=[0.0, 0.0, 0.0], camera_tag="CameraSensor"
     )
 
     scene += agent

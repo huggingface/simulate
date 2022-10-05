@@ -145,7 +145,16 @@ def generate_map(index):
     actor += red_yellow_target_reward_single
     actor += green_white_target_reward_single
     actor += and_reward
-
+    timeout_reward_function = sm.RewardFunction(
+        type="timeout",
+        entity_a=actor,
+        entity_b=actor,
+        distance_metric="euclidean",
+        threshold=1000,
+        is_terminal=True,
+        scalar=-1.0,
+    )
+    actor += timeout_reward_function
     return root
 
 
