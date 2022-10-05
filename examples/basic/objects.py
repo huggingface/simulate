@@ -55,7 +55,6 @@ if __name__ == "__main__":
     # Triangle
     center += sm.Triangle(position=[-2, 0, -2], material=sm.Material.OLIVE)
 
-
     scene += center
     print(scene)
     scene.show()

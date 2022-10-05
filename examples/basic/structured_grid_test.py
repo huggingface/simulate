@@ -18,6 +18,7 @@ import numpy as np
 
 import simulate as sm
 
+
 # This example tests the StructuredGrid object in Simulate
 if __name__ == "__main__":
     scene = sm.Scene(engine="unity")

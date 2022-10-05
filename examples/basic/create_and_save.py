@@ -16,6 +16,7 @@
 
 import simulate as sm
 
+
 # This example showcases basic scene assembly and saving as a gltf
 if __name__ == "__main__":
 
