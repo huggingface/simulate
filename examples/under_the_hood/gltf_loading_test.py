@@ -17,7 +17,10 @@ import os
 from simulate import Scene
 
 
+# this example showcases the local and remote save and load capabilities of Simulate
+
 if __name__ == "__main__":
+    # create an initial scene locally
     scene = Scene.create_from("simulate-tests/Box/glTF/Box.gltf", auto_update=False)
 
     print("===== BEFORE ====")
@@ -29,17 +32,19 @@ if __name__ == "__main__":
     from pathlib import Path
 
     save_path = Path(__file__).parent.parent.absolute() / "output" / "scene" / "scene.gltf"
-
     save_path_returned = scene.save(save_path)
 
+    # load saved file
     scene.load(save_path_returned[0])
 
     print("===== AFTER SAVING LOCALLY ====")
     print(scene)
     print(scene._created_from_file)
+    # the two printed scenes should be the same!
+
     scene.show()
 
-    # Push to hub
+    # Push to scene to the hub
     path_on_hub = "simulate-tests/Debug-2/glTF/Box.gltf"
     hub_token = os.environ.get(
         "HUB_TOKEN"
@@ -50,9 +55,12 @@ if __name__ == "__main__":
     print("===== URLs ====")
     print(url_path_returned)
 
+    # re-load the scene from the hub!
     scene.load(path_on_hub)
 
     print("===== AFTER LOADING FROM HUB====")
     print(scene)
     print(scene._created_from_file)
+    # the three printed scenes should be the same!
+
     scene.show()

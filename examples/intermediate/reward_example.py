@@ -64,6 +64,7 @@ if __name__ == "__main__":
     # Let's add an actor in the scene, a capsule mesh with associated actions and a camera as observation device
     actor = sm.Capsule(name="actor", is_actor=True, position=[0.0, 0.7, 0.0], with_collider=True)  # Has a collider
     actor.physics_component = sm.RigidBodyComponent(constraints=["freeze_rotation_x", "freeze_rotation_z"])
+
     # Specify the action to control the actor: 3 discrete action to rotate and move forward
     actor.actuator = sm.Actuator(
         n=3,
@@ -80,7 +81,7 @@ if __name__ == "__main__":
     actor += actor_camera
     actor += sm.StateSensor(target_entity=actor, reference_entity=actor_camera, properties="position")
 
-    # # Let's add a target and a reward function
+    # Add a target and a reward function
     material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
     target = sm.Box(name="cube", position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)], material=material)
     scene += target

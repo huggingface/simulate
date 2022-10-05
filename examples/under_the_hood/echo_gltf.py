@@ -18,8 +18,13 @@ import base64
 import simulate as sm
 
 
+# this example showcases how Simulate can duplicate gltf data
+
+
 def create_scene(build_exe=""):
-    scene = sm.Scene(engine="unity")
+
+    # load a scene from the tests (locally here, but also can use the hub)
+    scene = sm.Scene(engine="unity", engine_exe=build_exe)
     scene.load("simulate-tests/Box/glTF-Embedded/Box.gltf")
 
     scene.show()
@@ -28,6 +33,7 @@ def create_scene(build_exe=""):
 
 
 def echo_gltf(scene):
+    # convert the gltf of the scene to raw data and verify with the engine
     bytes = scene.as_glb_bytes()
     b64_bytes = base64.b64encode(bytes).decode("ascii")
     result = scene.engine.run_command("TestEchoGLTF", b64bytes=b64_bytes)
