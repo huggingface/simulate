@@ -126,7 +126,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_show", default=48, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
 
-    env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, frame_skip=1)
+    env = sm.ParallelRLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, frame_skip=1)
     obs = env.reset()
 
     for i in range(4000):

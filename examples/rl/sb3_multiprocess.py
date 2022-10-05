@@ -90,7 +90,7 @@ def generate_map(index):
 
 
 def generate_env(port):
-    env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, engine_port=port)
+    env = sm.ParallelRLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe, engine_port=port)
 
     return env
 
@@ -101,7 +101,7 @@ parser.add_argument("--n_maps", default=12, type=int, required=False, help="Numb
 parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
 args = parser.parse_args()
 # args.build_exe = "./builds/simulate_unity.x86_64"
-env = sm.ParallelRLEnv(generate_env, 2)
+env = sm.MultiProcessRLEnv(generate_env, 2)
 
 time.sleep(2.0)
 model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=2)

@@ -115,7 +115,7 @@ if __name__ == "__main__":
     parser.add_argument("--n_show", default=4, type=int, required=False, help="Number of maps to show")
     args = parser.parse_args()
 
-    env = sm.RLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
+    env = sm.ParallelRLEnv(generate_map, args.n_maps, args.n_show, engine_exe=args.build_exe)
 
     model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=1)
     model.learn(total_timesteps=100000)

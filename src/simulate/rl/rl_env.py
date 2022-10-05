@@ -37,7 +37,7 @@ import simulate as sm
 from simulate.scene import Scene
 
 
-class RLEnv(VecEnv):
+class ParallelRLEnv(VecEnv):
     """
     RL environment wrapper for Simulate scene. Uses functionality from the VecEnv in stable baselines 3
     For more information on VecEnv, see the source

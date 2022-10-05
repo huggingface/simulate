@@ -1,2 +1,2 @@
-from .parallel_rl_env import ParallelRLEnv
+from .multi_proc_rl_env import MultiProcessRLEnv
 from .rl_env import RLEnv

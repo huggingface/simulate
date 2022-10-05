@@ -30,9 +30,9 @@ except ImportError:
         pass  # Dummy class if SB3 is not installed
 
 
-class ParallelRLEnv(VecEnv):
+class MultiProcessRLEnv(VecEnv):
     """
-    Parallel RL environment wrapper for Simulate scene. Spawns multiple backend executables to run in parallel, in addition to the optionality of multiple maps.
+    Multi-process RL environment wrapper for Simulate scene. Spawns multiple backend executables to run in parallel, in addition to the optionality of multiple maps.
     Uses functionality from the VecEnv in stable baselines 3. For more information on VecEnv, see the source
     https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
 
