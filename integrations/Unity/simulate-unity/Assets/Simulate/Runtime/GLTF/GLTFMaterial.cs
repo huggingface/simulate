@@ -19,7 +19,7 @@ namespace Simulate.GLTF {
             }
         }
 #else
-    public static Material defaultMaterial => null;
+        public static Material defaultMaterial => null;
 #endif
 
         public string name;
@@ -228,9 +228,9 @@ namespace Simulate.GLTF {
         static Material CreateMaterial(AlphaMode alphaMode = AlphaMode.OPAQUE, bool emissive = false) {
             Material mat;
             if (emissive)
-                mat = new Material(Resources.Load<Material>("DefaultEmissive"));
+                mat = GameObject.Instantiate<Material>(Resources.Load<Material>("DefaultEmissive"));
             else
-                mat = new Material(Resources.Load<Material>("DefaultLit"));
+                mat = GameObject.Instantiate<Material>(Resources.Load<Material>("DefaultLit"));
             if (alphaMode != AlphaMode.OPAQUE) {
                 mat.SetFloat("_Surface", 1f);
                 if (alphaMode == AlphaMode.MASK)
