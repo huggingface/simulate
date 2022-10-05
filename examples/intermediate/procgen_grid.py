@@ -18,13 +18,13 @@ import numpy as np
 
 import simulate as sm
 
+# This example shows how we can create procgen grids from numpy arrays
 
 if __name__ == "__main__":
     print("First scene")
     scene = sm.Scene()
 
-    # Create mesh
-    # Height map and, in the future, a map of simulate objects
+    # Create mesh eight map (this could easily be generated with wave function collapse, but is not used in this example for simplicity)
     specific_map = (
         np.array(
             [
@@ -36,6 +36,7 @@ if __name__ == "__main__":
         * 0.6
     )
 
+    # create a grid and add it to the scene
     scene += sm.ProcgenGrid(specific_map=specific_map)
     scene += sm.LightSun()
     scene.show()
