@@ -10,10 +10,10 @@ Currently, Simulate has the following examples running:
 * `structured_grid_test.py`: tests the StructuredGrid object in Simulate.
 
 ### Intermediate
-* `playground.py`:
-* `procgren_grid.py`:
-* `reward_example`:
-* `tmaze.py`:
+* `playground.py`: showcases how to build a small world, add objects, and add actors to interact with the world. The actor must find a randomly colored box labelled `target`.
+* `procgren_grid.py`: shows how we can create procgen grids from numpy arrays.
+* `reward_example`: showcases different varieties of reward functions that can be added to one scene.
+* `tmaze.py`: showcases building a small detailed maze for an agent to explore.
 
 ### Advanced
 * `cartpole.py`:

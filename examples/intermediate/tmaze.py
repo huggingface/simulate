@@ -22,6 +22,9 @@ import numpy as np
 import simulate as sm
 
 
+# this example showcases building a small detailed maze for an agent to explore
+
+
 if __name__ == "__main__":
     CAMERA_HEIGHT = 40
     CAMERA_WIDTH = 64
