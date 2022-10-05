@@ -4,7 +4,7 @@ The examples are organized by level of complexity or application.
 Currently, Simulate has the following examples running:
 
 ### Basic
-* `create_and_save.py`:
+* `create_and_save.py`: This example showcases basic scene assembly and saving as a gltf.
 * `objects.py`:
 * `simple_physics.py`:
 * `structured_grid_test.py`:

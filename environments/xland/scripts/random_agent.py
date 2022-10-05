@@ -50,7 +50,7 @@ if __name__ == "__main__":
     env_fn = make_env_fn(
         executable=args.build_exe,
         sample_from=example_map,
-        engine="Unity",
+        engine="unity",
         seed=None,
         n_agents=1,
         n_objects=4,

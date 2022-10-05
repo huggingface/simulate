@@ -16,19 +16,27 @@
 
 import simulate as sm
 
-
+# This example showcases basic scene assembly and saving as a gltf
 if __name__ == "__main__":
+
     # creates a basic scene and saves as gltf
-    scene = sm.Scene(engine="Unity")
+    scene = sm.Scene(engine="pyvista")
+
+    # add light source (especially for Unity visualization)
     scene += sm.LightSun()
+
     # add objects to scene
     scene += [sm.Sphere(position=[1, 0, 0], with_collider=True), sm.Box(name="target", position=[0, 2.5, 0])]
-    # create an actor with reward function
-    target = scene.target
-    actor = sm.EgocentricCameraActor(position=[0, 0, 3])
-    scene += [actor, sm.RewardFunction(entity_a=actor, entity_b=target)]
 
+    # the print function returns a tree for scene
     print(scene)
+    # This should return the following
+    # Scene(engine='PyVistaEngine')
+    # ├── light_sun_00(LightSun)
+    # ├── sphere_00(Sphere)
+    # │   └── sphere_00_collider(Collider)
+    # └── target(Box)
+    # └── target_collider(Collider)
 
     # save the scene
     scene.save("output/test.gltf")

@@ -9,7 +9,7 @@ from simulate.assets import material
 from simulate.assets.reward_functions import RewardFunction
 
 
-scene = sm.Scene(engine="Unity", config=sm.Config(time_step=1 / 30.0, frame_skip=4))
+scene = sm.Scene(engine="unity", config=sm.Config(time_step=1 / 30.0, frame_skip=4))
 
 scene += sm.LightSun()
 scene += sm.Camera(

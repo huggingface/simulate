@@ -21,10 +21,15 @@ import numpy as np
 
 import simulate as sm
 
+# This example showcases a basic falling object physics experiment
 
-def create_scene(build_exe=None):
+def create_scene(build_exe=""):
+    """
+    Creates a scene with a floor, falling cube, and necessary components to visualize the scene.
+    """
+
     # Create a scene with Unity engine backend
-    scene = sm.Scene(engine="Unity", engine_exe=build_exe)
+    scene = sm.Scene(engine="unity", engine_exe=build_exe)
     scene += sm.LightSun()
 
     # Add a floor

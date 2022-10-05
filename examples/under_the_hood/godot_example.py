@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import simulate as sm
 
 
-scene = sm.Scene(engine="Godot")
+scene = sm.Scene(engine="godot")
 scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
 scene += sm.Box(name="floor", position=[0, 0, 0], bounds=[-50, 50, 0, 0.1, -50, 50], material=sm.Material.BLUE)

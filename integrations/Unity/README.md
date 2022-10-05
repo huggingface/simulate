@@ -17,7 +17,7 @@ It is easiest to do this from a fresh Unity install; detecting the second from-s
 ```
 import simulate as sm
 
-scene = sm.Scene(engine="Unity")
+scene = sm.Scene(engine="unity")
 scene += sm.Sphere()
 scene.render()
 ```

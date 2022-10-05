@@ -26,7 +26,7 @@ if __name__ == "__main__":
     CAMERA_HEIGHT = 40
     CAMERA_WIDTH = 64
 
-    scene = sm.Scene(engine="Unity")
+    scene = sm.Scene(engine="unity")
 
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
     scene += sm.Box(name="floor", position=[0, -0.05, 0], scaling=[100, 0.1, 100])
