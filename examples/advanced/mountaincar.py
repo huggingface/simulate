@@ -18,6 +18,9 @@ import simulate as sm
 from simulate.assets.action_mapping import ActionMapping
 
 
+# This example adds an impressive recreation of the mountain car Gym environment
+
+
 def add_rl_components_to_scene(scene):
     actor = scene.MountainCar_Cart
     actor.is_actor = True

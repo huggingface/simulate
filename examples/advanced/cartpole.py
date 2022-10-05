@@ -18,6 +18,9 @@ import argparse
 import simulate as sm
 
 
+# This example reimplements the famous cartpole example, with parallel execution and rendering.
+
+
 def generate_map(index):
     cart_depth = 0.3
     cart_width = 0.5

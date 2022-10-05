@@ -22,6 +22,8 @@ import numpy as np
 import simulate as sm
 
 
+# This example reimplements the famous lunar lander reinforcement learning environment.
+
 # CONSTANTS From source
 # TODO implement scaling
 SCALE = 30.0  # affects how fast-paced the game is, forces should be adjusted as well
@@ -136,8 +138,8 @@ def make_lander(engine="unity", engine_exe=""):
         name="lander_collider_box_bottom",
     )
     lander += sm.Box(
-        position=[-.6, 0, -0.5],
-        bounds=[0.1, 26/SCALE, 1],
+        position=[-0.6, 0, -0.5],
+        bounds=[0.1, 26 / SCALE, 1],
         material=sm.Material.TRANSPARENT,
         rotation=[0, 0, -15],
         with_collider=True,
@@ -145,7 +147,7 @@ def make_lander(engine="unity", engine_exe=""):
     )
     lander += sm.Box(
         position=[0.6, 0, -0.5],
-        bounds=[0.1, 26/SCALE, 1],
+        bounds=[0.1, 26 / SCALE, 1],
         material=sm.Material.TRANSPARENT,
         rotation=[0, 0, 15],
         with_collider=True,

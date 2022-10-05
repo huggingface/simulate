@@ -16,8 +16,9 @@ Currently, Simulate has the following examples running:
 * `tmaze.py`: showcases building a small detailed maze for an agent to explore.
 
 ### Advanced
-* `cartpole.py`:
-* `lunarlander.py`:
+* `cartpole.py`: reimplements the famous cartpole example, with parallel execution and rendering.
+* `lunarlander.py`: reimplements the famous lunar lander reinforcement learning environment.
+* `mountaincar.py`: adds an impressive recreation of the mountain car Gym environment.
 
 ### Reinforcement Learning (RL)
 There are multiple environments implemented with Stable Baselines 3 PPO:
