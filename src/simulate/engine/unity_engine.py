@@ -144,7 +144,7 @@ class UnityEngine(Engine):
 
         # Starting the Unity executable
         logger.info(f"Starting Unity executable {engine_exe}...")
-        if engine_exe is None or "debug":
+        if engine_exe is None or engine_exe == "debug":
             pass  # We run with the editor
         elif engine_exe:
             self._launch_executable(executable=engine_exe, port=str(engine_port), headless=engine_headless)
