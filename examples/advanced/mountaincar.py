@@ -17,7 +17,7 @@ import argparse
 import simulate as sm
 from simulate.assets.action_mapping import ActionMapping
 
-
+from stable_baselines3 import  PPO
 # This example adds an impressive recreation of the mountain car Gym environment
 
 
@@ -55,9 +55,5 @@ if __name__ == "__main__":
     add_rl_components_to_scene(scene)
 
     env = sm.RLEnv(scene)
-
-    for i in range(10000):
-        action = [env.action_space.sample()]
-        obs, reward, done, info = env.step(action=action)
-
-    input("Press enter to continue...")
+    model = PPO("MultiInputPolicy", env, verbose=3, n_epochs=2)
+    model.learn(total_timesteps=10000)

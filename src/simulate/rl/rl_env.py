@@ -11,6 +11,7 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
 from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
@@ -30,6 +31,8 @@ class RLEnv:
         frame_skip: the number of times an action is repeated in the backend simulation before the next observation is returned.
     """
 
+    metadata = {}
+
     def __init__(
         self,
         scene: Scene,
@@ -37,6 +40,7 @@ class RLEnv:
         frame_skip: Optional[int] = 4,
     ):
 
+        self.name = scene.name
         self.scene = scene
         self.map_roots = [self.scene]
 
@@ -66,7 +70,7 @@ class RLEnv:
             n_show=1,
         )
 
-    def step(self, action: Union[Dict, List, np.ndarray]) -> Tuple[Dict, np.ndarray, np.ndarray, List[Dict]]:
+    def step(self, action: Union[Dict, List, np.ndarray]) -> Tuple[Dict, np.ndarray, np.ndarray, Dict]:
         """
         The step function for the environment, follows the API from OpenAI Gym.
 
@@ -92,6 +96,12 @@ class RLEnv:
                 raise ValueError(
                     f"Action must be a dict with keys {self.action_tags} when there are multiple action tags."
                 )
+            if type(action) == np.ndarray:
+                action = action.tolist()
+            if type(action) == np.int64:
+                action = int(action)
+            if type(action) == np.float:
+                action = float(action)
             action = {self.action_tags[0]: action}
 
         # Check that the keys are in the action tags
@@ -128,7 +138,7 @@ class RLEnv:
 
         self.scene.engine.step_send_async(action=action)
 
-    def step_recv_async(self) -> Tuple[Dict, np.ndarray, np.ndarray, List[Dict]]:
+    def step_recv_async(self) -> Tuple[Dict, np.ndarray, np.ndarray, Dict]:
         event = self.scene.engine.step_recv_async()
 
         # Extract observations, reward, and done from event data
@@ -138,7 +148,7 @@ class RLEnv:
 
         obs = self._squeeze_actor_dimension(obs)
 
-        return obs, reward, done, [{}] * len(done)
+        return obs, reward, done, {}
 
     def _squeeze_actor_dimension(self, obs: Dict) -> Dict:
         """
