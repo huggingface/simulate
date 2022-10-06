@@ -15,8 +15,16 @@
 from collections import defaultdict
 from typing import Any, Callable, List, Optional, Sequence, Type
 
-import gym
 import numpy as np
+
+
+try:
+    import gym
+except ImportError:
+
+    class gym:
+        class Wrapper:
+            pass
 
 
 try:
