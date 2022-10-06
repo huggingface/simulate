@@ -146,8 +146,6 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
@@ -157,4 +155,5 @@ setup(
     keywords="simulation environments synthetic data datasets machine learning",
     zip_safe=False,  # Required for mypy to find the py.typed file
     ext_modules=ext_modules,
+    python_requires=">=3.8",
 )
