@@ -44,7 +44,7 @@ class ParallelRLEnv(VecEnv):
     https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
 
     Args:
-        scene_or_map_fn: a Simulate Scene or a generator function for generating instances of the desired environment.
+        scene_or_map_fn: a generator function for generating instances of the desired scene.
         n_maps: the number of map instances to create, default 1.
         n_show: optionally show a subset of the maps during training and dequeue a new map at the end of each episode.
         time_step: the physics timestep of the environment.

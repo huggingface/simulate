@@ -22,8 +22,7 @@ from simulate.scene import Scene
 
 class RLEnv:
     """
-    The basic RL environment wrapper for Simulate scene.
-
+    The basic RL environment wrapper for Simulate scene following the Gym API.
 
     Args:
         scene: a Simulate Scene.

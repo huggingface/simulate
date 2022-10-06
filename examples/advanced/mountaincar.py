@@ -14,10 +14,12 @@
 
 import argparse
 
+from stable_baselines3 import PPO
+
 import simulate as sm
 from simulate.assets.action_mapping import ActionMapping
 
-from stable_baselines3 import  PPO
+
 # This example adds an impressive recreation of the mountain car Gym environment
 
 

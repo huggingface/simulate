@@ -32,14 +32,16 @@ except ImportError:
 
 class MultiProcessRLEnv(VecEnv):
     """
-    Multi-process RL environment wrapper for Simulate scene. Spawns multiple backend executables to run in parallel, in addition to the optionality of multiple maps.
+    Multi-process RL environment wrapper for Simulate scene. Spawns multiple backend executables to run in parallel,
+        in addition to the optionality of multiple maps.
     Uses functionality from the VecEnv in stable baselines 3. For more information on VecEnv, see the source
     https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
 
     Args:
-        env_fn (`Callable`): a generator function that returns a RLEnv for generating instances of the desired environment.
+        env_fn (`Callable`): a generator function that returns a RLEnv / ParallelRLEnv for generating instances
+            of the desired environment.
         n_parallel (`int`): the number of executable instances to create.
-        starting_port (`int): initial communication port for spawned executables.
+        starting_port (`int`): initial communication port for spawned executables.
     """
 
     def __init__(self, env_fn: Callable, n_parallel: int, starting_port: int = 55001):
