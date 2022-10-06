@@ -59,7 +59,7 @@ The Python API is located in src/simulate. It allows creation and loading of sce
 
 We provide several backends to render and/or run the scene.
 The default backend requires no specific installation and is based on [pyvista](https://docs.pyvista.org/user-guide/index.html). It allows one to quick render/explored scene but doesn't handle physics simulation.
-To allow physic simulations, the Unity backend can for instance be used by setting `engine="unity"` (and soon the Godot and Blender Engines backend as well). A Unity build will be automatically downloaded (if not already) and spawed to run simulations. Alternatively one can download and use the Unity editor themself, which must then be opened with Unity version 2021.3.2f1.
+To allow physic simulations, the Unity backend can for instance be used by setting `engine="unity"` (and soon the Godot and Blender Engines backend as well). A Unity build will be automatically downloaded (if not already) and spawed to run simulations. Alternatively, one can download and use the Unity editor themself, which must then be opened with Unity version 2021.3.2f1.
 
 ### Loading a scene from the Hub or a local file
 
