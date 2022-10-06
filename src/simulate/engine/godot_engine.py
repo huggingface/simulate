@@ -16,7 +16,7 @@ import atexit
 import base64
 import json
 import socket
-from typing import TYPE_CHECKING, Any, Dict, Union, Optional
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 from ..utils import logging
 from .engine import Engine
