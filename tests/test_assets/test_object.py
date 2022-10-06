@@ -505,9 +505,9 @@ class ObjectsTest(unittest.TestCase):
                  [ 2.        ,  0.44280744,  1.        ]])
         np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
 
-    def test_procgen_grid(self):
-        # TODO (Alicia): add a test for procgen grid
-        pass
+    # def test_procgen_grid(self):
+    #     # TODO (Alicia): add a test for procgen grid
+    #     pass
 
     def test_procgen_prims(self):
         # TODO (Ed): add a test for procgen prims

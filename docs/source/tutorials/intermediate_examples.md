@@ -15,6 +15,6 @@ specific language governing permissions and limitations under the License.
 These examples are intended to showcase advanced individual features, building visually appealing scenes, and some interactive elements (like rewards and actuators).
 
 * [`playground.py`](https://github.com/huggingface/simulate/examples/intermediate/playground.py): showcases how to build a small world, add objects, and add actors to interact with the world. The actor must find a randomly colored box labelled `target`.
-* [`procgren_grid.py`](https://github.com/huggingface/simulate/examples/intermediate/procgren_grid.py): shows how we can create procgen grids from numpy arrays.
+* [`procgren_grid.py`](https://github.com/huggingface/simulate/examples/intermediate/procgren_grid.py) (coming soon): shows how we can create procgen grids from numpy arrays.
 * [`reward_example`](https://github.com/huggingface/simulate/examples/intermediate/reward_example.py): showcases different varieties of reward functions that can be added to one scene.
 * [`tmaze.py`](https://github.com/huggingface/simulate/examples/intermediate/tmaze.py): showcases building a small detailed maze for an agent to explore.
