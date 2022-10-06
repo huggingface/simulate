@@ -1,2 +1,10 @@
 [build-system]
-requires = ["setuptools", "wheel", "Cython", "numpy>=1.17"]
+requires = [
+    "setuptools>=42",
+    "pybind11>=2.10.0",
+]
+build-backend = "setuptools.build_meta"
+
+[tool.cibuildwheel]
+test-command = "python -c 'import simulate as sm; scene=sm.Scene() + sm.Box()"
+test-skip = "*universal2:arm64"

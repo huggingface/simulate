@@ -53,13 +53,14 @@ To create the package for pypi.
     Then push the change with a message 'set dev version'
 """
 
-from distutils.extension import Extension
 
-import numpy as np
-from Cython.Build import cythonize
+# Available at setup time due to pyproject.toml
+from pybind11.setup_helpers import Pybind11Extension, build_ext
 
 from setuptools import find_packages, setup
 import sys
+
+__version__ = "0.0.1.dev0"
 
 
 REQUIRED_PKGS = [
@@ -67,6 +68,7 @@ REQUIRED_PKGS = [
     "numpy>=1.17", # We use numpy>=1.17 to have np.random.Generator
     "pyvista",  # For mesh creation and edition and simple vizualization
     "huggingface_hub", # For sharing objects, environments & trained RL policies
+    'pybind11>=2.2',  # For compiling extensions pybind11
 ]
 
 RL_REQUIRE = [
@@ -109,21 +111,19 @@ EXTRAS_REQUIRE = {
      "docs": DOCS_REQUIRE,
 }
 
-if sys.platform == 'darwin':
-     extra_compile_args=["-std=c++11"]
-     extra_link_args=["-std=c++11"]
-     
-else:
-     extra_compile_args=[]
-     extra_link_args=[]
 
-ext_modules = []
+ext_modules = [
+    Pybind11Extension("pyVHACD",
+        ["src/pyVHACD/main.cpp"],
+        # Example: passing in the version to the compiled code
+        define_macros = [('VERSION_INFO', __version__)],
+        ),
+]
 
-ext_modules = cythonize(ext_modules, force=True)
 
 setup(
     name="simulate",
-    version="0.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version=__version__,  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
     description="HuggingFace community-driven open-source library of simulation environments",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -153,8 +153,8 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
+    cmdclass={'build_ext': build_ext},
     keywords="simulation environments synthetic data datasets machine learning",
     zip_safe=False,  # Required for mypy to find the py.typed file
     ext_modules=ext_modules,
-    include_dirs=[np.get_include()],
 )
