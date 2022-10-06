@@ -14,7 +14,7 @@
 
 # Lint as: python3
 """ A PyVista plotting rendered as engine."""
-from typing import TYPE_CHECKING, Any, Optional, Union
+from typing import TYPE_CHECKING, Any, Dict, Optional, Union
 
 import numpy as np
 import pyvista
@@ -327,5 +327,5 @@ class PyVistaEngine(Engine):
     def reset(self):
         raise NotImplementedError()
 
-    def step(self, action=None, **kwargs):
+    def step(self, action: Optional[Dict] = None, **kwargs: Any) -> Union[Dict, str]:
         raise NotImplementedError()

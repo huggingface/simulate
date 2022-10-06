@@ -34,7 +34,7 @@ if typing.TYPE_CHECKING:
 
 
 logger = logging.get_logger(__name__)
-VIEWER_TEMPLATE = os.path.join(os.path.dirname(__file__), "viewer.zip")
+VIEWER_TEMPLATE = os.path.join(os.path.dirname(__file__), "notebook_viewer.zip")
 
 
 def in_notebook() -> bool:

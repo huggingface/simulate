@@ -1,0 +1,45 @@
+name: Run simple loading test
+
+on: [pull_request]
+
+env:
+  HF_HOME: ~/hf_cache
+
+jobs:
+  run-tests:
+    runs-on: ubuntu-latest
+
+    strategy:
+      # see discussion at https://github.com/pyvista/pyvista/issues/2867
+      matrix:
+        include:
+          - python-version: '3.8'
+            vtk-version: '9.0.3'
+
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up Python ${{ matrix.python-version }}
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - uses: actions/cache@v3
+        with:
+          path: ~/.cache/pip
+          key: Python-${{ runner.os }}-${{ matrix.python-version }}-${{ matrix.vtk-version }}-${{ hashFiles('setup.py') }}-${{ hashFiles('requirements_test.txt') }}
+          restore-keys: |
+            Python-${{ runner.os }}-${{ matrix.python-version }}
+
+      - name: Install the library
+        run: |
+          pip install --upgrade pip
+          pip install -e .
+
+      - name: Set up vtk
+        if: ${{ matrix.vtk-version != 'latest' }}
+        run: pip install vtk==${{ matrix.vtk-version }}
+
+      - name: Run Simple loading test
+        run: |
+          python -c "import simulate as sm; scene = sm.Scene() + sm.Box()"
