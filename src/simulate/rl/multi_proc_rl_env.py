@@ -13,7 +13,7 @@
 # limitations under the License.
 
 from collections import defaultdict
-from typing import Any, Callable, List, Optional, Sequence, Type
+from typing import Any, Callable, Dict, List, Optional, Sequence, Type, Tuple, Union
 
 import gym
 import numpy as np
@@ -61,7 +61,7 @@ class MultiProcessRLEnv(VecEnv):
         num_envs = self.n_show * self.n_parallel
         super().__init__(num_envs, observation_space, action_space)
 
-    def step(self, actions: Optional[np.array] = None):
+    def step(self, actions: Optional[Union[list, np.array]] = None) -> Tuple[Dict, np.ndarray, np.ndarray, List[Dict]]:
         """
         The step function for the environment, follows the API from OpenAI Gym.
 
@@ -74,6 +74,9 @@ class MultiProcessRLEnv(VecEnv):
             all_done (`bool`): TODO
             all_info: TODO
         """
+        if isinstance(actions, list):
+            actions = np.array(actions)
+
         for i in range(self.n_parallel):
             # TODO comment what is going on here
             action = actions[i * self.n_show : (i + 1) * self.n_show] if actions is not None else None
