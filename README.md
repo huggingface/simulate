@@ -59,7 +59,7 @@ The Python API is located in src/simulate. It allows creation and loading of sce
 
 We provide several backends to render and/or run the scene.
 The default backend requires no specific installation and is based on [pyvista](https://docs.pyvista.org/user-guide/index.html). It allows one to quick render/explored scene but doesn't handle physics simulation.
-To allow physic simulations, the Unity backend can for instance be used by setting `engine="unity"` (and soon the Godot and Blender Engines backend as well). A Unity build will be automatically downloaded (if not already) and spawed to run simulations. Alternativaly one can download and use the Unity editor themself, which must then be opened with Unity version 2021.3.2f1.
+To allow physic simulations, the Unity backend can for instance be used by setting `engine="unity"` (and soon the Godot and Blender Engines backend as well). A Unity build will be automatically downloaded (if not already) and spawed to run simulations. Alternatively one can download and use the Unity editor themself, which must then be opened with Unity version 2021.3.2f1.
 
 ### Loading a scene from the Hub or a local file
 
@@ -142,7 +142,7 @@ Accessing objects:
 - Objects can be directly accessed as attributes of their parents using their names (given with  `name` attribute at creation or automatically generated from the class name + creation counter).
 - Objects can also be accessed from their names with `.get_node(name)`.
 - The names of the object are enforced to be unique (on save/show).
-- Various `tree_*` attributes are available on any node to quickly naviguate or list part of the tree of nodes.
+- Various `tree_*` attributes are available on any node to quickly navegate or list part of the tree of nodes.
 
 Here are a couple of examples of manipulations:
 
@@ -166,7 +166,7 @@ scene += [scene.plane_01.sphere_02.copy(), scene.plane_01.sphere_02.copy()]
 >>> └── sphere_03 (Sphere - Mesh: 842 points, 870 cells)
 ```
 
-### Edting and moving objects
+### Editing and moving objects
 
 Objects can be easily translated, rotated, scaled
 
@@ -192,9 +192,9 @@ Editing objects:
 
 ## Visualization engine
 
-A default vizualization engine is provided with the vtk backend of [`pyvista`](https://docs.pyvista.org/user-guide/index.html).
+A default visualization engine is provided with the vtk backend of [`pyvista`](https://docs.pyvista.org/user-guide/index.html).
 
-Starting the vizualization engine can be done simply with `.show()`.
+Starting the visualization engine can be done simply with `.show()`.
 ```
 scene.show()
 ```
@@ -203,4 +203,4 @@ You can find bridges to other rendering/simulation engines in the `integrations`
 
 ## Tips
 
-If you are running on GCP, remember to not install `pyvistaqt`, and if you did so, uninstall it in your environment, since QT doesn't work well on GCP.
+If you are running on GCP, remember not to install `pyvistaqt`, and if you did so, uninstall it in your environment, since QT doesn't work well on GCP.
