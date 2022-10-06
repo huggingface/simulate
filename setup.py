@@ -60,7 +60,7 @@ from pybind11.setup_helpers import Pybind11Extension, build_ext
 from setuptools import find_packages, setup
 import sys
 
-__version__ = "0.0.1.dev0"
+__version__ = "0.0.2.dev0"  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
 
 
 REQUIRED_PKGS = [
@@ -123,7 +123,7 @@ ext_modules = [
 
 setup(
     name="simulate",
-    version=__version__,  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version=__version__,
     description="HuggingFace community-driven open-source library of simulation environments",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
