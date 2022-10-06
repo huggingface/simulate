@@ -1,4 +1,4 @@
-name: Run tests
+name: Run simple loading test
 
 on: [pull_request]
 
