@@ -209,25 +209,27 @@ class Scene(Asset):
         return_nodes: Optional[bool] = None,
         return_frames: Optional[bool] = None,
         **engine_kwargs: Any,
-    ) -> Any:
+    ) -> Union[Dict, str]:
         """Step the Scene.
 
-        Parameters
-        ----------
-        action: Dict[str, List[Any]]
-            The action to apply to the actors in the scene.
-            Keys are actuator_id and values are actions to apply as tensors of shapes
-            (n_maps, n_actors, action_space...)
-        time_step: Optional[float]
-            The time step to apply to the scene. If None, the time_step of the config is used.
-        frame_skip: Optional[int]
-            The number of frames to skip. If None, the frame_skip of the config is used.
-        return_nodes: Optional[bool]
-            If True, the nodes of the scene are returned. If None, the return_nodes of the config is used.
-        return_frames: Optional[bool]
-            If True, the frames of the scene are returned. If None, the return_frames of the config is used.
-        engine_kwargs: Dict
-            Additional kwargs to pass to the engine.
+        Args:
+            action: Dict[str, List[Any]]
+                The action to apply to the actors in the scene.
+                Keys are actuator_id and values are actions to apply as tensors of shapes
+                (n_maps, n_actors, action_space...)
+            time_step: Optional[float]
+                The time step to apply to the scene. If None, the time_step of the config is used.
+            frame_skip: Optional[int]
+                The number of frames to skip. If None, the frame_skip of the config is used.
+            return_nodes: Optional[bool]
+                If True, the nodes of the scene are returned. If None, the return_nodes of the config is used.
+            return_frames: Optional[bool]
+                If True, the frames of the scene are returned. If None, the return_frames of the config is used.
+            engine_kwargs: Dict
+                Additional kwargs to pass to the engine.
+
+        Returns:
+            event_data: Dict of simulation data from the scene.
         """
         if not self._is_shown:
             raise ValueError("The scene should be shown before stepping it (call scene.show()).")
