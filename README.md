@@ -57,13 +57,13 @@ scene = sm.Scene()
 
 The Python API is located in src/simulate. It allows creation and loading of scenes, and sending commands to the backend.
 
-The backend, currently just Unity, is located in [integrations/Unity](integrations/Unity). 
-This is currently a Unity editor project, which must be opened in Unity 2021.3.2f1. 
-In the future, this will be built as an executable, and spawned by the Python API.
+We provide several backends to render and/or run the scene.
+The default backend requires no specific installation and is based on [pyvista](https://docs.pyvista.org/user-guide/index.html). It allows one to quick render/explored scene but doesn't handle physics simulation.
+To allow physic simulations, the Unity backend can for instance be used by setting `engine="unity"` (and soon the Godot and Blender Engines backend as well). A Unity build will be automatically downloaded (if not already) and spawed to run simulations. Alternativaly one can download and use the Unity editor themself, which must then be opened with Unity version 2021.3.2f1.
 
 ### Loading a scene from the Hub or a local file
 
-Loading a scene from a local file or the Hub is done with `Scene.create_from()`, saving or pushing to the Hub with `scene.save()` or `scene.push_to_hub()`:
+Loading a scene from a local file or the Hub is done with `Scene.create_from()`, saving locally or pushing to the Hub with `scene.save()` or `scene.push_to_hub()`:
 
 ```
 from simulate import Scene
@@ -72,7 +72,7 @@ scene = Scene.create_from('tests/test_assets/fixtures/Box.gltf')  # either local
 scene = Scene.create_from('simulate-tests/Box/glTF/Box.gltf', is_local=False)  # Set priority to the Hub file
 
 scene.save('local_dir/file.gltf')  # Save to a local file
-scene.push_to_hub('simulate-tests/Debug/glTF/Box.gltf')  # Save to the Hub
+scene.push_to_hub('simulate-tests/Debug/glTF/Box.gltf')  # Save to the Hub - use a token if necessary
 ```
 <p align="center">
     <br>
@@ -97,10 +97,10 @@ scene += sm.Plane() + sm.Sphere(position=[0, 1, 0], radius=0.2)
 scene.show()
 ```
 
-An object (as well as the Scene) is just a node in a tree provided with optional mesh (as `pyvista.PolyData` structure) and material and/or light, camera, agents special objects.
+An object (as well as the Scene) is just a node in a tree provided with optional mesh (under the hood created/stored/edited as a [`pyvista.PolyData`](https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.html#pyvista-polydata) or [`pyvista.MultiBlock`](https://docs.pyvista.org/api/core/_autosummary/pyvista.MultiBlock.html#pyvista-multiblock) objects) and material and/or light, camera, agents special objects.
 
 The following objects creation helpers are currently provided:
-- `Object3D` any object with a `pyvista.PolyData` mesh and/or material
+- `Object3D` any object with a mesh and/or material
 - `Plane`
 - `Sphere`
 - `Capsule`
@@ -117,8 +117,9 @@ The following objects creation helpers are currently provided:
 - `Rectangle`
 - `Circle`
 - `StructuredGrid`
+- ... (see the doc)
 
-Most of these objects can be visualized by running the following [example](https://github.com/huggingface/simulate/tree/main/examples/objects.py):
+Many of these objects can be visualized by running the following [example](https://github.com/huggingface/simulate/tree/main/examples/objects.py):
 ```
 python examples/basic/objects.py
 ```
@@ -133,11 +134,15 @@ python examples/basic/objects.py
 Adding/removing objects:
 - Using the addition (`+`) operator (or alternatively the method `.add(object)`) will add an object as a child of a previous object.
 - Objects can be removed with the subtraction (`-`) operator or the `.remove(object)` command.
+- Several objects can be added at once by adding a list/tuple to the scene.
 - The whole scene can be cleared with `.clear()`.
+- To add a nested object, just add it to the object under which it should be nested, e.g. `scene.sphere += sphere_child`.
 
 Accessing objects:
 - Objects can be directly accessed as attributes of their parents using their names (given with  `name` attribute at creation or automatically generated from the class name + creation counter).
-- Objects can also be accessed from their names with `.get(name)` or by navigating in the tree using the various `tree_*` attributes available on any node.
+- Objects can also be accessed from their names with `.get_node(name)`.
+- The names of the object are enforced to be unique (on save/show).
+- Various `tree_*` attributes are available on any node to quickly naviguate or list part of the tree of nodes.
 
 Here are a couple of examples of manipulations:
 
@@ -161,7 +166,10 @@ scene += [scene.plane_01.sphere_02.copy(), scene.plane_01.sphere_02.copy()]
 >>> └── sphere_03 (Sphere - Mesh: 842 points, 870 cells)
 ```
 
-### Objects can be translated, rotated, scaled
+### Edting and moving objects
+
+Objects can be easily translated, rotated, scaled
+
 Here are a couple of examples:
 ```
 # Let's translate our floor (with the first sphere, it's child)
@@ -179,9 +187,12 @@ print(scene.sphere_03.scaling)
 # We can also translate from a vector and rotate from a quaternion or along the various axis
 ```
 
+Editing objects:
+- mesh of the object can be edited with all the manipulation operator provided by [pyvista](https://docs.pyvista.org/user-guide/index.html)
+
 ## Visualization engine
 
-A default vizualization engine is provided with the vtk backend of `pyvista`.
+A default vizualization engine is provided with the vtk backend of [`pyvista`](https://docs.pyvista.org/user-guide/index.html).
 
 Starting the vizualization engine can be done simply with `.show()`.
 ```
