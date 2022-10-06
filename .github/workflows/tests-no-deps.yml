@@ -42,4 +42,4 @@ jobs:
 
       - name: Run Simple loading test
         run: |
-          python -c "import simulate as sm; scene = sm.Scene() + sm.Box(); scene.show()"
+          python -c "import simulate as sm; scene = sm.Scene() + sm.Box()"
