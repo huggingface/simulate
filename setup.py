@@ -117,21 +117,7 @@ else:
      extra_compile_args=[]
      extra_link_args=[]
 
-ext_modules = [
-    Extension(
-        name="wfc_binding",
-        sources=["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx", 
-                    "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
-                    "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
-                    "src/simulate/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
-        language="c++",
-        extra_compile_args=extra_compile_args,
-        extra_link_args=extra_link_args,
-        include_dirs=[
-                "src/simulate/assets/procgen/wfc/core/cpp/include",
-        ],
-    )
-]
+ext_modules = []
 
 ext_modules = cythonize(ext_modules, force=True)
 
