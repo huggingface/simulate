@@ -49,7 +49,7 @@ def create_env_pool(
                 return root
         return None
 
-    map_pool = sm.RLEnv(
+    map_pool = sm.ParallelRLEnv(
         _map_fn,
         n_maps=n_maps,
         n_show=n_show,

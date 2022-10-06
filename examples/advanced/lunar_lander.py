@@ -238,7 +238,7 @@ if __name__ == "__main__":
     sc = make_lander(engine="unity", engine_exe=args.build_exe)
     sc += sm.LightSun()
 
-    env = sm.RLEnv(sc, frame_skip=1)
+    env = sm.ParallelRLEnv(sc, frame_skip=1)
     env.reset()
 
     for i in range(500):

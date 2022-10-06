@@ -11,73 +11,41 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
-import gym
+from typing import Dict, List, Optional, Tuple, Union
+
 import numpy as np
-
-
-try:
-    from stable_baselines3.common.vec_env.base_vec_env import VecEnv, VecEnvIndices, VecEnvStepReturn
-except ImportError:
-
-    class VecEnv:
-        pass  # Dummy class if SB3 is not installed
-
-    class VecEnvIndices:
-        pass  # Dummy class if SB3 is not installed
-
-    class VecEnvStepReturn:
-        pass  # Dummy class if SB3 is not installed
-
-
-import simulate as sm
 
 # Lint as: python3
 from simulate.scene import Scene
 
 
-class RLEnv(VecEnv):
+class RLEnv:
     """
-    RL environment wrapper for Simulate scene. Uses functionality from the VecEnv in stable baselines 3
-    For more information on VecEnv, see the source
-    https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
+    The basic RL environment wrapper for Simulate scene following the Gym API.
 
     Args:
-        scene_or_map_fn: a Simulate Scene or a generator function for generating instances of the desired environment.
-        n_maps: the number of map instances to create, default 1.
-        n_show: optionally show a subset of the maps during training and dequeue a new map at the end of each episode.
+        scene: a Simulate Scene.
         time_step: the physics timestep of the environment.
         frame_skip: the number of times an action is repeated in the backend simulation before the next observation is returned.
     """
 
+    metadata = {}
+
     def __init__(
         self,
-        scene_or_map_fn: Union[Callable, Scene],
-        n_maps: Optional[int] = 1,
-        n_show: Optional[int] = 1,
+        scene: Scene,
         time_step: Optional[float] = 1 / 30.0,
         frame_skip: Optional[int] = 4,
-        **engine_kwargs,
     ):
 
-        if hasattr(scene_or_map_fn, "__call__"):
-            scene_config = sm.Config(
-                time_step=time_step,
-                frame_skip=frame_skip,
-                return_frames=False,
-                return_nodes=False,
-            )
-            self.scene = Scene(engine="unity", config=scene_config, **engine_kwargs)
-            self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
-            self.map_roots = []
-            for i in range(n_maps):
-                map_root = scene_or_map_fn(i)
-                self.scene += map_root
-                self.map_roots.append(map_root)
-        else:
-            self.scene = scene_or_map_fn
-            self.map_roots = [self.scene]
+        self.scene = scene
+
+        # copy the environment name for easy gym integration
+        self.name = scene.name
+
+        # map roots needed for engine, which is designed for parallel computation
+        self.map_roots = [self.scene]
 
         self.actors = {actor.name: actor for actor in self.scene.actors}
         self.n_actors = len(self.actors)
@@ -85,32 +53,30 @@ class RLEnv(VecEnv):
             raise ValueError(
                 "No actors found in scene. At least one of your Assets should have the is_actor=True property."
             )
-        self.n_maps = n_maps
-        self.n_show = n_show
-        self.n_actors_per_map = self.n_actors // self.n_maps
 
         self.actor = next(iter(self.actors.values()))
 
+        # copy action, observation space, and action tags
         self.action_space = self.scene.actors[0].action_space
         self.observation_space = self.scene.actors[0].observation_space
         self.action_tags = self.scene.actors[0].action_tags
 
-        super().__init__(n_show, self.observation_space, self.action_space)
-
-        # Don't return simulation data, since minimal/faster data will be returned by agent sensors
+        # converge internal simulation settings
         self.scene.config.time_step = time_step
         self.scene.config.frame_skip = frame_skip
+
+        # Don't return simulation data, since minimal/faster data will be returned by agent sensors
         self.scene.config.return_frames = False
         self.scene.config.return_nodes = False
 
-        # Pass maps kwarg to enable map pooling
+        # Pass maps kwarg to enable map pooling (currently required)
         maps = [root.name for root in self.map_roots]
         self.scene.show(
             maps=maps,
-            n_show=n_show,
+            n_show=1,
         )
 
-    def step(self, action: Union[Dict, List, np.ndarray]) -> Tuple[Dict, np.ndarray, np.ndarray, List[Dict]]:
+    def step(self, action: Union[Dict, List, np.ndarray]) -> Tuple[Dict, np.ndarray, np.ndarray, Dict]:
         """
         The step function for the environment, follows the API from OpenAI Gym.
 
@@ -124,7 +90,10 @@ class RLEnv(VecEnv):
             info: TODO
         """
 
+        # send the data to the engine
         self.step_send_async(action=action)
+
+        # receive and return event data from the engine
         return self.step_recv_async()
 
     def step_send_async(self, action: Union[Dict, List, np.ndarray]):
@@ -133,6 +102,12 @@ class RLEnv(VecEnv):
                 raise ValueError(
                     f"Action must be a dict with keys {self.action_tags} when there are multiple action tags."
                 )
+            if type(action) == np.ndarray:
+                action = action.tolist()
+            if type(action) == np.int64:
+                action = int(action)
+            if type(action) == np.float:
+                action = float(action)
             action = {self.action_tags[0]: action}
 
         # Check that the keys are in the action tags
@@ -140,49 +115,56 @@ class RLEnv(VecEnv):
         for key, value in action.items():
             if key not in self.action_tags:
                 raise ValueError(f"Action tag {key} not found in action tags: {self.action_tags}.")
+
+            # if passing direct values to step(), make a list of lists for the user
             if isinstance(value, (int, float)):
                 # A single value for the action – we add the map/actor/action-list dimensions
-                if self.n_show == 1 and self.n_actors == 1:
+                if self.n_actors == 1:
                     action[key] = [[[value]]]
                 else:
                     raise ValueError(
-                        f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
-                        f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} "
-                        f"and n_actors {self.n_actors})."
+                        f"All actions must be list (actors) of list/np.ndarray of floats/int (action). "
+                        f"if the number of actors is greater than 1 (in this case n_actors {self.n_actors})."
                     )
+
+            # if passing in a list, verify it includes numeric data and wrap once
             elif isinstance(value, (list, tuple)) and len(value) > 0 and isinstance(value[0], (int, float)):
                 # A list value for the action – we add the map/actor dimensions
-                if self.n_show == 1 and self.n_actors == 1:
+                if self.n_actors == 1:
                     action[key] = [[value]]
                 else:
                     raise ValueError(
-                        f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
-                        f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} "
-                        f"and n_actors {self.n_actors})."
+                        f"All actions must be list (actors) of list/np.ndarray of floats/int (action). "
+                        f"if the number of actors is greater than 1 (in this case n_actors {self.n_actors})."
                     )
             elif isinstance(value, np.ndarray) and len(value) > 0 and isinstance(value[0], (np.int64, np.float32)):
                 # actions are a number array
-                value = value.reshape((self.n_show, self.n_actors_per_map, -1))
+                value = value.reshape((1, self.n_actors, -1))
                 action[key] = value.tolist()
 
         self.scene.engine.step_send_async(action=action)
 
-    def step_recv_async(self) -> Tuple[Dict, np.ndarray, np.ndarray, List[Dict]]:
+    def step_recv_async(self) -> Tuple[Dict, np.ndarray, np.ndarray, Dict]:
         event = self.scene.engine.step_recv_async()
 
         # Extract observations, reward, and done from event data
-        # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
         obs = self._extract_sensor_obs(event["actor_sensor_buffers"])
         reward = self._convert_to_numpy(event["actor_reward_buffer"]).flatten()
         done = self._convert_to_numpy(event["actor_done_buffer"]).flatten()
 
         obs = self._squeeze_actor_dimension(obs)
 
-        return obs, reward, done, [{}] * len(done)
+        return obs, reward, done, {}
 
     def _squeeze_actor_dimension(self, obs: Dict) -> Dict:
-        for k, v in obs.items():
-            obs[k] = obs[k].reshape((self.n_show * self.n_actors_per_map, *obs[k].shape[2:]))
+        # Remove empty dimensions from the observations before returning them.
+        if self.n_actors > 1:
+            # Note: Multi-actor support not fully tested.
+            for k, v in obs.items():
+                obs[k] = obs[k].reshape((self.n_actors, *obs[k].shape[2:]))
+        else:
+            for k, v in obs.items():
+                obs[k] = obs[k].reshape(obs[k].shape[2:])
         return obs
 
     def reset(self) -> Dict:
@@ -227,39 +209,5 @@ class RLEnv(VecEnv):
         Returns:
             action: TODO
         """
-        if self.n_actors_per_map > 1:
-            raise NotImplementedError("TODO: add sampling mechanism for multi-agent spaces.")
-        else:
-            action = [self.action_space.sample() for _ in range(self.n_show)]
-        return np.array(action)
-
-    def env_is_wrapped(self, wrapper_class: Type[gym.Wrapper], indices: Optional[VecEnvIndices] = None) -> List[bool]:
-        return [False] * self.n_agents * self.n_parallel
-
-    # required abstract methods
-
-    def step_async(self, actions: np.ndarray) -> None:
-        raise NotImplementedError()
-
-    def get_attr(self, attr_name: str, indices: VecEnvIndices = None) -> List[Any]:
-        raise NotImplementedError()
-
-    def env_method(self, method_name: str, *method_args, indices: VecEnvIndices = None, **method_kwargs) -> List[Any]:
-        raise NotImplementedError()
-
-    def seed(self, seed: Optional[int] = None):  # -> List[Union[None, int]]:
-        # this should be done when the env is initialized
-        return
-        # raise NotImplementedError()
-
-    def set_attr(self, attr_name: str, value: Any, indices: VecEnvIndices = None) -> None:
-        raise NotImplementedError()
-
-    def step_send(self) -> Any:
-        raise NotImplementedError()
-
-    def step_wait(self) -> VecEnvStepReturn:
-        raise NotImplementedError()
-
-    def get_images(self) -> Sequence[np.ndarray]:
-        raise NotImplementedError()
+        action = [self.action_space.sample() for _ in range(self.n_actors)]
+        return action

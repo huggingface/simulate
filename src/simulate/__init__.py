@@ -23,7 +23,7 @@ from .assets import *
 from .assets.utils import *
 from .config import Config
 from .engine import *
-from .rl import ParallelRLEnv, RLEnv
+from .rl import MultiProcessRLEnv, ParallelRLEnv, RLEnv
 from .scene import Scene
 from .utils import logging
 
