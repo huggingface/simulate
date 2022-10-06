@@ -40,8 +40,12 @@ class RLEnv:
         frame_skip: Optional[int] = 4,
     ):
 
-        self.name = scene.name
         self.scene = scene
+
+        # copy the environment name for easy gym integration
+        self.name = scene.name
+
+        # map roots needed for engine, which is designed for parallel computation
         self.map_roots = [self.scene]
 
         self.actors = {actor.name: actor for actor in self.scene.actors}
@@ -53,17 +57,20 @@ class RLEnv:
 
         self.actor = next(iter(self.actors.values()))
 
+        # copy action, observation space, and action tags
         self.action_space = self.scene.actors[0].action_space
         self.observation_space = self.scene.actors[0].observation_space
         self.action_tags = self.scene.actors[0].action_tags
 
-        # Don't return simulation data, since minimal/faster data will be returned by agent sensors
+        # converge internal simulation settings
         self.scene.config.time_step = time_step
         self.scene.config.frame_skip = frame_skip
+
+        # Don't return simulation data, since minimal/faster data will be returned by agent sensors
         self.scene.config.return_frames = False
         self.scene.config.return_nodes = False
 
-        # Pass maps kwarg to enable map pooling
+        # Pass maps kwarg to enable map pooling (currently required)
         maps = [root.name for root in self.map_roots]
         self.scene.show(
             maps=maps,
@@ -151,9 +158,7 @@ class RLEnv:
         return obs, reward, done, {}
 
     def _squeeze_actor_dimension(self, obs: Dict) -> Dict:
-        """
-        Remove empty dimensions from the observations before returning them.
-        """
+        # Remove empty dimensions from the observations before returning them.
         if self.n_actors > 1:
             # Note: Multi-actor support not fully tested.
             for k, v in obs.items():
@@ -205,8 +210,5 @@ class RLEnv:
         Returns:
             action: TODO
         """
-        if self.n_actors_per_map > 1:
-            raise NotImplementedError("TODO: add sampling mechanism for multi-agent spaces.")
-        else:
-            action = [self.action_space.sample() for _ in range(self.n_show)]
-        return np.array(action)
+        action = [self.action_space.sample() for _ in range(self.n_actors)]
+        return action
