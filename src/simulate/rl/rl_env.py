@@ -11,14 +11,13 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
-from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
+from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 
-import simulate as sm
-
 # Lint as: python3
 from simulate.scene import Scene
+
 
 class RLEnv:
     """
@@ -36,7 +35,6 @@ class RLEnv:
         scene: Scene,
         time_step: Optional[float] = 1 / 30.0,
         frame_skip: Optional[int] = 4,
-        **engine_kwargs,
     ):
 
         self.scene = scene
@@ -54,8 +52,6 @@ class RLEnv:
         self.action_space = self.scene.actors[0].action_space
         self.observation_space = self.scene.actors[0].observation_space
         self.action_tags = self.scene.actors[0].action_tags
-
-        super().__init__(n_show, self.observation_space, self.action_space)
 
         # Don't return simulation data, since minimal/faster data will be returned by agent sensors
         self.scene.config.time_step = time_step
@@ -84,7 +80,10 @@ class RLEnv:
             info: TODO
         """
 
+        # send the data to the engine
         self.step_send_async(action=action)
+
+        # receive and return event data from the engine
         return self.step_recv_async()
 
     def step_send_async(self, action: Union[Dict, List, np.ndarray]):
@@ -100,29 +99,31 @@ class RLEnv:
         for key, value in action.items():
             if key not in self.action_tags:
                 raise ValueError(f"Action tag {key} not found in action tags: {self.action_tags}.")
+
+            # if passing direct values to step(), make a list of lists for the user
             if isinstance(value, (int, float)):
                 # A single value for the action – we add the map/actor/action-list dimensions
-                if self.n_show == 1 and self.n_actors == 1:
+                if self.n_actors == 1:
                     action[key] = [[[value]]]
                 else:
                     raise ValueError(
-                        f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
-                        f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} "
-                        f"and n_actors {self.n_actors})."
+                        f"All actions must be list (actors) of list/np.ndarray of floats/int (action). "
+                        f"if the number of actors is greater than 1 (in this case n_actors {self.n_actors})."
                     )
+
+            # if passing in a list, verify it includes numeric data and wrap once
             elif isinstance(value, (list, tuple)) and len(value) > 0 and isinstance(value[0], (int, float)):
                 # A list value for the action – we add the map/actor dimensions
-                if self.n_show == 1 and self.n_actors == 1:
+                if self.n_actors == 1:
                     action[key] = [[value]]
                 else:
                     raise ValueError(
-                        f"All actions must be list (maps) of list (actors) of list of floats/int (action). "
-                        f"if the number of maps or actors is greater than 1 (in our case n_show: {self.n_show} "
-                        f"and n_actors {self.n_actors})."
+                        f"All actions must be list (actors) of list/np.ndarray of floats/int (action). "
+                        f"if the number of actors is greater than 1 (in this case n_actors {self.n_actors})."
                     )
             elif isinstance(value, np.ndarray) and len(value) > 0 and isinstance(value[0], (np.int64, np.float32)):
                 # actions are a number array
-                value = value.reshape((self.n_show, self.n_actors_per_map, -1))
+                value = value.reshape((1, self.n_actors, -1))
                 action[key] = value.tolist()
 
         self.scene.engine.step_send_async(action=action)
@@ -131,7 +132,6 @@ class RLEnv:
         event = self.scene.engine.step_recv_async()
 
         # Extract observations, reward, and done from event data
-        # TODO nathan thinks we should make this for 1 agent, have a separate one for multiple agents.
         obs = self._extract_sensor_obs(event["actor_sensor_buffers"])
         reward = self._convert_to_numpy(event["actor_reward_buffer"]).flatten()
         done = self._convert_to_numpy(event["actor_done_buffer"]).flatten()
@@ -141,8 +141,16 @@ class RLEnv:
         return obs, reward, done, [{}] * len(done)
 
     def _squeeze_actor_dimension(self, obs: Dict) -> Dict:
-        for k, v in obs.items():
-            obs[k] = obs[k].reshape((self.n_show * self.n_actors_per_map, *obs[k].shape[2:]))
+        """
+        Remove empty dimensions from the observations before returning them.
+        """
+        if self.n_actors > 1:
+            # Note: Multi-actor support not fully tested.
+            for k, v in obs.items():
+                obs[k] = obs[k].reshape((self.n_actors, *obs[k].shape[2:]))
+        else:
+            for k, v in obs.items():
+                obs[k] = obs[k].reshape(obs[k].shape[2:])
         return obs
 
     def reset(self) -> Dict:
