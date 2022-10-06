@@ -1,5 +1,0 @@
-# ignore .env
-.env/
-
-# Ignore results folder
-results
