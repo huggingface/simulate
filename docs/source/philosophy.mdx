@@ -11,3 +11,27 @@ specific language governing permissions and limitations under the License.
 -->
 
 # Philosophy
+
+## Today’s landscape for simulation environments
+In our investiguations, we found that the current lanscape for simulation environments and synthetic data creation has a couple of limitations:
+- Very fragmented - each set of simulation environments is usually isolated and separated from the others by being tied to a specific engine (Unity, Gibson, Habitat, etc)
+- Building environments often requires knowledge and skills that are not in the toolbox of the typical AI/ML researchers (knowledge of C++/C#)
+- Frameworks tend to focus on one domain/application, e.g. focusing on RL, synthetic data generation, NLP, self-driving cars but the field is increasingly cross applications/modalities
+- It's often not easy to share a new environment or a modification of an environment wihtout having to modify a library
+- Environment visualization/debugging tools can be difficult to find
+
+🎢 simulate is a proof of concept to investigate whether this situation could be improved.
+
+## Design philosophy for simulate
+
+The simulate library is an exploration on how one could use python to easily build & share complex and diverse simulation environments for embodied learning or synthetic data research.
+
+The basic idea is to decouple the creation of the simulation environment ("building") from the simulation engine used to run it (Unity, Blender, custom engine, etc) by relying on an engine-agnostic sharing format (the open standard glTF format in this case).
+
+The created environments are stored in a language/framework agnostic format and can be loaded and run on a diversity of engines with concise integrations handling more or less of the glTF extensions we use (we provide PoC plugins for Unity, Godot and Blender in the alpha release).
+
+Interfacing with the git-versioning and hosting on the Hugging Face hub allow to download/upload share/reuse assets (objects) as well as full scenes (environments).
+
+## Building on the shoulders of giants
+
+The python API was inspired by the awesome kubric library created by Klaus Greff and Andrea Tagliasacchi and the Google team (https://github.com/google-research/kubric) while the Unity engine was inspired in part by the impressive work of the PRIOR team at AllenAI (https://prior.allenai.org/).

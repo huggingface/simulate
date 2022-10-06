@@ -101,7 +101,7 @@ jobs:
 
       - name: Push builds to Hub
         env:
-          HF_TOKEN: ${{ secrets.HUGGINGFACE_PUSH }}
+          HF_TOKEN: ${{ secrets.UNITY_BUILD_PUSH }}
           HF_USERNAME: thomwolf
           REPO_NAME: unity_test
         run: |
