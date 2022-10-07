@@ -20,6 +20,11 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 import pyvista as pv
 
+try:
+    from pyVHACD import compute_vhacd
+except ImportError:
+    compute_vhacd = None
+
 from ..utils import logging
 from .articulation_body import ArticulationBodyComponent
 from .asset import Asset
@@ -124,6 +129,33 @@ class Object3D(Asset):
         if isinstance(self.material, (list, tuple)) or isinstance(self.mesh, pv.MultiBlock):
             if not isinstance(self.mesh, pv.MultiBlock) or len(self.material) != self.mesh.n_blocks:
                 raise ValueError("Number of materials must match number of blocks in mesh")
+
+    def build_collider(self):
+        """Build a collider from the mesh."""
+        if compute_vhacd is None:
+            raise ImportError("Please compile/install pyVHACD to use this feature")
+        if self.mesh is None:
+            raise ValueError("Cannot build collider from empty mesh")
+        
+        collider_hulls = []
+        if isinstance(self.mesh, pv.MultiBlock):
+            for i in range(self.mesh.n_blocks):
+                collider_hulls.extend(compute_vhacd(self.mesh[i], resolution=100000))
+        else:
+            collider_hulls.extend(compute_vhacd(self.mesh, resolution=100000))
+        
+        if len(collider_hulls) == 1:
+            mesh = pv.PolyData(collider_hulls[0][0], faces=collider_hulls[0][1])
+            collider = Collider(type="mesh", mesh=mesh, convex=True)
+        else:
+            mesh = pv.MultiBlock()
+            for hull in collider_hulls:
+                mesh.append(pv.PolyData(hull[0], faces=hull[1]))
+            collider = Collider(type="mesh", mesh=mesh, convex=True)
+
+        children = self.tree_children
+        self.tree_children = (children if children is not None else []) + [collider]
+
 
     def copy(self, with_children: bool = True, **kwargs: Any) -> "Object3D":
         """Copy an Object3D node in a new (returned) object.

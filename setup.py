@@ -66,6 +66,7 @@ __version__ = "0.0.2.dev0"  # expected format is one of x.y.z.dev0, or x.y.z.rc1
 REQUIRED_PKGS = [
     "dataclasses_json",  # For GLTF export/imports
     "numpy>=1.18", # We use numpy>=1.17 to have np.random.Generator
+    "vtk>=9.0",  # Pyvista doesn't always install vtk, so we do it here
     "pyvista>=0.35",  # For mesh creation and edition and simple vizualization
     "huggingface_hub>=0.10", # For sharing objects, environments & trained RL policies
     'pybind11>=2.2',  # For compiling extensions pybind11
