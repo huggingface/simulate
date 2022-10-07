@@ -20,6 +20,7 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 import pyvista as pv
 
+
 try:
     from pyVHACD import compute_vhacd
 except ImportError:
@@ -136,14 +137,14 @@ class Object3D(Asset):
             raise ImportError("Please compile/install pyVHACD to use this feature")
         if self.mesh is None:
             raise ValueError("Cannot build collider from empty mesh")
-        
+
         collider_hulls = []
         if isinstance(self.mesh, pv.MultiBlock):
             for i in range(self.mesh.n_blocks):
                 collider_hulls.extend(compute_vhacd(self.mesh[i], resolution=100000))
         else:
             collider_hulls.extend(compute_vhacd(self.mesh, resolution=100000))
-        
+
         if len(collider_hulls) == 1:
             mesh = pv.PolyData(collider_hulls[0][0], faces=collider_hulls[0][1])
             collider = Collider(type="mesh", mesh=mesh, convex=True)
@@ -155,7 +156,6 @@ class Object3D(Asset):
 
         children = self.tree_children
         self.tree_children = (children if children is not None else []) + [collider]
-
 
     def copy(self, with_children: bool = True, **kwargs: Any) -> "Object3D":
         """Copy an Object3D node in a new (returned) object.
