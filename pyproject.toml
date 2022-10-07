@@ -6,5 +6,5 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-test-command = "python -c 'import simulate as sm; scene=sm.Scene() + sm.Box()"
+test-command = "python -c 'import simulate as sm; scene=sm.Scene() + sm.Box()'"
 test-skip = "*universal2:arm64"
