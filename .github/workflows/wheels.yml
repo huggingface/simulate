@@ -46,7 +46,7 @@ jobs:
     - uses: pypa/cibuildwheel@v2.10.1
       env:
         CIBW_ARCHS_MACOS: auto universal2
-        CIBW_SKIP: "cp311-* *-win32 pp38-* pp39-*"  # "*-win32 pp37-win_amd64  pp38-* pp39-*"
+        CIBW_SKIP: "cp311-* *-win32 pp38-* pp39-* *_i686"  # "*-win32 pp37-win_amd64  pp38-* pp39-*"
 
     - name: Verify clean directory
       run: git diff --exit-code
