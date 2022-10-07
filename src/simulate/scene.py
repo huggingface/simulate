@@ -24,17 +24,38 @@ from .engine import BlenderEngine, GodotEngine, NotebookEngine, PyVistaEngine, U
 
 
 class Scene(Asset):
-    """A Scene is the main place to add objects and object tree.
-    In addition to a root node, it has an engine that can be used to diplay and interact with the scene.
+    """
+    A Scene is the main place to add objects and object tree.
+    In addition to a root node, it has an engine that can be used to display and interact with the scene.
 
-    Parameters
-    ----------
+    Args:
+        engine (`str`, *optional*, defaults to `"pyvista"`):
+            The engine to use to display & simulate the scene. Can be one of the following:
+            - `unity`: Unity3D game engine https://unity.com/
+            - `godot`: Godot game engine https://godotengine.org/
+            - `blender`: Blender 3D modeling software https://www.blender.org/
+            - `pyvista`: Rendering the scene using PyVista https://docs.pyvista.org/
+            - `notebook`: Managing the scene in a Python notebook
+        config (`Config`, *optional*, defaults to `Config()`):
+            The configuration of the scene. If None, a default configuration will be used.
+        name (`str`, *optional*, defaults to `None`):
+            The name of the scene.
+        created_from_file (`str`, *optional*, defaults to `None`):
+            The path to the file from which the scene should be created.
+        position (`List[float]`, *optional*, defaults to `None`):
+            The global position of the scene.
+        rotation (`List[float]`, *optional*, defaults to `None`):
+            The global rotation of the scene.
+        scaling (`float` or `List[float]`, *optional*, defaults to `None`):
+            The global scaling of the scene.
+            If a single float is provided, the same scaling will be applied to all axis.
+        transformation_matrix (`List[float]`, *optional*, defaults to `None`):
+            The transformation matrix of the scene.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            The children of the scene.
 
-    Returns
-    -------
-
-    Examples
-    --------
+        Example:
+        TODO: Add example
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -97,6 +118,15 @@ class Scene(Asset):
 
     @classmethod
     def create_from_asset(cls, asset: "Asset", **kwargs: Any) -> "Scene":
+        """
+        Create a Scene from an Asset
+
+        Args:
+            asset (`Asset`): The asset to use to create the scene.
+
+        Returns:
+            `Scene`: The created scene.
+        """
         name = kwargs.pop("name", asset.name)
         position = kwargs.pop("position", asset.position)
         rotation = kwargs.pop("rotation", asset.rotation)
@@ -125,14 +155,24 @@ class Scene(Asset):
         hf_hub_kwargs: Optional[dict] = None,
         **scene_kwargs: Any,
     ) -> "Scene":
-        """Load a Scene or Asset from the HuggingFace hub or from a local GLTF file.
+        """
+        Load a Scene or Asset from the HuggingFace hub or from a local GLTF file.
 
-        First argument is either:
-        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
-        - or a path to a local file on the drive.
-
-        When conflicting files on both, priority is given to the local file
-        (use 'is_local=True/False' to force from the Hub or from local file)
+        Args:
+            hub_or_local_filepath (`str`):
+                The path to the file to load.
+                If the path starts with `https://huggingface.co/`, the file will be loaded from the HuggingFace hub.
+                Otherwise, the file will be loaded from the local file system.
+            use_auth_token (`str`, *optional*, defaults to `None`):
+                The HuggingFace token to use to download private files from the HuggingFace hub.
+            revision (`str`, *optional*, defaults to `None`):
+                The specific version of the file to load. If None, the latest version will be used.
+            is_local (`bool`, *optional*, defaults to `None`):
+                Whether the file should be loaded from the local file system.
+                If None, the file will be loaded from the local file system if the path does not start with
+                `https://huggingface.co/`.
+            hf_hub_kwargs (`dict`, *optional*, defaults to `None`):
+                The additional keyword arguments to pass to the Hugging Face hub.
 
         Examples:
         - Scene.create_from('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
@@ -148,6 +188,7 @@ class Scene(Asset):
         return Scene.create_from_asset(root_node, **scene_kwargs)
 
     def _scene_check(self):
+        """Check that the scene is valid."""
         # We have a couple of restrictions on parent/children nodes
         seen = {self.name}  # O(1) lookups
         for node in self.tree_descendants:
@@ -189,8 +230,15 @@ class Scene(Asset):
                     )
 
     def save(self, file_path: str) -> List[str]:
-        """Save in a GLTF file + additional (binary) resource files if it should be the case.
+        """
+        Save in a GLTF file + additional (binary) resource files if it should be the case.
         Return the list of all the path to the saved files (glTF file + resource files)
+
+        Args:
+            file_path (`str`): The path to the file to save the scene to.
+
+        Returns:
+            `List[str]`: The list of all the path to the saved files (glTF file + resource files)
         """
         self._scene_check()
         return super().save(file_path)
@@ -213,20 +261,23 @@ class Scene(Asset):
         """Step the Scene.
 
         Args:
-            action: Dict[str, List[Any]]
+            action (`Dict[str, List[Any]]`, *optional*, defaults to `None`):
                 The action to apply to the actors in the scene.
                 Keys are actuator_id and values are actions to apply as tensors of shapes
                 (n_maps, n_actors, action_space...)
-            time_step: Optional[float]
+            time_step (`float`, *optional*, defaults to `None`):
                 The time step to apply to the scene. If None, the time_step of the config is used.
-            frame_skip: Optional[int]
+            frame_skip (`int`, *optional*, defaults to `None`):
                 The number of frames to skip. If None, the frame_skip of the config is used.
-            return_nodes: Optional[bool]
+            return_nodes (`bool`, *optional*, defaults to `None`):
                 If True, the nodes of the scene are returned. If None, the return_nodes of the config is used.
-            return_frames: Optional[bool]
+            return_frames (`bool`, *optional*, defaults to `None`):
                 If True, the frames of the scene are returned. If None, the return_frames of the config is used.
-            engine_kwargs: Dict
-                Additional kwargs to pass to the engine.
+
+        TODO: What does the step return?
+        Returns:
+            step_result (`Any`):
+                The result of the step. If `return_nodes` is `True`, the nodes of the scene are returned.
 
         Returns:
             event_data: Dict of simulation data from the scene.
@@ -252,11 +303,14 @@ class Scene(Asset):
 
     @property
     def action_space(self) -> Optional[spaces.Space]:
-        """The action space of the single actor in the scene.
-        Only available is the scene has one and only one actor.
-        Otherwise, None is returned.
-        If the scene has more than one actor, you should query
-            the action_space of the actor directly, e.g. scene.actors[0].action_space
+        """
+        Get the action space of the single actor in the scene. Only available is the scene has one and only one actor.
+        If the scene has more than one actor, you should query the action_space of the actor directly,
+        e.g. `scene.actors[0].action_space`
+
+        Returns:
+            action_space (`spaces.Space`):
+                The action space of the single actor in the scene, or `None` if the scene has more than one actor.
         """
         actors = self.actors
         if len(actors) == 1:
@@ -265,11 +319,14 @@ class Scene(Asset):
 
     @property
     def observation_space(self) -> Optional[spaces.Space]:
-        """The observation space of the single actor in thescene.
-        Only available is the scene has one and only one actor.
-        Otherwise, None is returned.
-        If the scene has more than one actor, you should query
-            the observation_space of the actor directly, e.g. scene.actors[0].observation_space
+        """
+        The observation space of the single actor in the scene. Only available is the scene has one and only one actor.
+        If the scene has more than one actor, you should query the observation_space of the actor directly,
+        e.g. scene.actors[0].observation_space
+
+        Returns:
+            observation_space (`spaces.Space`):
+                The observation space of the single actor in the scene, or `None` if the scene has more than one actor.
         """
         actors = self.actors
         if len(actors) == 1:

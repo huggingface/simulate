@@ -38,25 +38,29 @@ GLTF_COMPONENTS_EXTENSION_CLASS = []
 
 
 class GltfExtensionMixin(DataClassJsonMixin):
-    """A Mixin class to extend a python dataclass to be a glTF extension.
+    """
+    A Mixin class to extend a python dataclass to be a glTF extension.
 
-        Requirements:
-            - The extended python class must be a dataclass.
-            - The attributes of the class must be
-                * either JSON serializable, or
-                * an Asset object to which the type should then be Union[str, Any]
-                  (converted in a string with the node name while saving to glTF and
-                   decoded to a pointer to the asset object while loading from glTF).
+    Requirements:
+        - The extended python class must be a dataclass.
+        - The attributes of the class must be
+            * either JSON serializable, or
+            * an Asset object to which the type should then be Union[str, Any]
+              (converted in a string with the node name while saving to glTF and
+               decoded to a pointer to the asset object while loading from glTF).
 
-    Attributes:
-        gltf_extension_name: (str) The name of the glTF extension.
-        object_type: (str) Either "node" is the object is a node, or
-            "component" if the object is a component (attached to a node)
+    Args:
+        gltf_extension_name (`str`):
+            The name of the glTF extension.
+        object_type (`str`):
+            Either "node" is the object is a node, or "component" if the object is a component (attached to a node)
 
-    Example:
-        class MyGltfExtension(GltfExtensionMixin,
-                              gltf_extension_name="my_extension",
-                              object_type="node"):
+    Examples:
+    ```python
+    class MyGltfExtension(GltfExtensionMixin,
+                          gltf_extension_name="my_extension",
+                          object_type="node"):
+    ```
     """
 
     def __init_subclass__(cls, gltf_extension_name: str, object_type: str, **kwargs: Any):
@@ -117,27 +121,36 @@ class GltfExtensionMixin(DataClassJsonMixin):
             raise ValueError(f"The object type {object_type} is not supported.")
 
     def gltf_copy(self) -> "GltfExtensionMixin":
-        """Create a deep copy of the object with a deep copy of only the dataclass fields.
+        """
+        Create a deep copy of the object with a deep copy of only the dataclass fields.
 
-        In several cases we are modifying this asset and want to create pikable copies
-        (e.g. at importation from GLTF or during the GLTF conversion to replace node pointers with string names)
+        In several cases we are modifying this asset and want to create picklable copies
+        (e.g. at importation from GLTF or during the GLTF conversion to replace node pointers with string names).
 
         We then want to deep copy only the fields of the dataclass, thus we don't
-        use copy.deepcpy since some other properties (renderer, etc.) are not picklable
+        use copy.deepcopy since some other properties (renderer, etc.) are not picklable.
+
+        Returns:
+            copy (`GltfExtensionMixin`):
+                A deep copy of the object with a deep copy of only the dataclass fields.
         """
         self_dict = {f.name: copy.deepcopy(getattr(self, f.name)) for f in fields(self)}
         copy_self = type(self)(**self_dict)
         return copy_self
 
     def add_component_to_gltf_scene(self, gltf_model_extensions) -> str:
-        """Add a scene level object to a glTF scene (e.g. config).
-            Only one object of each such type can be added to a scene.
+        """
+        Add a scene level object to a glTF scene (e.g. config).
+        Only one object of each such type can be added to a scene.
 
+        TODO: Complete typing for gltf_model_extensions
         Args:
-            gltf_model_extensions: The glTF model extensions.
+            gltf_model_extensions ():
+                The glTF model extensions.
 
         Returns:
-            The name of the glTF extension.
+            name (`str`):
+                The name of the glTF extension.
         """
         copy_self = self.gltf_copy()  # Create a deep copy of the object keeping only the fields
 
@@ -150,13 +163,17 @@ class GltfExtensionMixin(DataClassJsonMixin):
         return self._gltf_extension_name
 
     def add_component_to_gltf_model(self, gltf_model_extensions) -> int:
-        """Add a component to a glTF model.
+        """
+        Add a component to a glTF model.
 
+        TODO: Complete typing for gltf_model_extensions
         Args:
-            gltf_model_extensions: The glTF model extensions.
+            gltf_model_extensions ():
+                The glTF model extensions.
 
         Returns:
-            The index of the component in the glTF model extensions.
+            id (`int`):
+                The index of the component in the glTF model extensions.
         """
         copy_self = self.gltf_copy()  # Create a deep copy of the object keeping only the fields
 
@@ -177,13 +194,18 @@ class GltfExtensionMixin(DataClassJsonMixin):
         """
         Add a component to a glTF node.
 
+        TODO: Complete typing for gltf_node_extensions
         Args:
-            gltf_node_extensions: The glTF node extensions dataclass_json.
-            object_id: The index of the component in the glTF model extensions.
-            object_name: The name of the component in the glTF model extensions.
+            gltf_node_extensions ():
+                The glTF node extensions dataclass_json.
+            object_id (`int`):
+                The index of the component in the glTF model extensions.
+            object_name (`str`):
+                The name of the component in the glTF model extensions.
 
         Returns:
-            The name of the glTF node extensions.
+            name (`str`):
+                The name of the glTF node extensions.
         """
         node_extension_cls = self._gltf_extension_cls(object_id=object_id, name=object_name)
         if not hasattr(gltf_node_extensions, self._gltf_extension_name):
@@ -193,6 +215,18 @@ class GltfExtensionMixin(DataClassJsonMixin):
 
 
 def _process_dataclass_after(obj_dataclass, node: "Asset", object_name: Optional[str] = None):
+    """
+    Process the dataclass after the deserialization.
+
+    TODO: Complete typing for obj_dataclass
+    Args:
+        obj_dataclass ():
+            The dataclass to process.
+        node (`Asset`):
+            The node to which the dataclass belongs.
+        object_name (`str`, *optional*, defaults to `None`):
+            The name of the object.
+    """
     for f in fields(obj_dataclass):
         value = getattr(obj_dataclass, f.name)
         type_ = f.type
@@ -231,9 +265,14 @@ def _process_dataclass_after(obj_dataclass, node: "Asset", object_name: Optional
 
 
 def process_tree_after_gltf(node: Union["Asset", List]):
-    """Set up the attributes of each component of the asset which refers to assets.
-    Sometime components referred to assets by names (when loading from a glTF file)
-    We convert them to references to the asset
+    """
+    Set up the attributes of each component of the asset which refers to assets.
+    Sometime components referred to assets by names (when loading from a glTF file).
+    We convert them to references to the asset.
+
+    Args:
+        node (`Asset` or `list`):
+            The node to process.
     """
     if node.__class__ in GLTF_NODES_EXTENSION_CLASS:
         _process_dataclass_after(node, node, None)
@@ -248,6 +287,17 @@ def process_tree_after_gltf(node: Union["Asset", List]):
 
 
 def _process_dataclass_before(obj_dataclass, node: "Asset", object_name: Optional[str] = None):
+    """
+    Process the dataclass before the serialization.
+
+    Args:
+        obj_dataclass ():
+            The dataclass to process.
+        node (`Asset`):
+            The node to which the dataclass belongs.
+        object_name (`str`, *optional*, defaults to `None`):
+            The name of the object.
+    """
     for f in fields(obj_dataclass):
         value = getattr(obj_dataclass, f.name)
         type_ = f.type
@@ -288,9 +338,14 @@ def _process_dataclass_before(obj_dataclass, node: "Asset", object_name: Optiona
 
 
 def process_tree_before_gltf(node: "Asset"):
-    """Set up the attributes of each GLTFExtension tree/components of the asset which refers to assets.
+    """
+    Set up the attributes of each GLTFExtension tree/components of the asset which refers to assets.
     Sometime components referred to assets by names (when loading from a glTF file)
     We convert them to string of the names of the assets (which are unique)
+
+    Args:
+        node (`Asset`):
+            The node to process.
     """
 
     if node.__class__ in GLTF_NODES_EXTENSION_CLASS:

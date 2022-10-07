@@ -1,3 +1,18 @@
+# Copyright 2022 The HuggingFace Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lint as: python3
 import itertools
 from dataclasses import InitVar, dataclass
 from typing import Any, ClassVar, List, Optional, Tuple, Union
@@ -14,33 +29,63 @@ ALLOWED_REWARD_DISTANCE_METRICS = ["euclidean", "best_euclidean", "cosine"]  # T
 
 @dataclass
 class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_functions", object_type="node"):
-    """An RL reward function
+    """
+    A reinforcement learning reward function.
 
-    Attributes:
-        type: str, optional (default="dense")
+    Args:
+        type (`str`, *optional*, defaults to `"dense"`):
             The type of reward function. Must be one of the following:
-                "dense", "sparse", "or", "and", "not", "see", "timeout"
-        distance_metric: str, optional (default="euclidean")
-            The distance metric to use. Must be one of the following:
-                "euclidean"
-        entity_a: Asset
+            [
+                "dense",
+                "sparse",
+                "or",
+                "and",
+                "not",
+                "see",
+                "timeout"
+            ]
+        entity_a (`Asset`, *optional*, defaults to `None`):
             The first entity in the reward function
-        entity_b: Asset
+        entity_b: (`Asset`, *optional*, defaults to `None`):
             The second entity in the reward function
-        scalar: float, optional (default=1.0)
+        distance_metric (`str`, *optional*, defaults to `"euclidean"`):
+            The distance metric to use. Must be one of the following:
+            [
+                "euclidean"
+            ]
+        direction (List[float], *optional*, defaults to `[1.0, 0.0, 0.0]`):
+            The direction to use for the reward function.
+        scalar (`float`, *optional*, defaults to `1.0`):
             The scalar to modify the reward by a constant. Setting to -1 will make the reward behave as a cost.
-        threshold: float, optional (default=0.0)
+        threshold (`float`, *optional*, defaults to `1.0`):
             The distance threshold to give the reward
-        is_terminal: bool, optional (default=False)
+        is_terminal (`bool`, *optional*, defaults to `False`):
             Whether the reward is terminal
-        is_collectable: bool, optional (default=False)
+        is_collectable (`bool`, *optional*, defaults to `False`):
             Whether the reward is collectable
-        trigger_once: bool, optional (default=False)
+        trigger_once (`bool`, *optional*, defaults to `True`):
             Whether the reward is triggered once
-        reward_function_a: RewardFunction, optional (default=None)
+        reward_function_a (`RewardFunction`, *optional*, defaults to `None`):
             When doing combination of rewards (and, or), the first reward function that are to be combined
-        reward_function_b: RewardFunction, optional (default=None)
+        reward_function_b (`RewardFunction`, *optional*, defaults to `None`):
             When doing combination of rewards (and, or), the second reward function that are to be combined
+
+        name (`str`, *optional*, defaults to `None`):
+            The name of the reward function
+        position (List[float], *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            The position of the reward function.
+        rotation (List[float], *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            The rotation of the reward function.
+        scaling (List[float], *optional*, defaults to `[1.0, 1.0, 1.0]`):
+            The scaling of the reward function.
+        transformation_matrix (List[float], *optional*, defaults to `None`):
+            The transformation matrix of the reward function.
+        parent (`Asset`, *optional*, defaults to `None`):
+            The parent of the reward function.
+        children (`List[Asset]`, *optional*, defaults to `None`):
+            The children of the reward function.
+        created_from_file (`str`, *optional*, defaults to `None`):
+            The file path of the file from which the reward function was created.
     """
 
     type: Optional[str] = None
@@ -110,14 +155,26 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
             self.direction = [1.0, 0.0, 0.0]
 
     def _post_attach_children(self, children: Union["Asset", List["Asset"]]):
-        """Method call after attaching `children`.
+        """
+        Method call after attaching `children`.
         We only allow Reward Functions as child of Reward functions.
+
+        Args:
+            children (`Union[Asset, List[Asset]]`):
+                The children to attach.
         """
         if children is not None:
             if any(not isinstance(child, self.__class__) for child in children):
                 raise TypeError("The children of a Reward Function should be Reward Functions")
 
     def _post_copy(self, actor: "Asset"):
+        """
+        Method call after copying the reward function.
+
+        Args:
+            actor (`Asset`):
+                The actor used to access the root.
+        """
         root = actor.tree_root
 
         copy_name = getattr(self, "name") + f"_copy{self._n_copies}"
@@ -149,18 +206,46 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
     ##############################
     @property
     def position(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the position of the reward function in the scene.
+
+        Returns:
+            position (`List[float]` or `np.ndarray`):
+                The position of the reward function in the scene.
+        """
         return self._position
 
     @property
     def rotation(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the rotation of the reward function in the scene.
+
+        Returns:
+            rotation (`List[float]` or `np.ndarray`):
+                The rotation of the reward function in the scene.
+        """
         return self._rotation
 
     @property
     def scaling(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the scaling of the reward function in the scene.
+
+        Returns:
+            scaling (`List[float]` or `np.ndarray`):
+                The scaling of the reward function in the scene.
+        """
         return self._scaling
 
     @property
     def transformation_matrix(self) -> np.ndarray:
+        """
+        Get the transformation matrix of the reward function in the scene.
+
+        Returns:
+            transformation_matrix (`np.ndarray`):
+                The transformation matrix of the reward function in the scene.
+        """
         if self._transformation_matrix is None:
             self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
         return self._transformation_matrix
@@ -169,6 +254,13 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
 
     @position.setter
     def position(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the position of the reward function in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The position of the reward function in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
@@ -190,6 +282,13 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
 
     @rotation.setter
     def rotation(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the rotation of the reward function in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The rotation of the reward function in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
@@ -211,6 +310,13 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
 
     @scaling.setter
     def scaling(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the scaling of the reward function in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The scaling of the reward function in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
@@ -232,6 +338,13 @@ class RewardFunction(Asset, GltfExtensionMixin, gltf_extension_name="HF_reward_f
 
     @transformation_matrix.setter
     def transformation_matrix(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the transformation matrix of the reward function in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The transformation matrix of the reward function in the scene.
+        """
         # Default to setting up from TRS if None
         if (value is None or isinstance(value, property)) and (
             self._position is not None and self._rotation is not None and self._scaling is not None

@@ -37,10 +37,11 @@ UNSUPPORTED_REQUIRED_EXTENSIONS = ["KHR_draco_mesh_compression"]
 class GLTFReader(pv.utilities.reader.BaseReader):
     """GLTFeader for .gltf and .glb files.
 
-    Examples
-    --------
-    >>> reader = GLTFReader(filename)
-    >>> mesh = reader.read()  # A MultiBlock reproducing the hierarchy of Nodes in the GLTF file
+    Examples:
+    ```python
+    reader = GLTFReader(filename)
+    mesh = reader.read()  # A MultiBlock reproducing the hierarchy of Nodes in the GLTF file
+    ```
     """
 
     _class_reader = pv._vtk.vtkGLTFReader
@@ -69,7 +70,19 @@ gltf_to_numpy_shapes_mapping = {
 
 # A couple of data extraction methods
 def get_buffer_as_bytes(gltf_scene: GLTF, buffer_view_id: int) -> ByteString:
-    """Get a ByteString of the data stored in a GLTF buffer view"""
+    """
+    Get a `ByteString` of the data stored in a GLTF buffer view.
+
+    Args:
+        gltf_scene (`gltflib.GLTF`):
+            The GLTF scene.
+        buffer_view_id (`int`):
+            The id of the buffer view to extract.
+
+    Returns:
+        data (`ByteString`):
+            The data stored in the buffer view.
+    """
     gltf_model = gltf_scene.model
 
     buffer_view = gltf_model.bufferViews[buffer_view_id]
@@ -80,7 +93,6 @@ def get_buffer_as_bytes(gltf_scene: GLTF, buffer_view_id: int) -> ByteString:
 
     byte_offset = buffer_view.byteOffset
     length = buffer_view.byteLength
-
     data = resource.data[byte_offset : byte_offset + length]
 
     return data
@@ -90,7 +102,19 @@ def get_buffer_as_bytes(gltf_scene: GLTF, buffer_view_id: int) -> ByteString:
 # Still keeping them if we want to support our own collision shape and maybe complex operations
 # To be cleaned up at the end
 def get_image_as_bytes(gltf_scene: GLTF, image_id: int) -> ByteString:
-    """Get a ByteString of the data stored in a GLTF image"""
+    """
+    Get a ByteString of the data stored in a GLTF image.
+
+    Args:
+        gltf_scene (`gltflib.GLTF`):
+            The GLTF scene.
+        image_id (`int`):
+            The id of the image to extract.
+
+    Returns:
+        data (`ByteString`):
+            The data stored in the image.
+    """
     gltf_model = gltf_scene.model
 
     image = gltf_model.images[image_id]
@@ -105,7 +129,19 @@ def get_image_as_bytes(gltf_scene: GLTF, image_id: int) -> ByteString:
 
 
 def get_accessor_as_numpy(gltf_scene: GLTF, accessor_id: int) -> np.ndarray:
-    """Get a numpy array of the data stored in a GLTF accessor"""
+    """
+    Get a numpy array of the data stored in a GLTF accessor.
+
+    Args:
+        gltf_scene (`gltflib.GLTF`):
+            The GLTF scene.
+        accessor_id (`int`):
+            The id of the accessor to extract.
+
+    Returns:
+        data (`np.ndarray`):
+            The data stored in the accessor.
+    """
     gltf_model = gltf_scene.model
     accessor = gltf_model.accessors[accessor_id]
 
@@ -125,6 +161,19 @@ def get_accessor_as_numpy(gltf_scene: GLTF, accessor_id: int) -> np.ndarray:
 
 
 def get_texture_as_pillow(gltf_scene: GLTF, texture_info: Optional[TextureInfo]) -> Optional[PIL.Image.Image]:
+    """
+    Get a Pillow image of the data stored in a GLTF texture.
+
+    Args:
+        gltf_scene (`gltflib.GLTF`):
+            The GLTF scene.
+        texture_info (`gltflib.TextureInfo`):
+            The texture info to extract.
+
+    Returns:
+        image (`PIL.Image.Image`):
+            The image stored in the texture.
+    """
     if texture_info is None:
         return None
 
@@ -149,6 +198,19 @@ def get_texture_as_pillow(gltf_scene: GLTF, texture_info: Optional[TextureInfo])
 
 
 def get_texture_as_pyvista(gltf_scene: GLTF, texture_info: Optional[TextureInfo]) -> Optional[pv.Texture]:
+    """
+    Get a PyVista texture of the data stored in a GLTF texture.
+
+    Args:
+        gltf_scene (`gltflib.GLTF`):
+            The GLTF scene.
+        texture_info (`gltflib.TextureInfo`):
+            The texture info to extract.
+
+    Returns:
+        texture (`pyvista.Texture`):
+            The texture stored in the texture.
+    """
     if texture_info is None:
         return None
 
@@ -186,7 +248,23 @@ def build_node_tree(
     gltf_node_id: int,
     parent: Optional["Asset"] = None,
 ) -> List:
-    """Build the node tree of simulate objects from the GLTF scene"""
+    """
+    Build the node tree of simulate objects from the GLTF scene.
+
+    Args:
+        gltf_scene (`gltflib.GLTF`):
+            The GLTF scene.
+        pyvista_meshes (`pyvista.MultiBlock`):
+            The pyvista meshes of the GLTF scene.
+        gltf_node_id (`int`):
+            The id of the GLTF node to build the tree from.
+        parent (`simulate.Asset`):
+            The parent of the node to build the tree from.
+
+    Returns:
+        nodes (`List[Asset]`):
+            The list of nodes in the built tree.
+    """
     gltf_model = gltf_scene.model
     gltf_node = gltf_model.nodes[gltf_node_id]
     common_kwargs = {
@@ -386,6 +464,25 @@ def load_gltf_as_tree(
     Loading function to create a tree of asset nodes from a GLTF file.
     Return a list of the main nodes in the GLTF files (often only one main node).
     The tree can be walked from the main nodes.
+
+    Args:
+        file_path (`str`):
+            Path to the GLTF file
+        file_type (`str`, *optional*, defaults to `None`):
+            Type of the file to load.
+        repo_id (`str`, *optional*, defaults to `None`):
+            The id of the repo to load the file from.
+            If `None`, the file will be loaded from the local file system.
+        subfolder (`str`, *optional*, defaults to `None`):
+            The subfolder of the repo to load the file from.
+            If `None`, the file will be loaded from the root of the repo.
+        revision (`str`, *optional*, defaults to `None`):
+            The revision of the repo to load the file from.
+            If `None`, the file will be loaded from the latest revision of the repo.
+
+    Returns:
+        nodes (`List[Asset`):
+            The list of the main nodes in the GLTF files.
     """
     gltf_scene = GLTF.load(file_path)  # We load the other nodes (camera, lights, our extensions) ourselves
 

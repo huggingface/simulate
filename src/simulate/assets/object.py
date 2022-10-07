@@ -38,13 +38,23 @@ def translate(
     new_direction: Union[Tuple[float, float, float], List[float], np.ndarray] = (1.0, 0.0, 0.0),
     original_direction: Union[Tuple[float, float, float], List[float], np.ndarray] = (1.0, 0.0, 0.0),
 ):
-    """Translate and orient a mesh to a new center and direction.
+    """
+    Translate and orient a mesh to a new center and direction.
 
     By default, the input mesh is considered centered at the origin
     and facing in the x direction.
 
     Adapted from pyvista's translate function.
 
+    Args:
+        surf (pyvista.PolyData):
+            The mesh to translate.
+        center (`Tuple` or `List[float]` or `np.ndarray`, *optional*, defaults to `(0.0, 0.0, 0.0)`):
+            The new center of the mesh.
+        new_direction (`Tuple` or `List[float]` or `np.ndarray`, *optional*, defaults to `(1.0, 0.0, 0.0)`):
+            The new direction of the mesh.
+        original_direction (`Tuple` or `List[float]` or `np.ndarray`, *optional*, defaults to `(1.0, 0.0, 0.0)`):
+            The original direction of the mesh.
     """
     # Find rotation matrix that rotation original_direction to new_direction
     v = np.cross(original_direction, new_direction)
@@ -66,15 +76,29 @@ def translate(
 class Object3D(Asset):
     """Create a 3D Object.
 
-    Parameters
-    ----------
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        mesh (`pyvista.[UnstructuredGrid, MultiBlock, PolyData, DataSet]`, *optional*, defaults to None):
+            The mesh of the object.
+        material (`Material` or `List[Material]`, *optional*, defaults to None):
+            The material of the object.
+        name (`str`, *optional*, defaults to `None`):
+            The name of the object.
+        position (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            The position of the object.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the object is an actor.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the object has a rigid body.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the object has an articulation body.
+        set_mesh_direction (`List[float]`, *optional*, defaults to `[1.0, 0.0, 0.0]`):
+            The direction of the mesh.
+        original_mesh_direction (`List[float]`, *optional*, defaults to `[1.0, 0.0, 0.0]`):
+            The original direction of the mesh.
+        parent (`Asset`, *optional*, defaults to `None`):
+            The parent of the object.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            The children of the object.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -126,11 +150,20 @@ class Object3D(Asset):
                 raise ValueError("Number of materials must match number of blocks in mesh")
 
     def copy(self, with_children: bool = True, **kwargs: Any) -> "Object3D":
-        """Copy an Object3D node in a new (returned) object.
+        """
+        Copy an Object3D node in a new (returned) object.
 
         By default, mesh and materials are copied in respectively new mesh and material.
         'share_material' and 'share_mesh' can be set to True to share mesh and/or material
         between original and copy instead of creating new one.
+
+        Args:
+            with_children (`bool`, *optional*, defaults to `True`):
+                Whether to copy the children of the object.
+
+        Returns:
+            copy (`Object3D`):
+                The copied object.
         """
         share_material = kwargs.get("share_material", False)
         share_mesh = kwargs.get("share_mesh", False)
@@ -192,44 +225,47 @@ class Object3D(Asset):
 
 
 class Plane(Object3D):
-    """Create a plane.
+    """
+    Create a plane.
 
-    Parameters
-    ----------
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the normal to the plane in ``[x, y, z]``.
-        Default to normal pointing in the ``y`` (up) direction.
-
-    i_size : float
-        Size of the plane in the i direction.
-
-    j_size : float
-        Size of the plane in the j direction.
-
-    i_resolution : int
-        Number of points on the plane in the i direction.
-
-    j_resolution : int
-        Number of points on the plane in the j direction.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        i_size (`float`, *optional*, defaults to `10.0`):
+            Size of the plane in the i direction.
+        j_size (`float`, *optional*, defaults to `10.0`):
+            Size of the plane in the j direction.
+        i_resolution (`int`, *optional*, defaults to `1`):
+            Number of points on the plane in the i direction.
+        j_resolution (`int`, *optional*, defaults to `1`):
+            Number of points on the plane in the j direction.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the plane.
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the plane.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the plane is an actor or not.
+        with_collider (`bool`, *optional*, defaults to `True`):
+            Whether the plane has a collider or not.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the plane has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the plane has an articulation body or not.
+        set_mesh_direction : list or tuple or np.ndarray, optional
+            Direction the normal to the plane in `[x, y, z]`.
+            Default to normal pointing in the `y` (up) direction.
+        collider_thickness (`float`, *optional*, defaults to `None`):
+            Thickness of the collider.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the plane.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the plane.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
-        i_size: float = 10,
-        j_size: float = 10,
+        i_size: float = 10.0,
+        j_size: float = 10.0,
         i_resolution: int = 1,
         j_resolution: int = 1,
         name: Optional[str] = None,
@@ -279,46 +315,45 @@ class Plane(Object3D):
 
 
 class Sphere(Object3D):
-    """Create a Sphere
+    """
+    Create a Sphere
 
-    Parameters
-    ----------
-    with_collider: bool (optional)
-        Set to true to automatically add an associated Sphere collider (default False)
-
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the top of the sphere points to in ``[x, y, z]``.
-        Default to top of sphere pointing in the ``y`` (up) direction.
-
-    radius : float, optional
-        Sphere radius.
-
-    theta_resolution : int , optional
-        Set the number of points in the longitude direction (ranging
-        from ``start_theta`` to ``end_theta``).
-
-    phi_resolution : int, optional
-        Set the number of points in the latitude direction (ranging from
-        ``start_phi`` to ``end_phi``).
-
-    start_theta : float, optional
-        Starting longitude angle.
-
-    end_theta : float, optional
-        Ending longitude angle.
-
-    start_phi : float, optional
-        Starting latitude angle.
-
-    end_phi : float, optional
-        Ending latitude angle.
-
-    sphere_type : str, optional
-        One of 'uv' for a UV-sphere or 'ico' for an icosphere.
+    Args:
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the sphere.
+        radius (`float`, *optional*, defaults to `1.0`):
+            Sphere radius.
+        theta_resolution (`int`, *optional*, defaults to `10`):
+            Set the number of points in the longitude direction (ranging from `start_theta` to `end_theta`).
+        phi_resolution (`int`, *optional*, defaults to `10`):
+            Set the number of points in the latitude direction (ranging from `start_phi` to `end_phi`).
+        start_theta (`float`, *optional*, defaults to `0.0`):
+            Starting longitude angle.
+        end_theta (`float`, *optional*, defaults to `360.0`):
+            Ending longitude angle.
+        start_phi (`float`, *optional*, defaults to `0.0`):
+            Starting latitude angle.
+        end_phi (`float`, *optional*, defaults to `180.0`):
+            Ending latitude angle.
+        sphere_type (`str`, *optional*, defaults to `"uv"`):
+            One of 'uv' for a UV-sphere or 'ico' for an icosphere.
+        with_collider (`bool`, *optional*, defaults to `True`):
+            Set to true to automatically add an associated Sphere collider.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the sphere.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the sphere is an actor or not.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the sphere has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the sphere has an articulation body or not.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the top of the sphere points to in ``[x, y, z]``.
+            Default to top of sphere pointing in the ``y`` (up) direction.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the sphere.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the sphere.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -390,36 +425,36 @@ class Capsule(Object3D):
     """
     A capsule (a cylinder with hemispheric ends).
 
-    Parameters
-    ----------
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the capsule points to in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
-
-    height : float
-      Center to center distance of two spheres
-
-    radius : float
-      Radius of the cylinder and hemispheres
-
-    radius : float, optional
-        Sphere radius.
-
-    theta_resolution : int , optional
-        Set the number of points in the longitude direction (ranging
-        from ``start_theta`` to ``end_theta``).
-
-    phi_resolution : int, optional
-        Set the number of points in the latitude direction (ranging from
-        ``start_phi`` to ``end_phi``).
-
-    sphere_type : str, optional
-        One of 'uv' for a UV-sphere or 'ico' for an icosphere.
-
+    Args:
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the capsule.
+        height (`float`, *optional*, defaults to `1.0`):
+            Height of the capsule.
+        radius (`float`, *optional*, defaults to `0.2`):
+            Radius of the capsule.
+        theta_resolution (`int`, *optional*, defaults to `4`):
+            Set the number of points in the longitude direction.
+        phi_resolution (`int`, *optional*, defaults to `4`):
+            Set the number of points in the latitude direction.
+        sphere_type (`str`, *optional*, defaults to `"uv"`):
+            One of 'uv' for a UV-sphere or 'ico' for an icosphere.
+        with_collider (`bool`, *optional*, defaults to `True`):
+            Set to true to automatically add an associated Sphere collider.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the capsule.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the capsule is an actor or not.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the capsule has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the capsule has an articulation body or not.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the top of the capsule points to in ``[x, y, z]``.
+            Default to top of capsule pointing in the ``y`` (up) direction.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the capsule.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the capsule.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -447,7 +482,7 @@ class Capsule(Object3D):
 
         from vtkmodules.vtkFiltersSources import vtkCapsuleSource
 
-        capsule = vtkCapsuleSource()  # TODO pyvista capsules are aranged on the side
+        capsule = vtkCapsuleSource()  # TODO pyvista capsules are arranged on the side
         capsule.SetRadius(radius)
         capsule.SetCylinderLength(max(0.0, height - radius * 2))
         capsule.SetThetaResolution(theta_resolution)
@@ -483,33 +518,32 @@ class Capsule(Object3D):
 class Cylinder(Object3D):
     """Create the surface of a cylinder.
 
-    Parameters
-    ----------
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the cylinder points to in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
-
-    radius : float, optional
-        Radius of the cylinder.
-
-    height : float, optional
-        Height of the cylinder.
-
-    resolution : int, optional
-        Number of points on the circular face of the cylinder.
-
-    capping : bool, optional
-        Cap cylinder ends with polygons.  Default ``True``.
-
-    Returns
-    -------
-
-    Examples
-    --------
+    Args:
+        height (`float`, *optional*, defaults to `1.0`):
+            Height of the cylinder.
+        radius (`float`, *optional*, defaults to `1.0`):
+            Radius of the cylinder.
+        resolution (`int`, *optional*, defaults to `16`):
+            Number of points on the circular face of the cylinder.
+        capping (`bool`, *optional*, defaults to `True`):
+            Cap cylinder ends with polygons.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the cylinder.
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the cylinder.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the top of the cylinder points to in `[x, y, z]`.
+            Default to top of cylinder pointing in the `y` (up) direction.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the cylinder is an actor or not.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the cylinder has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the cylinder has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the cylinder.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the cylinder.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -551,48 +585,49 @@ class Cylinder(Object3D):
 
 
 class Box(Object3D):
-    """Create a box with solid faces for the given bounds.
+    """
+    Create a box with solid faces for the given bounds.
 
-    Parameters
-    ----------
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the top of the box points to in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
-
-    bounds : float or List[float], optional
-        Specify the bounding box of the cube as either:
-        - a list of 6 floats:(xMin, xMax, yMin, yMax, zMin, zMax)
-            => bounds are ``(xMin, xMax, yMin, yMax, zMin, zMax)``
-        - a list of 3 floats: xSize, ySize, zSize
-            => bounds are ``(-xSize/2, xSize/2, ySize/2, ySize/2, -zSize/2, zSize/2)``
-        - a single float: size
-            => bounds are ``(-size/2, size/2, size/2, size/2, -size/2, size/2)``
-        If no value is provided, create a centered unit box
-
-    level : int, optional
-        Level of subdivision of the faces.
-
-    quads : bool, optional
-        Flag to tell the source to generate either a quad or two
-        triangle for a set of four points.  Default ``True``.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        bounds (`float` or `np.ndarray` or `List[float]`, *optional*, defaults to `(-0.5, 0.5, -0.5, 0.5, -0.5, 0.5)`):
+            Specify the bounding box of the cube as either:
+             - a list of 6 floats:(xMin, xMax, yMin, yMax, zMin, zMax)
+                => bounds are ``(xMin, xMax, yMin, yMax, zMin, zMax)``
+            - a list of 3 floats: xSize, ySize, zSize
+                => bounds are ``(-xSize/2, xSize/2, ySize/2, ySize/2, -zSize/2, zSize/2)``
+            - a single float: size
+                => bounds are ``(-size/2, size/2, size/2, size/2, -size/2, size/2)``
+            If no value is provided, create a centered unit box
+        level (`int`, *optional*, defaults to `0`):
+            The level of subdivision of the box. The number of faces will be 6*4**level.
+        quads (`bool`, *optional*, defaults to `True`):
+            If `True`, the faces of the box will be quads. Otherwise, they will be triangles.
+        with_colliders (`bool`, *optional*, defaults to `True`):
+            Whether the box has colliders or not.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the box.
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the box.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the top of the box points to in `[x, y, z]`.
+            Default to top of box pointing in the `y` (up) direction.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the box is an actor or not.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the box has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the box has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the box.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the box.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
         self,
-        bounds: Optional[Union[float, List[float]]] = None,
+        bounds: Optional[Union[int, float, List[float], np.ndarray, Tuple[float, ...]]] = None,
         level: int = 0,
         quads: bool = True,
         with_collider: bool = True,
@@ -648,33 +683,33 @@ class Box(Object3D):
 
 
 class Cone(Object3D):
-    """Create a cone.
+    """
+    Create a cone.
 
-    Parameters
-    ----------
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the top of the cone points to in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
-
-    height : float, optional
-        Height along the cone in its specified direction.
-
-    radius : float, optional
-        Base radius of the cone.
-
-    resolution : int, optional
-        Number of facets used to represent the cone.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        height (`float`, *optional*, defaults to `1.0`):
+            Height of the cone.
+        radius (`float`, *optional*, defaults to `1.0`):
+            Radius of the cone.
+        resolution (`int`, *optional*, defaults to `6`):
+            Number of facets used to represent the cone.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the cone.
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the cone.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the top of the cone points to in `[x, y, z]`.
+            Default to top of cone pointing in the `y` (up) direction.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the cone is an actor or not.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the cone has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the cone has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the cone.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the cone.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -712,25 +747,31 @@ class Cone(Object3D):
 
 
 class Line(Object3D):
-    """Create a line.
+    """
+    Create a line.
 
-    Parameters
-    ----------
-    pointa : np.ndarray or list, optional
-        Location in ``[x, y, z]``.
-
-    pointb : np.ndarray or list, optional
-        Location in ``[x, y, z]``.
-
-    resolution : int, optional
-        Number of pieces to divide line into.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        pointa (`np.ndarray` or `List[float]`, *optional*, defaults to `[-1.0, 0.0, 0.0]`):
+            Location of the first point of the line.
+        pointb (`np.ndarray` or `List[float]`, *optional*, defaults to `[1.0, 0.0, 0.0]`):
+            Location of the second point of the line.
+        resolution (`int`, *optional*, defaults to `1`):
+            Number of pieces to divide line into.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the line.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the line points to in `[x, y, z]`.
+            Default to line pointing in the `x` direction.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the line is an actor or not.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the line has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the line has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the line.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the line.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -772,17 +813,24 @@ class Line(Object3D):
 class MultipleLines(Object3D):
     """Create multiple lines.
 
-    Parameters
-    ----------
-    points : np.ndarray or list, optional
-        List of points defining a broken line, default is ``[[-0.5, 0.0, 0.0], [0.5, 0.0, 0.0]]``.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        points (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            List of points defining a broken line, default is `[[-0.5, 0.0, 0.0], [0.5, 0.0, 0.0]]`.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the multiple lines.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the multiple lines is an actor or not.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the multiple lines points to in `[x, y, z]`.
+            Default to multiple lines pointing in the `x` direction.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the multiple lines have a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the multiple lines have an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the multiple lines.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the multiple lines.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -820,29 +868,32 @@ class MultipleLines(Object3D):
 class Tube(Object3D):
     """Create a tube that goes from point A to point B.
 
-    Parameters
-    ----------
-    pointa : np.ndarray or list, optional
-        Location in ``[x, y, z]``.
-
-    pointb : np.ndarray or list, optional
-        Location in ``[x, y, z]``.
-
-    resolution : int, optional
-        Number of pieces to divide tube into.
-
-    radius : float, optional
-        Minimum tube radius (minimum because the tube radius may vary).
-
-    n_sides : int, optional
-        Number of sides for the tube.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        pointa (`np.ndarray` or `List[float]`, *optional*, defaults to `[-1.0, 0.0, 0.0]`):
+            Location of the first point of the tube.
+        pointb (`np.ndarray` or `List[float]`, *optional*, defaults to `[1.0, 0.0, 0.0]`):
+            Location of the second point of the tube.
+        resolution (`int`, *optional*, defaults to `1`):
+            Number of pieces to divide tube into.
+        radius (`float`, *optional*, defaults to `0.1`):
+            Minimum tube radius (minimum because the tube radius may vary).
+        n_sides (`int`, *optional*, defaults to `16`):
+            Number of sides of the tube.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the tube.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the tube is an actor or not.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the tube points to in `[x, y, z]`.
+            Default to tube pointing in the `y` direction.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the tube has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the tube has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the tube.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the tube.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -884,32 +935,35 @@ class Tube(Object3D):
 
 
 class Polygon(Object3D):
-    """Create a polygon.
+    """
+    Create a polygon.
 
-    Parameters
-    ----------
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the normal to the polygon in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
-
-    points : np.ndarray or list
-        List of points defining the polygon,
-            e.g. ``[[0, 0, 0], [1, 0, -.1], [.8, 0, .5], [1, 0, 1], [.6, 0, 1.2], [0, 0, .8]]``.
-        The polygon is defined by an ordered list of three or more points lying in a plane.
-        The polygon normal is implicitly defined by a counterclockwise ordering of
-        its points using the right-hand rule.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
-
+    Args:
+        points (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            List of points defining the polygon,
+            e.g. `[[0, 0, 0], [1, 0, -.1], [.8, 0, .5], [1, 0, 1], [.6, 0, 1.2], [0, 0, .8]]`.
+            The polygon is defined by an ordered list of three or more points lying in a plane.
+            The polygon normal is implicitly defined by a counterclockwise ordering of
+            its points using the right-hand rule.
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the polygon.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the polygon.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the polygon is an actor or not.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the polygon points to in `[x, y, z]`.
+            Default to polygon pointing in the `y` direction.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the polygon has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the polygon has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the polygon.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the polygon.
+        with_colliders (`bool`, *optional*, defaults to `False`):
+            Whether the polygon has colliders or not.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -975,30 +1029,31 @@ class Polygon(Object3D):
 
 
 class RegularPolygon(Object3D):
-    """Create a regular polygon.
+    """
+    Create a regular polygon.
 
-    Parameters
-    ----------
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the normal to the polygon in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
-
-    points : float, optional
-        The radius of the polygon.
-
-    n_sides : int, optional
-        Number of sides of the polygon.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        radius (`float`, *optional*, defaults to `1.0`):
+            Radius of the regular polygon.
+        n_sides (`int`, *optional*, defaults to `6`):
+            Number of sides of the regular polygon.
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the regular polygon.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the regular polygon.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the regular polygon is an actor or not.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the regular polygon points to in `[x, y, z]`.
+            Default to regular polygon pointing in the `y` direction.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the regular polygon has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the regular polygon has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the regular polygon.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the regular polygon.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -1042,34 +1097,32 @@ class Ring(Object3D):
     radius of the disk, and the radial and circumferential resolution
     of the polygonal representation.
 
-    Parameters
-    ----------
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the normal to the disc in ``[x, y, z]``.
-        Default to pointing in the ``y`` (up) direction.
-
-    inner : float, optional
-        The inner radius.
-
-    outer : float, optional
-        The outer radius.
-
-    r_res : int, optional
-        Number of points in radial direction.
-
-    c_res : int, optional
-        Number of points in circumferential direction.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        inner (`float`, *optional*, defaults to `0.25`):
+            Inner radius of the ring.
+        outer (`float`, *optional*, defaults to `0.5`):
+            Outer radius of the ring.
+        r_res (`int`, *optional*, defaults to `1`):
+            Number of points in radial direction.
+        c_res (`int`, *optional*, defaults to `6`):
+            Number of points in circumferential direction.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the ring.
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the ring.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the ring points to in `[x, y, z]`.
+            Default to ring pointing in the `y` direction.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the ring is an actor or not.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the ring has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the ring has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the ring.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the ring.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -1110,30 +1163,31 @@ class Ring(Object3D):
 
 
 class Text3D(Object3D):
-    """Create 3D text from a string.
+    """
+    Create 3D text from a string.
 
-    Parameters
-    ----------
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the normal to the disc in ``[x, y, z]``.
-        Default to pointing in the ``z`` direction.
-
-    string : str
-        String to generate 3D text from.
-
-    depth : float, optional
-        Depth of the text.  Defaults to ``0.5``.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        string (`str`, *optional*, defaults to `None`):
+            String to be converted to 3D text.
+        depth (`float`, *optional*, defaults to `0.5`):
+            Depth of the text.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the text.
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the text.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the text points to in `[x, y, z]`.
+            Default to text pointing in the `z` direction.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the text is an actor or not.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the text has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the text has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the text.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the text.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -1175,18 +1229,24 @@ class Text3D(Object3D):
 class Triangle(Object3D):
     """Create a triangle defined by 3 points.
 
-    Parameters
-    ----------
-    points : sequence, optional
-        Points of the triangle.  Defaults to a right isosceles
-        triangle (see example).
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        points (`np.ndarray` or `List[List[float]]`, *optional*, defaults to `None`):
+            Points of the triangle.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the triangle.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the triangle is an actor or not.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the triangle points to in `[x, y, z]`.
+            Default to triangle pointing in the `y` direction.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the triangle has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the triangle has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the triangle.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the triangle.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -1222,17 +1282,24 @@ class Triangle(Object3D):
 class Rectangle(Object3D):
     """Create a rectangle defined by 4 points.
 
-    Parameters
-    ----------
-    points : sequence, optional
-        Points of the rectangle.  Defaults to a simple example.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        points (`np.ndarray` or `List[List[float]]`, *optional*, defaults to `None`):
+            Points of the rectangle.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the rectangle.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the rectangle is an actor or not.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the rectangle points to in `[x, y, z]`.
+            Default to rectangle pointing in the `y` direction.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the rectangle has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the rectangle has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the rectangle.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the rectangle.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -1268,28 +1335,28 @@ class Rectangle(Object3D):
 class Circle(Object3D):
     """Create a single PolyData circle defined by radius in the XY plane.
 
-    Parameters
-    ----------
-    position : np.ndarray or list, optional
-        Center in ``[x, y, z]``.
-        Default to a center at the origin ``[0, 0, 0]``.
-
-    set_mesh_direction : list or tuple or np.ndarray, optional
-        Direction the normal to the circle in ``[x, y, z]``.
-        Default to pointing in the ``y`` direction.
-
-    radius : float, optional
-        Radius of circle.
-
-    resolution : int, optional
-        Number of points on the circle.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        radius (`float`, *optional*, defaults to `0.5`):
+            Radius of the circle.
+        resolution (`int`, *optional*, defaults to `100`):
+            Number of points to define the circle.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the circle.
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the circle.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the circle is an actor or not.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the circle points to in `[x, y, z]`.
+            Default to circle pointing in the `y` direction.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the circle has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the circle has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the circle.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the circle.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -1329,25 +1396,37 @@ class Circle(Object3D):
 
 
 class StructuredGrid(Object3D):
-    """Create a 3D grid (structured plane) defined by lists of X, Y and Z positions of points.
+    """
+    Create a 3D grid (structured plane) defined by lists of X, Y and Z positions of points.
 
-    Parameters
-    ----------
-    x : np.ndarray or python list of lists of floats
-        Position of the points in x direction.
+    Args:
+        x (`np.ndarray` or `List[List[float]]`):
+            Position of the points in x direction.
+        y (`np.ndarray` or `List[List[float]]`):
+            Position of the points in y direction.
+        z (`np.ndarray` or `List[List[float]]`):
+            Position of the points in z direction.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the structured grid.
+        position (`np.ndarray` or `List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the structured grid.
+        set_mesh_direction (`np.ndarray` or `List[float]`, *optional*, defaults to `None`):
+            Direction the structured grid points to in `[x, y, z]`.
+            Default to structured grid pointing in the `y` direction.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the structured grid is an actor or not.
+        with_rigid_body (`bool`, *optional*, defaults to `False`):
+            Whether the structured grid has a rigid body or not.
+        with_articulation_body (`bool`, *optional*, defaults to `False`):
+            Whether the structured grid has an articulation body or not.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the structured grid.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the structured grid.
 
-    y : np.ndarray or python list of lists of floats
-        Position of the points in y direction.
+    Examples:
 
-    z : np.ndarray or python list of lists of floats
-        Position of the points in z direction.
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    ```python
     # create a 5x5 mesh grid
     xrng = np.arange(-2, 3, dtype=np.float32)
     zrng = np.arange(-2, 3, dtype=np.float32)
@@ -1355,7 +1434,7 @@ class StructuredGrid(Object3D):
     # let's make the y-axis a sort of cone
     y = 1. / np.sqrt(x*x + z*z + 0.1)
     asset = sm.StructuredGrid(x, y, z)
-
+    ```
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -1403,6 +1482,22 @@ class StructuredGrid(Object3D):
 
 
 class ProcGenPrimsMaze3D(Asset):
+    """
+    Create a procedurally generated maze.
+
+    Args:
+        width (`int`):
+            Width of the maze.
+        depth (`int`):
+            Depth of the maze.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the maze.
+        wall_keep_prob (`float`, *optional*, defaults to `0.5`):
+            Probability of keeping a wall.
+        wall_material (`Material`, *optional*, defaults to `None`):
+            Material of the walls.
+    """
+
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(
@@ -1426,7 +1521,8 @@ class ProcGenPrimsMaze3D(Asset):
         self._generate()
 
     def _generate(self):
-        walls = generate_prims_maze((self.width, self.depth), keep_prob=self.wall_keep_prob)
+        """Generate the maze."""
+        walls = generate_prims_maze((self.width, self.depth), keep_prob=int(self.wall_keep_prob))
 
         for i, wall in enumerate(walls):
             px = (wall[0] + wall[2]) / 2
