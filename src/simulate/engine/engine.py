@@ -24,20 +24,30 @@ if typing.TYPE_CHECKING:
 
 
 class Engine:
+    """
+    Generic Engine class from which to inherit to implement integrations for any engine.
+
+    Args:
+        scene (`Scene`):
+            The scene to simulate.
+        auto_update (`bool`, *optional*, defaults to `True`):
+            Whether to automatically update the scene when an asset is updated.
+    """
+
     def __init__(self, scene: "Scene", auto_update: bool = True):
         self._scene = scene
         self.auto_update = auto_update
 
     def update_asset(self, asset_node: "Asset"):
-        """Add an asset or update its location and all its children in the scene"""
+        """Add an asset or update its location and all its children in the scene."""
         pass
 
     def remove_asset(self, asset_node: "Asset"):
-        """Remove an asset and all its children in the scene"""
+        """Remove an asset and all its children in the scene."""
         pass
 
     def regenerate_scene(self):
-        """Recreate all the assets in the scene (recreate the scene)"""
+        """Recreate all the assets in the scene (recreate the scene)."""
         pass
 
     def __repr__(self):
@@ -47,4 +57,5 @@ class Engine:
         self.close()
 
     def close(self):
+        """Close the engine."""
         pass

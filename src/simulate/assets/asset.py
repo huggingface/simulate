@@ -43,43 +43,36 @@ ALLOWED_COMPONENTS_ATTRIBUTES = ["actuator", "physics_component", "actuator"]
 
 
 class Asset(NodeMixin, object):
-    """Create an Asset in the Scene.
+    """
+    Create an Asset in the Scene.
 
-    Parameters
-    ----------
-    name : str, optional
-        Name of the asset, by default set to [class_name]_[counter]
-    position : List[float] (Vector3), optional
-        Position of the asset in the scene, by default [0, 0, 0]
-    rotation : List[float] (Quaternion), optional
-        Rotation of the asset in the scene, by default [0, 0, 0, 1]
-    scaling : Union[float, List[float]] (Vector3), optional
-        Scaling of the asset in the scene, by default 1
-    transformation_matrix : List[float] (Matrix4x4), optional
-        Transformation matrix of the asset in the scene, by default computed from position, rotation and scaling
-    actuator : Union[Actuator, ActuatorDict], optional
-        Actuator to control movements of the asset, by default None.
-        Setting an actuator will make the Asset an ``Actor``.$
-    physics_component : Union[None, RigidBodyComponent, ArticulationBodyComponent], optional
-        Physics component of the asset, by default None
-        Setting a physics component will make the Asset move according to the physics engine.
-    is_actor : bool, optional
-        If True, the asset will be the root node of an actor, by default False.
-        This can be used to group a tree of related nodes and actuators in a single
-        identified actor in the scene.
-    parent : Asset, optional
-        Parent of the asset, by default None
-    children : Union["Asset", List["Asset"]], optional
-        Children of the asset, by default None
-    created_from_file : str, optional
-        Path to the file from which the asset was created if relevant, by default None
-
-    Returns
-    -------
-
-    Examples
-    --------
-
+    Args:
+        name (`str`, *optional*, defaults to `None`):
+            Name of the asset.
+        position (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            Position of the asset in the scene.
+        rotation (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0, 1.0]`):
+            Rotation of the asset in the scene.
+        scaling (`float` or `List[float]`, *optional*, defaults to `1.0`):
+            Scaling of the asset in the scene.
+        transformation_matrix (`List[float]`, *optional*, defaults to `None`):
+            Transformation matrix of the asset in the scene.
+        actuator (`Actuator` or `ActuatorDict`, *optional*, defaults to `None`):
+            Actuator to control movements of the asset.
+            Setting an actuator will make the Asset an `Actor`.
+        physics_component (`RigidBodyComponent` or `ArticulationBodyComponent`, *optional*, defaults to `None`):
+            Physics component of the asset.
+            Setting a physics component will make the Asset move according to the physics engine.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            If `True`, the asset will be the root node of an actor.
+            This can be used to group a tree of related nodes and actuators in a single
+            identified actor in the scene.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the asset.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the asset.
+        created_from_file (`str`, *optional*, defaults to `None`):
+            Path to the file from which the asset was created if relevant.
     """
 
     dimensionality = 3  # 2 for bi-dimensional assets and 3 for tri-dimensional assets (default is 3)
@@ -144,8 +137,12 @@ class Asset(NodeMixin, object):
     @property
     def named_components(self) -> List[Tuple[str, Any]]:
         """
-        Return a list of the components of the asset with their attributes name.
+        Get a list of the components of the asset with their attributes name.
         We strip the beginning "_" of the attribute names (if stored as private).
+
+        Returns:
+            components (`List[Tuple[str, Any]]`):
+                List of the components of the asset with their attributes name.
         """
         for attribute in ALLOWED_COMPONENTS_ATTRIBUTES:
             if getattr(self, attribute, None) is not None:
@@ -153,26 +150,60 @@ class Asset(NodeMixin, object):
 
     @property
     def components(self) -> List[Any]:
-        """Return a list of the components of the asset."""
+        """
+        Get a list of the components of the asset.
+
+        Returns:
+            components (`List[Any]`):
+                List of the components of the asset.
+        """
         return list(comp for _, comp in self.named_components)
 
     # Actions and action_space
     @property
     def actuator(self) -> Optional[Union[Actuator, ActuatorDict]]:
+        """
+        Get the actuator of the asset.
+
+        Returns:
+            actuator (`Actuator` or `ActuatorDict`):
+                Actuator of the asset.
+        """
         return self._actuator
 
     @actuator.setter
     def actuator(self, actuator: Union[Actuator, ActuatorDict]):
+        """
+        Set the actuator of the asset.
+
+        Args:
+            actuator (`Actuator` or `ActuatorDict`):
+                Actuator of the asset.
+        """
         self._actuator = actuator
 
     @property
     def physics_component(self) -> Union[None, RigidBodyComponent, ArticulationBodyComponent]:
+        """
+        Get the physics component of the asset.
+
+        Returns:
+            physics_component (`RigidBodyComponent` or `ArticulationBodyComponent`):
+                Physics component of the asset.
+        """
         return self._physics_component
 
     @physics_component.setter
     def physics_component(
         self, physics_component: Optional[Union[RigidBodyComponent, ArticulationBodyComponent]] = None
     ):
+        """
+        Set the physics component of the asset.
+
+        Args:
+            physics_component (`RigidBodyComponent` or `ArticulationBodyComponent`, *optional*, defaults to `None`):
+                Physics component of the asset.
+        """
         self._physics_component = physics_component
 
         if isinstance(physics_component, RigidBodyComponent):
@@ -184,10 +215,15 @@ class Asset(NodeMixin, object):
 
     @property
     def action_space(self) -> Optional[Union[Space, spaces.Dict]]:
-        """Build and return the action space of the actor if the asset is an actor (is_actor=True).
-        The action space is a space Dict with keys corresponding to the tags of the actuators.
-        If some actuators have space Dict action spaces, they are flattened.
-        If the returned action space Dict has a single entry, we return the single space instead of the Dict.
+        """
+        Build the action space of the actor if the asset is an actor (`is_actor=True`).
+
+        Returns:
+            action_space (`Space` or `Dict`):
+                Action space of the actor.
+                The action space is a space Dict with keys corresponding to the tags of the actuators.
+                If some actuators have space Dict action spaces, they are flattened.
+                If the returned action space Dict has a single entry, we return the single space instead of the Dict.
         """
         # [The following is NOT implemented at the moment]
         # If the asset has multiple actuators with different ids,
@@ -199,7 +235,15 @@ class Asset(NodeMixin, object):
         # Actuators with different tags will be grouped together in a Dict space.
 
         def update_dict_space(act: Union[Actuator, ActuatorDict], _actions_space_dict: typing.Dict[str, spaces.Space]):
-            """Helper function to update a Dict space with the action space associated to an actuator."""
+            """
+            Helper function to update a Dict space with the action space associated to an actuator.
+
+            Args:
+                act (`Actuator` or `ActuatorDict`):
+                    Actuator to add to the Dict space.
+                _actions_space_dict (`Dict`):
+                    Dict space to update.
+            """
             if act is None:
                 return
             if isinstance(act, Actuator):
@@ -264,7 +308,13 @@ class Asset(NodeMixin, object):
 
     @property
     def action_tags(self) -> Optional[List[str]]:
-        """Return the list of all action tags of the actor (keys of the action_space)."""
+        """
+        Get the list of all action tags of the actor (keys of the action_space).
+
+        Returns:
+            action_tags (`List[str]`):
+                List of all action tags of the actor.
+        """
 
         def update_tag_list(act: Union[Actuator, ActuatorDict], _tag_list: List[str]):
             """Helper function to update a list of all the action tags."""
@@ -300,6 +350,13 @@ class Asset(NodeMixin, object):
 
     @property
     def observation_space(self) -> Optional[spaces.Space]:
+        """
+        Get the observation space of the actor.
+
+        Returns:
+            observation_space (`spaces.Space`):
+                Observation space of the actor.
+        """
         if not self.is_actor:
             return None
         else:
@@ -308,6 +365,13 @@ class Asset(NodeMixin, object):
 
     @property
     def sensor_tags(self) -> Optional[List[str]]:
+        """
+        Get the list of all sensor tags of the actor.
+
+        Returns:
+            sensor_tags (`List[str]`):
+                List of all sensor tags of the actor.
+        """
         if not self.is_actor:
             return None
 
@@ -319,10 +383,18 @@ class Asset(NodeMixin, object):
         return len(self.tree_descendants)
 
     def get_node(self, name: str) -> Optional["Asset"]:
-        """Return the node with the given name in the *whole* tree.
+        """
+        Get the node with the given name in the *whole* tree.
         (Remember that the name of the nodes are unique)
 
-        Return None if no node with the given name is found.
+        Args:
+            name (`str`):
+                Name of the node to get.
+
+        Returns:
+            node (`Asset`):
+                Node with the given name.
+                Return None if no node with the given name is found.
         """
         for node in self.tree_root.tree_descendants:
             if node.name == name:
@@ -330,7 +402,17 @@ class Asset(NodeMixin, object):
         return None
 
     def copy(self, with_children: bool = True, **kwargs: Any) -> "Asset":
-        """Return a copy of the Asset. Parent and children are not attached to the copy."""
+        """
+        Make a copy of the Asset. Parent and children are not attached to the copy.
+
+        Args:
+            with_children (`bool`):
+                If True, the children of the Asset are copied as well.
+
+        Returns:
+            copy (`Asset`):
+                Copy of the Asset.
+        """
 
         copy_name = self.name + f"_copy{self._n_copies}"
         self._n_copies += 1
@@ -361,6 +443,7 @@ class Asset(NodeMixin, object):
         pass
 
     def _get_last_copy_name(self) -> str:
+        """Get the name of the last copy."""
         assert self._n_copies > 0, "this object is yet to be copied"
         return self.name + f"_copy{self._n_copies-1}"
 
@@ -373,18 +456,33 @@ class Asset(NodeMixin, object):
         file_type: Optional[str] = None,
         **kwargs: Any,
     ) -> Tuple["Asset", str]:
-        """Return a root tree loaded from the HuggingFace hub or from a local GLTF file.
-
-        First argument is either:
-        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
-        - or a path to a local file on the drive.
+        """
+        Get a root tree loaded from the HuggingFace hub or from a local GLTF file.
 
         When conflicting files on both, priority is given to the local file
         (use 'is_local=True/False' to force from the Hub or from local file)
 
-        Examples:
-        - Scene.create_from('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
-        - Scene.create_from('~/documents/gltf-files/scene.gltf'): a local files in user home
+        Args:
+            hub_or_local_filepath (`str`):
+                Path to the file. Can be either:
+                - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+                - or a path to a local file on the drive.
+            use_auth_token (`str`, *optional*, defaults to `None`):
+                HuggingFace token to use to download private files from the HuggingFace hub.
+            revision (`str`, *optional*, defaults to `None`):
+                Git revision to use to download files from the HuggingFace hub.
+            is_local (`bool`, *optional*, defaults to `None`):
+                Whether to load the file from the HuggingFace hub or from the local drive.
+                When conflicting files on both, priority is given to the local file
+                (use 'is_local=True/False' to force from the Hub or from local file)
+            file_type (`str`, *optional*, defaults to `None`):
+                Type of the file to load. If None, the file type is inferred from the file extension.
+
+        Returns:
+            root (`Asset`):
+                Root of the loaded tree.
+            file_path (`str`):
+                Path to the file on the local drive.
         """
         # We import dynamically here to avoid circular import (tried many other options...)
         from .gltf_import import load_gltf_as_tree
@@ -459,18 +557,37 @@ class Asset(NodeMixin, object):
         hf_hub_kwargs: Optional[dict] = None,
         **kwargs: Any,
     ) -> "Asset":
-        """Load a Scene or Asset from the HuggingFace hub or from a local GLTF file.
-
-        First argument is either:
-        - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
-        - or a path to a local file on the drive.
+        """
+        Load a Scene or Asset from the HuggingFace hub or from a local GLTF file.
 
         When conflicting files on both, priority is given to the local file
         (use 'is_local=True/False' to force from the Hub or from local file)
 
+        Args:
+            hub_or_local_filepath (`str`):
+                Path to the file. Can be either:
+                - a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+                - or a path to a local file on the drive.
+            use_auth_token (`str`, *optional*, defaults to `None`):
+                HuggingFace token to use to download private files from the HuggingFace hub.
+            revision (`str`, *optional*, defaults to `None`):
+                Git revision to use to download files from the HuggingFace hub.
+            is_local (`bool`, *optional*, defaults to `None`):
+                Whether to load the file from the HuggingFace hub or from the local drive.
+                When conflicting files on both, priority is given to the local file
+                (use 'is_local=True/False' to force from the Hub or from local file)
+            hf_hub_kwargs (`dict`, *optional*, defaults to `None`):
+                Additional keyword arguments to pass to the HuggingFace Hub API.
+
+        Returns:
+            root (`Asset`):
+                Root of the loaded tree.
+
         Examples:
+        ```python
         - Scene.create_from('simulate-tests/Box/glTF-Embedded/Box.gltf'): a file on the hub
         - Scene.create_from('~/documents/gltf-files/scene.gltf'): a local files in user home
+        ```
         """
         root_node, gltf_file = Asset._get_node_tree_from_hub_or_local(
             hub_or_local_filepath=hub_or_local_filepath,
@@ -500,13 +617,32 @@ class Asset(NodeMixin, object):
         private: bool = False,
         **kwargs: Any,
     ) -> List[str]:
-        """Push a GLTF Scene to the hub.
+        """
+        Push a GLTF Scene to the hub.
 
         First argument is a file path on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
         Return the url on the hub of the file.
 
+        Args:
+            hub_filepath (`str`):
+                Path to the file on the HuggingFace hub ("USER_OR_ORG/REPO_NAME/PATHS/FILENAME")
+            token (`str`, *optional*, defaults to `None`):
+                HuggingFace token to use to upload to private repositories on the HuggingFace hub.
+            revision (`str`, *optional*, defaults to `None`):
+                Git revision to use to upload to the HuggingFace hub.
+            identical_ok (`bool`, *optional*, defaults to `True`):
+                Whether to skip the upload if the file already exists on the HuggingFace hub.
+            private (`bool`, *optional*, defaults to `False`):
+                Whether to upload the file to a private repository on the HuggingFace hub.
+
+        Returns:
+            url (`str`):
+                Url of the uploaded file on the HuggingFace hub.
+
         Example:
-        - scene.push_to_hub('simulate-tests/Box/glTF-Embedded/Box.gltf')
+        ```python
+        scene.push_to_hub('simulate-tests/Box/glTF-Embedded/Box.gltf')
+        ```
         """
         split_hub_path = hub_filepath.split("/")
         hub_repo_id = split_hub_path[0] + "/" + split_hub_path[1]
@@ -546,8 +682,16 @@ class Asset(NodeMixin, object):
         return repo_url
 
     def save(self, file_path: str) -> List[str]:
-        """Save in a GLTF file + additional (binary) resource files if it should be the case.
-        Return the list of all the path to the saved files (glTF file + resource files)
+        """
+        Save in a GLTF file + additional (binary) resource files if it should be the case.
+
+        Args:
+            file_path (`str`):
+                Path to the file to save.
+
+        Returns:
+            saved_filepaths (`List[str]`):
+                List of all the path to the saved files (glTF file + resource files)
         """
         # We import here to avoid circular deps
         from .gltf_export import save_tree_to_gltf_file
@@ -561,21 +705,16 @@ class Asset(NodeMixin, object):
         return tree_as_glb_bytes(self)
 
     def translate(self, vector: Optional[List[float]] = None) -> "Asset":
-        """Translate the asset from a given translation vector
+        """
+        Translate the asset from a given translation vector
 
-        Parameters
-        ----------
-        vector : np.ndarray or list, optional
-            Translation vector to apply to the object ``[x, y, z]``.
-            Default to applying no translation.
+        Args:
+            vector (`List[float]`, *optional*, defaults to `None`):
+                Translation vector to apply to the asset.
 
-        Returns
-        -------
-        self : Asset modified in-place with the translation.
-
-        Examples
-        --------
-
+        Returns:
+            self (`Asset`):
+                The translated asset.
         """
         if vector is None:
             return self
@@ -583,82 +722,62 @@ class Asset(NodeMixin, object):
         return self
 
     def translate_x(self, amount: float = 0.0) -> "Asset":
-        """Translate the asset along the ``x`` axis of the given amount
+        """
+        Translate the asset along the `x` axis of the given amount
 
-        Parameters
-        ----------
-        amount : float, optional
-            Amount to translate the asset along the ``x`` axis.
-            Default to applying no translation.
+        Args:
+            amount (`float`, *optional*, defaults to `0.0`):
+                Amount to translate the asset along the `x` axis.
 
-        Returns
-        -------
-        self : Asset modified in-place with the translation.
-
-        Examples
-        --------
-
+        Returns:
+            self (`Asset`):
+                The translated asset.
         """
         self.position += np.array((float(amount), 0.0, 0.0))
         return self
 
     def translate_y(self, amount: float = 0.0) -> "Asset":
-        """Translate the asset along the ``y`` axis of the given amount
+        """
+        Translate the asset along the `y` axis of the given amount
 
-        Parameters
-        ----------
-        amount : float, optional
-            Amount to translate the asset along the ``y`` axis.
-            Default to applying no translation.
+        Args:
+            amount (`float`, *optional*, defaults to `0.0`):
+                Amount to translate the asset along the `y` axis.
 
-        Returns
-        -------
-        self : Asset modified in-place with the translation.
-
-        Examples
-        --------
-
+        Returns:
+            self (`Asset`):
+                The translated asset.
         """
         self.position += np.array((0.0, float(amount), 0.0))
         return self
 
     def translate_z(self, amount: float = 0.0) -> "Asset":
-        """Translate the asset along the ``z`` axis of the given amount
+        """
+        Translate the asset along the `z` axis of the given amount
 
-        Parameters
-        ----------
-        amount : float, optional
-            Amount to translate the asset along the ``z`` axis.
-            Default to applying no translation.
+        Args:
+            amount (`float`, *optional*, defaults to `0.0`):
+                Amount to translate the asset along the `z` axis.
 
-        Returns
-        -------
-        self : Asset modified in-place with the translation.
-
-        Examples
-        --------
-
+        Returns:
+            self (`Asset`):
+                The translated asset.
         """
         self.position += np.array((0.0, 0.0, float(amount)))
         return self
 
     def rotate_by_quaternion(self, quaternion: Optional[List[float]] = None) -> "Asset":
-        """Rotate the asset with a given rotation quaternion.
-        Use ``rotate_x``, ``rotate_y`` or ``rotate_z`` for simple rotations around a specific axis.
+        """
+        Rotate the asset with a given rotation quaternion.
+        Use `rotate_x`, `rotate_y` or `rotate_z` for simple rotations around a specific axis.
 
-        Parameters
-        ----------
-        quaternion : np.ndarray or list, optional
-            Rotation quaternion to apply to the object ``[x, y, z, w]``.
-            Default to applying no rotation.
+        Args:
+            quaternion (`List[float]`, *optional*, defaults to `None`):
+                Rotation quaternion to apply to the asset.
 
-        Returns
-        -------
-        self : Asset modified in-place with the rotation.
-
-        Examples
-        --------
-
+        Returns:
+            self (`Asset`):
+                The rotated asset.
         """
         if quaternion is None:
             return self
@@ -669,25 +788,19 @@ class Asset(NodeMixin, object):
         return self
 
     def rotate_around_vector(self, vector: Optional[List[float]] = None, value: Optional[float] = None) -> "Asset":
-        """Rotate around a vector from a specific amount.
-        Use ``rotate_x``, ``rotate_y`` or ``rotate_z`` for simple rotations around a specific axis.
+        """
+        Rotate around a vector from a specific amount.
+        Use `rotate_x`, `rotate_y` or `rotate_z` for simple rotations around a specific axis.
 
-        Parameters
-        ----------
-        vector : np.ndarray or list, optional
-            Vector to rotate around.
+        Args:
+            vector (`List[float]`, *optional*, defaults to `None`):
+                Vector to rotate around.
+            value (`float`, *optional*, defaults to `None`):
+                Amount to rotate around the vector.
 
-        value : float, optional
-            Rotation value in degree to apply to the object around the vector.
-            Default to applying no rotation.
-
-        Returns
-        -------
-        self : Asset modified in-place with the rotation.
-
-        Examples
-        --------
-
+        Returns:
+            self (`Asset`):
+                The rotated asset.
         """
         if value is None or vector is None:
             return self
@@ -700,80 +813,59 @@ class Asset(NodeMixin, object):
         return self
 
     def rotate_x(self, value: Optional[float] = None) -> "Asset":
-        """Rotate the asset around the ``x`` axis with a given rotation value in degree.
+        """
+        Rotate the asset around the `x` axis with a given rotation value in degree.
 
-        Parameters
-        ----------
-        value : float, optional
-            Rotation value to apply to the object around the ``x`` axis in degree .
-            Default to applying no rotation.
+        Args:
+            value (`float`, *optional*, defaults to `None`):
+                Rotation value to apply to the object around the `x` axis in degree.
 
-        Returns
-        -------
-        self : Asset modified in-place with the rotation.
-
-        Examples
-        --------
-
+        Returns:
+            self (`Asset`):
+                The rotated asset.
         """
         return self.rotate_around_vector(vector=[1.0, 0.0, 0.0], value=value)
 
     def rotate_y(self, value: Optional[float] = None) -> "Asset":
-        """Rotate the asset around the ``y`` axis with a given rotation value in degree.
+        """
+        Rotate the asset around the `y` axis with a given rotation value in degree.
 
-        Parameters
-        ----------
-        value : float, optional
-            Rotation value to apply to the object around the ``y`` axis in degree .
-            Default to applying no rotation.
+        Args:
+            value (`float`, *optional*, defaults to `None`):
+                Rotation value to apply to the object around the `y` axis in degree.
 
-        Returns
-        -------
-        self : Asset modified in-place with the rotation.
-
-        Examples
-        --------
-
+        Returns:
+            self (`Asset`):
+                The rotated asset.
         """
         return self.rotate_around_vector(vector=[0.0, 1.0, 0.0], value=value)
 
     def rotate_z(self, value: Optional[float] = None) -> "Asset":
-        """Rotate the asset around the ``z`` axis with a given rotation value in degree.
+        """
+        Rotate the asset around the `z` axis with a given rotation value in degree.
 
-        Parameters
-        ----------
-        value : float, optional
-            Rotation value to apply to the object around the ``z`` axis in degree .
-            Default to applying no rotation.
+        Args:
+            value (`float`, *optional*, defaults to `None`):
+                Rotation value to apply to the object around the `z` axis in degree.
 
-        Returns
-        -------
-        self : Asset modified in-place with the rotation.
-
-        Examples
-        --------
-
+        Returns:
+            self (`Asset`):
+                The rotated asset.
         """
         return self.rotate_around_vector(vector=[0.0, 0.0, 1.0], value=value)
 
     def scale(self, scaling: Optional[Union[float, List[float]]] = None) -> "Asset":
-        """Scale the asset with a given scaling, either a global scaling value
-        or a vector of ``[x, y, z]`` scaling values.
-        Use ``scale_x``, ``scale_y`` or ``scale_z`` for simple scaling around a specific axis.
+        """
+        Scale the asset with a given scaling, either a global scaling value or a vector of scaling values.
+        Use `scale_x`, `scale_y` or `scale_z` for simple scaling around a specific axis.
 
-        Parameters
-        ----------
-        scaling : float or np.ndarray or list, optional
-            Global scaling (float) or vector of  scaling values to apply to the object along the ``[x, y, z]`` axis.
-            Default to applying no scaling.
+        Args:
+            scaling (`Union[float, List[float]]`, *optional*, defaults to `None`):
+                Scaling value(s) to apply to the asset.
 
-        Returns
-        -------
-        self : Asset modified in-place with the scaling.
-
-        Examples
-        --------
-
+        Returns:
+            self (`Asset`):
+                The scaled asset.
         """
         if scaling is None:
             return self
@@ -787,63 +879,45 @@ class Asset(NodeMixin, object):
         return self
 
     def scale_x(self, value: Optional[float] = None) -> "Asset":
-        """scale the asset around the ``x`` axis with a given scaling value.
-
-        Parameters
-        ----------
-        value : float, optional
-            scaling value to apply to the object around the ``x`` axis.
-            Default to applying no scaling.
-
-        Returns
-        -------
-        self : Asset modified in-place with the scaling.
-
-        Examples
-        --------
-
         """
+        Scale the asset around the `x` axis with a given scaling value.
 
+        Args:
+            value (`float`, *optional*, defaults to `None`):
+                Scaling value to apply to the object around the `x` axis.
+
+        Returns:
+            self (`Asset`):
+                The scaled asset.
+        """
         return self.scale(scaling=[value, 0.0, 0.0])
 
     def scale_y(self, value: Optional[float] = None) -> "Asset":
-        """scale the asset around the ``y`` axis with a given scaling value.
-
-        Parameters
-        ----------
-        value : float, optional
-            scaling value to apply to the object around the ``y`` axis .
-            Default to applying no scaling.
-
-        Returns
-        -------
-        self : Asset modified in-place with the scaling.
-
-        Examples
-        --------
-
         """
+        Scale the asset around the `y` axis with a given scaling value.
 
+        Args:
+            value (`float`, *optional*, defaults to `None`):
+                Scaling value to apply to the object around the `y` axis.
+
+        Returns:
+            self (`Asset`):
+                The scaled asset.
+        """
         return self.scale(scaling=[0.0, value, 0.0])
 
     def scale_z(self, value: Optional[float] = None) -> "Asset":
-        """scale the asset around the ``z`` axis with a given value.
-
-        Parameters
-        ----------
-        value : float, optional
-            Scale value to apply to the object around the ``z`` axis.
-            Default to applying no scaling.
-
-        Returns
-        -------
-        self : Asset modified in-place with the scaling.
-
-        Examples
-        --------
-
         """
+        Scale the asset around the `z` axis with a given scaling value.
 
+        Args:
+            value (`float`, *optional*, defaults to `None`):
+                Scaling value to apply to the object around the `z` axis.
+
+        Returns:
+            self (`Asset`):
+                The scaled asset.
+        """
         return self.scale(scaling=[0.0, 0.0, value])
 
     ##############################
@@ -855,18 +929,46 @@ class Asset(NodeMixin, object):
     ##############################
     @property
     def position(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the position of the asset in the scene.
+
+        Returns:
+            position (`List[float]` or `np.ndarray`):
+                The position of the asset in the scene.
+        """
         return self._position
 
     @property
     def rotation(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the rotation of the asset in the scene.
+
+        Returns:
+            rotation (`List[float]` or `np.ndarray`):
+                The rotation of the asset in the scene.
+        """
         return self._rotation
 
     @property
     def scaling(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the scaling of the asset in the scene.
+
+        Returns:
+            scaling (`List[float]` or `np.ndarray`):
+                The scaling of the asset in the scene.
+        """
         return self._scaling
 
     @property
     def transformation_matrix(self) -> np.ndarray:
+        """
+        Get the transformation matrix of the asset in the scene.
+
+        Returns:
+            transformation_matrix (`np.ndarray`):
+                The transformation matrix of the asset in the scene.
+        """
         if self._transformation_matrix is None:
             self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
         return self._transformation_matrix
@@ -875,6 +977,13 @@ class Asset(NodeMixin, object):
 
     @position.setter
     def position(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the position of the asset in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The position of the asset in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
@@ -896,6 +1005,13 @@ class Asset(NodeMixin, object):
 
     @rotation.setter
     def rotation(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the rotation of the asset in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The rotation of the asset in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
@@ -917,6 +1033,13 @@ class Asset(NodeMixin, object):
 
     @scaling.setter
     def scaling(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the scaling of the asset in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The scaling of the asset in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
@@ -938,6 +1061,13 @@ class Asset(NodeMixin, object):
 
     @transformation_matrix.setter
     def transformation_matrix(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the transformation matrix of the asset in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The transformation matrix of the asset in the scene.
+        """
         # Default to setting up from TRS if None
         if (value is None or isinstance(value, property)) and (
             self._position is not None and self._rotation is not None and self._scaling is not None
@@ -965,6 +1095,7 @@ class Asset(NodeMixin, object):
             self._post_asset_modification()
 
     def _post_asset_modification(self):
+        """Method called after an asset is modified."""
         if (
             getattr(self.tree_root, "engine", None) is not None
             and getattr(self.tree_root.tree_root, "engine").auto_update

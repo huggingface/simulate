@@ -12,11 +12,11 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 
-from typing import Dict, List, Optional, Tuple, Union
+# Lint as: python3
+from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
 
-# Lint as: python3
 from simulate.scene import Scene
 
 
@@ -25,9 +25,12 @@ class RLEnv:
     The basic RL environment wrapper for Simulate scene following the Gym API.
 
     Args:
-        scene: a Simulate Scene.
-        time_step: the physics timestep of the environment.
-        frame_skip: the number of times an action is repeated in the backend simulation before the next observation is returned.
+        scene (`Scene`):
+            The Simulate scene to be wrapped.
+        time_step (`float`, *optional*, defaults to `1/30.0`):
+            The physics timestep of the environment.
+        frame_skip (`int`, *optional*, defaults to `4`):
+            The number of times an action is repeated in the backend simulation before the next observation is returned.
     """
 
     metadata = {}
@@ -80,23 +83,33 @@ class RLEnv:
         """
         The step function for the environment, follows the API from OpenAI Gym.
 
+        TODO verify, a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
         Args:
-            action (`Dict` or `List`): TODO verify, a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
+            action (`Dict` or `List`):
+                The action to be taken by the environment.
 
         Returns:
-            observation (`Dict`): TODO
-            reward (`float`): TODO
-            done (`bool`): TODO
-            info: TODO
+            observation (`Dict`):
+                A dictionary of observations from the environment.
+            reward (`float`):
+                The reward for the action.
+            done (`bool`):
+                Whether the episode has ended.
+            info (`Dict`):
+                A dictionary of additional information.
         """
-
-        # send the data to the engine
         self.step_send_async(action=action)
 
         # receive and return event data from the engine
         return self.step_recv_async()
 
     def step_send_async(self, action: Union[Dict, List, np.ndarray]):
+        """
+        Send action for execution asynchronously.
+
+        Args:
+            action (`Dict` or `List` or `ndarray`): The action to be executed in the environment.
+        """
         if not isinstance(action, dict):
             if len(self.action_tags) != 1:
                 raise ValueError(
@@ -145,6 +158,19 @@ class RLEnv:
         self.scene.engine.step_send_async(action=action)
 
     def step_recv_async(self) -> Tuple[Dict, np.ndarray, np.ndarray, Dict]:
+        """
+        Receive the response from the environment asynchronously.
+
+        Returns:
+            observation (`Dict`):
+                A dictionary containing the observation from the environment.
+            reward (`float`):
+                The reward for the action.
+            done (`bool`):
+                Whether the episode has ended.
+            info (`Dict`):
+                A dictionary of additional information.
+        """
         event = self.scene.engine.step_recv_async()
 
         # Extract observations, reward, and done from event data
@@ -157,6 +183,15 @@ class RLEnv:
         return obs, reward, done, {}
 
     def _squeeze_actor_dimension(self, obs: Dict) -> Dict:
+        """
+        Squeeze the observations.
+
+        Args:
+            obs (`Dict`): The observation received from the environment.
+
+        Returns:
+            obs (`Dict`): Squeezed observation.
+        """
         # Remove empty dimensions from the observations before returning them.
         if self.n_actors > 1:
             # Note: Multi-actor support not fully tested.
@@ -184,6 +219,15 @@ class RLEnv:
 
     @staticmethod
     def _convert_to_numpy(event_data: Dict) -> np.ndarray:
+        """
+        Convert the event data to numpy array.
+
+        Args:
+            event_data (`Dict`): The event data to be converted.
+
+        Returns:
+            event_data (`ndarray`): The converted event data.
+        """
         if event_data["type"] == "uint8":
             shape = event_data["shape"]
             return np.array(event_data["uintBuffer"], dtype=np.uint8).reshape(shape)
@@ -194,20 +238,61 @@ class RLEnv:
             raise TypeError
 
     def _extract_sensor_obs(self, sim_event_data: Dict) -> Dict:
+        """
+        Extract the observations from the event data.
+
+        Args:
+            sim_event_data (`Dict`): The full event data.
+
+        Returns:
+            sensor_obs (`Dict`): The sensors observation
+        """
         sensor_obs = {}
         for sensor_tag, sensor_data in sim_event_data.items():
             sensor_obs[sensor_tag] = self._convert_to_numpy(sensor_data)
         return sensor_obs
 
     def close(self):
+        """Close the scene."""
         self.scene.close()
 
-    def sample_action(self) -> np.ndarray:
+    def sample_action(self) -> list:
         """
-        Samples an action from the actors in the environment. This function loads the configuration of maps and actors to return the correct shape across multiple configurations.
+        Samples an action from the actors in the environment. This function loads the configuration of maps and actors
+        to return the correct shape across multiple configurations.
 
         Returns:
-            action: TODO
+            action (`ndarray`): action sampled from the environment's action space.
         """
         action = [self.action_space.sample() for _ in range(self.n_actors)]
         return action
+
+    # required abstract methods
+
+    def step_async(self, actions: np.ndarray) -> None:
+        """Step the environment asynchronously."""
+        raise NotImplementedError()
+
+    def get_attr(self, attr_name: str, indices: Any = None) -> List[Any]:
+        """Return a class attribute by name."""
+        raise NotImplementedError()
+
+    def env_method(self, method_name: str, *method_args, indices: Any = None, **method_kwargs) -> List[Any]:
+        raise NotImplementedError()
+
+    def seed(self, seed: Optional[int] = None):  # -> List[Union[None, int]]:
+        # this should be done when the env is initialized
+        return
+        # raise NotImplementedError()
+
+    def set_attr(self, attr_name: str, value: Any, indices: Any = None) -> None:
+        raise NotImplementedError()
+
+    def step_send(self) -> Any:
+        raise NotImplementedError()
+
+    def step_wait(self) -> Any:
+        raise NotImplementedError()
+
+    def get_images(self) -> Sequence[np.ndarray]:
+        raise NotImplementedError()

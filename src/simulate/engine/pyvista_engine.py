@@ -80,6 +80,16 @@ CAMERA_VIEWUP = [0, 1, 0]
 
 
 class PyVistaEngine(Engine):
+    """
+    API to render scenes using PyVista.
+
+    Args:
+        scene (`Scene`):
+            The scene to simulate.
+        auto_update (`bool`, *optional*, defaults to `True`):
+            Whether to automatically update the scene when an asset is updated.
+    """
+
     def __init__(
         self,
         scene: "Scene",
@@ -95,6 +105,7 @@ class PyVistaEngine(Engine):
         self._plotter_actors = {}
 
     def _initialize_plotter(self):
+        """Initialize the plotter to render the scene."""
         plotter_args = {"lighting": "none"}
         plotter_args.update(self.plotter_kwargs)
         if self.auto_update:
@@ -107,6 +118,17 @@ class PyVistaEngine(Engine):
 
     @staticmethod
     def _get_node_transform(node: "Asset") -> np.ndarray:
+        """
+        Get the transformation matrix of a node.
+
+        Args:
+            node (`Asset`):
+                The node to get the transformation matrix of.
+
+        Returns:
+            `np.ndarray`:
+                The transformation matrix of the node.
+        """
         transforms = list(n.transformation_matrix for n in node.tree_path)
         if len(transforms) > 1:
             model_transform_matrix = np.linalg.multi_dot(transforms)  # Compute transform from the tree parents
@@ -115,7 +137,13 @@ class PyVistaEngine(Engine):
         return model_transform_matrix
 
     def remove_asset(self, asset_node: "Asset"):
-        """Remove an asset and all its children in the scene"""
+        """
+        Remove an asset and all its children in the scene.
+
+        Args:
+            asset_node (`Asset`):
+                The asset to remove.
+        """
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             return
 
@@ -134,7 +162,13 @@ class PyVistaEngine(Engine):
             self.plotter.reset_camera()
 
     def update_asset(self, asset_node: "Asset"):
-        """Add an asset or update its location and all its children in the scene"""
+        """
+        Add an asset or update its location and all its children in the scene.
+
+        Args:
+            asset_node (`Asset`):
+                The asset to add or update.
+        """
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             return
 
@@ -157,6 +191,15 @@ class PyVistaEngine(Engine):
             self.plotter.reset_camera()
 
     def _add_asset_to_scene(self, node: "Asset", model_transform_matrix: np.ndarray):
+        """
+        Add an asset to the scene with a given transform matrix.
+
+        Args:
+            node (`Asset`):
+                The asset to add.
+            model_transform_matrix (`np.ndarray`):
+                The transformation matrix of the asset.
+        """
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             return
 
@@ -208,8 +251,15 @@ class PyVistaEngine(Engine):
 
     @staticmethod
     def _set_pbr_material_for_actor(actor: pyvista._vtk.vtkActor, material: Material):
-        """Set all the necessary properties for a nice PBR material rendering
+        """
+        Set all the necessary properties for a nice PBR material rendering
         Inspired by https://github.com/Kitware/VTK/blob/master/IO/Import/vtkGLTFImporter.cxx#L188
+
+        Args:
+            actor (`pyvista._vtk.vtkActor`):
+                The actor to set the material for.
+            material (`Material`):
+                The PBR material to set.
         """
         from vtkmodules.vtkCommonCore import vtkInformation
         from vtkmodules.vtkRenderingCore import vtkProp
@@ -286,6 +336,7 @@ class PyVistaEngine(Engine):
                 prop.SetNormalTexture(material.normal_texture)
 
     def regenerate_scene(self):
+        """Regenerate the scene from the root node."""
         if self.plotter is None or not hasattr(self.plotter, "ren_win"):
             self._initialize_plotter()
 
@@ -312,6 +363,13 @@ class PyVistaEngine(Engine):
             self.plotter.reset_camera()
 
     def show(self, auto_update: Optional[bool] = None, **plotter_kwargs: Any):
+        """
+        Show the scene.
+
+        Args:
+            auto_update (bool, *optional*, defaults to None):
+                Whether the scene will be updated automatically when the scene is modified.
+        """
         if auto_update is not None and auto_update != self.auto_update:
             self.plotter = None
             self.auto_update = auto_update
@@ -321,6 +379,7 @@ class PyVistaEngine(Engine):
             self.plotter.show(**plotter_kwargs if not self.auto_update else {})
 
     def close(self):
+        """Close the scene."""
         if self.plotter is not None:
             self.plotter.close()
 

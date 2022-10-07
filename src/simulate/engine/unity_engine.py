@@ -1,3 +1,18 @@
+# Copyright 2022 The HuggingFace Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lint as: python3
 import atexit
 import base64
 import json
@@ -55,6 +70,25 @@ HUGGINGFACE_UNITY_CACHE = os.getenv("HUGGINGFACE_UNITY_CACHE", default_cache_pat
 
 
 class UnityEngine(Engine):
+    """
+    API to run simulations in the Unity engine integration.
+
+    Args:
+        scene (`Scene`):
+            The scene to simulate.
+        auto_update (`bool`, *optional*, defaults to `True`):
+            Whether to automatically update the scene when an asset is updated.
+        engine_exe (`str`, *optional*, defaults to `""`):
+            The path to the Unity executable.
+            If not specified, the Unity executable will be downloaded from Hugging Face Hub.
+        engine_host (`str`, *optional*, defaults to `"127.0.0.1"`):
+            The host to connect to.
+        engine_port (`int`, *optional*, defaults to `55001`):
+            The port to connect to.
+        engine_headless (`bool`, *optional*, defaults to `False`):
+            Whether to run the Unity executable in headless mode.
+    """
+
     def __init__(
         self,
         scene: "Scene",
@@ -78,6 +112,13 @@ class UnityEngine(Engine):
 
     @staticmethod
     def _get_unity_from_hub() -> str:
+        """
+        Download the Unity executable from Hugging Face Hub.
+
+        Returns:
+            path (`str`):
+                The path to the Unity executable.
+        """
         unity_compressed = hf_hub_download(
             repo_id=UNITY_BUILD_REPO,
             filename=UNITY_COMPRESSED_FILENAME,
@@ -95,6 +136,17 @@ class UnityEngine(Engine):
         return os.path.join(HUGGINGFACE_UNITY_CACHE, main_dir, UNITY_EXECUTABLE_PATH)
 
     def _launch_executable(self, executable: str, port: str, headless: bool):
+        """
+        Launch the Unity executable.
+
+        Args:
+            executable (`str`):
+                The path to the Unity executable.
+            port (`str`):
+                The port to connect to.
+            headless (`bool`):
+                Whether to run the Unity executable in headless mode.
+        """
         # TODO: improve headless training check on a headless machine
         if headless:
             logger.info("launching env headless")
@@ -108,7 +160,17 @@ class UnityEngine(Engine):
 
     @staticmethod
     def _find_port_number(starting_engine_port: int) -> int:
-        """use a different port in each xdist worker"""
+        """
+        Use a different port in each xdist worker.
+
+        Args:
+            starting_engine_port (`int`):
+                The port to start from.
+
+        Returns:
+            port (`int`):
+                The next port to connect to.
+        """
         port_tests = list(range(starting_engine_port, starting_engine_port + 1024))
         for port in port_tests:
             with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
@@ -119,8 +181,18 @@ class UnityEngine(Engine):
         raise RuntimeError("Could not find a free port")
 
     def _initialize_server(self, engine_exe: str, engine_host: str, engine_port: int, engine_headless: bool):
-        """Initialize the local server and launch the Unity executable and
-        connect to it.
+        """
+        Initialize the local server and launch the Unity executable and connect to it.
+
+        Args:
+            engine_exe (`str`):
+                The path to the Unity executable.
+            engine_host (`str`):
+                The host to connect to.
+            engine_port (`int`):
+                The port to connect to.
+            engine_headless (`bool`):
+                Whether to run the Unity executable in headless mode.
         """
         # Initializing on our side
         self.host = engine_host
@@ -162,6 +234,13 @@ class UnityEngine(Engine):
         logger.info(f"Connection from {self.client_address}")
 
     def _get_response(self) -> str:
+        """
+        Get response from socket.
+
+        Returns:
+            response (`str`):
+                The response from the socket.
+        """
         while True:
 
             data_length = self.client.recv(4)
@@ -183,6 +262,13 @@ class UnityEngine(Engine):
         raise NotImplementedError()
 
     def show(self, **kwargs: Any) -> Union[Dict, str]:
+        """
+        Initialize the scene and show it in the Godot engine.
+
+        Returns:
+            response (`Dict` or `str`):
+                The response from the socket.
+        """
         bytes_data = self._scene.as_glb_bytes()
         b64_bytes = base64.b64encode(bytes_data).decode("ascii")
         kwargs.update({"b64bytes": b64_bytes})
@@ -192,24 +278,51 @@ class UnityEngine(Engine):
         """Step the environment with the given action.
 
         Args:
-            action (dict): The action to take in the environment.
+            action (`Dict`, *optional*, defaults to `None`):
+                The action to take in the environment.
                 If the action is None, we don't send an action to the environment.
                 We then only send the Step command to Unity to step the physics engine.
+
+        Returns:
+            response (`Dict` or `str`):
+                The response from the socket.
         """
         if action is not None:
             kwargs.update({"action": action})
         return self.run_command("Step", **kwargs)
 
     def step_send_async(self, **kwargs: Any):
+        """Send the Step command asynchronously."""
         self.run_command_async("Step", **kwargs)
 
     def step_recv_async(self) -> str:
+        """Receive the response from the Step command asynchronously."""
         return self.get_response_async()
 
-    def reset(self):
+    def reset(self) -> Union[Dict, str]:
+        """
+        Reset the environment.
+
+        Returns:
+            response (`Dict` or `str`):
+                The response from the socket.
+        """
         return self.run_command("Reset")
 
     def run_command(self, command: str, wait_for_response: bool = True, **kwargs: Any) -> Union[Dict, str]:
+        """
+        Encode command and send the bytes to the socket.
+
+        Args:
+            command (`str`):
+                The command to send to the socket.
+            wait_for_response (`bool`, *optional*, defaults to `True`):
+                Whether to wait for a response from the socket.
+
+        Returns:
+            response (`Dict` or `str`):
+                The response from the socket.
+        """
         message = json.dumps({"type": command, **kwargs})
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         self.client.sendall(message_bytes)
@@ -222,11 +335,25 @@ class UnityEngine(Engine):
                 return response
 
     def run_command_async(self, command: str, **kwargs: Any):
+        """
+        Encode command and send the bytes to the socket asynchronously.
+
+        Args:
+            command (`str`):
+                The command to send to the socket.
+        """
         message = json.dumps({"type": command, **kwargs})
         message_bytes = len(message).to_bytes(4, "little") + bytes(message.encode())
         self.client.sendall(message_bytes)
 
     def get_response_async(self) -> Union[Dict, str]:
+        """
+        Get response from socket asynchronously.
+
+        Returns:
+            response (`Dict` or `str`):
+                The response from the socket.
+        """
         response = self._get_response()
         try:
             return json.loads(response)
@@ -238,6 +365,7 @@ class UnityEngine(Engine):
         self.close()
 
     def close(self):
+        """Close the socket."""
         try:
             self.run_command("Close", wait_for_response=False)
         except Exception as e:

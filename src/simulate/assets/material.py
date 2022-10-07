@@ -20,6 +20,7 @@ from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
 import numpy as np
+import PIL.Image
 import pyvista
 
 from .utils import camelcase_to_snakecase
@@ -44,62 +45,42 @@ class Material:
     """
     The material appearance of a primitive.
 
-    Parameters
-    ----------
-    name : string, optional
-        The user-defined name of this material
-
-    base_color : np.ndarray or list with 3 (RGB) or 4 (RGBA) components, optional
-        The material's base RGB or RGBA color.
-        The factors for the base color of the material.
-        This value defines linear multipliers for the sampled texels of the base color texture.
-        Default: [1,1,1,1]. If provided as RGB, Alpha is assumed to be 1.
-
-    base_color_texture : pyvista.Texture, optional
-        A base color texture.
-        Can be created from a PIL image, by first converting to a np array and then to a pyvista texture.
-
-    metallic_factor : float, optional
-        The metalness of the material.
-        Default: 0.0
-
-    roughness_factor : float, optional
-        The roughness of the material.
-        Default: 1.0
-
-    metallic_roughness_texture : PIL.Image, optional
-        The metallic-roughness texture.
-
-    normal_texture : PIL.Image, optional
-        The normal map texture.
-
-    occlusion_texture : PIL.Image, optional
-        The occlusion map texture.
-
-    emissive_texture : PIL.Image, optional
-        The emissive map texture.
-
-    emissive_factor : np.ndarray or list with 3 (RGB) components, optional
-        The emissive color of the material.
-        Default: [0,0,0]
-
-    alpha_mode : string selected in ["OPAQUE", "MASK" and "BLEND"]
-        The alpha rendering mode of the material.
-            "OPAQUE": The alpha value is ignored, and the rendered output is fully opaque.
-            "MASK": The rendered output is either fully opaque or fully transparent depending on the alpha value
-                and the specified alpha_cutoff value.
-            "BLEND": The alpha value is used to composite the source and destination areas.
-                The rendered output is combined with the background using the normal painting operation
-                (i.e. the Porter and Duff over operator).
-        Default: "OPAQUE"
-
-    alpha_cutoff: float, optional
-        The alpha cutoff value of the material.
-        Default: 0.5
-
-    double_sided: boolean, optional
-        Specifies whether the material is double-sided.
-        Default: false
+    Args:
+        base_color (`np.ndarray` or `List[float]`, *optional*, defaults to `[1.0, 1.0, 1.0, 1.0]`):
+            The material's base RGB or RGBA color. If provided as RGB, Alpha is assumed to be 1.
+        base_color_texture (`pyvista.Texture`, *optional*, defaults to `None`):
+            A base color texture.
+            Can be created from a PIL image, by first converting to a np array and then to a pyvista texture.
+        metallic_factor (`float`, *optional*, defaults to `0.0`):
+            The material's metallic factor.
+        roughness_factor (`float`, *optional*, defaults to `1.0`):
+            The material's roughness factor.
+        emissive_factor (`np.ndarray` or `List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            The material's emissive RGB color.
+        metallic_roughness_texture (`PIL.Image.Image`, *optional*, defaults to `None`):
+            A metallic-roughness texture.
+        normal_texture (`PIL.Image.Image`, *optional*, defaults to `None`):
+            A normal texture.
+        occlusion_texture (`PIL.Image.Image`, *optional*, defaults to `None`):
+            An occlusion texture.
+        emissive_texture (`PIL.Image.Image`, *optional*, defaults to `None`):
+            An emissive texture.
+        emissive_factor (`np.ndarray` or `List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            The material's emissive RGB color.
+        alpha_mode (`str`, *optional*, defaults to `"OPAQUE"`):
+            The alpha rendering mode of the material.
+                "OPAQUE": The alpha value is ignored, and the rendered output is fully opaque.
+                "MASK": The rendered output is either fully opaque or fully transparent depending on the alpha value
+                    and the specified alpha_cutoff value.
+                "BLEND": The alpha value is used to composite the source and destination areas.
+                    The rendered output is combined with the background using the normal painting operation
+                    (i.e. the Porter and Duff over operator).
+        alpha_cutoff (`float`, *optional*, defaults to `0.5`):
+            The alpha cutoff value of the material.
+        double_sided (`bool`, *optional*, defaults to `False`):
+            Specifies whether the material is double-sided.
+        name (`str`, *optional*, defaults to `None`):
+            The material's name.
     """
 
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -108,16 +89,14 @@ class Material:
     base_color_texture: Optional[pyvista.Texture] = None
     metallic_factor: Optional[float] = None
     roughness_factor: Optional[float] = None
-    metallic_roughness_texture: Optional[pyvista.Texture] = None
-
-    normal_texture: Optional[pyvista.Texture] = None
-    occlusion_texture: Optional[pyvista.Texture] = None
-    emissive_texture: Optional[pyvista.Texture] = None
+    metallic_roughness_texture: Optional[PIL.Image.Image] = None
+    normal_texture: Optional[PIL.Image.Image] = None
+    occlusion_texture: Optional[PIL.Image.Image] = None
+    emissive_texture: Optional[PIL.Image.Image] = None
     emissive_factor: Optional[List[float]] = None
     alpha_mode: Optional[str] = None
     alpha_cutoff: Optional[float] = None
     double_sided: Optional[bool] = None
-
     name: Optional[str] = None
 
     def __post_init__(self):
@@ -164,6 +143,13 @@ class Material:
         return id(self)
 
     def copy(self) -> "Material":
+        """
+        Make a copy of the material.
+
+        Returns:
+            copy (`Material`):
+                The copied material.
+        """
         copy_mat = copy.deepcopy(self)
         mat_id = next(self.__class__.__NEW_ID)
         self.name = camelcase_to_snakecase(self.__class__.__name__ + f"_{mat_id:02d}")

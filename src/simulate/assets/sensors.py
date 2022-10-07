@@ -62,6 +62,17 @@ ALLOWED_STATE_SENSOR_PROPERTIES = {
 
 
 def get_state_sensor_n_properties(sensor: Union["StateSensor", "RaycastSensor"]) -> int:
+    """
+    Get the number of properties of a state sensor.
+
+    Args:
+        sensor (`StateSensor` or `RaycastSensor`):
+            The sensor to get the number of properties from.
+
+    Returns:
+        n_features (`int`):
+            The number of properties of the sensor.
+    """
     n_features = 0
     for sensor_property in sensor.properties:
         n_features += ALLOWED_STATE_SENSOR_PROPERTIES[sensor_property]
@@ -71,18 +82,43 @@ def get_state_sensor_n_properties(sensor: Union["StateSensor", "RaycastSensor"])
 
 @dataclass
 class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_sensors", object_type="node"):
-    """A State sensor: pointer to two assets whose positions/rotations are used to compute an observation
+    """
+    A State sensor: pointer to two assets whose positions/rotations are used to compute an observation
 
     Args:
-        target_entity: Reference (or string name) of the target Asset in the scene.
-        reference_entity: Reference (or string name) of the reference Asset in the scene,
+        target_entity (`Asset` or `str`, *optional*, defaults to `None`):
+            Reference or name of the target Asset in the scene.
+        reference_entity (`Asset` or `str`, *optional*, defaults to `None`):
+            Reference or name of the reference Asset in the scene.
             If no reference is provided we use the world as a reference.
-        properties: How should we compute the observation, selected in the list of:
-            - "position": the position of the target asset
-            - "rotation": the rotation of the target asset
-            - "distance": the distance to the target asset (default)
-        properties: TODO
-        sensor_tag (`str`): name of sensor in Simulate Tree.
+        properties (`str` or `List[str]`, *optional*, defaults to `["distance"]`):
+            List of properties to extract from the sensor. Allowed properties are:
+            [
+                "position", "position.x", "position.y", "position.z",
+                "velocity", "velocity.x", "velocity.y", "velocity.z",
+                "rotation", "rotation.x", "rotation.y", "rotation.z",
+                "angular_velocity", "angular_velocity.x", "angular_velocity.y", "angular_velocity.z",
+                "distance"
+            ]
+        sensor_tag (`str`, *optional*, defaults to `"StateSensor"`):
+            Type of sensor. Allowed values are: "position", "velocity", "rotation", "angular_velocity", "distance".
+
+        name (`str`, *optional*, defaults to `None`):
+            Name of the sensor.
+        position (`List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Position of the sensor in the scene.
+        rotation (`List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            Rotation of the sensor in the scene.
+        scaling (`List[float]`, *optional*, defaults to `[1, 1, 1]`):
+            Scaling of the sensor in the scene.
+        transformation_matrix (`List[float]`, *optional*, defaults to `None`):
+            Transformation matrix of the sensor in the scene.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the sensor in the scene.
+        children (`List[Asset]`, *optional*, defaults to `None`):
+            Children of the sensor in the scene.
+        created_from_file (`str`, *optional*, defaults to `None`):
+            The path to the file from which the sensor was created.
     """
 
     target_entity: Optional[Any] = None
@@ -95,8 +131,8 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
     rotation: InitVar[Optional[List[float]]] = None
     scaling: InitVar[Optional[Union[float, List[float]]]] = None
     transformation_matrix: InitVar[Optional[List[float]]] = None
-    parent: InitVar[Optional[Any]] = None
-    children: InitVar[Optional[List[Any]]] = None
+    parent: InitVar[Optional["Asset"]] = None
+    children: InitVar[Optional[List["Asset"]]] = None
     created_from_file: InitVar[Optional[str]] = None
 
     __NEW_ID: ClassVar[Any] = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -127,6 +163,13 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 
     @property
     def observation_space(self) -> spaces.Box:
+        """
+        Get the observation space of the sensor.
+
+        Returns:
+            observation_space (`gym.spaces.Box`):
+                The observation space of the sensor.
+        """
         return spaces.Box(low=-inf, high=inf, shape=[get_state_sensor_n_properties(self)], dtype=np.float32)
 
     ##############################
@@ -138,18 +181,46 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
     ##############################
     @property
     def position(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the position of the sensor in the scene.
+
+        Returns:
+            position (`List[float]` or `np.ndarray`):
+                The position of the sensor in the scene.
+        """
         return self._position
 
     @property
     def rotation(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the rotation of the sensor in the scene.
+
+        Returns:
+            rotation (`List[float]` or `np.ndarray`):
+                The rotation of the sensor in the scene.
+        """
         return self._rotation
 
     @property
     def scaling(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the scaling of the sensor in the scene.
+
+        Returns:
+            scaling (`List[float]` or `np.ndarray`):
+                The scaling of the sensor in the scene.
+        """
         return self._scaling
 
     @property
     def transformation_matrix(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the transformation matrix of the sensor in the scene.
+
+        Returns:
+            transformation_matrix (`List[float]` or `np.ndarray`):
+                The transformation matrix of the sensor in the scene.
+        """
         if self._transformation_matrix is None:
             self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
         return self._transformation_matrix
@@ -158,6 +229,13 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 
     @position.setter
     def position(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the position of the sensor in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The position of the sensor in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
@@ -179,6 +257,13 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 
     @rotation.setter
     def rotation(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the rotation of the sensor in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The rotation of the sensor in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
@@ -200,6 +285,13 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 
     @scaling.setter
     def scaling(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the scaling of the sensor in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The scaling of the sensor in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
@@ -221,6 +313,13 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 
     @transformation_matrix.setter
     def transformation_matrix(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the transformation matrix of the sensor in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The transformation matrix of the sensor in the scene.
+        """
         # Default to setting up from TRS if None
         if (value is None or isinstance(value, property)) and (
             self._position is not None and self._rotation is not None and self._scaling is not None
@@ -251,18 +350,39 @@ class StateSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_state_senso
 @dataclass_json
 @dataclass
 class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_sensors", object_type="node"):
-    """A Raycast sensor: cast a ray to get an observation. TODO expand this.
+    """
+    A Raycast sensor: cast a ray to get an observation.
 
     Args:
-        target_entity: Reference (or string name) of the target Asset in the scene.
-        reference_entity: Reference (or string name) of the reference Asset in the scene,
-            If no reference is provided we use the world as a reference.
-        properties: How should we compute the observation, selected in the list of:
-            - "position": the position of the target asset
-            - "rotation": the rotation of the target asset
-            - "distance": the distance to the target asset (default)
-        properties: TODO
-        sensor_tag (`str`): name of sensor in Simulate Tree.
+        n_horizontal_rays (`int`, *optional*, defaults to `1`):
+            The number of horizontal rays to cast.
+        n_vertical_rays (`int`, *optional*, defaults to `1`):
+            The number of vertical rays to cast.
+        horizontal_fov (`float`, *optional*, defaults to `0.0`):
+            The horizontal field of view of the sensor.
+        vertical_fov (`float`, *optional*, defaults to `0.0`):
+            The vertical field of view of the sensor.
+        ray_length (`float`, *optional*, defaults to `100.0`):
+            The length of the ray to cast.
+        sensor_tag (`str`, *optional*, defaults to `"RaycastSensor"`):
+            The tag of the sensor.
+
+        name (`str`, *optional*, defaults to `None`):
+            The name of the sensor.
+        position (`List[float]`, *optional*, defaults to `None`):
+            The position of the sensor in the scene.
+        rotation (`List[float]`, *optional*, defaults to `None`):
+            The rotation of the sensor in the scene.
+        scaling (`List[float]`, *optional*, defaults to `None`):
+            The scaling of the sensor in the scene.
+        transformation_matrix (`List[float]`, *optional*, defaults to `None`):
+            The transformation matrix of the sensor in the scene.
+        parent (`Asset`, *optional*, defaults to `None`):
+            The parent of the sensor.
+        children (`List[Asset]`, *optional*, defaults to `None`):
+            The children of the sensor.
+        created_from_file (`str`, *optional*, defaults to `None`):
+            The path to the file from which the sensor was created.
     """
 
     n_horizontal_rays: int = 1
@@ -277,8 +397,8 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
     rotation: InitVar[Optional[List[float]]] = None
     scaling: InitVar[Optional[Union[float, List[float]]]] = None
     transformation_matrix: InitVar[Optional[List[float]]] = None
-    parent: InitVar[Optional[Any]] = None
-    children: InitVar[Optional[List[Any]]] = None
+    parent: InitVar[Optional["Asset"]] = None
+    children: InitVar[Optional[List["Asset"]]] = None
     created_from_file: InitVar[Optional[str]] = None
 
     __NEW_ID: ClassVar[Any] = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -299,6 +419,13 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
 
     @property
     def observation_space(self) -> spaces.Box:
+        """
+        Get the observation space of the sensor.
+
+        Returns:
+            observation_space (`gym.spaces.Box`):
+                The observation space of the sensor.
+        """
         return spaces.Box(low=-inf, high=inf, shape=[self.n_horizontal_rays * self.n_vertical_rays], dtype=np.float32)
 
     ##############################
@@ -310,18 +437,46 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
     ##############################
     @property
     def position(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the position of the sensor in the scene.
+
+        Returns:
+            position (`List[float]` or `np.ndarray`):
+                The position of the sensor in the scene.
+        """
         return self._position
 
     @property
     def rotation(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the rotation of the sensor in the scene.
+
+        Returns:
+            rotation (`List[float]` or `np.ndarray`):
+                The rotation of the sensor in the scene.
+        """
         return self._rotation
 
     @property
     def scaling(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the scaling of the sensor in the scene.
+
+        Returns:
+            scaling (`List[float]` or `np.ndarray`):
+                The scaling of the sensor in the scene.
+        """
         return self._scaling
 
     @property
     def transformation_matrix(self) -> Union[List[float], np.ndarray]:
+        """
+        Get the transformation matrix of the sensor in the scene.
+
+        Returns:
+            transformation_matrix (`List[float]` or `np.ndarray`):
+                The transformation matrix of the sensor in the scene.
+        """
         if self._transformation_matrix is None:
             self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
         return self._transformation_matrix
@@ -330,6 +485,13 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
 
     @position.setter
     def position(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the position of the sensor in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The position of the sensor in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
@@ -351,6 +513,13 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
 
     @rotation.setter
     def rotation(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the rotation of the sensor in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The rotation of the sensor in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
@@ -372,6 +541,13 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
 
     @scaling.setter
     def scaling(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the scaling of the sensor in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The scaling of the sensor in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
@@ -393,6 +569,13 @@ class RaycastSensor(Asset, GltfExtensionMixin, gltf_extension_name="HF_raycast_s
 
     @transformation_matrix.setter
     def transformation_matrix(self, value: Optional[Union[float, List[float], property, Tuple, np.ndarray]] = None):
+        """
+        Set the transformation matrix of the sensor in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The transformation matrix of the sensor in the scene.
+        """
         # Default to setting up from TRS if None
         if (value is None or isinstance(value, property)) and (
             self._position is not None and self._rotation is not None and self._scaling is not None

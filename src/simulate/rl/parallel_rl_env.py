@@ -11,6 +11,10 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+
+
+# Lint as: python3
+from collections import defaultdict
 from typing import Any, Callable, Dict, List, Optional, Sequence, Tuple, Type, Union
 
 import numpy as np
@@ -52,11 +56,12 @@ class ParallelRLEnv(VecEnv):
     https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
 
     Args:
-        scene_or_map_fn: a generator function for generating instances of the desired scene.
-        n_maps: the number of map instances to create, default 1.
-        n_show: optionally show a subset of the maps during training and dequeue a new map at the end of each episode.
-        time_step: the physics timestep of the environment.
-        frame_skip: the number of times an action is repeated in the backend simulation before the next observation is returned.
+        env_fn (`Callable`):
+            a generator function that returns a RLEnv for generating instances of the desired environment.
+        n_parallel (`int`):
+            the number of executable instances to create.
+        starting_port (`int`, *optional*, defaults to `55001`):
+            initial communication port for spawned executables.
     """
 
     def __init__(
@@ -122,20 +127,33 @@ class ParallelRLEnv(VecEnv):
         """
         The step function for the environment, follows the API from OpenAI Gym.
 
+        TODO verify, a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
         Args:
-            action (`Dict` or `List`): TODO verify, a dict with actuator tags as keys and as values a Tensor of shape (n_show, n_actors, n_actions)
+            action (`Dict` or `List`):
+                a dict or list of actions for each actuator.
 
         Returns:
-            observation (`Dict`): TODO
-            reward (`float`): TODO
-            done (`bool`): TODO
-            info: TODO
+            all_observation (`List[Dict]`):
+                a list of dict of observations for each sensor.
+            all_reward (`List[float]`):
+                all the rewards for the current step.
+            all_done (`List[bool]`):
+                whether each episode is done.
+            all_info (`List[Dict]`):
+                a list of dict of additional information.
         """
 
         self.step_send_async(action=action)
         return self.step_recv_async()
 
     def step_send_async(self, action: Union[Dict, List, np.ndarray]):
+        """
+        Send a step to the environment asynchronously.
+
+        Args:
+            action (`Dict` or `List` or `np.ndarray`):
+                A dict or list of actions for each actuator.
+        """
         if not isinstance(action, dict):
             if len(self.action_tags) != 1:
                 raise ValueError(
@@ -176,6 +194,19 @@ class ParallelRLEnv(VecEnv):
         self.scene.engine.step_send_async(action=action)
 
     def step_recv_async(self) -> Tuple[Dict, np.ndarray, np.ndarray, List[Dict]]:
+        """
+        Receive the response of a step from the environment asynchronously.
+
+        Returns:
+            obs (`Dict`):
+                A dict of observations for each sensor.
+            reward (`float`):
+                The reward for the current step.
+            done (`bool`):
+                Whether the episode is done.
+            info (`Dict`):
+                A dict of additional information.
+        """
         event = self.scene.engine.step_recv_async()
 
         # Extract observations, reward, and done from event data
@@ -209,7 +240,41 @@ class ParallelRLEnv(VecEnv):
         return obs
 
     @staticmethod
+    def _combine_obs(obs) -> Dict:
+        """
+        Combines the observations from the different environments into a single observation.
+
+        Args:
+            obs (`List[Dict]`): a list of dict of observations for each sensor.
+
+        Returns:
+            all_obs (`Dict`): a dict of observations for all sensors.
+        """
+        out = defaultdict(list)
+        np_out = defaultdict(np.ndarray)
+
+        for o in obs:
+            for key, value in o.items():
+                out[key].append(value)
+
+        for key in out.keys():
+            np_out[key] = np.concatenate(out[key], axis=0)
+
+        return np_out
+
+    @staticmethod
     def _convert_to_numpy(event_data: Dict) -> np.ndarray:
+        """
+        Converts the event data to a numpy array.
+
+        Args:
+            event_data (`Dict`):
+                The event data.
+
+        Returns:
+            data (`np.ndarray`):
+                The event data as a numpy array.
+        """
         if event_data["type"] == "uint8":
             shape = event_data["shape"]
             return np.array(event_data["uintBuffer"], dtype=np.uint8).reshape(shape)
@@ -220,12 +285,20 @@ class ParallelRLEnv(VecEnv):
             raise TypeError
 
     def _extract_sensor_obs(self, sim_event_data: Dict) -> Dict:
+        """
+        Extracts the observations from the event data.
+
+        Args:
+            sim_event_data (`Dict`):
+                The event data from the simulation.
+        """
         sensor_obs = {}
         for sensor_tag, sensor_data in sim_event_data.items():
             sensor_obs[sensor_tag] = self._convert_to_numpy(sensor_data)
         return sensor_obs
 
     def close(self):
+        """Close the environment."""
         self.scene.close()
 
     def sample_action(self) -> np.ndarray:
@@ -242,6 +315,7 @@ class ParallelRLEnv(VecEnv):
         return np.array(action)
 
     def env_is_wrapped(self, wrapper_class: Type[gym.Wrapper], indices: Optional[VecEnvIndices] = None) -> List[bool]:
+        """Check if the environment is wrapped."""
         return [False] * self.n_agents * self.n_parallel
 
     # required abstract methods
