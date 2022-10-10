@@ -24,7 +24,7 @@ Including:
 
 
 ## Learning to navigate in a simple T-Maze
-<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/blob/main/simulate/simulate_sb3_basic_maze.png"/>
+<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/simulate/simulate_sb3_basic_maze.png"/>
 
 
 Example: [`sb3_basic_maze.py`](https://github.com/huggingface/simulate/examples/rl/sb3_basic_maze.py)
@@ -51,7 +51,7 @@ Parallel: 4 independent instances of the same environment configuration.
 
 
 ## Collecting objects
-<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/blob/main/simulate/simulate_sb3_collectables.png"/>
+<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/simulate/simulate_sb3_collectables.png"/>
 
 
 Example: [`sb3_collectables.py`](https://github.com/huggingface/simulate/examples/rl/sb3_collectables.py)
@@ -76,7 +76,7 @@ Reward function:
 Parallel: 4 independent instances of the same environment configuration. 
 
 ## Navigating in procedurally generated mazes
-<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/blob/main/simulate/simulate_sb3_procgen.png"/>
+<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/simulate/simulate_sb3_procgen.png"/>
 
 
 Example: [`sb3_procgen.py`](https://github.com/huggingface/simulate/examples/rl/sb3_procgen.py)
@@ -102,7 +102,7 @@ Parallel: 4 independent instances of randomly generated environment configuratio
 
 
 ## Physical interaction with movable objects
-<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/blob/main/simulate/simulate_sb3_move_boxes.png"/>
+<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/simulate/simulate_sb3_move_boxes.png"/>
 
 
 Example: [`sb3_move_boxes.py`](https://github.com/huggingface/simulate/examples/rl/sb3_move_boxes.py)
@@ -129,7 +129,7 @@ Parallel: 16 independent instances of the same environment configuration.
 
 
 ## Reward functions based on line of sight observation of objects.
-<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/blob/main/simulate/simulate_sb3_see_reward.png"/>
+<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/simulate/simulate_sb3_see_reward.png"/>
 
 
 Example: [`sb3_visual_reward.py`](https://github.com/huggingface/simulate/examples/rl/sb3_visual_reward.py)
