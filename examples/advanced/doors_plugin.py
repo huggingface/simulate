@@ -1,6 +1,7 @@
-import simulate as sm
 import json
 import time
+
+import simulate as sm
 
 
 scene = sm.Scene(engine="Unity", engine_exe=None)
