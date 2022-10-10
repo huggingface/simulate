@@ -73,6 +73,8 @@ class Asset(NodeMixin, object):
             Children of the asset.
         created_from_file (`str`, *optional*, defaults to `None`):
             Path to the file from which the asset was created if relevant.
+        extensions (`List[str]`, *optional*, defaults to `None`):
+            Used to define arbitrary extensions for plugins.
     """
 
     dimensionality = 3  # 2 for bi-dimensional assets and 3 for tri-dimensional assets (default is 3)
@@ -91,6 +93,7 @@ class Asset(NodeMixin, object):
         parent: Optional["Asset"] = None,
         children: Optional[Union["Asset", List["Asset"]]] = None,
         created_from_file: Optional[str] = None,
+        extensions: Optional[List[str]] = None,
     ):
         asset_id = next(getattr(self.__class__, f"_{self.__class__.__name__}__NEW_ID"))
         if name is None:
@@ -116,6 +119,7 @@ class Asset(NodeMixin, object):
         # Extensions for physics/RL
         self.actuator = actuator
         self.physics_component = physics_component
+        self.extensions = extensions
 
         self._n_copies = 0
         self._created_from_file = created_from_file
