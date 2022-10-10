@@ -26,7 +26,7 @@ Including:
 
 
 ## Learning to navigate in a simple T-Maze
-<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="/docs/assets/simulate_sb3_basic_maze.png"/>
+<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/simulate/simulate_sb3_basic_maze.png"/>
 Example: examples/sb3_basic_maze.py
 Objective: Navigate to a spherical object in a simple T-Maze. Upon object collection, the environment resets.
 Actors: An EgoCentric Camera Actor (LINK) equipped with a monocular camera
@@ -47,7 +47,7 @@ Parallel: 4 independent instances of the same environment configuration.
 
 
 ## Collecting objects
-<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="/docs/assets/simulate_sb3_collectables.png"/>
+<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/simulate/simulate_sb3_collectables.png"/>
 Example: examples/sb3_collectables.py
 Objective: Collect all 20 objects in a large square room.
 Actors: An EgoCentric Camera Actor (LINK) equipped with a monocular camera
@@ -66,7 +66,7 @@ Reward function:
 Parallel: 4 independent instances of the same environment configuration. 
 
 ## Navigating in procedurally generated mazes
-<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="/docs/assets/simulate_sb3_procgen.png"/>
+<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/simulate/simulate_sb3_procgen.png"/>
 Example: examples/sb3_procgen.py
 Objective: Navigate to an object in a 3D maze, when the object is collected the environment resets.
 Actors: An EgoCentric Camera Actor (LINK) equipped with a monocular camera
@@ -86,7 +86,7 @@ Parallel: 4 independent instances of randomly generated environment configuratio
 
 
 ## Physical interaction with movable objects
-<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="/docs/assets/simulate_sb3_move_boxes.png"/>
+<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/simulate/simulate_sb3_move_boxes.png"/>
 Example: examples/sb3_move_boxes.py
 Objective: Push boxes in a room near to each other.
 Actors: An EgoCentric Camera Actor (LINK) equipped with a monocular camera
@@ -107,7 +107,7 @@ Parallel: 16 independent instances of the same environment configuration.
 
 
 ## Reward functions based on line of sight observation of objects.
-<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="/docs/assets/simulate_sb3_see_reward.png"/>
+<img class="float-left !m-0 !border-0 !dark:border-0 !shadow-none !max-w-lg w-[150px]" src="https://huggingface.co/datasets/huggingface/documentation-images/resolve/main/simulate/simulate_sb3_see_reward.png"/>
 Example: examples/sb3_visual_reward.py
 Objective: Move the agent so the box is within the agents its field of view
 Actors: An EgoCentric Camera Actor (LINK) equipped with a monocular camera
