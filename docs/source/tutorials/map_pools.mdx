@@ -16,7 +16,7 @@ Map pools allow you to instantiate multiple versions of your environment on the 
 throughput with parallization of interaction in simulations and embodied environments. 
 Using map pools is simple with 🤗 Simulate. First define a function that will generate your environment, we call each environment instance a "map".
 
-`
+```
 def generate_map(index):
     root = sm.Asset(name=f"root_{index}")
     root += sm.Box(
@@ -51,7 +51,7 @@ def generate_map(index):
     # add actors, sensors, reward functions etc ...
 
     return root
-`
+```
 
 You can then provide the `generate_map` method as an argument to the `sm.ParallelRLEnv` class, which will instantiate `n_maps`. 
 Training with a subset of the maps is possible using the `n_show` option. At each environment reset, it cycles through to the next map.
