@@ -1,5 +1,5 @@
 extends GLTFDocumentExtension
-class_name HFRigidBody
+class_name HFPhysicMaterial
 
 
 func _import_node(state, gltf_node, json, node):
@@ -8,38 +8,30 @@ func _import_node(state, gltf_node, json, node):
 		return OK
 	if state.base_path.is_empty():
 		return OK
-	if node_extensions.has("HF_rigid_bodies"):
-		print("Rigid bodies found.")
+	if node_extensions.has("HF_physic_materials"):
+		print("Physic materials found.")
 		import_agents(state, json, gltf_node, node_extensions)
 	return OK
 
 func import_agents(state, json, node, extensions):
-	var rigid_bodies = extensions["HF_rigid_bodies"]["objects"]
+	var physic_materials = extensions["HF_physic_materials"]["objects"]
 	var new_node = null
 	var old_node = node
 
-	for rigid_body in rigid_bodies:
-		for key in rigid_body.keys():
+	for physic_material in physic_materials:
+		for key in physic_material.keys():
 			match key:
 				"name":
 					pass
-				"mass":
+				"dynamic_friction":
 					pass
-				"center_of_mass":
+				"static_friction":
 					pass
-				"inertia_tensor":
+				"bounciness":
 					pass
-				"linear_drag":
+				"friction_combine":
 					pass
-				"angular_drag":
-					pass
-				"constraints":
-					pass
-				"use_gravity":
-					pass
-				"collision_detection":
-					pass
-				"kinematic":
+				"bounce_combine":
 					pass
 
 	if new_node:

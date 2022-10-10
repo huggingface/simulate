@@ -1,5 +1,5 @@
 extends GLTFDocumentExtension
-class_name HFRigidBody
+class_name HFRaycastSensor
 
 
 func _import_node(state, gltf_node, json, node):
@@ -8,38 +8,30 @@ func _import_node(state, gltf_node, json, node):
 		return OK
 	if state.base_path.is_empty():
 		return OK
-	if node_extensions.has("HF_rigid_bodies"):
-		print("Rigid bodies found.")
+	if node_extensions.has("HF_raycast_sensors"):
+		print("Raycast sensors found.")
 		import_agents(state, json, gltf_node, node_extensions)
 	return OK
 
 func import_agents(state, json, node, extensions):
-	var rigid_bodies = extensions["HF_rigid_bodies"]["objects"]
+	var raycast_sensors = extensions["HF_raycast_sensors"]["objects"]
 	var new_node = null
 	var old_node = node
 
-	for rigid_body in rigid_bodies:
-		for key in rigid_body.keys():
+	for raycast_sensor in raycast_sensors:
+		for key in raycast_sensor.keys():
 			match key:
-				"name":
+				"n_horizontal_rays":
 					pass
-				"mass":
+				"n_vertical_rays":
 					pass
-				"center_of_mass":
+				"horizontal_fov":
 					pass
-				"inertia_tensor":
+				"vertical_fov":
 					pass
-				"linear_drag":
+				"ray_length":
 					pass
-				"angular_drag":
-					pass
-				"constraints":
-					pass
-				"use_gravity":
-					pass
-				"collision_detection":
-					pass
-				"kinematic":
+				"sensor_name":
 					pass
 
 	if new_node:

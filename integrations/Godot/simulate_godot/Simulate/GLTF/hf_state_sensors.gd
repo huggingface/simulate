@@ -1,39 +1,33 @@
 extends GLTFDocumentExtension
-class_name HFCollider
+class_name HFStateSensor
 
 
 func _import_node(state, gltf_node, json, node):
-	var node_extensions = json.get("extensions")
+	var node_extensions = json.has("extensions")
 	if not json.has("extensions"):
 		return OK
 	if state.base_path.is_empty():
 		return OK
-	if node_extensions.has("HF_colliders"):
-		print("Colliders found.")
+	if node_extensions.get("HF_state_sensors"):
+		print("State sensors found.")
 		import_agents(state, json, gltf_node, node_extensions)
 	return OK
 
 func import_agents(state, json, node, extensions):
-	var colliders = extensions["HF_colliders"]["objects"]
+	var state_sensors = extensions["HF_state_sensors"]["objects"]
 	var new_node = null
 	var old_node = node
 
-	for collider in colliders:
-		for key in collider.keys():
+	for state_sensor in state_sensors:
+		for key in state_sensor.keys():
 			match key:
-				"name":
+				"target_entity":
 					pass
-				"type":
+				"reference_entity":
 					pass
-				"bounding_box":
+				"properties":
 					pass
-				"offset":
-					pass
-				"intangible":
-					pass
-				"convex":
-					pass
-				"physic_material":
+				"sensor_name":
 					pass
 
 	if new_node:

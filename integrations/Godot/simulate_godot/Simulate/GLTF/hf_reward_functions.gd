@@ -1,5 +1,5 @@
 extends GLTFDocumentExtension
-class_name HFRigidBody
+class_name HFRewardFunction
 
 
 func _import_node(state, gltf_node, json, node):
@@ -8,38 +8,38 @@ func _import_node(state, gltf_node, json, node):
 		return OK
 	if state.base_path.is_empty():
 		return OK
-	if node_extensions.has("HF_rigid_bodies"):
-		print("Rigid bodies found.")
+	if node_extensions.has("HF_reward_functions"):
+		print("Reward functions found.")
 		import_agents(state, json, gltf_node, node_extensions)
 	return OK
 
 func import_agents(state, json, node, extensions):
-	var rigid_bodies = extensions["HF_rigid_bodies"]["objects"]
+	var reward_functions = extensions["HF_reward_functions"]["objects"]
 	var new_node = null
 	var old_node = node
 
-	for rigid_body in rigid_bodies:
-		for key in rigid_body.keys():
+	for reward_function in reward_functions:
+		for key in reward_function.keys():
 			match key:
-				"name":
+				"type":
 					pass
-				"mass":
+				"entity_a":
 					pass
-				"center_of_mass":
+				"entity_b":
 					pass
-				"inertia_tensor":
+				"distance_metric":
 					pass
-				"linear_drag":
+				"direction":
 					pass
-				"angular_drag":
+				"scalar":
 					pass
-				"constraints":
+				"threshold":
 					pass
-				"use_gravity":
+				"is_terminal":
 					pass
-				"collision_detection":
+				"is_collectable":
 					pass
-				"kinematic":
+				"trigger_once":
 					pass
 
 	if new_node:
