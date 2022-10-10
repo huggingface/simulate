@@ -20,6 +20,12 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 import pyvista as pv
 
+
+try:
+    from pyVHACD import compute_vhacd
+except ImportError:
+    compute_vhacd = None
+
 from ..utils import logging
 from .articulation_body import ArticulationBodyComponent
 from .asset import Asset
@@ -148,6 +154,81 @@ class Object3D(Asset):
         if isinstance(self.material, (list, tuple)) or isinstance(self.mesh, pv.MultiBlock):
             if not isinstance(self.mesh, pv.MultiBlock) or len(self.material) != self.mesh.n_blocks:
                 raise ValueError("Number of materials must match number of blocks in mesh")
+
+    def build_collider(
+        self,
+        max_convex_hulls=16,
+        resolution=4000,
+        minimum_volume_percent_error_allowed=1,
+        max_recursion_depth=10,
+        shrink_wrap=True,
+        fill_mode="FLOOD_FILL",
+        max_num_vertices_per_hull=64,
+        async_ACD=True,
+        min_edge_length=2,
+        find_best_plane=False,
+    ):
+        """Build a collider from the mesh.
+
+        Parameters
+        ----------
+        max_convex_hulls : int, optional
+            Maximum number of convex hulls to generate, by default 16
+        resolution : int, optional
+            Resolution of the voxel grid, by default 4000
+        minimum_volume_percent_error_allowed : float, optional
+            Minimum volume percent error allowed, by default 1
+        max_recursion_depth : int, optional
+            Maximum recursion depth, by default 10
+        shrink_wrap : bool, optional
+            Shrink wrap, by default True
+        fill_mode : str, optional
+            Fill mode, by default "FLOOD_FILL"
+        max_num_vertices_per_hull : int, optional
+            Maximum number of vertices per hull, by default 64
+        async_ACD : bool, optional
+            Async ACD, by default True
+        min_edge_length : int, optional
+            Minimum edge length, by default 2
+        find_best_plane : bool, optional
+            Find best plane, by default False
+        """
+        if compute_vhacd is None:
+            raise ImportError("Please compile/install pyVHACD to use this feature")
+        if self.mesh is None:
+            raise ValueError("Cannot build collider from empty mesh")
+
+        kwargs = {
+            "max_convex_hulls": max_convex_hulls,
+            "resolution": resolution,
+            "minimum_volume_percent_error_allowed": minimum_volume_percent_error_allowed,
+            "max_recursion_depth": max_recursion_depth,
+            "shrink_wrap": shrink_wrap,
+            "fill_mode": fill_mode,
+            "max_num_vertices_per_hull": max_num_vertices_per_hull,
+            "async_ACD": async_ACD,
+            "min_edge_length": min_edge_length,
+            "find_best_plane": find_best_plane,
+        }
+
+        collider_hulls = []
+        if isinstance(self.mesh, pv.MultiBlock):
+            for i in range(self.mesh.n_blocks):
+                collider_hulls.extend(compute_vhacd(self.mesh[i], **kwargs))
+        else:
+            collider_hulls.extend(compute_vhacd(self.mesh, **kwargs))
+
+        if len(collider_hulls) == 1:
+            mesh = pv.PolyData(collider_hulls[0][0], faces=collider_hulls[0][1])
+            collider = Collider(type="mesh", mesh=mesh, convex=True)
+        else:
+            mesh = pv.MultiBlock()
+            for hull in collider_hulls:
+                mesh.append(pv.PolyData(hull[0], faces=hull[1]))
+            collider = Collider(type="mesh", mesh=mesh, convex=True)
+
+        children = self.tree_children
+        self.tree_children = (children if children is not None else []) + [collider]
 
     def copy(self, with_children: bool = True, **kwargs: Any) -> "Object3D":
         """
