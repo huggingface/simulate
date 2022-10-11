@@ -14,6 +14,7 @@
 
 # Lint as: python3
 """ A simulate Collider."""
+import dataclasses
 import itertools
 from dataclasses import InitVar, dataclass, fields
 from typing import Any, ClassVar, List, Optional, Tuple, Union
@@ -88,9 +89,9 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     name: InitVar[Optional[str]] = None
     mesh: InitVar[Optional[Union[pv.UnstructuredGrid, pv.PolyData, pv.MultiBlock]]] = None
     material: InitVar[Optional[Any]] = None
-    position: InitVar[Optional[List[float]]] = None
-    rotation: InitVar[Optional[List[float]]] = None
-    scaling: InitVar[Optional[Union[float, List[float]]]] = None
+    position: InitVar[Optional[Union[List[float], np.ndarray]]] = None
+    rotation: InitVar[Optional[Union[List[float], np.ndarray]]] = None
+    scaling: InitVar[Optional[Union[float, List[float], np.ndarray]]] = None
     transformation_matrix: InitVar[Optional[List[float]]] = None
     parent: InitVar[Optional["Asset"]] = None
     children: InitVar[Optional[List["Asset"]]] = None
@@ -103,9 +104,9 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
         name: Optional[str] = None,
         mesh: Optional[Union[pv.UnstructuredGrid, pv.PolyData, pv.MultiBlock]] = None,
         material: Optional[Any] = None,
-        position: Optional[List[float]] = None,
-        rotation: Optional[List[float]] = None,
-        scaling: Optional[Union[float, List[float]]] = None,
+        position: Optional[Union[List[float], np.ndarray]] = None,
+        rotation: Optional[Union[List[float], np.ndarray]] = None,
+        scaling: Optional[Union[float, List[float], np.ndarray]] = None,
         transformation_matrix: Optional[List[float]] = None,
         parent: Optional["Asset"] = None,
         children: Optional[List["Asset"]] = None,
@@ -189,12 +190,11 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
         copy_name = self.name + f"_copy{self._n_copies}"
 
         self._n_copies += 1
-        instance_copy = type(self)(name=copy_name)
+
+        instance_copy = dataclasses.replace(self)
         instance_copy.mesh = mesh_copy
         instance_copy.material = material_copy
-        instance_copy.position = self.position
-        instance_copy.rotation = self.rotation
-        instance_copy.scaling = self.scaling
+        instance_copy.name = copy_name
 
         if with_children:
             copy_children = []
@@ -203,6 +203,8 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
             instance_copy.tree_children = copy_children
             for child in instance_copy.tree_children:
                 child._post_copy()
+        else:
+            instance_copy.tree_children = []
 
         return instance_copy
 
