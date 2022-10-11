@@ -214,9 +214,9 @@ class Object3D(Asset):
         collider_hulls = []
         if isinstance(self.mesh, pv.MultiBlock):
             for i in range(self.mesh.n_blocks):
-                collider_hulls.extend(compute_vhacd(self.mesh[i], **kwargs))
+                collider_hulls.extend(compute_vhacd(self.mesh[i].points, self.mesh[i].faces, **kwargs))
         else:
-            collider_hulls.extend(compute_vhacd(self.mesh, **kwargs))
+            collider_hulls.extend(compute_vhacd(self.mesh.points, self.mesh.faces, **kwargs))
 
         if len(collider_hulls) == 1:
             mesh = pv.PolyData(collider_hulls[0][0], faces=collider_hulls[0][1])
@@ -228,7 +228,9 @@ class Object3D(Asset):
             collider = Collider(type="mesh", mesh=mesh, convex=True)
 
         children = self.tree_children
-        self.tree_children = (children if children is not None else []) + [collider]
+        self.tree_children = (children if children is not None else []) + (collider,)
+
+        return self
 
     def copy(self, with_children: bool = True, **kwargs: Any) -> "Object3D":
         """
