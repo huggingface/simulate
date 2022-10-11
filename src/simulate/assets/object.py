@@ -93,6 +93,8 @@ class Object3D(Asset):
             The position of the object.
         is_actor (`bool`, *optional*, defaults to `False`):
             Whether the object is an actor.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the object is an actor.
         with_rigid_body (`bool`, *optional*, defaults to `False`):
             Whether the object has a rigid body.
         with_articulation_body (`bool`, *optional*, defaults to `False`):
@@ -101,6 +103,8 @@ class Object3D(Asset):
             The direction of the mesh.
         original_mesh_direction (`List[float]`, *optional*, defaults to `[1.0, 0.0, 0.0]`):
             The original direction of the mesh.
+        recompute_normals (`bool`, *optional*, defaults to `True`):
+            Whether to recompute normals per vertex for this object.
         parent (`Asset`, *optional*, defaults to `None`):
             The parent of the object.
         children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
