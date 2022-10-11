@@ -112,11 +112,11 @@ class ObjectsTest(unittest.TestCase):
 
     def test_plane(self):
         asset = sm.Plane()
-        dafault_mesh = np.array([[ 5.000000e+00,  0, -5.000000e+00],
+        default_mesh = np.array([[ 5.000000e+00,  0, -5.000000e+00],
                  [-5.000000e+00, -0, -5.000000e+00],
                  [ 5.000000e+00,  0,  5.000000e+00],
                  [-5.000000e+00, -0,  5.000000e+00]])
-        np.testing.assert_allclose(asset.mesh.points, dafault_mesh, atol=1e-5)
+        np.testing.assert_allclose(asset.mesh.points, default_mesh, atol=1e-5)
 
     def test_sphere(self):
         asset = sm.Sphere(theta_resolution=5, phi_resolution=5, with_collider=True)
@@ -128,7 +128,7 @@ class ObjectsTest(unittest.TestCase):
                     4, 66, 69, 33, 30])
         np.testing.assert_allclose(asset.mesh.faces, default_faces, atol=1e-5)
 
-        dafault_mesh = np.array([[-1.0000000e+00,  0.0000000e+00,  1.1102230e-16],
+        default_mesh = np.array([[-1.0000000e+00,  0.0000000e+00,  1.1102230e-16],
                  [ 1.0000000e+00,  0.0000000e+00, -1.1102230e-16],
                  [-7.0710677e-01,  0.0000000e+00,  7.0710677e-01],
                  [ 4.9789960e-17,  0.0000000e+00,  1.0000000e+00],
@@ -148,7 +148,7 @@ class ObjectsTest(unittest.TestCase):
                  [-1.0000000e+00,  0.0000000e+00,  1.1102230e-16],
                  [-1.0000000e+00,  0.0000000e+00,  1.1102230e-16],
                  [-1.0000000e+00,  0.0000000e+00,  1.1102230e-16]])
-        np.testing.assert_allclose(asset.mesh.points[:20], dafault_mesh, atol=1e-5)
+        np.testing.assert_allclose(asset.mesh.points[:20], default_mesh, atol=1e-5)
 
         self.assertTrue(any(isinstance(node, sm.Collider) for node in asset.tree_children))
         self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.type == "sphere") for node in asset.tree_children))
