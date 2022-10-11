@@ -41,9 +41,9 @@ class ColliderTest(unittest.TestCase):
 
         asset.build_collider()
 
-        self.assertIsInstance(asset.collider_00, sm.Collider)
-        self.assertIsInstance(asset.collider_00.mesh, pv.MultiBlock)
-        self.assertEqual(len(asset.collider_00.mesh), 16)
+        self.assertIsInstance(asset.tree_children[0], sm.Collider)
+        self.assertIsInstance(asset.tree_children[0].mesh, pv.MultiBlock)
+        self.assertEqual(len(asset.tree_children[0].mesh), 16)
 
     def test_several_colliders(self):
         root = sm.Asset()
