@@ -14,6 +14,7 @@
 
 # Lint as: python3
 """ A simulate Scene Object."""
+import dataclasses
 import itertools
 from typing import Any, List, Optional, Tuple, Union
 
@@ -265,6 +266,10 @@ class Object3D(Asset):
             else:
                 material_copy = self.material.copy()
 
+        physics_component_copy = None
+        if self.physics_component is not None:
+            physics_component_copy = dataclasses.replace(self.physics_component)
+
         copy_name = self.name + f"_copy{self._n_copies}"
 
         self._n_copies += 1
@@ -274,6 +279,7 @@ class Object3D(Asset):
         instance_copy.position = self.position
         instance_copy.rotation = self.rotation
         instance_copy.scaling = self.scaling
+        instance_copy.physics_component = physics_component_copy
 
         if with_children:
             copy_children = []
