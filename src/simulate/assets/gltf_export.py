@@ -449,6 +449,10 @@ def add_mesh_to_model(
     else:
         pass
 
+    # handle case if Material is None
+    if materials is None:
+        materials = [materials]
+
     primitives = []
 
     for mesh, material in zip(meshes, materials):
