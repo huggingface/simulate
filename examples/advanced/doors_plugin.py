@@ -1,25 +1,44 @@
 import json
-import time
+
+import matplotlib.pyplot as plt
+import numpy as np
 
 import simulate as sm
 
 
-scene = sm.Scene(engine="Unity", engine_exe=None)
+# Loading our scene with doors from the hub
+scene = sm.Scene.create_from("simulate-tests/Doors/Room.gltf", engine="Unity", engine_exe=None)
+print(scene)
 
-door = sm.Box(name="my_door")
-door.extensions = [json.dumps({"type": "Door"})]
-scene += door
+# Add our custom door extension to each door
+scene.LeftDoor.extensions = [json.dumps({"type": "Door", "open_angle": -70, "animation_time": 1})]
+scene.RightDoor.extensions = [json.dumps({"type": "Door", "open_angle": 70, "animation_time": 0.5})]
 
+# Show the scene and initialize plot for us to visualize in matplotlib
 scene.show()
+plt.ion()
+_, ax = plt.subplots(1, 1)
 
-for i in range(10):
-    print(i)
-    scene.step()
 
-scene.engine.run_command("OpenDoor", door="my_door")
-for i in range(100):
-    print((i + 10))
-    scene.step()
-    time.sleep(0.1)
+# Function to advance the scene forward and display in matplotlib
+def advance(count):
+    for _ in range(count):
+        event = scene.step()
+        im = np.array(event["frames"]["Camera"], dtype=np.uint8).transpose(1, 2, 0)
+        ax.clear()
+        ax.imshow(im)
+        plt.pause(0.1)
+
+
+# Using commands to open/close doors
+scene.engine.run_command("OpenDoor", door="LeftDoor")
+advance(10)
+
+scene.engine.run_command("OpenDoor", door="RightDoor")
+advance(50)
+
+scene.engine.run_command("CloseDoor", door="LeftDoor")
+scene.engine.run_command("CloseDoor", door="RightDoor")
+advance(60)
 
 input("Press enter to continue...")

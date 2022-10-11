@@ -607,9 +607,6 @@ class Asset(NodeMixin, object):
         root_node.scaling = kwargs.pop("scaling", root_node.scaling)
         root_node.created_from_file = gltf_file
 
-        for node in root_node.tree_children:
-            node.name = root_node.name + "_" + node.name
-
         return root_node
 
     def push_to_hub(
