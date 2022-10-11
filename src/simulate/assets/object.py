@@ -94,6 +94,8 @@ class Object3D(Asset):
             The position of the object.
         is_actor (`bool`, *optional*, defaults to `False`):
             Whether the object is an actor.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the object is an actor.
         with_rigid_body (`bool`, *optional*, defaults to `False`):
             Whether the object has a rigid body.
         with_articulation_body (`bool`, *optional*, defaults to `False`):
@@ -102,6 +104,8 @@ class Object3D(Asset):
             The direction of the mesh.
         original_mesh_direction (`List[float]`, *optional*, defaults to `[1.0, 0.0, 0.0]`):
             The original direction of the mesh.
+        recompute_normals (`bool`, *optional*, defaults to `True`):
+            Whether to recompute normals per vertex for this object.
         parent (`Asset`, *optional*, defaults to `None`):
             The parent of the object.
         children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
@@ -121,6 +125,7 @@ class Object3D(Asset):
         with_articulation_body: bool = False,
         set_mesh_direction: Optional[List[float]] = None,
         original_mesh_direction: Optional[List[float]] = None,
+        recompute_normals: bool = True,
         parent: Optional["Asset"] = None,
         children: Optional[Union["Asset", List["Asset"]]] = None,
         **kwargs: Any,
@@ -143,7 +148,7 @@ class Object3D(Asset):
 
         # Avoid having averaging normals at shared points
         # (pyvista behavior:https://docs.pyvista.org/api/core/_autosummary/pyvista.PolyData.compute_normals.html)
-        if self.mesh is not None:
+        if self.mesh is not None and recompute_normals:
             if isinstance(self.mesh, pv.MultiBlock):
                 for i in range(self.mesh.n_blocks):
                     self.mesh[i].compute_normals(inplace=True, cell_normals=False, split_vertices=True)
@@ -495,6 +500,7 @@ class Sphere(Object3D):
             original_mesh_direction=[0, 1, 0],
             with_rigid_body=with_rigid_body,
             with_articulation_body=with_articulation_body,
+            recompute_normals=False,
             parent=parent,
             children=children,
             **kwargs,
