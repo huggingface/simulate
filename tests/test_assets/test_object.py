@@ -120,12 +120,16 @@ class ObjectsTest(unittest.TestCase):
 
     def test_sphere(self):
         asset = sm.Sphere(theta_resolution=5, phi_resolution=5, with_collider=True)
-        default_faces = np.array([ 3,  2,  5,  0,  3, 34,  8, 17,  3, 43, 11, 18,  3, 52, 14, 19,  3,
-                61, 25, 20,  3,  4,  1,  7,  3, 40, 21, 10,  3, 49, 22, 13,  3, 58,
-                23, 16,  3, 67, 24, 31,  4, 26,  3,  6, 35,  4, 28, 32, 41, 37,  4,
-                36, 38,  9, 44,  4, 39, 42, 50, 46,  4, 45, 47, 12, 53,  4, 48, 51,
-                59, 55,  4, 54, 56, 15, 62,  4, 57, 60, 68, 64,  4, 63, 65, 29, 27,
-                    4, 66, 69, 33, 30])
+        default_faces = np.array(
+            [ 
+               3,  2,  5,  0,  3,  5,  8,  0,  3,  8, 11,  0,  3, 11, 14,  0,  3,
+               14,  2,  0,  3,  4,  1,  7,  3,  7,  1, 10,  3, 10,  1, 13,  3, 13,
+               1, 16,  3, 16,  1,  4,  4,  2,  3,  6,  5,  4,  3,  4,  7,  6,  4,
+               5,  6,  9,  8,  4,  6,  7, 10,  9,  4,  8,  9, 12, 11,  4,  9, 10,
+               13, 12,  4, 11, 12, 15, 14,  4, 12, 13, 16, 15,  4, 14, 15,  3,  2,
+               4, 15, 16,  4,  3
+            ]
+        )
         np.testing.assert_allclose(asset.mesh.faces, default_faces, atol=1e-5)
 
         default_mesh = np.array([[-1.0000000e+00,  0.0000000e+00,  1.1102230e-16],
@@ -144,11 +148,8 @@ class ObjectsTest(unittest.TestCase):
                  [ 7.0710677e-01, -4.1562694e-01, -5.7206142e-01],
                  [-7.0710677e-01, -6.7249852e-01,  2.1850801e-01],
                  [-2.6924564e-17, -9.5105654e-01,  3.0901700e-01],
-                 [ 7.0710677e-01, -6.7249852e-01,  2.1850801e-01],
-                 [-1.0000000e+00,  0.0000000e+00,  1.1102230e-16],
-                 [-1.0000000e+00,  0.0000000e+00,  1.1102230e-16],
-                 [-1.0000000e+00,  0.0000000e+00,  1.1102230e-16]])
-        np.testing.assert_allclose(asset.mesh.points[:20], default_mesh, atol=1e-5)
+                 [ 7.0710677e-01, -6.7249852e-01,  2.1850801e-01]])
+        np.testing.assert_allclose(asset.mesh.points, default_mesh, atol=1e-5)
 
         self.assertTrue(any(isinstance(node, sm.Collider) for node in asset.tree_children))
         self.assertTrue(any(bool(isinstance(node, sm.Collider) and node.type == "sphere") for node in asset.tree_children))
@@ -514,3 +515,8 @@ class ObjectsTest(unittest.TestCase):
         pass
 
 # fmt: on
+
+
+if __name__ == "__main__":
+    t = ObjectsTest()
+    t.test_sphere()
