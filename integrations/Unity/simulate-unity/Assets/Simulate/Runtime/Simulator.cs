@@ -120,14 +120,14 @@ namespace Simulate {
             currentEvent = new EventData();
             OnEarlyStepInternal(Config.instance.returnFrames);
             foreach (IPlugin plugin in plugins)
-                plugin.OnEarlyStep(currentEvent);
+                plugin.OnStep(currentEvent);
 
             yield return new WaitForEndOfFrame();
 
             // Perform post-step functionality
             OnStepInternal(Config.instance.returnNodes, Config.instance.returnFrames);
             foreach (IPlugin plugin in plugins)
-                plugin.OnStep(currentEvent);
+                plugin.OnAfterStep(currentEvent);
 
             AfterStep?.Invoke();
 

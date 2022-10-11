@@ -788,6 +788,11 @@ def add_node_to_scene(
     if len(extras) > 0:
         gl_node.extras = extras
 
+    # Add custom extensions, if any
+    if node.extensions is not None and len(node.extensions) > 0:
+        extensions.HF_custom = node.extensions
+        extension_used.add("HF_custom")
+
     # Add the extensions to the node if anything not none
     if extension_used:
         gl_node.extensions = extensions

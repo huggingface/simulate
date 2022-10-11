@@ -24,7 +24,7 @@ from simulate.assets.action_mapping import ActionMapping
 
 
 def add_rl_components_to_scene(scene):
-    actor = scene.MountainCar_Cart
+    actor = scene.Cart
     actor.is_actor = True
 
     # Add action mappings, moving left and right

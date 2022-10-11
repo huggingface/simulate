@@ -62,6 +62,8 @@ namespace Simulate {
         }
 
         public static void Export(GLTFObject gltfObject) {
+            instance.ambientColor = RenderSettings.ambientLight;
+            instance.gravity = Physics.gravity;
             gltfObject.extensionsUsed ??= new List<string>();
             gltfObject.extensionsUsed.Add("HF_config");
             gltfObject.extensions ??= new GLTFExtensions();

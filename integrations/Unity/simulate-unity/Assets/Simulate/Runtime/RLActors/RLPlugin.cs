@@ -129,7 +129,7 @@ namespace Simulate.RlAgents {
 
         // After Simulator step, before rendering, check if any maps are done
         // If so, reset them, and update the map data
-        public override void OnEarlyStep(EventData eventData) {
+        public override void OnStep(EventData eventData) {
             if (!active) return;
             for (int i = 0; i < activeMaps.Count; i++) {
                 List<(float reward, bool done)> rewardDones = activeMaps[i].GetActorRewardDones();
@@ -153,7 +153,7 @@ namespace Simulate.RlAgents {
         }
 
         // After Simulator step, record sensor observations
-        public override void OnStep(EventData eventData) {
+        public override void OnAfterStep(EventData eventData) {
             if (!active) return;
             for (int i = 0; i < activeMaps.Count; i++) {
                 activeMaps[i].GetActorObservations(sensorBuffers, i);
