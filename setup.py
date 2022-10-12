@@ -53,7 +53,6 @@ To create the package for pypi.
     Then push the change with a message 'set dev version'
 """
 
-
 # Available at setup time due to pyproject.toml
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 
@@ -111,15 +110,26 @@ EXTRAS_REQUIRE = {
      "docs": DOCS_REQUIRE,
 }
 
-
 ext_modules = [
     Pybind11Extension("pyVHACD",
         ["src/pyVHACD/main.cpp"],
         # Example: passing in the version to the compiled code
         define_macros = [('VERSION_INFO', __version__)],
         ),
-]
+    Pybind11Extension("pyVHACD",
+                      ["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx",
+                       "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
+                       "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
+                       "src/simulate/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
+                      language="c++",
+                        include_dirs=[
+                                    "src/simulate/assets/procgen/wfc/core/cpp/include",
+                                ],
+                      # Example: passing in the version to the compiled code
+                      define_macros=[('VERSION_INFO', __version__)],
+                      ),
 
+]
 
 setup(
     name="simulate",
