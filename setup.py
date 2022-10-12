@@ -57,6 +57,7 @@ To create the package for pypi.
 from pybind11.setup_helpers import Pybind11Extension, build_ext
 
 from setuptools import find_packages, setup
+import sys
 
 __version__ = "0.0.3.dev0"  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
 
@@ -110,6 +111,15 @@ EXTRAS_REQUIRE = {
      "docs": DOCS_REQUIRE,
 }
 
+if sys.platform == 'darwin':
+    extra_compile_args = ["-std=c++11"]
+    extra_link_args = ["-std=c++11"]
+
+else:
+    extra_compile_args = []
+    extra_link_args = []
+
+
 ext_modules = [
     Pybind11Extension("pyVHACD",
         ["src/pyVHACD/main.cpp"],
@@ -125,6 +135,8 @@ ext_modules = [
                         include_dirs=[
                                     "src/simulate/assets/procgen/wfc/core/cpp/include",
                                 ],
+                      extra_compile_args=extra_compile_args,
+                      extra_link_args=extra_link_args,
                       # Example: passing in the version to the compiled code
                       define_macros=[('VERSION_INFO', __version__)],
                       ),

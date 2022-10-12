@@ -1576,6 +1576,7 @@ class StructuredGrid(Object3D):
             **kwargs,
         )
 
+
 class ProcgenGrid(Object3D):
     """Create a procedural generated 3D grid (structured plane) from
         tiles / previous map.
