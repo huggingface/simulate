@@ -52,6 +52,10 @@ To create the package for pypi.
 8. Change the version in __init__.py and setup.py to X.X.X+1.dev0 (e.g. VERSION=1.18.3 -> 1.18.4.dev0).
     Then push the change with a message 'set dev version'
 """
+from distutils.extension import Extension
+
+import numpy as np
+from Cython.Build import cythonize
 
 # Available at setup time due to pyproject.toml
 from pybind11.setup_helpers import Pybind11Extension, build_ext
@@ -61,13 +65,12 @@ import sys
 
 __version__ = "0.0.3.dev0"  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
 
-
 REQUIRED_PKGS = [
     "dataclasses_json",  # For GLTF export/imports
-    "numpy>=1.18", # We use numpy>=1.17 to have np.random.Generator
+    "numpy>=1.18",  # We use numpy>=1.17 to have np.random.Generator
     "vtk>=9.0",  # Pyvista doesn't always install vtk, so we do it here
     "pyvista>=0.35",  # For mesh creation and edition and simple vizualization
-    "huggingface_hub>=0.10", # For sharing objects, environments & trained RL policies
+    "huggingface_hub>=0.10",  # For sharing objects, environments & trained RL policies
     'pybind11>=2.2',  # For compiling extensions pybind11
 ]
 
@@ -103,12 +106,12 @@ DOCS_REQUIRE = [
 QUALITY_REQUIRE = ["black[jupyter]~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 EXTRAS_REQUIRE = {
-    "rl" : RL_REQUIRE,
-    "sb3" : SB3_REQUIRE,
-     "dev": DEV_REQUIRE + TESTS_REQUIRE + QUALITY_REQUIRE,
-     "test": TESTS_REQUIRE,
-     "quality": QUALITY_REQUIRE,
-     "docs": DOCS_REQUIRE,
+    "rl": RL_REQUIRE,
+    "sb3": SB3_REQUIRE,
+    "dev": DEV_REQUIRE + TESTS_REQUIRE + QUALITY_REQUIRE,
+    "test": TESTS_REQUIRE,
+    "quality": QUALITY_REQUIRE,
+    "docs": DOCS_REQUIRE,
 }
 
 if sys.platform == 'darwin':
@@ -119,29 +122,27 @@ else:
     extra_compile_args = []
     extra_link_args = []
 
-
 ext_modules = [
     Pybind11Extension("pyVHACD",
-        ["src/pyVHACD/main.cpp"],
-        # Example: passing in the version to the compiled code
-        define_macros = [('VERSION_INFO', __version__)],
-        ),
-    Pybind11Extension("fast-wfc",
-                      ["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx",
+                      ["src/pyVHACD/main.cpp"],
+                      # Example: passing in the version to the compiled code
+                      define_macros=[('VERSION_INFO', __version__)],
+                      ),
+    ]
+
+ext_modules += cythonize([Extension(name="fast_wfc",
+                      sources=["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx",
                        "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
                        "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
                        "src/simulate/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
                       language="c++",
-                        include_dirs=[
-                                    "src/simulate/assets/procgen/wfc/core/cpp/include",
-                                ],
+                      include_dirs=[
+                          "src/simulate/assets/procgen/wfc/core/cpp/include",
+                      ],
                       extra_compile_args=extra_compile_args,
                       extra_link_args=extra_link_args,
-                      # Example: passing in the version to the compiled code
-                      define_macros=[('VERSION_INFO', __version__)],
-                      ),
+                      )], force=True)
 
-]
 
 setup(
     name="simulate",
@@ -178,4 +179,5 @@ setup(
     zip_safe=False,  # Required for mypy to find the py.typed file
     ext_modules=ext_modules,
     python_requires=">=3.8",
+    include_dirs=[np.get_include()],
 )
