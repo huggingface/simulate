@@ -126,7 +126,7 @@ ext_modules = [
         # Example: passing in the version to the compiled code
         define_macros = [('VERSION_INFO', __version__)],
         ),
-    Pybind11Extension("pyVHACD",
+    Pybind11Extension("fast-wfc",
                       ["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx",
                        "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
                        "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
