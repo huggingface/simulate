@@ -1,3 +1,18 @@
+# Copyright 2022 The HuggingFace Authors.
+#
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
+#
+#     http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+
+# Lint as: python3
 from dataclasses import dataclass
 from typing import List, Optional
 
@@ -9,23 +24,23 @@ class Config(GltfExtensionMixin, gltf_extension_name="HF_config", object_type="s
     """
     A scene simulation configuration object.
 
-    Attributes:
-        time_step: The amount of time in seconds to simulate per frame.
-            (Optional, default 0.02)
-        frame_skip: The number of frames to simulate per step().
-            (Optional, default 1)
-        return_nodes: Whether to return node data by default from step().
-            (Optional, default True)
-        return_frames: Whether to return camera rendering by default from step().
-            (Optional, default True)
-        node_filter: If not None, constrain returned nodes to only the provided node names.
-            (Optional, default None)
-        camera_filter: If not None, constrain return camera renderings to only the provided camera names.
-            (Optional, default None)
-        ambient_color: The color for the ambient lighting in the scene.
-            (Optional, default Gray30)
-        gravity: The 3-dimensional vector to use for gravity.
-            (Optional, default [0, -9.81, 0])
+    Args:
+        time_step (`float`, *optional*, defaults to `0.02`):
+            The amount of time in seconds to simulate per frame.
+        frame_skip (`int`, *optional*, defaults to `1`):
+            The number of frames to simulate per step().
+        return_nodes (`bool`, *optional*, defaults to `True`):
+            Whether to return node data by default from step().
+        return_frames (`bool`, *optional*, defaults to `True`):
+            Whether to return camera rendering by default from step().
+        node_filter (`List[str]`, *optional*, defaults to `None`):
+            If not None, constrain returned nodes to only the provided node names.
+        camera_filter (`List[str]`, *optional*, defaults to `None`):
+            If not None, constrain return camera renderings to only the provided camera names.
+        ambient_color (`List[float]`, *optional*, defaults to `Gray30`):
+            The color for the ambient lighting in the scene.
+        gravity (`List[float]`, *optional*, defaults to `[0, -9.81, 0]`):
+            The 3-dimensional vector to use for gravity.
     """
 
     time_step: Optional[float] = None

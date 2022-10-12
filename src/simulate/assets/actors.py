@@ -28,21 +28,24 @@ from .rigid_body import RigidBodyComponent
 
 
 class SimpleActor(Sphere):
-    """Creates a bare-bones RL agent in the scene.
-
-    A SimpleActor is a sphere asset with:
-    - basic XYZ positional control (continuous),
-    - mass of 1 (default)
-    - no attached Camera
+    """
+    Creates a bare-bones RL agent in the scene.
 
     Args:
         name (`str`):
-        position: length 3 list of the position of the agent, defaults to (0,0,0)
-        rotation: length 3 list of the rotation of the agent, defaults to (0,0,0)
-        scaling:
-        transformation_matrix:
-        parent:
-        children:
+            Name of the actor.
+        position (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            Position of the actor in the scene.
+        rotation (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            Rotation of the actor in the scene.
+        scaling (`Union[float, List[float]]`, *optional*, defaults to `1.0`):
+            Scaling of the actor in the scene.
+        transformation_matrix (`np.ndarray`, *optional*, defaults to `None`):
+            Transformation matrix of the actor in the scene.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the actor in the scene.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the actor in the scene.
     """
 
     dimensionality = 3
@@ -62,7 +65,7 @@ class SimpleActor(Sphere):
     ):
 
         if position is None:
-            position = [0, 0, 0]  # at origin
+            position = [0.0, 0.0, 0.0]  # at origin
 
         super().__init__(
             name=name,
@@ -94,8 +97,17 @@ class SimpleActor(Sphere):
         self.actuator = Actuator(n=3, mapping=mapping)
 
     def copy(self, with_children: bool = True, **kwargs: Any) -> "SimpleActor":
-        """Return a copy of the Asset. Parent and children are not attached to the copy."""
+        """
+        Make a copy of the Asset. Parent and children are not attached to the copy.
 
+        Args:
+            with_children (`bool`, *optional*, defaults to `True`):
+                Whether to copy the children of the asset.
+
+        Returns:
+            copy (`SimpleActor`):
+                The copied asset.
+        """
         copy_name = self.name + f"_copy{self._n_copies}"
         self._n_copies += 1
         instance_copy = type(self)(
@@ -128,17 +140,26 @@ class EgocentricCameraActor(Capsule):
         - a discrete actuator
 
     Args:
-        mass (`float`, Optional):
-        name (`str`):
-        position: length 3 list of the position of the agent, defaults to (0,0,0)
-        rotation: length 3 list of the rotation of the agent, defaults to (0,0,0)
-        scaling:
-        camera_height: pixel height of first-person camera observations
-        camera_width: pixel width of first-person camera observations
-        transformation_matrix:
-        parent:
-        children:
-
+        mass (`float`, *optional*, defaults to `1.0`):
+            Mass of the actor.
+        name (`str`, *optional*, defaults to `None`):
+            Name of the actor.
+        position (`List[float]`, *optional*, defaults to `[0.0, 1.05, 0.0]`):
+            Position of the actor in the scene.
+        rotation (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            Rotation of the actor in the scene.
+        scaling (`float` or `List[float]`, *optional*, defaults to `1.0`):
+            Scaling of the actor in the scene.
+        camera_height (`int`, *optional*, defaults to `40`):
+            Height of the camera above the actor.
+        camera_width (`int`, *optional*, defaults to `40`):
+            Width of the camera above the actor.
+        transformation_matrix (`np.ndarray`, *optional*, defaults to `None`):
+            Transformation matrix of the actor in the scene.
+        parent (`Asset`, *optional*, defaults to `None`):
+            Parent of the actor in the scene.
+        children (`Asset` or `List[Asset]`, *optional*, defaults to `None`):
+            Children of the actor in the scene.
     """
 
     dimensionality = 3  # 2 for bi-dimensional assets and 3 for tri-dimensional assets (default is 3)
@@ -183,7 +204,7 @@ class EgocentricCameraActor(Capsule):
         children = self.tree_children
         self.tree_children = children + (camera,)
 
-        # Add our physics component (by default the actor can only rotation along y axis)
+        # Add our physics component (by default the actor can only rotation along y-axis)
         self.physics_component.mass = mass
         self.physics_component.constraints = ["freeze_rotation_x", "freeze_rotation_z", "freeze_position_y"]
 
@@ -196,7 +217,17 @@ class EgocentricCameraActor(Capsule):
         self.actuator = Actuator(n=3, mapping=mapping)
 
     def copy(self, with_children: bool = True, **kwargs: Any) -> "EgocentricCameraActor":
-        """Return a copy of the Asset. Parent and children are not attached to the copy."""
+        """
+        Make a copy of the Asset. Parent and children are not attached to the copy.
+
+        Args:
+            with_children (`bool`, *optional*, defaults to `True`):
+                Whether to copy the children of the asset.
+
+        Returns:
+            copy (`EgocentricCameraActor`):
+                The copied asset.
+        """
 
         copy_name = self.name + f"_copy{self._n_copies}"
         self._n_copies += 1

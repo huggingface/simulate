@@ -53,20 +53,22 @@ To create the package for pypi.
     Then push the change with a message 'set dev version'
 """
 
-from distutils.extension import Extension
 
-import numpy as np
-from Cython.Build import cythonize
+# Available at setup time due to pyproject.toml
+from pybind11.setup_helpers import Pybind11Extension, build_ext
 
 from setuptools import find_packages, setup
-import sys
+
+__version__ = "0.0.3.dev0"  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
 
 
 REQUIRED_PKGS = [
     "dataclasses_json",  # For GLTF export/imports
-    "numpy>=1.17", # We use numpy>=1.17 to have np.random.Generator
-    "pyvista",  # For mesh creation and edition and simple vizualization
-    "huggingface_hub", # For sharing objects, environments & trained RL policies
+    "numpy>=1.18", # We use numpy>=1.17 to have np.random.Generator
+    "vtk>=9.0",  # Pyvista doesn't always install vtk, so we do it here
+    "pyvista>=0.35",  # For mesh creation and edition and simple vizualization
+    "huggingface_hub>=0.10", # For sharing objects, environments & trained RL policies
+    'pybind11>=2.2',  # For compiling extensions pybind11
 ]
 
 RL_REQUIRE = [
@@ -98,7 +100,7 @@ DOCS_REQUIRE = [
     "s3fs"
 ]
 
-QUALITY_REQUIRE = ["black~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
+QUALITY_REQUIRE = ["black[jupyter]~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 EXTRAS_REQUIRE = {
     "rl" : RL_REQUIRE,
@@ -109,35 +111,19 @@ EXTRAS_REQUIRE = {
      "docs": DOCS_REQUIRE,
 }
 
-if sys.platform == 'darwin':
-     extra_compile_args=["-std=c++11"]
-     extra_link_args=["-std=c++11"]
-     
-else:
-     extra_compile_args=[]
-     extra_link_args=[]
 
 ext_modules = [
-    Extension(
-        name="wfc_binding",
-        sources=["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx", 
-                    "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
-                    "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
-                    "src/simulate/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
-        language="c++",
-        extra_compile_args=extra_compile_args,
-        extra_link_args=extra_link_args,
-        include_dirs=[
-                "src/simulate/assets/procgen/wfc/core/cpp/include",
-        ],
-    )
+    Pybind11Extension("pyVHACD",
+        ["src/pyVHACD/main.cpp"],
+        # Example: passing in the version to the compiled code
+        define_macros = [('VERSION_INFO', __version__)],
+        ),
 ]
 
-ext_modules = cythonize(ext_modules, force=True)
 
 setup(
     name="simulate",
-    version="0.0.0.1.dev0",  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
+    version=__version__,
     description="HuggingFace community-driven open-source library of simulation environments",
     long_description=open("README.md", encoding="utf-8").read(),
     long_description_content_type="text/markdown",
@@ -160,15 +146,14 @@ setup(
         "License :: OSI Approved :: Apache Software License",
         "Operating System :: OS Independent",
         "Programming Language :: Python :: 3",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
         "Programming Language :: Python :: 3.8",
         "Programming Language :: Python :: 3.9",
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
+    cmdclass={'build_ext': build_ext},
     keywords="simulation environments synthetic data datasets machine learning",
     zip_safe=False,  # Required for mypy to find the py.typed file
     ext_modules=ext_modules,
-    include_dirs=[np.get_include()],
+    python_requires=">=3.8",
 )

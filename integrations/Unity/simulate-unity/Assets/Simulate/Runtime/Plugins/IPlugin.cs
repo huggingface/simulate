@@ -19,9 +19,9 @@ namespace Simulate {
     ///         node.gameObject.transform.position += Vector3.up;
     ///     }
     ///     
-    ///     public void OnBeforeStep(EventData eventData) { }
-    ///     
     ///     public void OnStep(EventData eventData) { }
+    ///     
+    ///     public void OnAfterStep(EventData eventData) { }
     ///     
     ///     public void OnReset() { }
     ///     
@@ -57,13 +57,13 @@ namespace Simulate {
         /// Use this for any changes that need to be applied between Simulator step and internal Unity rendering.
         /// </summary>
         /// <param name="eventData"></param>
-        void OnEarlyStep(EventData eventData);
+        void OnStep(EventData eventData);
 
         /// <summary>
         /// Called after the Simulator steps forward.
         /// Use this to append additional event data.
         /// </summary>
-        void OnStep(EventData eventData);
+        void OnAfterStep(EventData eventData);
 
         /// <summary>
         /// Called when the scene is reset.

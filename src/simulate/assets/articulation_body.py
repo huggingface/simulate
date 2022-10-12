@@ -32,23 +32,49 @@ class ArticulationBodyComponent(
     An articulation body will model the physics of an articulation body connecting together an asset
     with its parent in the hierarchy.
 
-    Parameters
-    ----------
-    name : string, optional
-        The user-defined name of this material
+    Args:
+        joint_type (`str`):
+            The type of articulation (aka joint) to use.
+            - "fixed": no movement allowed
+            - "slider": only translation along 1 axis allowed
+            - "hinge": only rotation along 1 axis allowed
+        anchor_rotation (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0, 1.0]`):
+            The rotation axis along which the asset is allowed to move relative to its parent (translation or rotation).
+        anchor_position (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            Position of the anchor point of the joint.
+        immovable (`bool`, *optional*, defaults to `False`):
+            If `True`, the asset will not be affected by physics.
+        linear_damping (`float`, *optional*, defaults to `0.0`):
+            The linear damping of the joint.
+        angular_damping (`float`, *optional*, defaults to `0.0`):
+            The angular damping of the joint.
+        joint_friction (`float`, *optional*, defaults to `0.0`):
+            The friction of the joint.
+        drive_stiffness (`float`, *optional*, defaults to `0.0`):
+            The stiffness of the joint drive.
+        drive_damping (`float`, *optional*, defaults to `0.0`):
+            The damping of the joint drive.
+        drive_force_limit (`float`, *optional*, defaults to `0.0`):
+            The force limit of the joint drive.
+        drive_target (`float`, *optional*, defaults to `0.0`):
+            The target of the joint drive.
+        drive_target_velocity (`float`, *optional*, defaults to `0.0`):
+            The target velocity of the joint drive.
+        upper_limit (`float`, *optional*, defaults to `0.0`):
+            The upper limit of the joint.
+        lower_limit (`float`, *optional*, defaults to `0.0`):
+            The lower limit of the joint.
 
-    joint_type: string, optional
-        The type of articulation (aka joint) to use.
-        - "fixed": no movement allowed
-        - "slider": only translation along 1 axis allowed
-        - "hinge": only rotation along 1 axis allowed
-
-    anchor_rotation: List[float], optional
-        The rotation axis along which the asset is allowed to move relative to its parent (translation or rotation).
-
-    anchor_position: List[float], optional
-        Position of the anchor point of the joint.
-
+        mass (`float`, *optional*, defaults to `1.0`):
+            The mass of the body.
+        center_of_mass (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            The center of mass of the body.
+        inertia_tensor (`List[float]`, *optional*, defaults to `None`):
+            The inertia tensor of the body.
+        use_gravity (`bool`, *optional*, defaults to `True`):
+            If `True`, the body will be affected by gravity.
+        collision_detections (`str`, *optional*, defaults to `None`):
+            The collision detection mode to use.
     """
 
     __NEW_ID: ClassVar[int] = itertools.count()  # Singleton to count instances of the classes for automatic naming

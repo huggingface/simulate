@@ -29,14 +29,34 @@ _multiple_underscores_re = re.compile(r"(_{2,})")
 
 
 def camelcase_to_snakecase(name: str) -> str:
-    """Convert camel-case string to snake-case."""
+    """
+    Convert camel-case string to snake-case.
+
+    Args:
+        name (`str`):
+            The camel-case string to convert.
+
+    Returns:
+        name (`str`):
+            The snake-case string.
+    """
     name = _uppercase_uppercase_re.sub(r"\1_\2", name)
     name = _lowercase_uppercase_re.sub(r"\1_\2", name)
     return name.lower()
 
 
 def snakecase_to_camelcase(name: str) -> str:
-    """Convert snake-case string to camel-case string."""
+    """
+    Convert snake-case string to camel-case string.
+
+    Args:
+        name (`str`):
+            The snake-case string to convert.
+
+    Returns:
+        name (`str`):
+            The camel-case string.
+    """
     name = _single_underscore_re.split(name)
     name = [_multiple_underscores_re.split(n) for n in name]
     return "".join(n.capitalize() for n in itertools.chain.from_iterable(name) if n != "")
@@ -50,6 +70,18 @@ def get_transform_from_trs(
     """
     Create a homogeneous transform matrix (4x4) from 3D vector of translation and scale,
     and a quaternion vector of rotation.
+
+    Args:
+        translation (`np.ndarray` or `list`):
+            The translation vector.
+        rotation (`np.ndarray` or `list`):
+            The rotation quaternion.
+        scale (`np.ndarray` or `list`):
+            The scale vector.
+
+    Returns:
+        transform (`np.ndarray`):
+            The homogeneous transform matrix.
     """
     if translation is None or rotation is None or scale is None:
         return None
@@ -105,7 +137,21 @@ def get_transform_from_trs(
 
 
 def get_trs_from_transform_matrix(transform_matrix: np.ndarray) -> Tuple[np.ndarray, np.ndarray, np.ndarray]:
-    """Get the translation, rotation and scale from a homogeneous transform matrix."""
+    """
+    Get the translation, rotation and scale from a homogeneous transform matrix.
+
+    Args:
+        transform_matrix (`np.ndarray`):
+            The homogeneous transform matrix.
+
+    Returns:
+        translation (`np.ndarray`):
+            The translation vector.
+        rotation (`np.ndarray`):
+            The rotation quaternion.
+        scale (`np.ndarray`):
+            The scale vector.
+    """
     if not transform_matrix.shape == (4, 4):
         raise ValueError("The transform matrix should be of size 4x4")
 
@@ -164,6 +210,19 @@ def get_trs_from_transform_matrix(transform_matrix: np.ndarray) -> Tuple[np.ndar
 
 
 def get_product_of_quaternions(q: Union[np.ndarray, List[float]], r: Union[np.ndarray, List[float]]) -> np.ndarray:
+    """
+    Compute the product of two quaternions.
+
+    Args:
+        q (`np.ndarray` or `list`):
+            The first quaternion.
+        r (`np.ndarray` or `list`):
+            The second quaternion.
+
+    Returns:
+        product (`np.ndarray`):
+            The product of the two quaternions.
+    """
     qx, qy, qz, qw = q[0], q[1], q[2], q[3]
     rx, ry, rz, rw = r[0], r[1], r[2], r[3]
     return np.array(
@@ -177,7 +236,21 @@ def get_product_of_quaternions(q: Union[np.ndarray, List[float]], r: Union[np.nd
 
 
 def rotation_from_euler_radians(x: float, y: float, z: float) -> List[float]:
-    """Return a rotation quaternion from Euler angles in radians."""
+    """
+    Return a rotation quaternion from Euler angles in radians.
+
+    Args:
+        x (`float`):
+            The rotation in radians around the x-axis.
+        y (`float`):
+            The rotation in radians around the y-axis.
+        z (`float`):
+            The rotation in radians around the z-axis.
+
+    Returns:
+        rotation (`list`):
+            The rotation quaternion.
+    """
     qx = np.sin(x / 2) * np.cos(y / 2) * np.cos(z / 2) - np.cos(x / 2) * np.sin(y / 2) * np.sin(z / 2)
     qy = np.cos(x / 2) * np.sin(y / 2) * np.cos(z / 2) + np.sin(x / 2) * np.cos(y / 2) * np.sin(z / 2)
     qz = np.cos(x / 2) * np.cos(y / 2) * np.sin(z / 2) - np.sin(x / 2) * np.sin(y / 2) * np.cos(z / 2)
@@ -186,16 +259,35 @@ def rotation_from_euler_radians(x: float, y: float, z: float) -> List[float]:
 
 
 def rotation_from_euler_degrees(x: float, y: float, z: float) -> List[float]:
-    """Return a rotation Quaternion from Euler angles in degrees."""
+    """
+    Return a rotation Quaternion from Euler angles in degrees.
+
+    Args:
+        x (`float`):
+            The rotation in degrees around the x-axis.
+        y (`float`):
+            The rotation in degrees around the y-axis.
+        z (`float`):
+            The rotation in degrees around the z-axis.
+
+    Returns:
+        rotation (`list`):
+            The rotation quaternion.
+    """
     return rotation_from_euler_radians(np.radians(x), np.radians(y), np.radians(z))
 
 
 def euler_from_quaternion(quaternion: Union[np.ndarray, List[float]]) -> List[float]:
     """
-    Convert a quaternion into euler angles (roll, pitch, yaw)
-    roll is rotation around x in radians (counterclockwise)
-    pitch is rotation around y in radians (counterclockwise)
-    yaw is rotation around z in radians (counterclockwise)
+    Convert a quaternion into euler angles (roll, pitch, yaw).
+
+    Args:
+        quaternion (`np.ndarray` or `list`):
+            The quaternion to convert.
+
+    Returns:
+        euler (`list`):
+            The euler angles in radians (counterclockwise).
     """
     x, y, z, w = quaternion
 

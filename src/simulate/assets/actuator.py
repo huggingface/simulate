@@ -39,33 +39,41 @@ except ImportError:
 
 @dataclass
 class Actuator(GltfExtensionMixin, gltf_extension_name="HF_actuators", object_type="component"):
-    r"""An Asset Actuator can be used to move an asset in the scene.
-
+    """
+    An Asset Actuator can be used to move an asset in the scene.
     The actuator is designed to be a part of an Actor that manipulates a scene.
 
     We define:
     - the space were the actions operate (discrete, continuous), it's similar to gym spaces in RL,
         self.action_space is a gym.space (define the space action happens in and allow to sample)
     - a mapping to the physics engine behavior
-        self.mapping is a list of ActionMapping (to physics engine behaviors)
+        self.mapping is a list of `ActionMapping` (to physics engine behaviors)
 
     Args:
-        mapping: a list of ActionMapping (to physics engine behaviors)
-        actuator_tag: A string tag for the actuator that is used to group actuators together when sending actions
-        (we always have a scene-level gym dict space).
-        n (int or List[int]): for discrete actions, the number of possible actions
-            for multi-binary actions, the number of possible binary actions or a list of the number of possible actions
-            for each dimension
-        low: low bound of continuous action space dimensions, either a float or list of floats
-        high: high bound of continuous action space dimensions, either a float or list of floats
-        shape: shape of continuous action space, should match low/high
-        dtype: sampling type for continuous action spaces only
+        mapping (`List[ActionMapping]`):
+            A list of ActionMapping (to physics engine behaviors)
+        actuator_tag (`str`, *optional*, defaults to "actuator")::
+            A string tag for the actuator that is used to group actuators together when sending actions
+            (we always have a scene-level gym dict space).
+        n (`int` or `List[int]`, *optional*, defaults to `None`):
+            For discrete actions, the number of possible actions.
+            For multi-binary actions, the number of possible binary actions or a list of the number of possible actions
+            for each dimension.
+        low (`float` or `List[float]` or `np.ndarray`, *optional*, defaults to `None`):
+            Low bound of continuous action space dimensions, either a float or list of floats.
+        high (`float` or `List[float]` or `np.ndarray`, *optional*, defaults to `None`):
+            High bound of continuous action space dimensions, either a float or list of floats.
+        shape (`List[int]`, *optional*, defaults to `None`):
+            Shape of continuous action space, should match low/high.
+        dtype (`str`, *optional*, defaults to `"float32"`):
+            Sampling type for continuous action spaces only.
     """
+
     mapping: List[ActionMapping]
     actuator_tag: Optional[str] = None
 
     # Set for a Discrete or Multi-binary space
-    n: Optional[int] = None
+    n: Optional[Union[int, List[int]]] = None
     # multi_binary: Optional[bool] = False  # TODO: implement multi_binary
 
     # Set for Multidiscrete space
@@ -156,6 +164,13 @@ class Actuator(GltfExtensionMixin, gltf_extension_name="HF_actuators", object_ty
 
     @property
     def action_space(self) -> Union[spaces.Discrete, spaces.Box]:
+        """
+        Get the action space of the actuator.
+
+        Returns:
+            action_space (`spaces.Space` or `spaces.Box`):
+                The action space of the actuator.
+        """
         return self._action_space
 
 
@@ -186,13 +201,16 @@ class Actuator(GltfExtensionMixin, gltf_extension_name="HF_actuators", object_ty
 
 @dataclass
 class ActuatorDict(GltfExtensionMixin, gltf_extension_name="HF_actuators_dicts", object_type="component"):
-    r"""Store a dictionary of actuators/ActionSpaces. Associated to a gym Dict action space
-
-    Attributes:
-        - actuators: Dict of the actions
-        - mapping: Dict of the mappings of the actions
-        - space: Dict of thespacegs of the actions
     """
+    Store a dictionary of actuators/ActionSpaces. Associated to a gym Dict action space
+
+    Args:
+        actuators (`Dict[str, Actuator]`):
+            Dict of the actions
+        seed (`int` or `Dict` or `np.random.Generator`):
+            Seed for the action space
+    """
+
     actuators: Dict[str, Actuator]
     seed: Optional[Union[dict, int, np.random.Generator]] = None
 
@@ -207,4 +225,11 @@ class ActuatorDict(GltfExtensionMixin, gltf_extension_name="HF_actuators_dicts",
 
     @property
     def action_space(self) -> spaces.Dict:
+        """
+        Get the action space of the actuator.
+
+        Returns:
+            action_space (`spaces.Dict`):
+                The action space of the actuator.
+        """
         return self._action_space

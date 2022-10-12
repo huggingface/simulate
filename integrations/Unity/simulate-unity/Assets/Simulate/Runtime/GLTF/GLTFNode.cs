@@ -5,6 +5,7 @@ using UnityEngine;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
+using Newtonsoft.Json.Linq;
 
 namespace Simulate.GLTF {
     public class GLTFNode {
@@ -25,7 +26,6 @@ namespace Simulate.GLTF {
             public bool? is_actor;
         }
 
-
         public bool ShouldSerializematrix() { return matrix != Matrix4x4.identity; }
         public bool ShouldSerializetranslation() { return translation != Vector3.zero; }
         public bool ShouldSerializerotation() { return rotation != Quaternion.identity; }
@@ -41,11 +41,6 @@ namespace Simulate.GLTF {
             public NodeExtension HF_raycast_sensors;
             public NodeExtension HF_reward_functions;
             public string[] HF_custom;
-        }
-
-        public class CustomExtensionWrapper {
-            public string type;
-            public string contents;
         }
 
         public class NodeExtension {
@@ -260,21 +255,33 @@ namespace Simulate.GLTF {
                             }
                         }
 
+                        // Custom extensions
                         if (nodes[i].extensions.HF_custom != null) {
                             for (int j = 0; j < nodes[i].extensions.HF_custom.Length; j++) {
                                 string json = nodes[i].extensions.HF_custom[j];
-                                CustomExtensionWrapper wrapper = JsonUtility.FromJson<CustomExtensionWrapper>(json);
-                                if (wrapper == null) {
-                                    Debug.LogWarning($"Invalid custom extension JSON: {json}");
+                                JObject jObject = JObject.Parse(json);
+                                Dictionary<string, JToken> tokens = jObject.Properties()
+                                    .ToDictionary(x => x.Name, x => x.Value);
+                                if (!tokens.TryGetValue("type", out JToken type)) {
+                                    string error = "Command doesn't contain type";
+                                    Debug.LogWarning(error);
                                     continue;
                                 }
-                                if (!Simulator.extensions.TryGetValue(wrapper.type, out Type extensionType)) {
-                                    Debug.LogWarning($"Extension type {wrapper.type} not found.");
+                                Dictionary<string, object> kwargs = new Dictionary<string, object>();
+                                foreach (string key in tokens.Keys) {
+                                    if (key == "type")
+                                        continue;
+                                    object value = tokens[key].ToObject<object>();
+                                    kwargs.Add(key, value);
+                                }
+                                if (!Simulator.extensions.TryGetValue(type.ToString(), out Type extensionType)) {
+                                    Debug.LogWarning($"Extension type {type} not found.");
                                     continue;
                                 }
-                                IGLTFExtension extension = JsonConvert.DeserializeObject(wrapper.contents, extensionType) as IGLTFExtension;
+                                jObject.Remove("type");
+                                IGLTFExtension extension = JsonConvert.DeserializeObject(jObject.ToString(), extensionType) as IGLTFExtension;
                                 if (Application.isPlaying)
-                                    extension.Initialize(result[i].node);
+                                    extension.Initialize(result[i].node, kwargs);
                             }
                         }
                     }

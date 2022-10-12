@@ -12,4 +12,49 @@ specific language governing permissions and limitations under the License.
 
 # Map pools
 
-Under construction 🚧.
+Map pools allow you to instantiate multiple versions of your environment on the backend, the enables higher 
+throughput with parallelization of interaction in simulations and embodied environments.
+Using map pools is simple with 🤗 Simulate. First define a function that will generate your environment, we call each environment instance a "map".
+
+```
+def generate_map(index):
+    root = sm.Asset(name=f"root_{index}")
+    root += sm.Box(
+        name=f"floor_{index}",
+        position=[0, -0.05, 0],
+        scaling=[10, 0.1, 10],
+        material=sm.Material.BLUE,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall1_{index}",
+        position=[-1, 0.5, 0],
+        scaling=[0.1, 1, 5.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall2_{index}",
+        position=[1, 0.5, 0],
+        scaling=[0.1, 1, 5.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+    root += sm.Box(
+        name=f"wall3_{index}",
+        position=[0, 0.5, 4.5],
+        scaling=[5.9, 1, 0.1],
+        material=sm.Material.GRAY75,
+        with_collider=True,
+    )
+
+    # add actors, sensors, reward functions etc ...
+
+    return root
+```
+
+You can then provide the `generate_map` method as an argument to the `sm.ParallelRLEnv` class, which will instantiate `n_maps`. 
+Training with a subset of the maps is possible using the `n_show` option. At each environment reset, it cycles through to the next map.
+
+[[autodoc]] ParallelRLEnv
+

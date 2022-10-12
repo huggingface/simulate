@@ -41,19 +41,49 @@ ALLOWED_CAMERA_TYPES = ["perspective", "orthographic"]
 
 
 class Camera(Asset):
-    """A Camera asset.
+    """
+    A Camera asset.
     This Camera is located at the origin by default and has no rotation.
 
     Args:
-        width: The width of the Camera. Default: 256
-        height: The height of the Camera. Default: 256
-        aspect_ratio: The aspect ratio of the Camera if needed
-        yfov: The vertical field of view of the Camera in degrees. Default: 60 degrees
-        znear: The near clipping plane of the Camera.
-        zfar: The far clipping plane of the Camera.
-        camera_type: The type of camera.
-        xmag: The x magnification of the Camera.
-        ymag: The y magnification of the Camera.
+        width (`int`, *optional*, defaults to `256`):
+            The width of the Camera. Default: 256
+        height (`int`, *optional*, defaults to `256`):
+            The height of the Camera. Default: 256
+        camera_type (`str`, *optional*, defaults to `perspective`):
+            The type of camera. Can be one of:
+            [
+                "perspective",
+                "orthographic"
+            ]
+        znear (`float`, *optional*, defaults to `0.3`):
+            The near clipping plane of the Camera.
+        yfov (`float` or `np.ndarray`, *optional*, defaults to `60`):
+            The vertical field of view of the Camera in degrees.
+        aspect_ratio (`float`, *optional*, defaults to `None`):
+            The aspect ratio of the Camera if needed
+        zfar (`float`, *optional*, defaults to `None`):
+            The far clipping plane of the Camera.
+        xmag (`float`, *optional*, defaults to `None`):
+            The x magnification of the Camera.
+        ymag (`float`, *optional*, defaults to `None`):
+            The y magnification of the Camera.
+        name (`str`, *optional*, defaults to `None`):
+            The name of the Camera.
+        sensor_tag (`str`, *optional*, defaults to `CameraSensor`):
+            The tag of the Camera.
+        position (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            The position of the Camera.
+        rotation (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            The rotation of the Camera.
+        scaling (`float` or `List[float]`, *optional*, defaults to `1.0`):
+            The scaling of the Camera.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the Camera is an actor.
+        parent (`Asset`, *optional*, defaults to `None`):
+            The parent of the Camera.
+        children (`List[Asset]`, *optional*, defaults to `None`):
+            The children of the Camera.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
@@ -110,10 +140,23 @@ class Camera(Asset):
 
     @property
     def observation_space(self) -> spaces.Box:
+        """
+        Get the observation space of the Camera.
+
+        Returns:
+            observation (`spaces.Box`):
+                The observation space of the Camera.
+        """
         return spaces.Box(low=0, high=255, shape=[3, self.height, self.width], dtype=np.uint8)
 
     def copy(self, with_children: bool = True, **kwargs: Any):
-        """Return a copy of the Camera with copy of the children attached to the copy."""
+        """
+        Make a copy of the Camera with copy of the children attached to the copy.
+
+        Args:
+            with_children (`bool`, *optional*, defaults to `True`):
+                Whether to copy the children of the Camera.
+        """
 
         copy_name = self.name + f"_copy{self._n_copies}"
         self._n_copies += 1
@@ -146,10 +189,51 @@ class Camera(Asset):
 
 
 class CameraDistant(Camera):
-    """A Distant Camera looking at the origin.
+    """
+    A Distant Camera looking at the origin.
 
     The Distant Camera is identical to the Camera but override the default position and rotation to be located
     slightly away from the origin along the z axis and look toward the origin.
+
+    Args:
+        width (`int`, *optional*, defaults to `256`):
+            The width of the Camera.
+        height (`int`, *optional*, defaults to `256`):
+            The height of the Camera.
+        aspect_ratio (`float`, *optional*, defaults to `None`):
+            The aspect ratio of the Camera if needed
+        yfov (`float` or `np.ndarray`, *optional*, defaults to `60`):
+            The vertical field of view of the Camera in degrees.
+        znear (`float`, *optional*, defaults to `0.3`):
+            The near clipping plane of the Camera.
+        zfar (`float`, *optional*, defaults to `None`):
+            The far clipping plane of the Camera.
+        camera_type (`str`, *optional*, defaults to `perspective`):
+            The type of the Camera. Can be one of:
+            [
+                `perspective`,
+                `orthographic`,
+            ]
+        xmag (`float`, *optional*, defaults to `None`):
+            The horizontal magnification of the Camera.
+        ymag (`float`, *optional*, defaults to `None`):
+            The vertical magnification of the Camera.
+        name (`str`, *optional*, defaults to `None`):
+            The name of the Camera.
+        sensor_tag (`str`, *optional*, defaults to `CameraSensor`):
+            The tag of the Camera.
+        position (`List[float]`, *optional*, defaults to `[0.0, 5.0, -10.0]`):
+            The position of the Camera.
+        rotation (`List[float]`, *optional*, defaults to `[0.0, 1.0, 0.0, 0.0]`):
+            The rotation of the Camera.
+        scaling (`float` or `List[float]`, *optional*, defaults to `1.0`):
+            The scaling of the Camera.
+        is_actor (`bool`, *optional*, defaults to `False`):
+            Whether the Camera is an actor.
+        parent (`Asset`, *optional*, defaults to `None`):
+            The parent of the Camera.
+        children (`List[Asset]`, *optional*, defaults to `None`):
+            The children of the Camera.
     """
 
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming

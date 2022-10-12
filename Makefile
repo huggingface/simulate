@@ -3,15 +3,15 @@
 # Check that source code meets quality standards
 
 quality:
-	black --check --line-length 119 --target-version py36 tests src examples environments integrations/Unity/tests
-	isort --check-only tests src examples environments integrations/Unity/tests
-	flake8 tests src environments integrations/Unity/tests
+	black --check --line-length 119 --target-version py36 tests src examples integrations/Unity/tests
+	isort --check-only tests src examples integrations/Unity/tests
+	flake8 tests src integrations/Unity/tests
 
 # Format source code automatically
 
 style:
-	black --line-length 119 --target-version py36 tests src examples environments integrations/Unity/tests
-	isort tests src examples environments integrations/Unity/tests
+	black --line-length 119 --target-version py36 tests src examples integrations/Unity/tests
+	isort tests src examples integrations/Unity/tests
 
 # Run tests for the library
 

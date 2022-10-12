@@ -14,7 +14,11 @@
 
 import unittest
 
+import pyvista as pv
+
 # Lint as: python3
+from pyvista.examples import download_bunny
+
 import simulate as sm
 
 
@@ -30,6 +34,16 @@ class ColliderTest(unittest.TestCase):
             collider += child_asset
             scene += collider
             scene.show()
+
+    def test_create_asset_collider(self):
+        mesh = download_bunny()
+        asset = sm.Object3D(name="object", mesh=mesh)
+
+        asset.build_collider()
+
+        self.assertIsInstance(asset.tree_children[0], sm.Collider)
+        self.assertIsInstance(asset.tree_children[0].mesh, pv.MultiBlock)
+        self.assertEqual(len(asset.tree_children[0].mesh), 16)
 
     def test_several_colliders(self):
         root = sm.Asset()

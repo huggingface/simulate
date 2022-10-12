@@ -14,6 +14,7 @@
 
 # Lint as: python3
 """ A simulate Collider."""
+import dataclasses
 import itertools
 from dataclasses import InitVar, dataclass, fields
 from typing import Any, ClassVar, List, Optional, Tuple, Union
@@ -34,17 +35,48 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     """
     A physics collider.
 
-    Properties:
-    type (str) The shape of the collider. (Optional, default "box")
-    bounding_box (number[3]) The XYZ size of the bounding box that encapsulates the collider. The collider will attempt
-        to fill the bounding box. (Optional)
-    mesh (number) A mesh when using the mesh collider type. (Optional)
-    offset (number[3]) The position offset of the collider relative to the object it's attached to.
-        (Optional, default [0, 0, 0])
-    intangible (boolean) Whether the collider should act as an intangible trigger. (Optiona, default False)
-    convex (boolean) Whether the collider is convex when using the mesh collider type --
-        convex mesh Colliders collide with other mesh Colliders. (Optional)
-    physic_material (int) Index of the physic material, if any. (Optional)
+    Args:
+        type (`str`, *optional*, defaults to `box`):
+            The type of shape of the collider. Can be one of:
+            [
+                `box`,
+                `sphere`,
+                `capsule`,
+                `mesh`,
+            ]
+        bounding_box (`List[float]`, *optional*, defaults to `None`):
+            The XYZ size of the bounding box that encapsulates the collider.
+            The collider will attempt to fill the bounding box.
+        offset (`List[float]`, *optional*, defaults to `[0, 0, 0]`):
+            The position offset of the collider relative to the object it's attached to.
+        intangible (`bool`, *optional*, defaults to `False`):
+            Whether the collider should act as an intangible trigger.
+        convex (`bool`, *optional*, defaults to `False`):
+            Whether the collider is convex when using the mesh collider type --
+            convex mesh Colliders collide with other mesh Colliders.
+        physic_material (`int`, *optional*, defaults to `None`):
+            The index of the physic material to use for the collider.
+
+        name (`str`, *optional*, defaults to `None`):
+            The name of the collider.
+        mesh (`pyvista.UnstructuredGrid` or `pyvista.PolyData` or `pyvista.MultiBlock`, *optional*, defaults to `None`):
+            The mesh of the collider.
+        material (`Material`, *optional*, defaults to `None`):
+            The material of the collider.
+        position (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            The position of the collider.
+        rotation (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
+            The rotation of the collider in Euler angles (in degrees).
+        scaling (`float` or `List[float]`, *optional*, defaults to `1.0`):
+            The scaling of the collider.
+        transformation_matrix (`List[float]`, *optional*, defaults to `None`):
+            The transformation matrix of the collider.
+        parent (`Node`, *optional*, defaults to `None`):
+            The parent of the collider.
+        children (`List[Node]`, *optional*, defaults to `None`):
+            The children of the collider.
+        created_from_file (`str`, *optional*, defaults to `None`):
+            The path to the file from which the collider was created.
     """
 
     type: Optional[str] = None
@@ -57,9 +89,9 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     name: InitVar[Optional[str]] = None
     mesh: InitVar[Optional[Union[pv.UnstructuredGrid, pv.PolyData, pv.MultiBlock]]] = None
     material: InitVar[Optional[Any]] = None
-    position: InitVar[Optional[List[float]]] = None
-    rotation: InitVar[Optional[List[float]]] = None
-    scaling: InitVar[Optional[Union[float, List[float]]]] = None
+    position: InitVar[Optional[Union[List[float], np.ndarray]]] = None
+    rotation: InitVar[Optional[Union[List[float], np.ndarray]]] = None
+    scaling: InitVar[Optional[Union[float, List[float], np.ndarray]]] = None
     transformation_matrix: InitVar[Optional[List[float]]] = None
     parent: InitVar[Optional["Asset"]] = None
     children: InitVar[Optional[List["Asset"]]] = None
@@ -72,9 +104,9 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
         name: Optional[str] = None,
         mesh: Optional[Union[pv.UnstructuredGrid, pv.PolyData, pv.MultiBlock]] = None,
         material: Optional[Any] = None,
-        position: Optional[List[float]] = None,
-        rotation: Optional[List[float]] = None,
-        scaling: Optional[Union[float, List[float]]] = None,
+        position: Optional[Union[List[float], np.ndarray]] = None,
+        rotation: Optional[Union[List[float], np.ndarray]] = None,
+        scaling: Optional[Union[float, List[float], np.ndarray]] = None,
         transformation_matrix: Optional[List[float]] = None,
         parent: Optional["Asset"] = None,
         children: Optional[List["Asset"]] = None,
@@ -123,11 +155,20 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
             raise ValueError("Collider bounding_box must be a list of 3 numbers")
 
     def copy(self, with_children: bool = True, **kwargs: Any) -> "Collider":
-        """Copy an Object3D node in a new (returned) object.
+        """
+        Copy an Object3D node in a new (returned) object.
 
         By default, mesh and materials are copied in respectively new mesh and material.
         'share_material' and 'share_mesh' can be set to True to share mesh and/or material
         between original and copy instead of creating new one.
+
+        Args:
+            with_children (`bool`, *optional*, defaults to `True`):
+                Whether to copy the children of the node.
+
+        Returns:
+            copy (`Collider`):
+                The copy of the collider.
         """
         share_material = kwargs.get("share_material", False)
         share_mesh = kwargs.get("share_mesh", False)
@@ -149,12 +190,11 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
         copy_name = self.name + f"_copy{self._n_copies}"
 
         self._n_copies += 1
-        instance_copy = type(self)(name=copy_name)
+
+        instance_copy = dataclasses.replace(self)
         instance_copy.mesh = mesh_copy
         instance_copy.material = material_copy
-        instance_copy.position = self.position
-        instance_copy.rotation = self.rotation
-        instance_copy.scaling = self.scaling
+        instance_copy.name = copy_name
 
         if with_children:
             copy_children = []
@@ -163,6 +203,8 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
             instance_copy.tree_children = copy_children
             for child in instance_copy.tree_children:
                 child._post_copy()
+        else:
+            instance_copy.tree_children = []
 
         return instance_copy
 
@@ -192,18 +234,46 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     ##############################
     @property
     def position(self) -> np.ndarray:
+        """
+        Get the position of the collider in the scene.
+
+        Returns:
+            position (`List[float]` or `np.ndarray`):
+                The position of the collider in the scene.
+        """
         return self._position
 
     @property
     def rotation(self) -> np.ndarray:
+        """
+        Get the rotation of the collider in the scene.
+
+        Returns:
+            rotation (`List[float]` or `np.ndarray`):
+                The rotation of the collider in the scene.
+        """
         return self._rotation
 
     @property
     def scaling(self) -> np.ndarray:
+        """
+        Get the scaling of the collider in the scene.
+
+        Returns:
+            scaling (`List[float]` or `np.ndarray`):
+                The scaling of the collider in the scene.
+        """
         return self._scaling
 
     @property
     def transformation_matrix(self) -> np.ndarray:
+        """
+        Get the transformation matrix of the collider in the scene.
+
+        Returns:
+            transformation_matrix (`np.ndarray`):
+                The transformation matrix of the collider in the scene.
+        """
         if self._transformation_matrix is None:
             self._transformation_matrix = get_transform_from_trs(self._position, self._rotation, self._scaling)
         return self._transformation_matrix
@@ -211,6 +281,13 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
     # setters for position/rotation/scale
     @position.setter
     def position(self, value: Optional[Union[property, List, Tuple, np.ndarray]]):
+        """
+        Set the position of the collider in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The position of the collider in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0]
@@ -232,6 +309,13 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
 
     @rotation.setter
     def rotation(self, value: Optional[Union[property, List, Tuple, np.ndarray]]):
+        """
+        Set the rotation of the collider in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The rotation of the collider in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [0.0, 0.0, 0.0, 1.0]
@@ -253,6 +337,13 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
 
     @scaling.setter
     def scaling(self, value: Optional[Union[property, List, Tuple, np.ndarray]]):
+        """
+        Set the scaling of the collider in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The scaling of the collider in the scene.
+        """
         if self.dimensionality == 3:
             if value is None or isinstance(value, property):
                 value = [1.0, 1.0, 1.0]
@@ -274,6 +365,13 @@ class Collider(Asset, GltfExtensionMixin, gltf_extension_name="HF_colliders", ob
 
     @transformation_matrix.setter
     def transformation_matrix(self, value: Optional[Union[property, List, Tuple, np.ndarray]]):
+        """
+        Set the transformation matrix of the collider in the scene.
+
+        Args:
+            value (`float` or `List[float]` or `np.ndarray` or `Tuple` or `property`, *optional*, defaults to `None`):
+                The transformation matrix of the collider in the scene.
+        """
         # Default to setting up from TRS if None
         if (value is None or isinstance(value, property)) and (
             self._position is not None and self._rotation is not None and self._scaling is not None

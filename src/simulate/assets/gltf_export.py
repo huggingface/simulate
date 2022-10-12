@@ -52,7 +52,17 @@ numpy_to_gltf_shapes_mapping = {
 
 
 def _get_digest(data: Any) -> bytes:
-    """Get a hash digest of the data"""
+    """
+    Get a hash digest of the data.
+
+    Args:
+        data (`Any`):
+            The data to hash.
+
+    Returns:
+        digest (`bytes`):
+            The hash digest of the data.
+    """
     if isinstance(data, (Material, PhysicMaterial)):
         digest = str(hash(data)).encode("utf-8")
     else:
@@ -70,8 +80,17 @@ def _get_digest(data: Any) -> bytes:
 
 def is_data_cached(data: Any, cache: Dict) -> Optional[int]:
     """
-    Helper function to check if data (numpy array, material, texture, anything hashable)
-    is already in the cache dict
+    Helper function to check if data is already in the cache dict
+
+    Args:
+        data (`Any`):
+            The data to check in the cache.
+        cache (`Dict`):
+            The cache dictionary.
+
+    Returns:
+        data_id (`int`):
+            The data id in the cache if the data is already in the cache, None otherwise.
     """
     if not isinstance(cache, dict):
         raise ValueError("Cache should be a dict")
@@ -86,7 +105,19 @@ def is_data_cached(data: Any, cache: Dict) -> Optional[int]:
 def cache_data(data: Any, data_id: int, cache: Dict) -> dict:
     """
     Helper function to add some data (numpy array, material, texture, anything hashable)
-    in the cache dict as pointer to a provided data_id integer
+    in the cache dict as pointer to a provided data_id integer.
+
+    Args:
+        data (`Any`):
+            The data to add to the cache.
+        data_id (`int`):
+            The data id to reference in the cache.
+        cache (`Dict`):
+            The cache dictionary.
+
+    Returns:
+        cache (`Dict`):
+            The updated cache dictionary.
     """
     if not isinstance(cache, dict):
         raise ValueError("Cache should be a dict")
@@ -106,6 +137,22 @@ def add_data_to_gltf(
     """
     Add byte data to the buffer_data, create/add a new buffer view for it in the scene and
     return the index of the added buffer view
+
+    Args:
+        new_data (`bytes` or `bytearray`):
+            The data to add to the buffer.
+        gltf_model (`GLTFModel`):
+            The gltf model to add the buffer view to.
+        buffer_data (`bytearray`):
+            The buffer data to add the data to.
+        buffer_id (`int`, *optional*, defaults to `0`):
+            The buffer id to add the buffer view to.
+        cache (`Dict`, *optional*, defaults to `None`):
+            The cache dictionary.
+
+    Returns:
+        buffer_view_id (`int`):
+            The id of the added buffer view.
     """
     cached_id = is_data_cached(data=new_data, cache=cache)
     if cached_id is not None:
@@ -138,8 +185,26 @@ def add_numpy_to_gltf(
     cache: Optional[Dict] = None,
 ) -> int:
     """
-    Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and
+    Create/add GLTF accessor and buffer view to the GLTF scene to store a numpy array and
     add the numpy array in the buffer_data.
+
+    Args:
+        np_array (`np.ndarray`):
+            The numpy array to add to the buffer.
+        gltf_model (`GLTFModel`):
+            The gltf model to add the buffer view to.
+        buffer_data (`bytearray`):
+            The buffer data to add the data to.
+        normalized (`bool`, *optional*, defaults to `False`):
+            Whether the data is normalized.
+        buffer_id (`int`, *optional*, defaults to `0`):
+            The buffer id to add the buffer view to.
+        cache (`Dict`, *optional*, defaults to `None`):
+            The cache dictionary.
+
+    Returns:
+        accessor_id (`int`):
+            The id of the added accessor.
     """
 
     cached_id = is_data_cached(data=np_array, cache=cache)
@@ -204,8 +269,24 @@ def add_texture_to_gltf(
     cache: Optional[Dict] = None,
 ) -> int:
     """
-    Create/add GLTF accessor and bufferview to the GLTF scene to store a numpy array and
-    add the numpy array in the buffer_data.
+    Create/add GLTF accessor and buffer view to the GLTF scene to store a texture and
+    add the texture in the buffer_data.
+
+    Args:
+        texture (`pv.Texture`):
+            The texture to add to the buffer.
+        gltf_model (`GLTFModel`):
+            The gltf model to add the buffer view to.
+        buffer_data (`bytearray`):
+            The buffer data to add the data to.
+        buffer_id (`int`, *optional*, defaults to `0`):
+            The buffer id to add the buffer view to.
+        cache (`Dict`, *optional*, defaults to `None`):
+            The cache dictionary.
+
+    Returns:
+        texture_id (`int`):
+            The id of the added texture.
     """
 
     inp = texture.GetInput()  # Get a UniformGrid - safety check
@@ -261,8 +342,24 @@ def add_material_to_gltf(
     cache: Optional[Dict] = None,
 ) -> int:
     """
-    Add GLTF accessor and bufferview to the GLTF scene to store a numpy array and
-    add the numpy array in the buffer_data.
+    Add GLTF accessor and buffer view to the GLTF scene to store a Material and
+    add the Material in the buffer_data.
+
+    Args:
+        material (`Material`):
+            The material to add to the buffer.
+        gltf_model (`GLTFModel`):
+            The gltf model to add the buffer view to.
+        buffer_data (`bytearray`):
+            The buffer data to add the data to.
+        buffer_id (`int`, *optional*, defaults to `0`):
+            The buffer id to add the buffer view to.
+        cache (`Dict`, *optional*, defaults to `None`):
+            The cache dictionary.
+
+    Returns:
+        material_id (`int`):
+            The id of the added material.
     """
 
     cached_id = is_data_cached(data=material, cache=cache)
@@ -324,12 +421,37 @@ def add_mesh_to_model(
     buffer_id: int = 0,
     cache: Optional[Dict] = None,
 ) -> int:
+    """
+    Add GLTF accessor and buffer view to the GLTF scene to store a mesh and
+    add the mesh in the buffer_data.
 
+    Args:
+        meshes (`pyvista.UnstructuredGrid` or `pyvista.MultiBlock`):
+            The mesh(es) to add to the buffer.
+        materials (`Material` or `None`):
+            The material(s) to add to the buffer.
+        gltf_model (`GLTFModel`):
+            The gltf model to add the buffer view to.
+        buffer_data (`bytearray`):
+            The buffer data to add the data to.
+        buffer_id (`int`, *optional*, defaults to `0`):
+            The buffer id to add the buffer view to.
+        cache (`Dict`, *optional*, defaults to `None`):
+            The cache dictionary.
+
+    Returns:
+        mesh_id (`int`):
+            The id of the added mesh.
+    """
     if not isinstance(meshes, pv.MultiBlock):
         meshes = [meshes]
         materials = [materials]
     else:
         pass
+
+    # handle case if Material is None
+    if materials is None:
+        materials = [materials]
 
     primitives = []
 
@@ -428,6 +550,27 @@ def add_mesh_to_model(
 def add_camera_to_model(
     camera: Camera, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
+    """
+    Add GLTF accessor and buffer view to the GLTF scene to store a camera and
+    add the camera in the buffer_data.
+
+    Args:
+        camera (`Camera`):
+            The camera to add to the GLTF scene.
+        gltf_model (`GLTFModel`):
+            The GLTF model to add the camera to.
+        buffer_data (`ByteString`):
+            The buffer data to add the camera to.
+        buffer_id (`int`, *optional*, defaults to `0`):
+            The buffer id to add the camera to.
+        cache (`Dict`, *optional*, defaults to `None`):
+            The cache to use to avoid double storing the same data.
+
+    Returns:
+        camera_id (`int`):
+            The id of the added camera.
+
+    """
     gl_camera = gl.Camera(
         type=camera.camera_type,
         width=camera.width,
@@ -463,6 +606,26 @@ def add_camera_to_model(
 def add_light_to_model(
     node: Light, gltf_model: gl.GLTFModel, buffer_data: ByteString, buffer_id: int = 0, cache: Optional[Dict] = None
 ) -> int:
+    """
+    Add GLTF accessor and buffer view to the GLTF scene to store a light and
+    add the light in the buffer_data.
+
+    Args:
+        node (`Light`):
+            The light to add to the GLTF scene.
+        gltf_model (`GLTFModel`):
+            The GLTF model to add the light to.
+        buffer_data (`ByteString`):
+            The buffer data to add the light to.
+        buffer_id (`int`, *optional*, defaults to `0`):
+            The buffer id to add the light to.
+        cache (`Dict`, *optional*, defaults to `None`):
+            The cache to use to avoid double storing the same data.
+
+    Returns:
+        light_id (`int`):
+            The id of the added light.
+    """
     light_type = node.light_type
     if light_type == "positional":
         if node.outer_cone_angle is None or node.outer_cone_angle > np.pi / 2:
@@ -501,7 +664,27 @@ def add_node_to_scene(
     buffer_id: Optional[int] = 0,
     cache: Optional[Dict] = None,
 ) -> Set[str]:
+    """
+    Add a node to a scene.
 
+    Args:
+        node (`Asset`):
+            The node to add to the GLTF scene.
+        gltf_model (`GLTFModel`):
+            The GLTF model to add the node to.
+        buffer_data (`ByteString`):
+            The buffer data to add the node to.
+        gl_parent_node_id (`int`, *optional*, defaults to `None`):
+            The parent node id to add the node to.
+        buffer_id (`int`, *optional*, defaults to `0`):
+            The buffer id to add the node to.
+        cache (`Dict`, *optional*, defaults to `None`):
+            The cache dictionary.
+
+    Returns:
+        extensions_used (`Set[str]`):
+            The extensions used by the GLTF scene.
+    """
     translation = list(node.position) if node.position is not None else None
     rotation = list(node.rotation) if node.rotation is not None else None
     scale = list(node.scaling) if node.scaling is not None else None
@@ -605,6 +788,11 @@ def add_node_to_scene(
     if len(extras) > 0:
         gl_node.extras = extras
 
+    # Add custom extensions, if any
+    if node.extensions is not None and len(node.extensions) > 0:
+        extensions.HF_custom = node.extensions
+        extension_used.add("HF_custom")
+
     # Add the extensions to the node if anything not none
     if extension_used:
         gl_node.extensions = extensions
@@ -636,7 +824,17 @@ def add_node_to_scene(
 
 
 def tree_as_gltf(root_node: "Asset") -> gl.GLTF:
-    """Return the tree of Assets as GLTF object."""
+    """
+    Return the tree of Assets as GLTF object.
+
+    Args:
+        root_node (`Asset`):
+            The root node of the tree to export as glTF.
+
+    Returns:
+        gltf (`GLTF`):
+            The glTF object.
+    """
     buffer_data = bytearray()
     gltf_model = gl.GLTFModel(
         accessors=[],
@@ -694,7 +892,17 @@ def tree_as_gltf(root_node: "Asset") -> gl.GLTF:
 
 
 def tree_as_glb_bytes(root_node: "Asset") -> bytes:
-    """Return the tree of Assets as GLB bytes."""
+    """
+    Return the tree of Assets as GLB bytes.
+
+    Args:
+        root_node (`Asset`):
+            The root node of the tree to export as GLB bytes.
+
+    Returns:
+        glb_bytes (`bytes`):
+            The glTF scene exported as GLB bytes.
+    """
     gltf = tree_as_gltf(root_node=root_node)
     return gltf.as_glb_bytes()
 
@@ -703,6 +911,16 @@ def save_tree_to_gltf_file(file_path: str, root_node: "Asset") -> List[str]:
     """
     Save the tree in a GLTF file + additional (binary) resource files if it should be the case.
     Return the list of all the path to the saved files (glTF file + resource files)
+
+    Args:
+        file_path (`str`):
+            The path to the file to save the scene to.
+        root_node (`Asset`):
+            The root node of the tree to export as glTF.
+
+    Returns:
+        file_paths (`List[str]`):
+            The list of all the path to the saved files (glTF file + resource files)
     """
     gltf = tree_as_gltf(root_node=root_node)
 
