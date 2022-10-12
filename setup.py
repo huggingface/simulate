@@ -130,7 +130,7 @@ ext_modules = [
                       ),
     ]
 
-ext_modules += cythonize([Extension(name="fast_wfc",
+ext_modules += cythonize([Extension(name="wfc_binding",
                       sources=["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx",
                        "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
                        "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
