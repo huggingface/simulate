@@ -73,6 +73,8 @@ scene = Scene.create_from('simulate-tests/Box/glTF/Box.gltf', is_local=False)  #
 
 scene.save('local_dir/file.gltf')  # Save to a local file
 scene.push_to_hub('simulate-tests/Debug/glTF/Box.gltf')  # Save to the Hub - use a token if necessary
+
+scene.show()
 ```
 <p align="center">
     <br>
