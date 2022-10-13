@@ -55,7 +55,7 @@ To create the package for pypi.
 from distutils.extension import Extension
 
 import numpy as np
-from Cython.Build import cythonize
+from glob import glob
 
 # Available at setup time due to pyproject.toml
 from pybind11.setup_helpers import Pybind11Extension, build_ext
@@ -128,20 +128,26 @@ ext_modules = [
                       # Example: passing in the version to the compiled code
                       define_macros=[('VERSION_INFO', __version__)],
                       ),
+    Pybind11Extension("pyFastWfc",
+                      ["src/pyFastWfc/main.cpp"] + list(sorted(glob("src/pyFastWfc/lib/*.cpp"))),  # Sort source files for reproducibility,
+                      include_dirs=["src/pyFastWfc/include"],
+                      # Example: passing in the version to the compiled code
+                      define_macros=[('VERSION_INFO', __version__)],
+                      ),
     ]
 
-ext_modules += cythonize([Extension(name="wfc_binding",
-                      sources=["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx",
-                       "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
-                       "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
-                       "src/simulate/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
-                      language="c++",
-                      include_dirs=[
-                          "src/simulate/assets/procgen/wfc/core/cpp/include",
-                      ],
-                      extra_compile_args=extra_compile_args,
-                      extra_link_args=extra_link_args,
-                      )], force=True)
+# ext_modules += cythonize([Extension(name="wfc_binding",
+#                       sources=["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx",
+#                        "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
+#                        "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
+#                        "src/simulate/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
+#                       language="c++",
+#                       include_dirs=[
+#                           "src/simulate/assets/procgen/wfc/core/cpp/include",
+#                       ],
+#                       extra_compile_args=extra_compile_args,
+#                       extra_link_args=extra_link_args,
+#                       )], force=True)
 
 
 setup(
