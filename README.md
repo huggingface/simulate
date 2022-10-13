@@ -204,3 +204,15 @@ You can find bridges to other rendering/simulation engines in the `integrations`
 ## Tips
 
 If you are running on GCP, remember not to install `pyvistaqt`, and if you did so, uninstall it in your environment, since QT doesn't work well on GCP.
+
+## Citation
+```bibtex
+@misc{simulate,
+  author = {Thomas Wolf, Edward Beeching, Carl Cochet, Dylan Ebert, Nathan Lambert, Clément Romac},
+  title = {Simulate},
+  year = {2022},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/huggingface/simulate}}
+}
+```
