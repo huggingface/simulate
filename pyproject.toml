@@ -3,7 +3,6 @@ requires = [
     "setuptools>=42",
     "wheel",
     "cmake>=3.22",
-    "scikit-build>=0.15.0",
     "pybind11>=2.10.0",
     "numpy>=1.17",
     "ninja; platform_system!='Windows'"
@@ -11,5 +10,5 @@ requires = [
 build-backend = "setuptools.build_meta"
 
 [tool.cibuildwheel]
-test-command = "python {project}/tests"
+test-command = "python {project}/tests/test_scene.py"
 test-skip = "*universal2:arm64"

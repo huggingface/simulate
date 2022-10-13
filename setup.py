@@ -136,19 +136,6 @@ ext_modules = [
                       ),
     ]
 
-# ext_modules += cythonize([Extension(name="wfc_binding",
-#                       sources=["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx",
-#                        "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
-#                        "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
-#                        "src/simulate/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
-#                       language="c++",
-#                       include_dirs=[
-#                           "src/simulate/assets/procgen/wfc/core/cpp/include",
-#                       ],
-#                       extra_compile_args=extra_compile_args,
-#                       extra_link_args=extra_link_args,
-#                       )], force=True)
-
 
 setup(
     name="simulate",
