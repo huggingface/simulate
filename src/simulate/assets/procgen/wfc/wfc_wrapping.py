@@ -179,7 +179,7 @@ def apply_wfc(
             tiles = []
         if neighbors is None:
             neighbors = []
-        if input_img == None:
+        if input_img is None:
             input_img = []
 
         gen_map = run_wfc(
