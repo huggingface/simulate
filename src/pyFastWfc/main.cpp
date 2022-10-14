@@ -9,8 +9,10 @@
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
 
 namespace py = pybind11;
+using namespace pybind11::literals;
 
-py::array_t<unsigned> run_wfc(unsigned seed, unsigned width, unsigned height, int sample_type, bool periodic_output,
+py::array_t<unsigned> run_wfc(unsigned seed, unsigned width, unsigned height, int sample_type,
+        bool periodic_output,
         unsigned N, bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry,
         std::vector<IdPair> input_img, unsigned input_width, unsigned input_height, 
         bool verbose, unsigned nb_tries, std::vector<PyTile> tiles,
@@ -70,13 +72,16 @@ PYBIND11_MODULE(pyFastWfc, m) {
     )pbdoc";
 
     py::class_<IdPair>(m, "IdPair")
-        .def(py::init<const unsigned, const unsigned, const unsigned>())
+        .def(py::init<const unsigned, const unsigned, const unsigned>(),
+            "uid"_a, "rotation"_a, "reflected"_a)
         .def_readwrite("uid", &IdPair::uid)
         .def_readwrite("rotation", &IdPair::rotation)
         .def_readwrite("reflected", &IdPair::reflected);
     
     py::class_<PyTile>(m, "PyTile")
-        .def(py::init<const unsigned, const std::vector<IdPair> &, const std::string &, const std::string &, const double>())
+        .def(py::init<const unsigned, const std::vector<IdPair> &, const std::string &,
+            const std::string &, const double>(),
+            "size"_a, "tile"_a, "name"_a, "symmetry"_a, "weight"_a)
         .def_readwrite("size", &PyTile::size)
         .def_readwrite("tile", &PyTile::tile)
         .def_readwrite("name", &PyTile::name)
@@ -84,7 +89,8 @@ PYBIND11_MODULE(pyFastWfc, m) {
         .def_readwrite("weight", &PyTile::weight);
 
     py::class_<Neighbor>(m, "Neighbor")
-        .def(py::init<>())
+        .def(py::init<const std::string, const std::string, const unsigned, const unsigned>(),
+            "left"_a, "right"_a, "left_or"_a, "right_or"_a)
         .def_readwrite("left", &Neighbor::left)
         .def_readwrite("right", &Neighbor::right)
         .def_readwrite("left_or", &Neighbor::left_or)
@@ -114,7 +120,10 @@ PYBIND11_MODULE(pyFastWfc, m) {
 
         Returns:
             list: List of samples.
-    )pbdoc");
+    )pbdoc", "seed"_a, "width"_a, "height"_a, "sample_type"_a,
+    "periodic_output"_a, "N"_a, "periodic_input"_a, "ground"_a,
+    "nb_samples"_a, "symmetry"_a, "input_img"_a, "input_width"_a,
+    "input_height"_a, "verbose"_a, "nb_tries"_a, "tiles"_a, "neighbors"_a);
 
 #ifdef VERSION_INFO
     m.attr("__version__") = MACRO_STRINGIFY(VERSION_INFO);
