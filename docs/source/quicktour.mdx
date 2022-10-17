@@ -53,6 +53,8 @@ scene = Scene.create_from('simulate-tests/Box/glTF/Box.gltf', is_local=False)  #
 
 scene.save('local_dir/file.gltf')  # Save to a local file
 scene.push_to_hub('simulate-tests/Debug/glTF/Box.gltf')  # Save to the hub
+
+scene.show()
 ```
 <p align="center">
     <br>
@@ -143,6 +145,7 @@ scene += [scene.plane_01.sphere_02.copy(), scene.plane_01.sphere_02.copy()]
 
 ### Objects can be translated, rotated, scaled
 Here are a couple of examples:
+
 ```
 # Let's translate our floor (with the first sphere, it's child)
 scene.plane_01.translate_x(1)
