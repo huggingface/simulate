@@ -39,6 +39,16 @@ namespace Simulate {
         public static List<RenderCamera> cameras { get; private set; }
         public static EventData currentEvent { get; private set; }
 
+        public static Node GetNode(string name) {
+            if (!TryGetNode(name, out Node node))
+                Debug.LogWarning($"Node {name} not found");
+            return node;
+        }
+
+        public static bool TryGetNode(string name, out Node node) {
+            return nodes.TryGetValue(name, out node);
+        }
+
         private void Awake() {
             Physics.autoSimulation = false;
             LoadCustomAssemblies();
