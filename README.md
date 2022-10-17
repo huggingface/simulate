@@ -210,7 +210,7 @@ If you are running on GCP, remember not to install `pyvistaqt`, and if you did s
 ## Citation
 ```bibtex
 @misc{simulate,
-  author = {Thomas Wolf, Edward Beeching, Carl Cochet, Dylan Ebert, Nathan Lambert, Clément Romac},
+  author = {Thomas Wolf, Edward Beeching, Carl Cochet, Dylan Ebert, Alicia Machado, Nathan Lambert, Clément Romac},
   title = {Simulate},
   year = {2022},
   publisher = {GitHub},
