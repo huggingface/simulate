@@ -10,7 +10,7 @@ add_library(vhacd INTERFACE)
 include(GNUInstallDirs)
 
 target_include_directories(vhacd INTERFACE
-  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include/vhacd> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
+  $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include> $<INSTALL_INTERFACE:${CMAKE_INSTALL_INCLUDEDIR}>)
 
 target_compile_features(
     vhacd 
@@ -43,7 +43,7 @@ install(FILES "${PROJECT_BINARY_DIR}/vhacdConfig.cmake"
               "${PROJECT_BINARY_DIR}/vhacdConfigVersion.cmake"
         DESTINATION ${CMAKE_INSTALL_DATAROOTDIR}/cmake/vhacd)
 
-install(DIRECTORY ${PROJECT_SOURCE_DIR}/include/vhacd DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
+install(DIRECTORY ${PROJECT_SOURCE_DIR}/include DESTINATION ${CMAKE_INSTALL_INCLUDEDIR})
 
 # Added for python
 

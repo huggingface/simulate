@@ -115,14 +115,6 @@ EXTRAS_REQUIRE = {
     "docs": DOCS_REQUIRE,
 }
 
-if sys.platform == 'darwin':
-    extra_compile_args = ["-std=c++11"]
-    extra_link_args = ["-std=c++11"]
-
-else:
-    extra_compile_args = []
-    extra_link_args = []
-
 
 setup(
     name="simulate",
@@ -157,7 +149,7 @@ setup(
     keywords="simulation environments synthetic data datasets machine learning",
     zip_safe=False,  # Required for mypy to find the py.typed file
     python_requires=">=3.8",
-    include_dirs=[np.get_include()],
+    # include_dirs=[np.get_include()],
     cmake_install_dir='src/simulate',
 )
 
