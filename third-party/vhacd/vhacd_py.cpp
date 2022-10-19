@@ -4,7 +4,7 @@
 #include <pybind11/stl.h>
 #define ENABLE_VHACD_IMPLEMENTATION 1
 #define VHACD_DISABLE_THREADING 0
-#include "include/VHACD.h"
+#include "include/vhacd/VHACD.h"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)

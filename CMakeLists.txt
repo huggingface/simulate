@@ -27,15 +27,15 @@ if(DEFINED SKBUILD)
   pybind11_add_module(_fastwfc MODULE
                       "${PROJECT_SOURCE_DIR}/third-party/fastwfc/fastwfc_py.cpp")
 
-  # pybind11_add_module(_vhacd MODULE
-  #                     "${PROJECT_SOURCE_DIR}/third-party/vhacd/vhacd_py.cpp")
+  pybind11_add_module(_vhacd MODULE
+                       "${PROJECT_SOURCE_DIR}/third-party/vhacd/vhacd_py.cpp")
 
   target_link_libraries(_fastwfc PRIVATE fastwfc)
-  # target_link_libraries(_vhacd PRIVATE vhacd)
+  target_link_libraries(_vhacd PRIVATE vhacd)
 
   # Installing the extension module to the root of the package
   install(TARGETS _fastwfc DESTINATION .)
-  # install(TARGETS _vhacd DESTINATION .)
+  install(TARGETS _vhacd DESTINATION .)
 
   # configure_file("${PROJECT_SOURCE_DIR}/third-party/fastwfc/__main__.py.in"
   #                "${PROJECT_BINARY_DIR}/src/fastwfc/__main__.py")
