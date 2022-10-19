@@ -2,8 +2,7 @@
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
 
-#include "include/id_pair.hpp"
-#include "include/run_wfc.hpp"
+#include "run_wfc.hpp"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -14,24 +13,15 @@ using namespace pybind11::literals;
 py::array_t<unsigned> run_wfc(unsigned seed, unsigned width, unsigned height, int sample_type,
         bool periodic_output,
         unsigned N, bool periodic_input, bool ground, unsigned nb_samples, unsigned symmetry,
-        std::vector<IdPair> input_img, unsigned input_width, unsigned input_height, 
-        bool verbose, unsigned nb_tries, std::vector<PyTile> tiles,
-        std::vector<Neighbor> neighbors) {
-
-    // if neighbors == None:
-    //     neighbors = []
-
-    // if tiles == None:
-    //     tiles = []
-
-    // if input_img == None:
-    //     input_img = []
+        std::vector<fastwfc::IdPair> input_img, unsigned input_width, unsigned input_height, 
+        bool verbose, unsigned nb_tries, std::vector<fastwfc::PyTile> tiles,
+        std::vector<fastwfc::Neighbor> neighbors) {
 
     // As we are using a different convention from the library, we pass width as height and height as width.
     // The same applies to the input image.
-    std::vector<IdPair> result;
+    std::vector<fastwfc::IdPair> result;
 
-    result = run_wfc_cpp(seed, height, width, sample_type, periodic_output, N, periodic_input, ground, 
+    result = fastwfc::run_wfc_cpp(seed, height, width, sample_type, periodic_output, N, periodic_input, ground, 
                 nb_samples, symmetry, input_img, input_height, input_width,
                 verbose, nb_tries, tiles, neighbors);
 
@@ -60,41 +50,41 @@ py::array_t<unsigned> run_wfc(unsigned seed, unsigned width, unsigned height, in
     return np_results;
 }
 
-PYBIND11_MODULE(pyFastWfc, m) {
+PYBIND11_MODULE(_fastwfc, m) {
     m.doc() = R"pbdoc(
         python bindings for fast-wfc
         -----------------------
 
-        .. currentmodule:: pyfastwfc
+        .. currentmodule:: fastwfc
 
         .. autosummary::
            :toctree: _generate
     )pbdoc";
 
-    py::class_<IdPair>(m, "IdPair")
+    py::class_<fastwfc::IdPair>(m, "IdPair")
         .def(py::init<const unsigned, const unsigned, const unsigned>(),
             "uid"_a, "rotation"_a, "reflected"_a)
-        .def_readwrite("uid", &IdPair::uid)
-        .def_readwrite("rotation", &IdPair::rotation)
-        .def_readwrite("reflected", &IdPair::reflected);
+        .def_readwrite("uid", &fastwfc::IdPair::uid)
+        .def_readwrite("rotation", &fastwfc::IdPair::rotation)
+        .def_readwrite("reflected", &fastwfc::IdPair::reflected);
     
-    py::class_<PyTile>(m, "PyTile")
-        .def(py::init<const unsigned, const std::vector<IdPair> &, const std::string &,
+    py::class_<fastwfc::PyTile>(m, "PyTile")
+        .def(py::init<const unsigned, const std::vector<fastwfc::IdPair> &, const std::string &,
             const std::string &, const double>(),
             "size"_a, "tile"_a, "name"_a, "symmetry"_a, "weight"_a)
-        .def_readwrite("size", &PyTile::size)
-        .def_readwrite("tile", &PyTile::tile)
-        .def_readwrite("name", &PyTile::name)
-        .def_readwrite("symmetry", &PyTile::symmetry)
-        .def_readwrite("weight", &PyTile::weight);
+        .def_readwrite("size", &fastwfc::PyTile::size)
+        .def_readwrite("tile", &fastwfc::PyTile::tile)
+        .def_readwrite("name", &fastwfc::PyTile::name)
+        .def_readwrite("symmetry", &fastwfc::PyTile::symmetry)
+        .def_readwrite("weight", &fastwfc::PyTile::weight);
 
-    py::class_<Neighbor>(m, "Neighbor")
+    py::class_<fastwfc::Neighbor>(m, "Neighbor")
         .def(py::init<const std::string, const std::string, const unsigned, const unsigned>(),
             "left"_a, "right"_a, "left_or"_a, "right_or"_a)
-        .def_readwrite("left", &Neighbor::left)
-        .def_readwrite("right", &Neighbor::right)
-        .def_readwrite("left_or", &Neighbor::left_or)
-        .def_readwrite("right_or", &Neighbor::right_or);
+        .def_readwrite("left", &fastwfc::Neighbor::left)
+        .def_readwrite("right", &fastwfc::Neighbor::right)
+        .def_readwrite("left_or", &fastwfc::Neighbor::left_or)
+        .def_readwrite("right_or", &fastwfc::Neighbor::right_or);
     
     m.def("run_wfc", &run_wfc, R"pbdoc(
         Run the Wave Function Collapse algorithm.

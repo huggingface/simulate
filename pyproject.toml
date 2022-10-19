@@ -1,7 +1,7 @@
 [build-system]
 requires = [
     "setuptools>=42",
-    "wheel",
+    "scikit-build",
     "cmake>=3.22",
     "pybind11>=2.10.0",
     "numpy>=1.17",

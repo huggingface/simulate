@@ -4,7 +4,7 @@ from typing import Any, List, Optional, Tuple
 
 import numpy as np
 
-from pyFastWfc import IdPair, Neighbor, PyTile, run_wfc
+from simulate._fastwfc import IdPair, Neighbor, PyTile, run_wfc
 
 
 def build_wfc_neighbor(left: str, right: str, left_or: int = 0, right_or: int = 0) -> Any:

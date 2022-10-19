@@ -149,4 +149,8 @@ wfc_binding.cpp
 test.gltf
 .godot
 
+**/_skbuild
+**/CMakeFiles
+**.cmake
+
 !/src/simulate/engine/notebook_viewer.zip

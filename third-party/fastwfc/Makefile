@@ -132,14 +132,14 @@ install/strip/fast: preinstall/fast
 
 # The main all target
 all: cmake_check_build_system
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/thomwolf/Documents/GitHub/simulate/CMakeFiles /Users/thomwolf/Documents/GitHub/simulate//CMakeFiles/progress.marks
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 all
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(CMAKE_COMMAND) -E cmake_progress_start /Users/thomwolf/Documents/GitHub/simulate/CMakeFiles /Users/thomwolf/Documents/GitHub/simulate/third-party/fastwfc//CMakeFiles/progress.marks
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third-party/fastwfc/all
 	$(CMAKE_COMMAND) -E cmake_progress_start /Users/thomwolf/Documents/GitHub/simulate/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 clean
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third-party/fastwfc/clean
 .PHONY : clean
 
 # The main clean target
@@ -148,31 +148,128 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 preinstall
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third-party/fastwfc/preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 preinstall
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third-party/fastwfc/preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
-#=============================================================================
-# Target rules for targets named fastwfc
+# Convenience name for target.
+third-party/fastwfc/CMakeFiles/fastwfc.dir/rule:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 third-party/fastwfc/CMakeFiles/fastwfc.dir/rule
+.PHONY : third-party/fastwfc/CMakeFiles/fastwfc.dir/rule
 
-# Build rule for target.
-fastwfc: cmake_check_build_system
-	$(MAKE) $(MAKESILENT) -f CMakeFiles/Makefile2 fastwfc
+# Convenience name for target.
+fastwfc: third-party/fastwfc/CMakeFiles/fastwfc.dir/rule
 .PHONY : fastwfc
 
 # fast build rule for target.
 fastwfc/fast:
-	$(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/build
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/build
 .PHONY : fastwfc/fast
+
+src/propagator.o: src/propagator.cpp.o
+.PHONY : src/propagator.o
+
+# target to build an object file
+src/propagator.cpp.o:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/propagator.cpp.o
+.PHONY : src/propagator.cpp.o
+
+src/propagator.i: src/propagator.cpp.i
+.PHONY : src/propagator.i
+
+# target to preprocess a source file
+src/propagator.cpp.i:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/propagator.cpp.i
+.PHONY : src/propagator.cpp.i
+
+src/propagator.s: src/propagator.cpp.s
+.PHONY : src/propagator.s
+
+# target to generate assembly for a file
+src/propagator.cpp.s:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/propagator.cpp.s
+.PHONY : src/propagator.cpp.s
+
+src/run_wfc.o: src/run_wfc.cpp.o
+.PHONY : src/run_wfc.o
+
+# target to build an object file
+src/run_wfc.cpp.o:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/run_wfc.cpp.o
+.PHONY : src/run_wfc.cpp.o
+
+src/run_wfc.i: src/run_wfc.cpp.i
+.PHONY : src/run_wfc.i
+
+# target to preprocess a source file
+src/run_wfc.cpp.i:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/run_wfc.cpp.i
+.PHONY : src/run_wfc.cpp.i
+
+src/run_wfc.s: src/run_wfc.cpp.s
+.PHONY : src/run_wfc.s
+
+# target to generate assembly for a file
+src/run_wfc.cpp.s:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/run_wfc.cpp.s
+.PHONY : src/run_wfc.cpp.s
+
+src/wave.o: src/wave.cpp.o
+.PHONY : src/wave.o
+
+# target to build an object file
+src/wave.cpp.o:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/wave.cpp.o
+.PHONY : src/wave.cpp.o
+
+src/wave.i: src/wave.cpp.i
+.PHONY : src/wave.i
+
+# target to preprocess a source file
+src/wave.cpp.i:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/wave.cpp.i
+.PHONY : src/wave.cpp.i
+
+src/wave.s: src/wave.cpp.s
+.PHONY : src/wave.s
+
+# target to generate assembly for a file
+src/wave.cpp.s:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/wave.cpp.s
+.PHONY : src/wave.cpp.s
+
+src/wfc.o: src/wfc.cpp.o
+.PHONY : src/wfc.o
+
+# target to build an object file
+src/wfc.cpp.o:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/wfc.cpp.o
+.PHONY : src/wfc.cpp.o
+
+src/wfc.i: src/wfc.cpp.i
+.PHONY : src/wfc.i
+
+# target to preprocess a source file
+src/wfc.cpp.i:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/wfc.cpp.i
+.PHONY : src/wfc.cpp.i
+
+src/wfc.s: src/wfc.cpp.s
+.PHONY : src/wfc.s
+
+# target to generate assembly for a file
+src/wfc.cpp.s:
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(MAKE) $(MAKESILENT) -f third-party/fastwfc/CMakeFiles/fastwfc.dir/build.make third-party/fastwfc/CMakeFiles/fastwfc.dir/src/wfc.cpp.s
+.PHONY : src/wfc.cpp.s
 
 # Help Target
 help:
@@ -187,6 +284,18 @@ help:
 	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... fastwfc"
+	@echo "... src/propagator.o"
+	@echo "... src/propagator.i"
+	@echo "... src/propagator.s"
+	@echo "... src/run_wfc.o"
+	@echo "... src/run_wfc.i"
+	@echo "... src/run_wfc.s"
+	@echo "... src/wave.o"
+	@echo "... src/wave.i"
+	@echo "... src/wave.s"
+	@echo "... src/wfc.o"
+	@echo "... src/wfc.i"
+	@echo "... src/wfc.s"
 .PHONY : help
 
 
@@ -198,6 +307,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	$(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	cd /Users/thomwolf/Documents/GitHub/simulate && $(CMAKE_COMMAND) -S$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 
