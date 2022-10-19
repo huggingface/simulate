@@ -34,45 +34,50 @@ _global_script_classes=[{
 "language": &"GDScript",
 "path": "res://Simulate/GLTF/gltf_enums.gd"
 }, {
-"base": "GLTFDocumentExtension",
-"class": &"HFActuators",
+"base": "Node3D",
+"class": &"HFActuator",
 "language": &"GDScript",
-"path": "res://Simulate/GLTF/hf_actuators.gd"
+"path": "res://Simulate/GLTF/hf_actuator.gd"
 }, {
-"base": "GLTFDocumentExtension",
+"base": "Generic6DOFJoint3D",
 "class": &"HFArticulationBody",
 "language": &"GDScript",
-"path": "res://Simulate/GLTF/hf_articulation_bodies.gd"
+"path": "res://Simulate/GLTF/hf_articulation_body.gd"
 }, {
-"base": "GLTFDocumentExtension",
+"base": "StaticBody3D",
 "class": &"HFCollider",
 "language": &"GDScript",
-"path": "res://Simulate/GLTF/hf_colliders.gd"
+"path": "res://Simulate/GLTF/hf_collider.gd"
 }, {
 "base": "GLTFDocumentExtension",
+"class": &"HFExtensions",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/hf_extensions.gd"
+}, {
+"base": "PhysicsMaterial",
 "class": &"HFPhysicMaterial",
 "language": &"GDScript",
-"path": "res://Simulate/GLTF/hf_physic_materials.gd"
+"path": "res://Simulate/GLTF/hf_physic_material.gd"
 }, {
-"base": "GLTFDocumentExtension",
+"base": "Node3D",
 "class": &"HFRaycastSensor",
 "language": &"GDScript",
-"path": "res://Simulate/GLTF/hf_raycast_sensors.gd"
+"path": "res://Simulate/GLTF/hf_raycast_sensor.gd"
 }, {
-"base": "GLTFDocumentExtension",
+"base": "Node3D",
 "class": &"HFRewardFunction",
 "language": &"GDScript",
-"path": "res://Simulate/GLTF/hf_reward_functions.gd"
+"path": "res://Simulate/GLTF/hf_reward_function.gd"
 }, {
-"base": "GLTFDocumentExtension",
+"base": "RigidBody3D",
 "class": &"HFRigidBody",
 "language": &"GDScript",
-"path": "res://Simulate/GLTF/hf_rigid_bodies.gd"
+"path": "res://Simulate/GLTF/hf_rigid_body.gd"
 }, {
-"base": "GLTFDocumentExtension",
+"base": "Node3D",
 "class": &"HFStateSensor",
 "language": &"GDScript",
-"path": "res://Simulate/GLTF/hf_state_sensors.gd"
+"path": "res://Simulate/GLTF/hf_state_sensor.gd"
 }, {
 "base": "Node",
 "class": &"RLAction",
@@ -100,9 +105,10 @@ _global_script_class_icons={
 "Client": "",
 "Command": "",
 "GLTFEnums": "",
-"HFActuators": "",
+"HFActuator": "",
 "HFArticulationBody": "",
 "HFCollider": "",
+"HFExtensions": "",
 "HFPhysicMaterial": "",
 "HFRaycastSensor": "",
 "HFRewardFunction": "",
@@ -118,7 +124,7 @@ _global_script_class_icons={
 
 config/name="Simulate"
 run/main_scene="res://Scenes/scene.tscn"
-config/features=PackedStringArray("4.0", "Vulkan Clustered")
+config/features=PackedStringArray("4.0")
 config/icon="res://icon.png"
 
 [autoload]

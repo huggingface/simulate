@@ -11,3 +11,5 @@ enum CameraType { perspective, orthographic }
 enum LightType { directional, point, spot }
 enum ColliderType { box, sphere, capsule, mesh }
 enum InterpolationMode { ImportFromFile = -1, LINEAR = 0, STEP = 1, CUBICSPLINE = 2 }
+enum BufferViewTarget { ARRAY_BUFFER = 34962, ELEMENT_ARRAY_BUFFER = 34963 }
+enum PhysicMaterialCombine { average, minimum, multiply, maximum }
