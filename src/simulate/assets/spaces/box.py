@@ -24,16 +24,29 @@ class Box(Space):
     Cartesian product of n closed intervals. Each interval has the form of one
     of [a, b], (-oo, b], [a, oo), or (-oo, oo).
 
-    There are two common use cases:
+    Args:
+        low (`int` or `float` or `np.ndarray`):
+            Lower bound of the box. If a float, the bound is shared by all dimensions.
+            If an array, each dimension can have its own bound.
+        high (`int` or `float` or `np.ndarray`):
+            Upper bound of the box. If a float, the bound is shared by all dimensions.
+            If an array, each dimension can have its own bound.
+        shape (`Sequence[int]`, *optional*, default `None`):
+            Shape of the box. If `None`, the shape is inferred from the shape of `low` or `high`.
+        dtype (`np.dtype`, *optional*, default `np.float32`):
+            Data type of the box.
+        seed (`int`, *optional*, default `None`):
+            Seed for the random number generator.
 
-    * Identical bound for each dimension::
-        >>> Box(low=-1.0, high=2.0, shape=(3, 4), dtype=np.float32)
-        Box(3, 4)
 
-    * Independent bound for each dimension::
-        >>> Box(low=np.array([-1.0, -2.0]), high=np.array([2.0, 4.0]), dtype=np.float32)
-        Box(2,)
+    Examples:
+    ```python
+    # Identical bound for each dimension:
+    Box(low=-1.0, high=2.0, shape=(3, 4), dtype=np.float32) # Box(3, 4)
 
+    # Independent bound for each dimension:
+    Box(low=np.array([-1.0, -2.0]), high=np.array([2.0, 4.0]), dtype=np.float32) # Box(2,)
+    ```
     """
 
     def __init__(
@@ -72,6 +85,17 @@ class Box(Space):
         self.high = high
 
         def _get_precision(np_dtype: Union[Type, str, dtype]) -> int:
+            """
+            Get the precision of a numpy dtype.
+
+            Args:
+                np_dtype (`np.dtype` or `str` or `type`):
+                    Numpy dtype.
+
+            Returns:
+                precision (`int`):
+                    Precision of the numpy dtype.
+            """
             if np.issubdtype(np_dtype, np.floating):
                 return np.finfo(np_dtype).precision
             else:
@@ -91,7 +115,18 @@ class Box(Space):
 
         super(Box, self).__init__(self.shape, self.dtype, seed)
 
-    def is_bounded(self, manner: str = "both"):
+    def is_bounded(self, manner: str = "both") -> bool:
+        """
+        Check if the box is bounded.
+
+        Args:
+            manner (`str`, *optional*, default `both`):
+                Manner in which the box is bounded. Can be either `both`, `below`, or `above`.
+
+        Returns:
+            bounded (`bool`):
+                Whether the box is bounded.
+        """
         below = np.all(self.bounded_below)
         above = np.all(self.bounded_above)
         if manner == "both":
@@ -114,6 +149,10 @@ class Box(Space):
         * [a, oo) : shifted exponential distribution
         * (-oo, b] : shifted negative exponential distribution
         * (-oo, oo) : normal distribution
+
+        Returns:
+            sample (`np.ndarray`):
+                Random sample inside the box.
         """
         high = self.high if self.dtype.kind == "f" else self.high.astype("int64") + 1
         sample = np.empty(self.shape)
@@ -141,6 +180,17 @@ class Box(Space):
         return sample.astype(self.dtype)
 
     def contains(self, x: Any) -> bool:
+        """
+        Check if a sample is inside the box.
+
+        Args:
+            x (`np.ndarray`):
+                Sample to check.
+
+        Returns:
+            inside (`bool`):
+                Whether the sample is inside the box.
+        """
         if not isinstance(x, np.ndarray):
             warnings.warn("Casting input x to numpy array.")
             x = np.asarray(x, dtype=self.dtype)
@@ -153,9 +203,31 @@ class Box(Space):
         )
 
     def to_jsonable(self, sample_n: List[Any]):
+        """
+        Convert a batch of samples to a JSONable data type (e.g. `list`).
+
+        Args:
+            sample_n (`List[Any]`):
+                Batch of samples to convert.
+
+        Returns:
+            jsonable_sample_n (`List[Any]`):
+                JSONable batch of samples.
+        """
         return np.array(sample_n).tolist()
 
     def from_jsonable(self, sample_n: List[Any]) -> List[Any]:
+        """
+        Convert a batch of JSONable samples to a tensor.
+
+        Args:
+            sample_n (`List[Any]`):
+                Batch of JSONable samples to convert.
+
+        Returns:
+            sample_n (`List[Any]`):
+                Batch of samples.
+        """
         return [np.asarray(sample) for sample in sample_n]
 
     def __repr__(self) -> str:

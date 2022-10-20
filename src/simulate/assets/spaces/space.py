@@ -7,11 +7,14 @@
 # THE SOFTWARE.
 from typing import Any, Iterable, List, Mapping, Optional, Sequence, Tuple, Type, Union
 
+import numpy as np
+
 from . import seeding
 
 
 class Space(object):
-    """Defines the observation and action spaces, so you can write generic
+    """
+    Defines the observation and action spaces, so you can write generic
     code that applies to any Env. For example, you can choose a random
     action.
 
@@ -23,12 +26,20 @@ class Space(object):
     only well-defined for instances of spaces provided in gym by default.
     Moreover, some implementations of Reinforcement Learning algorithms might
     not handle custom spaces properly. Use custom spaces with care.
+
+    Args:
+        shape (`Sequence[int]`, *optional*, defaults to `None`):
+            The shape of the space.
+        dtype (`Type` or `str` or `np.dtype`, *optional*, defaults to `None`):
+            The data type of the space.
+        seed (`int`, *optional*, defaults to `None`):
+            The seed to use for the space's random number generator.
     """
 
     def __init__(
         self,
         shape: Optional[Sequence[int]] = None,
-        dtype: Optional[Union[Type, str]] = None,
+        dtype: Optional[Union[Type, str, np.dtype]] = None,
         seed: Optional[int] = None,
     ):
         import numpy as np  # takes about 300-400ms to import, so we load lazily
@@ -41,9 +52,7 @@ class Space(object):
 
     @property
     def np_random(self):
-        """Lazily seed the rng since this is expensive and only needed if
-        sampling from this space.
-        """
+        """Lazily seed the rng since this is expensive and only needed if sampling from this space."""
         if self._np_random is None:
             self.seed()
 
@@ -51,23 +60,44 @@ class Space(object):
 
     @property
     def shape(self) -> Tuple[int, ...]:
-        """Return the shape of the space as an immutable property"""
+        """
+        Get the shape of the space as an immutable property.
+
+        Returns:
+            shape (`Tuple[int, ...]`):
+                The shape of the space.
+        """
         return self._shape
 
     def sample(self) -> Any:
-        """Randomly sample an element of this space. Can be
-        uniform or non-uniform sampling based on boundedness of space."""
+        """
+        Randomly sample an element of this space.
+        Can be uniform or non-uniform sampling based on boundedness of space.
+        """
         raise NotImplementedError
 
     def seed(self, seed: Optional[int] = None) -> List[int]:
-        """Seed the PRNG of this space."""
+        """
+        Seed the PRNG of this space.
+
+        Args:
+            seed (`int`, *optional*, defaults to `None`):
+                The seed to use for the space's random number generator.
+        """
         self._np_random, seed = seeding.np_random(seed)
         return [seed]
 
     def contains(self, x: Any) -> bool:
         """
-        Return boolean specifying if x is a valid
-        member of this space
+        Check if `x` is a valid sample from this space.
+
+        Args:
+            x (`Any`):
+                The object to check.
+
+        Returns:
+            contains (`bool`):
+                Whether `x` is a valid sample from this space.
         """
         raise NotImplementedError
 

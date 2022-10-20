@@ -14,11 +14,19 @@ from .space import Space
 
 
 class Discrete(Space):
-    r"""A discrete space in :math:`\{ 0, 1, \\dots, n-1 \}`.
+    r"""
+    A discrete space in :math:`\{ 0, 1, \\dots, n-1 \}`.
 
-    Example::
+    Args:
+        n (`int`):
+            Dimension of the discrete space.
+        seed (`int`, `optional`, defaults to `None`):
+            Seed for the underlying random number generator.
 
-        >>> Discrete(2)
+    Examples:
+    ```python
+    Discrete(2)
+    ```
 
     """
 
@@ -28,9 +36,27 @@ class Discrete(Space):
         super(Discrete, self).__init__((), np.int64, seed)
 
     def sample(self) -> int:
+        """
+        Sample a random element of this space.
+
+        Returns:
+            sample (`int`):
+                A random element of this space.
+        """
         return self.np_random.randint(self.n)
 
     def contains(self, x: Any) -> bool:
+        """
+        Check if `x` is a valid element of this space.
+
+        Args:
+            x (`Any`):
+                The element to check.
+
+        Returns:
+            valid (`bool`):
+                Whether `x` is a valid element of this space.
+        """
         if isinstance(x, int):
             as_int = x
         elif isinstance(x, (np.generic, np.ndarray)) and (
