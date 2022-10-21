@@ -22,10 +22,18 @@ class Dict(Space):
     """
     A dictionary of simpler spaces.
 
-    Example usage:
+    Args:
+        spaces (`Dict[str, Space]` or `Sequence[Tuple[str, Space]]`, *optional*, defaults to `None`):
+            A dictionary of simpler spaces, or a list of (key, space) pairs.
+        seed (`int`, *optional*, defaults to `None`):
+            The seed to use to seed the RNG of this space.
+
+    Examples:
+    ```python
+    # Simple
     self.observation_space = spaces.Dict({"position": spaces.Discrete(2), "velocity": spaces.Discrete(3)})
 
-    Example usage [nested]:
+    # Nested
     self.nested_observation_space = spaces.Dict({
         'sensors':  spaces.Dict({
             'position': spaces.Box(low=-100, high=100, shape=(3,)),
@@ -46,6 +54,7 @@ class Dict(Space):
             })
         })
     })
+    ```
     """
 
     def __init__(
@@ -72,7 +81,18 @@ class Dict(Space):
             assert isinstance(space, Space), "Values of the dict should be instances of gym.Space"
         super(Dict, self).__init__(None, None, seed)  # None for shape and dtype, since it'll require special handling
 
-    def seed(self, seed: Optional[Union[int, dict]] = None):
+    def seed(self, seed: Optional[Union[int, dict]] = None) -> list:
+        """
+        Seed the RNG of these spaces.
+
+        Args:
+            seed (`int` or `dict`, *optional*, defaults to `None`):
+                The seed to use to seed the RNG of these spaces.
+
+        Returns:
+            seeds (`list`):
+                The list of seeds used to seed the RNG of these spaces.
+        """
         seeds = []
         if isinstance(seed, dict):
             for key, seed_key in zip(self.spaces, seed):
@@ -106,9 +126,27 @@ class Dict(Space):
         return seeds
 
     def sample(self) -> OrderedDict:
+        """
+        Sample a random element for each space in the dict.
+
+        Returns:
+            samples (`OrderedDict`):
+                The sampled elements.
+        """
         return OrderedDict([(k, space.sample()) for k, space in self.spaces.items()])
 
     def contains(self, x: Any) -> bool:
+        """
+        Check if the given element is contained in one of the spaces.
+
+        Args:
+            x (`Any`):
+                The element to check.
+
+        Returns:
+            contained (`bool`):
+                Whether the element is contained in one of the spaces.
+        """
         if not isinstance(x, dict) or len(x) != len(self.spaces):
             return False
         for k, space in self.spaces.items():
@@ -138,10 +176,31 @@ class Dict(Space):
         return "Dict(" + ", ".join([str(k) + ":" + str(s) for k, s in self.spaces.items()]) + ")"
 
     def to_jsonable(self, sample_n: List[Any]) -> dict:
-        # serialize as dict-repr of vectors
+        """
+        Serialize as dict-repr of vectors.
+
+        Args:
+            sample_n (`List[Any]`):
+                The samples to serialize.
+
+        Returns:
+            jsonable (`dict`):
+                The serialized samples.
+        """
         return {key: space.to_jsonable([sample[key] for sample in sample_n]) for key, space in self.spaces.items()}
 
     def from_jsonable(self, sample_n: dict) -> List[Any]:
+        """
+        Deserialize as list of dicts.
+
+        Args:
+            sample_n (`dict`):
+                The samples to deserialize.
+
+        Returns:
+            samples (`List[Any]`):
+                The deserialized samples.
+        """
         dict_of_list = {}
         key = None
         for key, space in self.spaces.items():

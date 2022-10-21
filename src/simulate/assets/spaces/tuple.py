@@ -17,8 +17,16 @@ class Tuple(Space):
     """
     A tuple (i.e., product) of simpler spaces
 
-    Example usage:
+    Args:
+        spaces (`Tuple[Space, ...]`):
+            Spaces which are members of the tuple.
+        seed (`int`, *optional*, defaults to `None`):
+            Seed for the random number generator.
+
+    Examples:
+    ```python
     self.observation_space = spaces.Tuple((spaces.Discrete(2), spaces.Discrete(3)))
+    ```
     """
 
     def __init__(self, spaces: typing.Tuple[Space, ...], seed: Optional[int] = None):
@@ -28,6 +36,17 @@ class Tuple(Space):
         super(Tuple, self).__init__(None, None, seed)
 
     def seed(self, seed: Optional[int] = None) -> List[int]:
+        """
+        Seed the underlying random number generator.
+
+        Args:
+            seed (`int`, *optional*, defaults to `None`):
+                Seed for the random number generator.
+
+        Returns:
+            seeds (`List[int]`):
+                List of seeds used in the spaces' random number generators.
+        """
         seeds = []
 
         if isinstance(seed, list):
@@ -59,9 +78,27 @@ class Tuple(Space):
         return seeds
 
     def sample(self) -> typing.Tuple[Any, ...]:
+        """
+        Sample a random element of this space.
+
+        Returns:
+            sample (`Tuple[Any, ...]`):
+                Sampled elements from the spaces.
+        """
         return tuple([space.sample() for space in self.spaces])
 
     def contains(self, x: Any) -> bool:
+        """
+        Check if the space contains the element `x`.
+
+        Args:
+            x (`Any`):
+                Element to check.
+
+        Returns:
+            contains (`bool`):
+                Whether the space contains the element `x`.
+        """
         if isinstance(x, list):
             x = tuple(x)  # Promote list to tuple for contains check
         return (
@@ -74,10 +111,28 @@ class Tuple(Space):
         return "Tuple(" + ", ".join([str(s) for s in self.spaces]) + ")"
 
     def to_jsonable(self, sample_n: List[Any]) -> List[Any]:
+        """
+        Convert a batch of samples from this space to a JSONable representation.
+
+        Args:
+            sample_n (`List[Any]`):
+                Batch of samples from this space.
+
+        Returns:
+            jsonable (`List[Any]`):
+                JSONable representation of the batch of samples.
+        """
         # serialize as list-repr of tuple of vectors
         return [space.to_jsonable([sample[i] for sample in sample_n]) for i, space in enumerate(self.spaces)]
 
     def from_jsonable(self, sample_n: List[Any]) -> List[Any]:
+        """
+        Convert a batch of JSONable samples to space samples.
+
+        Args:
+            sample_n (`List[Any]`):
+                Batch of samples from these spaces.
+        """
         return [sample for sample in zip(*[space.from_jsonable(sample_n[i]) for i, space in enumerate(self.spaces)])]
 
     def __getitem__(self, index: Union[int, slice]) -> Union[Space, typing.Tuple[Space, ...]]:

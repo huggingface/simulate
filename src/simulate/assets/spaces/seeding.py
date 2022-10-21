@@ -15,6 +15,19 @@ import numpy as np
 
 
 def np_random(seed: Optional[Union[int, str]] = None) -> Tuple[np.random.RandomState, int]:
+    """
+    Create a numpy random state seeded from a random seed.
+
+    Args:
+        seed (`int` or `str`, *optional*, defaults to `None`):
+            Random seed to use.
+
+    Returns:
+        rng (`numpy.random.RandomState`):
+            Random state seeded from the given seed.
+        seed (`int`):
+            Seed used to seed the random state.
+    """
     if seed is not None and not (isinstance(seed, int) and 0 <= seed):
         raise ValueError("Seed must be a non-negative integer or omitted, not {}".format(seed))
 
@@ -25,7 +38,8 @@ def np_random(seed: Optional[Union[int, str]] = None) -> Tuple[np.random.RandomS
 
 
 def hash_seed(seed: Optional[int] = None, max_bytes: int = 8) -> int:
-    """Any given evaluation is likely to have many PRNG's active at
+    """
+    Any given evaluation is likely to have many PRNG's active at
     once. (Most commonly, because the environment is running in
     multiple processes.) There's literature indicating that having
     linear correlations between seeds of multiple PRNG's can correlate
@@ -40,8 +54,10 @@ def hash_seed(seed: Optional[int] = None, max_bytes: int = 8) -> int:
     rid of simple correlations.)
 
     Args:
-        seed (Optional[int]): None seeds from an operating system specific randomness source.
-        max_bytes: Maximum number of bytes to use in the hashed seed.
+        seed (`int`, *optional*, defaults to `None`):
+            None seeds from an operating system specific randomness source.
+        max_bytes (`int`, *optional*, defaults to `8`):
+            Maximum number of bytes to use in the hashed seed.
     """
     if seed is None:
         seed = create_seed(max_bytes=max_bytes)
@@ -50,13 +66,20 @@ def hash_seed(seed: Optional[int] = None, max_bytes: int = 8) -> int:
 
 
 def create_seed(a: Optional[Union[int, str]] = None, max_bytes: int = 8) -> int:
-    """Create a strong random seed. Otherwise, Python 2 would seed using
+    """
+    Create a strong random seed. Otherwise, Python 2 would seed using
     the system time, which might be non-robust especially in the
     presence of concurrency.
 
     Args:
-        a (Optional[int, str]): None seeds from an operating system specific randomness source.
-        max_bytes: Maximum number of bytes to use in the seed.
+        a (`int` or `str`, *optional*, defaults to `None`):):
+            None seeds from an operating system specific randomness source.
+        max_bytes (`int`, *optional*, defaults to `8`)::
+            Maximum number of bytes to use in the seed.
+
+    Returns:
+        seed (`int`):
+            Seed used to seed the random state.
     """
     # Adapted from https://svn.python.org/projects/python/tags/r32/Lib/random.py
     if a is None:
@@ -74,6 +97,17 @@ def create_seed(a: Optional[Union[int, str]] = None, max_bytes: int = 8) -> int:
 
 # TODO: don't hardcode sizeof_int here
 def _bigint_from_bytes(bytes_data: bytes) -> int:
+    """
+    Convert a byte string to a big integer.
+
+    Args:
+        bytes_data (`bytes`):
+            Bytes to convert to a big integer.
+
+    Returns:
+        bigint (`int`):
+            Big integer representation of the given bytes.
+    """
     sizeof_int = 4
     padding = sizeof_int - len(bytes_data) % sizeof_int
     bytes_data += b"\0" * padding
@@ -86,6 +120,17 @@ def _bigint_from_bytes(bytes_data: bytes) -> int:
 
 
 def _int_list_from_bigint(bigint: int) -> List[int]:
+    """
+    Convert a big integer to a list of integers.
+
+    Args:
+        bigint (`int`):
+            Big integer to convert.
+
+    Returns:
+        int_list (`list`):
+            List of integers representation of the given big integer.
+    """
     # Special case 0
     if bigint < 0:
         raise ValueError("Seed must be non-negative, not {}".format(bigint))

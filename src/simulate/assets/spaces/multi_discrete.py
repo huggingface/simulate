@@ -40,21 +40,41 @@ class MultiDiscrete(Space):
 
         MultiDiscrete([ 5, 2, 2 ])
 
+    Args:
+        nvec (`List[int]`):
+            Vector of counts of each categorical variable.
+        dtype (`Union[Type, str]`):
+            Data type of the action space.
     """
 
     def __init__(self, nvec: List[int], dtype: Union[Type, str] = np.int64, seed: Optional[int] = None):
-        """
-        nvec: vector of counts of each categorical variable
-        """
         assert (np.array(nvec) > 0).all(), "nvec (counts) have to be positive"
         self.nvec = np.asarray(nvec, dtype=dtype)
 
         super(MultiDiscrete, self).__init__(self.nvec.shape, dtype, seed)
 
     def sample(self) -> Tuple[Any, ...]:
+        """
+        Sample a random element of this space.
+
+        Returns:
+            sample (`Tuple[Any, ...]`):
+                A random element of this space.
+        """
         return (self.np_random.random_sample(self.nvec.shape) * self.nvec).astype(self.dtype)
 
     def contains(self, x: Any) -> bool:
+        """
+        Check if `x` is a valid value in this space.
+
+        Args:
+            x (`Any`):
+                Value to check.
+
+        Returns:
+            valid (`bool`):
+                Whether `x` is a valid value in this space.
+        """
         if isinstance(x, list):
             x = np.array(x)  # Promote list to array for contains check
         # if nvec is uint32 and space dtype is uint32, then 0 <= x < self.nvec guarantees that x
@@ -62,9 +82,31 @@ class MultiDiscrete(Space):
         return x.shape == self.shape and (0 <= x).all() and (x < self.nvec).all()
 
     def to_jsonable(self, sample_n: np.ndarray) -> List[Any]:
+        """
+        Convert a sample from this space to a JSONable type.
+
+        Args:
+            sample_n (`np.ndarray`):
+                Sample to convert.
+
+        Returns:
+            jsonable (`List[Any]`):
+                JSONable representation of the sample.
+        """
         return [sample.tolist() for sample in sample_n]
 
     def from_jsonable(self, sample_n: List[Any]) -> np.ndarray:
+        """
+        Convert a sample from JSONable type to this space.
+
+        Args:
+            sample_n (`List[Any]`):
+                Sample to convert.
+
+        Returns:
+            sample_n (`np.ndarray`):
+                Sample in this space.
+        """
         return np.array(sample_n)
 
     def __repr__(self) -> str:
