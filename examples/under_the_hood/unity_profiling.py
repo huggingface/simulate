@@ -8,7 +8,7 @@ import simulate as sm
 
 
 def ms():
-    return round(time.time() * 1000)
+    return round(time.perf_counter() * 1000)
 
 
 def profile_create_scene(engine_exe, silent=False):
@@ -41,7 +41,7 @@ if __name__ == "__main__":
 
     scene = profile_create_scene(args.build_exe, silent=False)
     times = []
-    for i in tqdm(range(10000)):
+    for i in tqdm(range(1000)):
         echo_time = profile_echo(scene, silent=True)
         if i > 0:
             times.append(echo_time)
