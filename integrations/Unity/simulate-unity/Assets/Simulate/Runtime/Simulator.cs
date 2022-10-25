@@ -216,7 +216,11 @@ namespace Simulate {
                 .SelectMany(x => x.GetTypes())
                 .Where(x => !x.IsInterface && !x.IsAbstract && typeof(IGLTFExtension).IsAssignableFrom(x))
                 .ToList().ForEach(type => {
-                    extensions.Add(type.Name, type);
+                    if(extensions.ContainsKey(type.Name)) {
+                        Debug.LogWarning($"Plugin named {type.Name} already exists, skipping.");
+                    } else {
+                        extensions.Add(type.Name, type);
+                    }
                 });
         }
 
