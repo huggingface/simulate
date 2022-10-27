@@ -60,6 +60,7 @@ class RLEnv:
         self.actor = next(iter(self.actors.values()))
 
         # copy action, observation space, and action tags
+        # currently only works for agents with the same actions space, which is not general
         self.action_space = self.scene.actors[0].action_space
         self.observation_space = self.scene.actors[0].observation_space
         self.action_tags = self.scene.actors[0].action_tags
@@ -264,8 +265,15 @@ class RLEnv:
         Returns:
             action (`ndarray`): action sampled from the environment's action space.
         """
-        action = [self.action_space.sample() for _ in range(self.n_actors)]
-        return action
+        actions = []
+        for _ in range(self.n_actors):
+            sub_action = self.action_space.sample()
+            if isinstance(sub_action, (float, int)):
+                actions.append([sub_action])
+            else:
+                actions.append(sub_action)
+        # action = np.stack([self.action_space.sample() for _ in range(self.n_actors)])
+        return np.stack(actions)
 
     # required abstract methods
 
