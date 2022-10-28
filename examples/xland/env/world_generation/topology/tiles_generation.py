@@ -14,23 +14,20 @@ def get_tile(h, orientation=0):
 def generate_tiles_settings(max_height=6, double_ramp=True):
     """
     Generate tiles for the procedural generation.
-    NOTE: So far, we are using these values to get used to how to use the algorithm.
 
     Args:
         max_height: can be any integer between 1 and 256 (and it's advisable to use a power of 2, to avoid
             approximation errors).
-        weights: weights for each of the levels of height. If none, defaults for a linear decay between [10, 0.2]
         double_ramp: whether double ramps should be allowed or not.
 
     Returns:
         Dict(tiles, symmetries, weights, neighbors)
     """
+    plain_weights = [2.0] * max_height
+    border_weights = [2.0] * max_height
+    corner_weights = [0.5] * max_height
+    ramp_weights = [4.] * max_height
 
-    # TODO: which should be default weights?
-    plain_weights = np.exp(np.linspace(1.0, -3.0, max(6, max_height)))[:max_height]
-    ramp_weights = [0.8] * max_height
-
-    # Step for the height (which is represented by the intensity of the color)
     tiles = []
     symmetries = []
     weights = []
@@ -39,44 +36,63 @@ def generate_tiles_settings(max_height=6, double_ramp=True):
     # Generate tiles
     for h in range(max_height):
         # Generate plain tile
-        tiles.append(get_tile(h))
-
-        # Symmetry of a certain letter means that it has the sames symmetric
-        # as the letter
+        tiles.append(
+            {
+                "name": f"plain_{h}",
+                "image": get_tile(h)
+             })
         symmetries.append("X")
         weights.append(plain_weights[h])
-        neighbors.append((tiles[-1], tiles[-1]))
+        if h > 0:
+            # Generate border tile
+            tiles.append(
+                {
+                    "name": f"border_{h}",
+                    "image": get_tile(h)
+                })
+            symmetries.append("T")
+            weights.append(border_weights[h])
+            # Generate corner tile
+            tiles.append(
+                {
+                    "name": f"corner_{h}",
+                    "image": get_tile(h)
+                })
+            symmetries.append("L")
+            weights.append(corner_weights[h])
+            for _i in range(h):
+                neighbors.append((f"border_{h}", f"plain_{_i}", 1, 0))
+                neighbors.append((f"corner_{h}", f"plain_{_i}", 1, 0))
+                neighbors.append((f"border_{h}", f"border_{_i}", 1, 1))
+                neighbors.append((f"corner_{h}", f"border_{_i}", 1, 1))
 
-        # If i == max_height - 1, then we don't add more ramps
+            neighbors.append((f"border_{h}", f"border_{h}"))
+            neighbors.append((f"border_{h}", f"corner_{h}", 2, 2))
+            neighbors.append((f"plain_{h}", f"border_{h}", 0, 1))
+            neighbors.append((f"plain_{h}", f"corner_{h}", 0, 1)) # Remove this when diag tiles are added
+
+        neighbors.append((f"plain_{h}", f"plain_{h}"))
+
         if h < max_height - 1:
-            # Add transition from upper tiles to downer tiles
-            neighbors.append((get_tile(h + 1), get_tile(h)))
-
-            # Generation of ramp tiles:
-            # Here we only generate from bottom to top, right to left, left to right
-            # and top to bottom, in this order
-            tiles.append(get_tile(h, 1))
+            tiles.append(
+                {
+                    "name": f"ramp_{h}",
+                    "image": get_tile(h, 1)
+                })
             symmetries.append("L")
             weights.append(ramp_weights[h])
+            neighbors.append((f"border_{h + 1}", f"ramp_{h}", 1, 3))
+            neighbors.append((f"corner_{h + 1}", f"ramp_{h}", 1, 3))
+            neighbors.append((f"ramp_{h}", f"plain_{h}", 3, 0))
+            neighbors.append((f"ramp_{h}", f"border_{h}", 3, 1))
+            neighbors.append((f"ramp_{h}", f"corner_{h}", 3, 1))
 
-            # We add neighbors
-            # Notice that we have to add orientation
-            # The tiles are rotate clockwise as i * 2 + ax increases
-            # And we add a rotation to fix that and keep the ramps in the right place
-            neighbors.append((get_tile(h, 1), get_tile(h), 0, 0))
-            neighbors.append((get_tile(h + 1), get_tile(h, 1), 0, 0))
-
-            # BUG: Two ramps one on the side of the another
-            # For some reason, if we add them, we get some unexpected results, so we
-            # won't use it for now
-            # neighbors.append((get_tile(h, 1), get_tile(h, 1), 1, 1))
-
-            # Adding ramp to going upwards
-            if h < max_height - 2 and double_ramp:
-                neighbors.append((get_tile(h + 1, 1), get_tile(h, 1), 0, 0))
+        #     # Adding ramp to going upwards
+        #     if h < max_height - 2 and double_ramp:
+        #         neighbors.append((get_tile(h + 1, 1), get_tile(h, 1), 0, 0))
 
     return {
-        "tiles": np.array(tiles),
+        "tiles": tiles,
         "symmetries": np.array(symmetries),
         "weights": np.array(weights),
         "neighbors": neighbors
