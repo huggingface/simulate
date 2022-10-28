@@ -39,9 +39,9 @@ def transform_to_id_pair(uid, rotation=0, reflected=0):
 
 def preprocess_tiles(
     tiles: np.ndarray, symmetries: Optional[np.ndarray] = None, weights: Optional[np.ndarray] = None
-) -> Tuple[list, dict, dict, tuple]:
-    n_tiles, tile_w, tile_h = tiles.shape
-    tile_shape = tile_w, tile_h
+) -> Tuple[list, tuple]:
+    n_tiles = len(tiles)
+    tile_shape = tiles[0]['image'].shape
 
     if symmetries is None:
         symmetries = ["L"] * n_tiles
@@ -49,39 +49,28 @@ def preprocess_tiles(
     if weights is None:
         weights = [1] * n_tiles
 
-    tiles = [tuple(map(tuple, tile)) for tile in tiles]
-
-    idx_to_tile = {i: tiles[i] for i in range(n_tiles)}
-    tile_to_idx = {tiles[i]: i for i in range(n_tiles)}
-
     converted_tiles = [
         build_wfc_tile(
             size=1,
             tile=[i],
-            name=str(i),
+            name=tiles[i]['name'],
             symmetry=symmetries[i],
             weight=weights[i],
         )
         for i in range(n_tiles)
     ]
 
-    return converted_tiles, idx_to_tile, tile_to_idx, tile_shape
+    return converted_tiles, tile_shape
 
 
-def preprocess_neighbors(neighbors: np.ndarray, tile_to_idx: dict) -> list:
+def preprocess_neighbors(neighbors: np.ndarray) -> list:
     """
     Preprocesses tiles.
     """
     preprocessed_neighbors = []
 
     for neighbor in neighbors:
-        preprocessed_neighbor = (
-            str(tile_to_idx[tuple(map(tuple, neighbor[0]))]),
-            str(tile_to_idx[tuple(map(tuple, neighbor[1]))]),
-            *neighbor[2:],
-        )
-
-        preprocessed_neighbors.append(build_wfc_neighbor(*preprocessed_neighbor))
+        preprocessed_neighbors.append(build_wfc_neighbor(*neighbor))
 
     return preprocessed_neighbors
 
@@ -91,14 +80,14 @@ def preprocess_tiles_and_neighbors(
     neighbors: np.ndarray,
     symmetries: Optional[np.ndarray] = None,
     weights: Optional[np.ndarray] = None,
-) -> Tuple[list, list, dict, tuple]:
+) -> Tuple[list, list, tuple]:
     """
     Preprocesses tiles.
     """
-    converted_tiles, idx_to_tile, tile_to_idx, tile_shape = preprocess_tiles(tiles, symmetries, weights)
-    converted_neighbors = preprocess_neighbors(neighbors, tile_to_idx)
+    converted_tiles, tile_shape = preprocess_tiles(tiles, symmetries, weights)
+    converted_neighbors = preprocess_neighbors(neighbors)
 
-    return converted_tiles, converted_neighbors, idx_to_tile, tile_shape
+    return converted_tiles, converted_neighbors, tile_shape
 
 
 def preprocess_input_img(input_img: np.ndarray) -> Tuple[list, dict, tuple]:
@@ -126,7 +115,7 @@ def preprocess_input_img(input_img: np.ndarray) -> Tuple[list, dict, tuple]:
 
 
 def get_tiles_back(
-    gen_map: np.ndarray, tile_conversion: dict, nb_samples: int, width: int, height: int, tile_shape: tuple
+    gen_map: np.ndarray, tiles: np.ndarray, nb_samples: int, width: int, height: int, tile_shape: tuple
 ) -> np.ndarray:
     """
     Returns tiles back.
@@ -136,7 +125,8 @@ def get_tiles_back(
 
     for i in range(nb_samples * width * height):
         # Rotate and reflect single tiles / patterns
-        converted_tile = np.rot90(tile_conversion[gen_map[i][0]], gen_map[i][1])
+        selected_tile = tiles[gen_map[i][0]]
+        converted_tile = np.rot90(selected_tile["image"], gen_map[i][1])
         if gen_map[i][2] == 1:
             converted_tile = np.fliplr(converted_tile)
         converted_map.append(converted_tile)
@@ -167,10 +157,11 @@ def apply_wfc(
             input_width, input_height = input_img.shape[:2]
             input_img, tile_conversion, tile_shape = preprocess_input_img(input_img)
             sample_type = 1
-
+            _tiles = tiles
+            _neighbors = neighbors
         else:
             input_width, input_height = 0, 0
-            tiles, neighbors, tile_conversion, tile_shape = preprocess_tiles_and_neighbors(
+            _tiles, _neighbors, tile_shape = preprocess_tiles_and_neighbors(
                 tiles, neighbors, symmetries, weights
             )
             sample_type = 0
@@ -198,11 +189,11 @@ def apply_wfc(
             symmetry=symmetry,
             verbose=verbose,
             nb_tries=nb_tries,
-            tiles=tiles,
-            neighbors=neighbors,
+            tiles=_tiles,
+            neighbors=_neighbors,
         )
 
-        gen_map = get_tiles_back(gen_map, tile_conversion, nb_samples, width, height, tile_shape)
+        gen_map = get_tiles_back(gen_map, tiles, nb_samples, width, height, tile_shape)
         return gen_map
 
     else:
