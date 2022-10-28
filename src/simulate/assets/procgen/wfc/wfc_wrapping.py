@@ -139,19 +139,20 @@ def apply_wfc(
     weights: Optional[np.ndarray] = None,
 ) -> Optional[np.ndarray]:
     if (tiles is not None and neighbors is not None) or input_img is not None:
+        _tiles, _neighbors, tile_shape = preprocess_tiles_and_neighbors(
+            tiles, neighbors, symmetries, weights
+        )
         if input_img is not None:
             input_width, input_height = input_img.shape[:2]
             input_img, tile_conversion, tile_shape = preprocess_input_img(input_img)
-            sample_type = 1
-            _tiles = tiles
-            _neighbors = neighbors
+            # sample_type = 1
+            # _tiles = tiles
+            # _neighbors = neighbors
         else:
             input_width, input_height = 0, 0
-            _tiles, _neighbors, tile_shape = preprocess_tiles_and_neighbors(
-                tiles, neighbors, symmetries, weights
-            )
-            sample_type = 0
+        #     sample_type = 0
 
+        sample_type = 0
         gen_map = run_wfc(
             width=width,
             height=height,
