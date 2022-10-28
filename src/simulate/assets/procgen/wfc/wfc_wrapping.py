@@ -161,11 +161,10 @@ def apply_wfc(
             input_width, input_height = input_img.shape[:2]
             input_img, tile_conversion, tile_shape = preprocess_input_img(input_img)
             sample_type = 1
-            _tiles = tiles
-            _neighbors = neighbors
+
         else:
             input_width, input_height = 0, 0
-            _tiles, _neighbors, tile_shape = preprocess_tiles_and_neighbors(
+            tiles, neighbors, tile_conversion, tile_shape = preprocess_tiles_and_neighbors(
                 tiles, neighbors, symmetries, weights
             )
             sample_type = 0
@@ -193,11 +192,11 @@ def apply_wfc(
             symmetry=symmetry,
             verbose=verbose,
             nb_tries=nb_tries,
-            tiles=_tiles,
-            neighbors=_neighbors,
+            tiles=tiles,
+            neighbors=neighbors,
         )
 
-        gen_map = get_tiles_back(gen_map, tiles, nb_samples, width, height, tile_shape)
+        gen_map = get_tiles_back(gen_map, tile_conversion, nb_samples, width, height, tile_shape)
         return gen_map
 
     else:

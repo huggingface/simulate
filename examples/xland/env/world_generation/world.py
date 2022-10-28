@@ -21,18 +21,20 @@ class World:
         }
         self.__min_playable_area_size = min_playable_area_size
         self.__require_full_lower_floor_accessible = require_full_lower_floor_accessible
+        self.__topology_grid = None
 
-        self.__generate(100)
+    def mutate_from_existing(self, previous_world):
+        '''
+        TODO: mutate objects/agents distributions?
+        '''
+        self.generate(previous_world.__topology_grid.map_2d)
 
-    def get_root_object(self):
-        return self.__topology_grid
-
-    def __generate(self, nb_attemps):
+    def generate(self, conditioning_topology=None, nb_attemps=100):
         # Generate a playable topology
         _attempt = 1
         while True:
             # 1) generate topology using WFC
-            simulate_topology_grid = self.__generate_topology()
+            simulate_topology_grid = self.__generate_topology(conditioning_topology)
             # 2) Assert topology is playable
             #   a) Compute connectivity graph for this topology
             graph = self.__compute_connectivity_graph(simulate_topology_grid.map_2d)
@@ -44,6 +46,7 @@ class World:
             elif _attempt >= nb_attemps:
                 raise Exception(f"Unable to generate playable topology in {nb_attemps} attempts.")
             _attempt += 1
+            conditioning_topology = simulate_topology_grid.map_2d
 
         self.__topology_grid = simulate_topology_grid
         self.__topology_graph = graph
@@ -57,12 +60,14 @@ class World:
         self.__topology_grid.generate_3D()
         # TODO: Add walls and colliders
 
+    def get_root_object(self):
+        return self.__topology_grid
 
-
-    def __generate_topology(self):
+    def __generate_topology(self, conditioning_topology=None):
          return sm.ProcgenGrid(
             width=self.__map_width,
             height=self.__map_height,
+            sample_map=conditioning_topology,
             tiles=self.__tiles_settings["tiles"],
             symmetries=self.__tiles_settings["symmetries"],
             weights=self.__tiles_settings["weights"],
@@ -101,9 +106,3 @@ class World:
 
     def __position_agents(self):
         pass
-
-    def mutate(self):
-        '''
-        TODO: World-conditioned generation + mutate CPPN?
-        '''
-        raise NotImplementedError()
