@@ -6,19 +6,18 @@ import numpy as np
 import simulate as sm
 
 class World:
-    def __init__(self, map_width, map_height, max_map_level, min_playable_area_size=0.5,
+    def __init__(self, map_width, map_height, max_map_level, min_playable_area_size=0.9,
                 require_full_lower_floor_accessible=True):
         self.__map_width = map_width
         self.__map_height = map_height
-        self.__tiles_settings = generate_tiles_settings(max_map_level)
+        self.__tiles_settings = generate_tiles_settings(max_map_level, double_ramp=False)
         self.__wfc_args = {
             "periodic_output": False,
-            "N": 2,
             "periodic_input": False,
             "ground": False,
             "nb_samples": 1,
             "symmetry": 4,
-            "verbose": False,
+            "verbose": True,
         }
         self.__min_playable_area_size = min_playable_area_size
         self.__require_full_lower_floor_accessible = require_full_lower_floor_accessible
@@ -52,9 +51,11 @@ class World:
         # First remove ramps from nodes objects can be put on
         self.__playable_topology_subgraph = [tile for tile in graph["plain_tiles"]
                                              if tile in largest_connected_component]
+        # TODO: Implement other distributions than uniform for objects and agents (e.g. CPPN)
         self.__position_objects()
         self.__position_agents()
         self.__topology_grid.generate_3D()
+        # TODO: Add walls and colliders
 
 
 
@@ -102,4 +103,7 @@ class World:
         pass
 
     def mutate(self):
+        '''
+        TODO: World-conditioned generation + mutate CPPN?
+        '''
         raise NotImplementedError()
