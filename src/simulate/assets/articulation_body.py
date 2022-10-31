@@ -13,7 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simulate JointComponent."""
+""" A simulate ArticulationBodyComponent."""
 import itertools
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
@@ -36,8 +36,8 @@ class ArticulationBodyComponent(
         joint_type (`str`):
             The type of articulation (aka joint) to use.
             - "fixed": no movement allowed
-            - "slider": only translation along 1 axis allowed
-            - "hinge": only rotation along 1 axis allowed
+            - "prismatic": only translation along 1 axis allowed
+            - "revolute": only rotation along 1 axis allowed
         anchor_rotation (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0, 1.0]`):
             The rotation axis along which the asset is allowed to move relative to its parent (translation or rotation).
         anchor_position (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
@@ -64,7 +64,6 @@ class ArticulationBodyComponent(
             The upper limit of the joint.
         lower_limit (`float`, *optional*, defaults to `0.0`):
             The lower limit of the joint.
-
         mass (`float`, *optional*, defaults to `1.0`):
             The mass of the body.
         center_of_mass (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
