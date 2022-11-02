@@ -15,6 +15,7 @@
 # Lint as: python3
 
 import argparse
+import pdb
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -28,15 +29,27 @@ def make_scene(build_exe):
     # add light to our scene
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
-    base = sm.Cylinder(radius=0.5, height=3, rotation=[0, 0, 90])
+    base = sm.Box(position=[0,0,0], material=sm.Material.GRAY, with_collider=False)
     base.physics_component = sm.ArticulationBodyComponent(
-        "fixed", immovable=True, use_gravity=False
+        "fixed", immovable=True, use_gravity=False,
     )  # note for the base the joint type is ignored
 
-    link_base = sm.Box(name="base_joint", is_actor=True, bounds=[1, 1, 3])
-    axis_base = [0.0, 0.0, 1.0]
+    USE_GRAVITY = False
+    # link_base = sm.Box(name="base_joint", is_actor=True, bounds=[1, 1, 3])
+    arm_length = 5
+    arm_radius = 0.5
+    link_base = sm.Cylinder(
+        name="base_joint",
+        is_actor=True,
+        position=[-arm_length / 2.0, arm_length / 2.0, 0],
+        radius=arm_radius,
+        height=arm_length,
+        rotation=[0, 0, 90.0],
+    )
+
+    axis_base = [0.0, 1.0, 0.0]
     link_base.physics_component = sm.ArticulationBodyComponent(
-        "prismatic", anchor_position=[0, 0, 0.5], anchor_rotation=axis_base, use_gravity=False
+        "revolute", anchor_position=[-arm_length / 2.0, arm_length / 2.0, 0.0], anchor_rotation=axis_base, use_gravity=USE_GRAVITY,
     )
     mapping = [
         sm.ActionMapping("add_torque", axis=axis_base, amplitude=1.0),
@@ -44,14 +57,24 @@ def make_scene(build_exe):
     link_base.actuator = sm.Actuator(shape=(1,), low=-1.0, high=1.0, mapping=mapping, actuator_tag="base_joint")
 
     num_links = 3
-    links = []
+    # links = []
     prev_link = link_base
     # for n in reversed(range(num_links, 0, -1)):
     for n in range(num_links):
-        link = sm.Box(name=f"joint{n}", parent=prev_link, bounds=[1, 1, 3])
+        link = sm.Cylinder(
+            name=f"joint{n}",
+            position=[-arm_length / 2.0, arm_length / 2.0, 0], # x position adjusts for rotation
+            height=arm_length,
+            parent=prev_link,
+            rotation=[0, 0, 90.0],
+            radius=arm_radius,
+        )
         axis = np.random.rand(3).tolist()
         link.physics_component = sm.ArticulationBodyComponent(
-            "prismatic", anchor_position=[0, 0, 0.5], anchor_rotation=axis, use_gravity=False
+            "revolute",
+            anchor_position=[0, -arm_length / 2.0, 0],
+            anchor_rotation=axis,
+            use_gravity=USE_GRAVITY,
         )
         mapping = [
             sm.ActionMapping("add_torque", axis=axis, amplitude=1.0),
@@ -62,6 +85,7 @@ def make_scene(build_exe):
 
     base += link_base
     scene += base
+    # import ipdb; pdb.set_trace()
     return scene
 
 

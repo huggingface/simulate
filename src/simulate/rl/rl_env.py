@@ -272,7 +272,7 @@ class RLEnv:
                 action = self.action_space.sample()
         else:
             # all actions are under one tag
-            action = [self.action_space.sample() for _ in range(self.n_actors)]
+            action = [self.action_space.sample().tolist() for _ in range(self.n_actors)]
         return action
 
     # required abstract methods
