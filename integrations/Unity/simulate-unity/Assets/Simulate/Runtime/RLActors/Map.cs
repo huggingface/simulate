@@ -79,6 +79,7 @@ namespace Simulate.RlAgents {
                 }
                 //Debug.Log($"actions for actor {i}: {actionsForActor}");
                 actor.SetAction(actionsForActor);
+                i++;
             }
         }
 

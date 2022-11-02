@@ -13,6 +13,7 @@
 # limitations under the License.
 
 # Lint as: python3
+import pdb
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -156,6 +157,7 @@ class RLEnv:
                 value = value.reshape((1, self.n_actors, -1))
                 action[key] = value.tolist()
 
+        # import ipdb;pdb.set_trace()
         self.scene.engine.step_send_async(action=action)
 
     def step_recv_async(self) -> Tuple[Dict, np.ndarray, np.ndarray, Dict]:
@@ -265,15 +267,12 @@ class RLEnv:
         Returns:
             action (`ndarray`): action sampled from the environment's action space.
         """
-        actions = []
-        for _ in range(self.n_actors):
-            sub_action = self.action_space.sample()
-            if isinstance(sub_action, (float, int)):
-                actions.append([sub_action])
-            else:
-                actions.append(sub_action)
-        # action = np.stack([self.action_space.sample() for _ in range(self.n_actors)])
-        return np.stack(actions)
+
+        # sample actions per actor
+        actions = [self.action_space.sample() for _ in range(self.n_actors)]
+
+        # outer most list element is 1 for base rl_env because maps = 1, inner element is action dimension
+        return np.stack(actions).reshape((1,self.n_actors,-1)).tolist()
 
     # required abstract methods
 

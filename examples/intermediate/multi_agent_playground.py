@@ -28,7 +28,7 @@ import simulate as sm
 
 
 def make_scene(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=build_exe)
+    scene = sm.Scene(engine="unity", engine_exe=None)
 
     # add light to our scene
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
