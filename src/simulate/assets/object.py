@@ -694,7 +694,7 @@ class Box(Object3D):
                 => bounds are ``(-size/2, size/2, size/2, size/2, -size/2, size/2)``
             If no value is provided, create a centered unit box
         level (`int`, *optional*, defaults to `0`):
-            The level of subdivision of the box. The number of faces will be 6*4**level.
+             The level of subdivision of the box. The number of faces will be 6*4**level.
         quads (`bool`, *optional*, defaults to `True`):
             If `True`, the faces of the box will be quads. Otherwise, they will be triangles.
         with_colliders (`bool`, *optional*, defaults to `True`):

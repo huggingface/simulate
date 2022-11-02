@@ -264,7 +264,15 @@ class RLEnv:
         Returns:
             action (`ndarray`): action sampled from the environment's action space.
         """
-        action = [self.action_space.sample() for _ in range(self.n_actors)]
+        if len(self.action_tags) > 1:
+            # actor has actuators across multiple assets
+            if self.n_actors > 1:
+                raise NotImplementedError("Multi-agent multi-actuator actions not yet supported")
+            else:
+                action = self.action_space.sample()
+        else:
+            # all actions are under one tag
+            action = [self.action_space.sample() for _ in range(self.n_actors)]
         return action
 
     # required abstract methods

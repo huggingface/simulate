@@ -84,6 +84,8 @@ class ActionMapping:
             The offset of the action to be applied (see below for details)
         axis (`List[float]`):
             The axis of the action to be applied along or around.
+            TODO -- shape for forces
+            TODO -- shape for torques
         position (`List[float]`):
             The position of the action.
             In the case of the "add_force_at_position" action, this is the position of the force.
