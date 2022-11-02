@@ -29,7 +29,7 @@ import simulate as sm
 
 def make_scene(index=None, build_exe=None):
     if not index:
-        root = sm.Scene(engine="unity", engine_exe=None)
+        root = sm.Scene(engine="unity", engine_exe=build_exe)
 
         # add light to our scene
         root += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
