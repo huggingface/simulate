@@ -13,7 +13,6 @@
 # limitations under the License.
 
 # Lint as: python3
-import pdb
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
 import numpy as np
@@ -50,7 +49,6 @@ class RLEnv:
 
         # map roots needed for engine, which is designed for parallel computation
         self.map_roots = [self.scene]
-
         self.actors = {actor.name: actor for actor in self.scene.actors}
         self.n_actors = len(self.actors)
         if self.n_actors == 0:
@@ -259,20 +257,20 @@ class RLEnv:
         """Close the scene."""
         self.scene.close()
 
-    def sample_action(self) -> list:
+    def sample_action(self) -> list[list[list[Union[float,int]]]]:
         """
         Samples an action from the actors in the environment. This function loads the configuration of maps and actors
         to return the correct shape across multiple configurations.
 
         Returns:
-            action (`ndarray`): action sampled from the environment's action space.
+            action (`list[list[list[float]]]`): Lists of the actions, dimensions are n-maps, n-actors, action-dim.
         """
 
         # sample actions per actor
         actions = [self.action_space.sample() for _ in range(self.n_actors)]
 
         # outer most list element is 1 for base rl_env because maps = 1, inner element is action dimension
-        return np.stack(actions).reshape((1,self.n_actors,-1)).tolist()
+        return np.stack(actions).reshape((1, self.n_actors, -1)).tolist()
 
     # required abstract methods
 

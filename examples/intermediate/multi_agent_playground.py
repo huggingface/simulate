@@ -27,35 +27,47 @@ import simulate as sm
 # The actor must find a randomly colored box labelled `target`.
 
 
-def make_scene(build_exe):
-    scene = sm.Scene(engine="unity", engine_exe=None)
+def make_scene(index=None, build_exe=None):
+    if not index:
+        root = sm.Scene(engine="unity", engine_exe=None)
 
-    # add light to our scene
-    scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+        # add light to our scene
+        root += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+
+    else:
+        root = sm.Asset(name=f"root_{index}")
 
     # create the walls of the agent's world
-    scene += sm.Box(
-        name="floor",
+    root += sm.Box(
+        name=f"floor_{index}",
         position=[0, 0, 0],
-        bounds=[-50, 50, 0, 0.1, -50, 50],
+        bounds=[-15, 15, 0, 0.1, -15, 15],
         material=sm.Material.BLUE,
         with_collider=True,
     )
-    scene += sm.Box(
-        name="wall1",
+    root += sm.Box(
+        name=f"wall1_{index}",
         position=[-10, 0, 0],
         bounds=[0, 0.1, 0, 1, -10, 10],
         material=sm.Material.RED,
         with_collider=True,
     )
-    scene += sm.Box(
-        name="wall2", position=[10, 0, 0], bounds=[0, 0.1, 0, 1, -10, 10], material=sm.Material.RED, with_collider=True
+    root += sm.Box(
+        name=f"wall2_{index}",
+        position=[10, 0, 0],
+        bounds=[0, 0.1, 0, 1, -10, 10],
+        material=sm.Material.RED,
+        with_collider=True,
     )
-    scene += sm.Box(
-        name="wall3", position=[0, 0, 10], bounds=[-10, 10, 0, 1, 0, 0.1], material=sm.Material.RED, with_collider=True
+    root += sm.Box(
+        name=f"wall3_{index}",
+        position=[0, 0, 10],
+        bounds=[-10, 10, 0, 1, 0, 0.1],
+        material=sm.Material.RED,
+        with_collider=True,
     )
-    scene += sm.Box(
-        name="wall4",
+    root += sm.Box(
+        name=f"wall4_{index}",
         position=[0, 0, -10],
         bounds=[-10, 10, 0, 1, 0, 0.1],
         material=sm.Material.RED,
@@ -63,45 +75,48 @@ def make_scene(build_exe):
     )
 
     # add a camera to the scene to observe the activity
-    scene += sm.Camera(sensor_tag="SecurityCamera", position=[0, 32, 0], rotation=[90, 0, 0])
+    root += sm.Camera(sensor_tag="SecurityCamera", position=[0, 32, 0], rotation=[90, 0, 0])
 
     # Let's add a default actor in the scene, a capsule mesh with associated actions and a camera as observation device
     # You can create an actor by adding an actuator to an object with physics enabled.
     init_pos1 = np.random.random(3)
     actor1 = sm.EgocentricCameraActor(
-        name="actor1", position=init_pos1, # camera_tag="CameraSensor1"
+        name=f"actor1_{index}",
+        position=init_pos1,  # camera_tag="CameraSensor1"
     )  # Has a collider by default
 
     init_pos2 = np.random.random(3)
-    actor2 = sm.EgocentricCameraActor(
-        name="actor2", position=init_pos2, # camera_tag="CameraSensor2"
+    actor2 = sm.SimpleActor(
+        name=f"actor2_{index}",
+        position=init_pos2,  # camera_tag="CameraSensor2"
     )  # Has a collider by default
 
     init_pos3 = np.random.random(3)
-    actor3 = sm.EgocentricCameraActor(
-        name="actor3", position=init_pos3, # camera_tag="CameraSensor3"
+    actor3 = sm.SimpleActor(
+        name=f"actor3_{index}",
+        position=init_pos3,  # camera_tag="CameraSensor3"
     )  # Has a collider by default
 
-    scene += actor1
-    scene += actor2
-    scene += actor3
+    root += actor1
+    root += actor2
+    root += actor3
 
     # add a target of a differently colored cube and a reward function
     material = sm.Material(base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)])
     target = sm.Box(
-        name="cube",
+        name=f"cube_{index}",
         position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)],
         material=material,
         with_collider=True,
     )
-    scene += target
+    root += target
 
     # create a randomly colored cube to distract the actor
     random_material = sm.Material(
         base_color=[random.uniform(0.0, 1.0), random.uniform(0.0, 1.0), random.uniform(0.0, 1.0)]
     )
-    scene += sm.Box(
-        name=f"cube_random",
+    root += sm.Box(
+        name=f"cube_random_{index}",
         position=[random.uniform(-9, 9), 0.5, random.uniform(-9, 9)],
         material=random_material,
         with_collider=True,
@@ -120,24 +135,28 @@ def make_scene(build_exe):
     actor1 += reward1
     actor2 += reward2
     actor3 += reward3
-    return scene
+    return root
 
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--build_exe", default="", type=str, required=False, help="Pre-built unity app for simulate")
+    parser.add_argument("--n_maps", default=1, type=int, required=False)
     args = parser.parse_args()
 
     camera_width = 40
     camera_height = 40
-    scene = make_scene(args.build_exe)
-
-    # examine the scene we built
-    print(scene)
-    scene.save("test.gltf")
 
     # we must wrap our scene with an RLEnv if we want to take actions
-    env = sm.RLEnv(scene)
+    if args.n_maps == 1:
+        scene = make_scene(args.build_exe)
+        env = sm.RLEnv(scene)
+        print(scene)
+
+        # examine the scene we built
+        scene.save("test.gltf")
+    else:
+        env = sm.ParallelRLEnv(make_scene, n_maps=args.n_maps, n_show=args.n_maps, engine_exe=None, frame_skip=1)
 
     # reset prepares the environment for stepping
     env.reset()
