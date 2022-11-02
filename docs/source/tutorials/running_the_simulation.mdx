@@ -1,0 +1,94 @@
+<!--Copyright 2022 The HuggingFace Team. All rights reserved.
+
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with
+the License. You may obtain a copy of the License at
+
+http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on
+an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the
+specific language governing permissions and limitations under the License.
+-->
+
+# Running the simulation
+
+This section will describe how to run the physics simulation and collect data.
+The code in this section is reflected in [examples/basic/simple_physics.py](https://github.com/huggingface/simulate/blob/main/examples/basic/simple_physics.py).
+
+Start by displaying a simple scene with a cube above a plane, viewed by a camera:
+```
+import simulate as sm
+scene = sm.Scene(engine="Unity")
+scene += sm.LightSun()
+scene += sm.Box(
+    name="floor",
+    position=[0, 0, 0],
+    bounds=[-10, 10, -0.1, 0, -10, 10],
+    material=sm.Material.GRAY75,
+)
+scene += sm.Box(
+    name="cube",
+    position=[0, 3, 0],
+    scaling=[1, 1, 1],
+    material=sm.Material.GRAY50,
+    with_rigid_body=True,
+)
+scene += sm.Camera(name="camera", position=[0, 2, -10])
+scene.show()
+
+# Prevent auto-closing when running locally
+input("Press enter to continue...")
+```
+Note that we use the Unity engine backend, which supports physics simulation, as well as specify `with_rigid_body=True` on the cube, to enable forces like gravity.
+
+Next, run the simulation for 30 timesteps:
+```
+for i in range(60):
+    event = scene.step()
+```
+You should see the cube falling onto the plane. 
+
+`step()` tells the backend to step the simulation forward, and allows keyword arguments to be passed, allowing a wide variety of customizable behavior.
+The backend then returns a dictionary of data as an `event`. By default, this dictionary contains `nodes` and `frames`.
+
+`nodes` is a dictionary containing all assets in the scene and their physical parameters such as position, rotation, and velocity.
+Try graphing the height of the cube as it falls:
+```
+import numpy as np
+import matplotlib.pyplot as plt
+plt.ion()
+_, ax1 = plt.subplots(1, 1)
+heights = []
+for i in range(60):
+    event = scene.step()
+    height = event["nodes"]["cube"]["position"][1]
+    heights.append(height)
+    ax1.clear()
+    ax1.set_xlim([0, 60])
+    ax1.set_ylim([0, 3])
+    ax1.plot(np.arange(len(heights)), heights)
+    plt.pause(0.1)
+```
+
+`frames` is a dictionary containing the rendering from each camera.
+Try modifying the code to display these frames in matplotlib:
+```
+plt.ion()
+_, ax1 = plt.subplots(1, 1)
+for i in range(60):
+    event = scene.step()
+    im = np.array(event["frames"]["camera"], dtype=np.uint8).transpose(1, 2, 0)
+    ax1.clear()
+    ax1.imshow(im)
+    plt.pause(0.1)
+```
+
+🤗 Simulate is highly customizable. If you aren't interested in returning this data, you can modify the scene configuration prior to calling `show()` to disable it:
+```
+scene.config.return_nodes = False
+scene.config.return_frames = False
+scene.show()
+```
+For advanced use, you can extend this functionality using [plugins](./howto/plugins).
+
+In this library, we include an extensive plugin for reinforcement learning. If you are using 🤗 Simulate for reinforcement learning, continue with [reinforcement learning how-tos](../howto/rl).

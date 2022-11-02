@@ -1,79 +1,63 @@
 - sections: 
   - local: index
     title: 🤗 Simulate
-  - local: installation
-    title: Installation
   - local: quicktour
     title: Quick tour
-  - local: philosophy
+  - local: installation
+    title: Installation
+  title: Get Started
+
+- sections:
+  - local: tutorials/creating_a_scene
+    title: Creating a scene
+  - local: tutorials/running_the_simulation
+    title: Running the simulation
+  - local: tutorials/interaction
+    title: Interaction
+  title: Tutorials
+- sections:
+  - sections:
+    - local: howto/rl
+      title: Overview
+    - local: howto/map_pools
+      title: Map pooling
+    - local: howto/sample_factory
+      title: Sample factory
+    title: Reinforcement learning
+  - sections:
+    - local: howto/plugins
+      title: Plugins
+    - local: howto/run_on_gcp
+      title: Running on GCP
+    title: Other
+  title: How-To Guides
+- sections:
+  - local: conceptual/philosophy
     title: Philosophy
-  title: Get started
-
+  - local: conceptual/backends
+    title: Backends
+  - local: conceptual/gltf
+    title: glTF
+  title: Conceptual Guides
 - sections:
-  - local: tutorials
-    title: Overview
-  - local: load_hub
-    title: Load an environment from The Hub
+  - local: api/scenes
+    title: Scenes
+  - local: api/objects
+    title: Objects
+  - local: api/lights
+    title: Lights
   - sections:
-    - local: tutorials/basic_examples
-      title: Basic Examples
-    - local: tutorials/intermediate_examples
-      title: Intermediate Examples
-    - local: tutorials/advanced_examples
-      title: Advanced Examples
-    - local: tutorials/rl_examples
-      title: Reinforcement Learning Examples
-    title: "Examples"
-  - sections:
-    - local: tutorials/map_pools
-      title: Map Pools
-    - local: tutorials/sample_factory
-      title: Sample Factory
-    - local: tutorials/run_on_gcp
-      title: Running on GCP instances
-    title: "Advanced Usage"
-  title: "Tutorials"
-
-- sections:
-  - local: api_overview
-    title: Overview
-  - sections:
-    - local: api/scene
-      title: Creating a scene
-    - local: api/lighting
-      title: Lighting
-    - local: api/objects
-      title: Adding objects
-    title: "General usage"
-  - sections:
-    - local: api/scene_tree
-      title: The scene tree
-    - local: api/backends
-      title: Simulation backends
-    - local: api/gltf
-      title: GLTF extensions
-    title: "Under the hood"
-  - sections:
+    - local: api/rl_env
+      title: RL Environment
     - local: api/actors
       title: Actors
-    - local: api/sensors
-      title: Sensors
     - local: api/actuators
       title: Actuators
-    - local: api/reward_functions
-      title: Reward functions
-    - local: api/rl_env
-      title: Environment wrappers
-    title: "Reinforcement Learning"
-  - sections:
-    - local: api/backends
-      title: Backends
-    - local: api/saving_data
-      title: Saving data
-    title: "Synthetic Data Generation"
-  - sections:
+    - local: api/sensors
+      title: Sensors
     - local: api/joints
       title: Joints
-    title: "Articulation Bodies"
-  title: "API"
-  
+    - local: api/reward_functions
+      title: Reward Functions
+    title: RL
+  title: API
