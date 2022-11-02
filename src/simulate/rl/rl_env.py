@@ -257,7 +257,7 @@ class RLEnv:
         """Close the scene."""
         self.scene.close()
 
-    def sample_action(self) -> list[list[list[Union[float,int]]]]:
+    def sample_action(self) -> List[List[List[Union[float, int]]]]:
         """
         Samples an action from the actors in the environment. This function loads the configuration of maps and actors
         to return the correct shape across multiple configurations.
