@@ -49,10 +49,10 @@ def make_scene(build_exe):
         rotation=[0, 0, 0]
     )
 
-    axis_base = [0.0, 1.0, 0.0]
+    axis_base = [1.0, 0.0, 0.0]
     link_base.physics_component = sm.ArticulationBodyComponent(
         "revolute",
-        anchor_position=[0, 0, 0.0],
+        anchor_position=[0, -arm_length / 2.0, 0],
         anchor_rotation=axis_base,
         use_gravity=USE_GRAVITY,
     )
@@ -65,28 +65,31 @@ def make_scene(build_exe):
     # links = []
     prev_link = link_base
     # for n in reversed(range(num_links, 0, -1)):
-    # for n in range(num_links):
-    #     link = sm.Cylinder(
-    #         name=f"joint{n}",
-    #         position=[-arm_length / 2.0, arm_length / 2.0, 0],  # x position adjusts for rotation
-    #         height=arm_length,
-    #         parent=prev_link,
-    #         rotation=[0, 0, 90.0],
-    #         radius=arm_radius,
-    #     )
-    #     axis = np.random.rand(3).tolist()
-    #     link.physics_component = sm.ArticulationBodyComponent(
-    #         "revolute",
-    #         anchor_position=[0, -arm_length / 2.0, 0],
-    #         anchor_rotation=axis,
-    #         use_gravity=USE_GRAVITY,
-    #     )
-    #     mapping = [
-    #         sm.ActionMapping("add_torque", axis=axis, amplitude=1.0),
-    #     ]
-    #     link.actuator = sm.Actuator(shape=(1,), low=-1.0, high=1.0, mapping=mapping, actuator_tag=f"joint{n}")
-    #
-    #     prev_link = link
+    for n in range(num_links):
+        link = sm.Cylinder(
+            name=f"joint{n}",
+            position=[-arm_length / 2.0, arm_length / 2.0, 0],  # x position adjusts for rotation
+            height=arm_length,
+            parent=prev_link,
+            rotation=[0, 0, 90.0],
+            radius=arm_radius,
+        )
+        axis = np.random.rand(3).tolist()
+        link.physics_component = sm.ArticulationBodyComponent(
+            "revolute",
+            anchor_position=[0, -arm_length / 2.0, 0],
+            anchor_rotation=axis,
+            use_gravity=USE_GRAVITY,
+        )
+        mapping = [
+            sm.ActionMapping("add_torque", axis=axis, amplitude=1.0),
+        ]
+        link.actuator = sm.Actuator(shape=(1,), low=-1.0, high=1.0, mapping=mapping, actuator_tag=f"joint{n}")
+
+        prev_link = link
+
+    # add target
+    ball = sm.Sphere(parent=prev_link,material=sm.Material.RED, with_collider=True, position=[0, arm_length/2, 0])
 
     base += link_base
     scene += base
