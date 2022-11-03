@@ -4,10 +4,10 @@ using UnityEngine;
 using System.Collections.Generic;
 
 namespace Simulate.GLTF {
-    public class HFarticulationBodies {
+    public class HFArticulationBodies {
         public List<GLTFArticulationBody> objects;
 
-        public HFarticulationBodies() {
+        public HFArticulationBodies() {
             objects = new List<GLTFArticulationBody>();
         }
 

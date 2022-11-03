@@ -179,3 +179,9 @@ class ArticulationBodyComponent(
         if self.inertia_tensor is not None:
             if len(self.inertia_tensor) != 3:
                 raise ValueError("inertia_tensor must be a list of 3 floats")
+
+        if self.upper_limit or self.lower_limit:
+            self.is_limited = True
+        else:
+            self.is_limited = False
+

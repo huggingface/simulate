@@ -29,9 +29,11 @@ def make_scene(build_exe):
     # add light to our scene
     scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
 
-    base = sm.Box(position=[0, 0, 0], bounds=3.0, material=sm.Material.GRAY, with_collider=False)
+    base = sm.Box(position=[0, 0, 0], bounds=3.0, material=sm.Material.GRAY, with_collider=True)
     base.physics_component = sm.ArticulationBodyComponent(
-        "fixed",
+        "fixed",    # fixed is for the joint type, immovable and gravity are still needed
+        immovable=True,
+        use_gravity=False,
         anchor_rotation=[0, 0, 0],
         mass=0,
     )  # note for the base the joint type is ignored
@@ -127,6 +129,7 @@ if __name__ == "__main__":
 
     # we must wrap our scene with an RLEnv if we want to take actions
     env = sm.RLEnv(scene)
+    import ipdb; pdb.set_trace()
 
     # reset prepares the environment for stepping
     env.reset()
@@ -138,7 +141,6 @@ if __name__ == "__main__":
         action = env.sample_action()
         print(action)
         obs, reward, done, info = env.step(action=action)
-        # import ipdb; pdb.set_trace()
         plt.pause(0.1)
 
     scene.close()

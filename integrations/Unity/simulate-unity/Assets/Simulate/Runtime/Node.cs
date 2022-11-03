@@ -9,7 +9,7 @@ namespace Simulate {
         public KHRLightsPunctual.GLTFLight lightData;
         public HFColliders.GLTFCollider.ImportResult colliderData;
         public HFRigidBodies.GLTFRigidBody rigidBodyData;
-        public HFarticulationBodies.GLTFArticulationBody articulationBodyData;
+        public HFArticulationBodies.GLTFArticulationBody articulationBodyData;
         public HFActuators.HFActuator actuatorData;
         public HFStateSensors.HFStateSensor stateSensorData;
         public HFRaycastSensors.HFRaycastSensor raycastSensorData;
@@ -192,10 +192,6 @@ namespace Simulate {
             switch (articulationBodyData.joint_type) {
                 case "fixed":
                     ab.jointType = ArticulationJointType.FixedJoint;
-
-                    // overwrite parameters for immovable object
-                    articulationBodyData.immovable = true;
-                    articulationBodyData.use_gravity = false;
                     break;
                 case "prismatic":
                     ab.jointType = ArticulationJointType.PrismaticJoint;
@@ -207,12 +203,15 @@ namespace Simulate {
                     Debug.LogWarning(string.Format("Joint type {0} not implemented", articulationBodyData.joint_type));
                     break;
             }
+
+            // TODO(thom,nathan) add is_limited logic
             ab.anchorPosition = articulationBodyData.anchor_position;
             ab.anchorRotation = articulationBodyData.anchor_rotation;
 
             // we should only try and set this property if we are the root in a chain of articulated bodies
-            ab.immovable = articulationBodyData.immovable;
-
+            if (articulationBodyData.immovable){
+                ab.immovable = articulationBodyData.immovable;
+            }
             // this property should likely be consistent across all bodies in the chain, or just locked to a base node
             ab.useGravity = articulationBodyData.use_gravity;
 
@@ -227,7 +226,9 @@ namespace Simulate {
             if (articulationBodyData.inertia_tensor != null) {
                 ab.inertiaTensor = articulationBodyData.inertia_tensor.Value;
             }
-
+            if (articulationBodyData.is_limited){
+                ab.linearLockX = ArticulationDofLock.LimitedMotion;
+            }
             ArticulationDrive xDrive = new ArticulationDrive() {
                 stiffness = articulationBodyData.drive_stiffness,
                 forceLimit = articulationBodyData.drive_force_limit,
