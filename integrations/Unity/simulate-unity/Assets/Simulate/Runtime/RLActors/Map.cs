@@ -98,8 +98,9 @@ namespace Simulate.RlAgents {
         public void GetActorObservations(Dictionary<string, Buffer> sensorBuffers, int mapIndex) {
             int actorIndex = 0;
             foreach (string key in actors.Keys) {
+                int bufferIndex = mapIndex * actors.Count + actorIndex;
                 Actor actor = actors[key];
-                actor.ReadSensorObservations(sensorBuffers, mapIndex, actorIndex);
+                actor.ReadSensorObservations(sensorBuffers, bufferIndex);
                 actorIndex++;
             }
         }

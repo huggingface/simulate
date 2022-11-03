@@ -80,21 +80,27 @@ def make_scene(index=None, build_exe=None):
     # Let's add a default actor in the scene, a capsule mesh with associated actions and a camera as observation device
     # You can create an actor by adding an actuator to an object with physics enabled.
     init_pos1 = np.random.random(3)
+    init_pos1[1] = 0.5
     actor1 = sm.EgocentricCameraActor(
         name=f"actor1_{index}",
-        position=init_pos1,  # camera_tag="CameraSensor1"
-    )  # Has a collider by default
+        position=init_pos1, 
+        camera_tag="CameraSensor"
+    ) 
 
     init_pos2 = np.random.random(3)
-    actor2 = sm.SimpleActor(
+    init_pos2[1] = 0.5
+    actor2 = sm.EgocentricCameraActor(
         name=f"actor2_{index}",
-        position=init_pos2,  # camera_tag="CameraSensor2"
+        position=init_pos2, 
+        camera_tag="CameraSensor"
     )  # Has a collider by default
 
     init_pos3 = np.random.random(3)
-    actor3 = sm.SimpleActor(
+    init_pos3[1] = 0.5
+    actor3 = sm.EgocentricCameraActor(
         name=f"actor3_{index}",
-        position=init_pos3,  # camera_tag="CameraSensor3"
+        position=init_pos3,  
+        camera_tag="CameraSensor"
     )  # Has a collider by default
 
     root += actor1
@@ -163,7 +169,7 @@ if __name__ == "__main__":
 
     plt.ion()
     fig1, ax1 = plt.subplots()
-    dummy_obs = np.zeros(shape=(camera_height, camera_width, 3), dtype=np.uint8)
+    dummy_obs = np.zeros(shape=(camera_height, camera_width*3, 3), dtype=np.uint8)
     axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
     # security camera
@@ -175,7 +181,10 @@ if __name__ == "__main__":
     for i in range(100):
         action = env.sample_action()
         obs, reward, done, info = env.step(action=action)
-        axim1.set_data(obs["CameraSensor"][0].reshape(3, camera_height, camera_width).transpose(1, 2, 0))
+        dummy_obs[:, :camera_width] = obs["CameraSensor"][0].reshape(3, camera_height, camera_width).transpose(1, 2, 0)
+        dummy_obs[:, camera_width:camera_width*2] = obs["CameraSensor"][1].reshape(3, camera_height, camera_width).transpose(1, 2, 0)
+        dummy_obs[:, camera_width*2:camera_width*3] = obs["CameraSensor"][2].reshape(3, camera_height, camera_width).transpose(1, 2, 0)
+        axim1.set_data(dummy_obs)
         fig1.canvas.flush_events()
         axim2.set_data(obs["SecurityCamera"][0].reshape(3, 256, 256).transpose(1, 2, 0))
         fig2.canvas.flush_events()
