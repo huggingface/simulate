@@ -192,6 +192,10 @@ namespace Simulate {
             switch (articulationBodyData.joint_type) {
                 case "fixed":
                     ab.jointType = ArticulationJointType.FixedJoint;
+
+                    // overwrite parameters for immovable object
+                    articulationBodyData.immovable = true;
+                    articulationBodyData.use_gravity = false;
                     break;
                 case "prismatic":
                     ab.jointType = ArticulationJointType.PrismaticJoint;
@@ -205,11 +209,14 @@ namespace Simulate {
             }
             ab.anchorPosition = articulationBodyData.anchor_position;
             ab.anchorRotation = articulationBodyData.anchor_rotation;
-            if (articulationBodyData.immovable) {
-                // we should only try and set this property if we are the root in a chain of articulated bodies
-                ab.immovable = articulationBodyData.immovable;
-            }
-            // setting match anchors to false ensures we can deactivate and activate the articulation body 
+
+            // we should only try and set this property if we are the root in a chain of articulated bodies
+            ab.immovable = articulationBodyData.immovable;
+
+            // this property should likely be consistent across all bodies in the chain, or just locked to a base node
+            ab.useGravity = articulationBodyData.use_gravity;
+
+            // setting match anchors to false ensures we can deactivate and activate the articulation body
             // see http://anja-haumann.de/unity-preserve-articulation-body-state/
             ab.matchAnchors = false;
             ab.linearDamping = articulationBodyData.linear_damping;

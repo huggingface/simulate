@@ -17,6 +17,7 @@ namespace Simulate.GLTF {
             [JsonConverter(typeof(TranslationConverter))] public Vector3 anchor_position = Vector3.zero;
             [JsonConverter(typeof(Vector3Converter))] public Vector3? inertia_tensor;
             public bool immovable = false;
+            public bool use_gravity = true;
             public float linear_damping = 0.0f;
             public float angular_damping = 0.0f;
             public float joint_friction = 0.0f;

@@ -96,9 +96,9 @@ class ArticulationBodyComponent(
             The target of the joint drive.
         drive_target_velocity (`float`, *optional*, defaults to `0.0`):
             The target velocity of the joint drive.
-        upper_limit (`float`, *optional*, defaults to `0.0`):
+        upper_limit (`float`, *optional*, defaults to None):
             The upper limit of the joint.
-        lower_limit (`float`, *optional*, defaults to `0.0`):
+        lower_limit (`float`, *optional*, defaults to None):
             The lower limit of the joint.
         mass (`float`, *optional*, defaults to `1.0`):
             The mass of the body.
@@ -155,6 +155,9 @@ class ArticulationBodyComponent(
 
         if self.immovable is None:
             self.immovable = False
+
+        if self.use_gravity is None:
+            self.use_gravity = True
 
         if self.linear_damping is None:
             self.linear_damping = 0.0
