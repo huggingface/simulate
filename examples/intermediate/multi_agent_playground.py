@@ -27,15 +27,8 @@ import simulate as sm
 # The actor must find a randomly colored box labelled `target`.
 
 
-def make_scene(index=None, build_exe=None):
-    if not index:
-        root = sm.Scene(engine="unity", engine_exe=build_exe)
-
-        # add light to our scene
-        root += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
-
-    else:
-        root = sm.Asset(name=f"root_{index}")
+def make_scene(index):
+    root = sm.Asset(name=f"root_{index}")
 
     # create the walls of the agent's world
     root += sm.Box(
@@ -81,26 +74,18 @@ def make_scene(index=None, build_exe=None):
     # You can create an actor by adding an actuator to an object with physics enabled.
     init_pos1 = np.random.random(3)
     init_pos1[1] = 0.5
-    actor1 = sm.EgocentricCameraActor(
-        name=f"actor1_{index}",
-        position=init_pos1, 
-        camera_tag="CameraSensor"
-    ) 
+    actor1 = sm.EgocentricCameraActor(name=f"actor1_{index}", position=init_pos1, camera_tag="CameraSensor")
 
     init_pos2 = np.random.random(3)
     init_pos2[1] = 0.5
     actor2 = sm.EgocentricCameraActor(
-        name=f"actor2_{index}",
-        position=init_pos2, 
-        camera_tag="CameraSensor"
+        name=f"actor2_{index}", position=init_pos2, camera_tag="CameraSensor"
     )  # Has a collider by default
 
     init_pos3 = np.random.random(3)
     init_pos3[1] = 0.5
     actor3 = sm.EgocentricCameraActor(
-        name=f"actor3_{index}",
-        position=init_pos3,  
-        camera_tag="CameraSensor"
+        name=f"actor3_{index}", position=init_pos3, camera_tag="CameraSensor"
     )  # Has a collider by default
 
     root += actor1
@@ -147,29 +132,20 @@ def make_scene(index=None, build_exe=None):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("--build_exe", default="", type=str, required=False, help="Pre-built unity app for simulate")
-    parser.add_argument("--n_maps", default=1, type=int, required=False)
+    parser.add_argument("--n_maps", default=2, type=int, required=False)
     args = parser.parse_args()
 
     camera_width = 40
     camera_height = 40
 
-    # we must wrap our scene with an RLEnv if we want to take actions
-    if args.n_maps == 1:
-        scene = make_scene(args.build_exe)
-        env = sm.RLEnv(scene)
-        print(scene)
-
-        # examine the scene we built
-        scene.save("test.gltf")
-    else:
-        env = sm.ParallelRLEnv(make_scene, n_maps=args.n_maps, n_show=args.n_maps, engine_exe=None, frame_skip=1)
+    env = sm.ParallelRLEnv(make_scene, n_maps=args.n_maps, n_show=args.n_maps, engine_exe=None, frame_skip=1)
 
     # reset prepares the environment for stepping
     env.reset()
 
     plt.ion()
     fig1, ax1 = plt.subplots()
-    dummy_obs = np.zeros(shape=(camera_height, camera_width*3, 3), dtype=np.uint8)
+    dummy_obs = np.zeros(shape=(camera_height, camera_width * 3, 3), dtype=np.uint8)
     axim1 = ax1.imshow(dummy_obs, vmin=0, vmax=255)
 
     # security camera
@@ -182,13 +158,15 @@ if __name__ == "__main__":
         action = env.sample_action()
         obs, reward, done, info = env.step(action=action)
         dummy_obs[:, :camera_width] = obs["CameraSensor"][0].reshape(3, camera_height, camera_width).transpose(1, 2, 0)
-        dummy_obs[:, camera_width:camera_width*2] = obs["CameraSensor"][1].reshape(3, camera_height, camera_width).transpose(1, 2, 0)
-        dummy_obs[:, camera_width*2:camera_width*3] = obs["CameraSensor"][2].reshape(3, camera_height, camera_width).transpose(1, 2, 0)
+        dummy_obs[:, camera_width : camera_width * 2] = (
+            obs["CameraSensor"][1].reshape(3, camera_height, camera_width).transpose(1, 2, 0)
+        )
+        dummy_obs[:, camera_width * 2 : camera_width * 3] = (
+            obs["CameraSensor"][2].reshape(3, camera_height, camera_width).transpose(1, 2, 0)
+        )
         axim1.set_data(dummy_obs)
         fig1.canvas.flush_events()
         axim2.set_data(obs["SecurityCamera"][0].reshape(3, 256, 256).transpose(1, 2, 0))
         fig2.canvas.flush_events()
 
         plt.pause(0.1)
-
-    scene.close()
