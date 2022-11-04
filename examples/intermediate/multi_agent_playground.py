@@ -138,7 +138,16 @@ if __name__ == "__main__":
     camera_width = 40
     camera_height = 40
 
-    env = sm.ParallelRLEnv(make_scene, n_maps=args.n_maps, n_show=args.n_maps, engine_exe=None, frame_skip=1)
+    # The multi-agent API works with both RLEnv and ParallelRLEnv
+    # NOTE: the ParallelRLEnv can run with n_maps==1 as well, which is very useful for debugging
+    if args.n_maps == 1:
+        root = make_scene(0)
+        scene = sm.Scene(engine="Unity", engine_exe=None)
+        scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+        scene += root
+        env = sm.RLEnv(scene)  # args.build_exe)
+    else:
+        env = sm.ParallelRLEnv(make_scene, n_maps=args.n_maps, n_show=args.n_maps, engine_exe=None, frame_skip=1)
 
     # reset prepares the environment for stepping
     env.reset()
