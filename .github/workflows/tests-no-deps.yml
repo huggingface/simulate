@@ -33,9 +33,8 @@ jobs:
 
       - name: Install the library
         run: |
-          python setup.py develop
           pip install --upgrade pip
-          pip install -e .
+          pip install .
 
       - name: Set up vtk
         if: ${{ matrix.vtk-version != 'latest' }}
