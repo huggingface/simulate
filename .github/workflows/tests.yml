@@ -37,6 +37,7 @@ jobs:
 
       - name: Install the library
         run: |
+          python setup.py develop
           pip install --upgrade pip
           pip install -e .[test]
 
