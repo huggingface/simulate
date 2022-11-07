@@ -2,7 +2,7 @@ using UnityEngine;
 using Simulate.GLTF;
 using UnityEngine.Rendering.Universal;
 using Newtonsoft.Json;
-using System.Collections.Generic;
+
 namespace Simulate {
     public class Node : MonoBehaviour {
         public GLTFCamera cameraData;
@@ -14,6 +14,7 @@ namespace Simulate {
         public HFStateSensors.HFStateSensor stateSensorData;
         public HFRaycastSensors.HFRaycastSensor raycastSensorData;
         public HFRewardFunctions.HFRewardFunction rewardFunctionData;
+        
         public new RenderCamera camera { get; private set; }
         public new Light light { get; private set; }
         public new Collider collider { get; private set; }
@@ -38,6 +39,7 @@ namespace Simulate {
                 InitializeActuator();
             initialState = GetData();
         }
+
         public void ResetState(Vector3 offset = default(Vector3)) {
             if (articulationBody == null) {
                 // you cannot teleport articulation bodies so simply (see below)
@@ -78,13 +80,6 @@ namespace Simulate {
         void InitializeCamera() {
             camera = new RenderCamera(this, cameraData);
         }
-
-        /* void InitializeStateSensor() {
-            sensor = new StateSensor(this, stateSensorData);
-        }
-        void InitializeRaycastSensor() {
-            sensor = new RaycastSensor(this, raycastSensorData);
-        } */
 
         void InitializeLight() {
             light = gameObject.AddComponent<Light>();

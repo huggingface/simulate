@@ -253,10 +253,14 @@ class UnityEngine(Engine):
 
                 return response
 
-    def update_asset(self, root_node: "Asset"):
-        # TODO update and make this API more consistent with all the
-        # update_asset, update, show
-        raise NotImplementedError()
+    def update_asset(self, node: "Asset"):
+        self.run_command(
+            "UpdateAsset",
+            name=node.name,
+            position=list(node.position),
+            rotation=list(node.rotation),
+            scale=list(node.scaling),
+        )
 
     def update_all_assets(self):
         raise NotImplementedError()
