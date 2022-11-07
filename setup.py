@@ -178,6 +178,6 @@ setup(
     keywords="simulation environments synthetic data datasets machine learning",
     zip_safe=False,  # Required for mypy to find the py.typed file
     ext_modules=ext_modules,
-    python_requires=">=3.8",
+    python_requires=">=3.8, <3.11",
     include_dirs=[np.get_include()],
 )
