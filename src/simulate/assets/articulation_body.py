@@ -15,8 +15,6 @@
 # Lint as: python3
 """ A simulate ArticulationBodyComponent."""
 import itertools
-import math
-import pdb
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
@@ -27,7 +25,6 @@ from .utils import rotation_from_euler_radians
 
 
 ALLOWED_JOINT_TYPES = ["fixed", "prismatic", "revolute"]
-
 
 
 @dataclass()

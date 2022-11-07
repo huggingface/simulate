@@ -272,6 +272,7 @@ class RLEnv:
         if len(self.action_tags) == 1:
             return np.stack(actions).reshape((1, self.n_actors, -1)).tolist()
         else:
+            # action is an OrderedDict of action tag and ndarrays if multi-tag
             return actions[0]
 
     # required abstract methods

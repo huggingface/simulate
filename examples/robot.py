@@ -21,7 +21,9 @@ import numpy as np
 
 import simulate as sm
 
+
 USE_GRAVITY = False
+
 
 def make_scene(build_exe):
     scene = sm.Scene(engine="unity", engine_exe=None)
@@ -36,7 +38,6 @@ def make_scene(build_exe):
         use_gravity=False,
         mass=0,
     )  # note for the base the joint type is ignored
-
 
     arm_length = 5
     arm_radius = 0.5
@@ -79,7 +80,7 @@ def make_scene(build_exe):
             rotation=[0, 0, 0.0],
             radius=arm_radius,
         )
-        axis = (90*np.random.rand(3)).tolist()
+        axis = (90 * np.random.rand(3)).tolist()
 
         link.physics_component = sm.ArticulationBodyComponent(
             "revolute",

@@ -307,6 +307,8 @@ class ParallelRLEnv(VecEnv):
         Returns:
             action (`list[list[list[float]]]`): Lists of the actions, dimensions are n-maps, n-actors, action-dim.
         """
+        if len(self.action_tags) > 1:
+            raise NotImplementedError("Handling of multi-map actions not yet translated from OrderedDicts")
         if self.n_actors_per_map > 1:
             sub_actions = []
             for _ in range(self.n_show):
