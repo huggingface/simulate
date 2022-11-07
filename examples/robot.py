@@ -23,7 +23,7 @@ import simulate as sm
 
 
 USE_GRAVITY = False
-
+RANDOM_JOINT_AXES = True
 
 def make_scene(build_exe):
     scene = sm.Scene(engine="unity", engine_exe=None)
@@ -71,6 +71,8 @@ def make_scene(build_exe):
 
     prev_link = link_base
 
+    if not RANDOM_JOINT_AXES:
+        axis = [0.0, 90.0, 0.0]
     for k, n in enumerate(range(num_links)):
         link = sm.Cylinder(
             name=f"joint{n}",
@@ -80,7 +82,12 @@ def make_scene(build_exe):
             rotation=[0, 0, 0.0],
             radius=arm_radius,
         )
-        axis = (90 * np.random.rand(3)).tolist()
+        if RANDOM_JOINT_AXES:
+            axis = (90 * np.random.rand(3)).tolist()
+        else:
+            # rotate axes deterministically
+            last = axis.pop()
+            axis = [last] + axis
 
         link.physics_component = sm.ArticulationBodyComponent(
             "revolute",
