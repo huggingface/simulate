@@ -65,12 +65,12 @@ namespace Simulate {
             return shape;
         }
 
-        public void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex) {
-            GetState(buffer, mapIndex, actorIndex);
+        public void AddObsToBuffer(Buffer buffer, int bufferIndex) {
+            GetState(buffer, bufferIndex);
         }
 
-        public void GetState(Buffer buffer, int mapIndex, int actorIndex) {
-            int startingIndex = mapIndex * actorIndex * GetSize();
+        public void GetState(Buffer buffer, int bufferIndex) {
+            int startingIndex = bufferIndex * GetSize();
 
             for (int i = 0; i < raycastAngles.Count; i++) {
                 var angleH = raycastAngles[i].horizontal;

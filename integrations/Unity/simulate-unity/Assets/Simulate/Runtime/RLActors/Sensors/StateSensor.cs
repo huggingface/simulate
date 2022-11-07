@@ -75,13 +75,13 @@ namespace Simulate {
             return shape;
         }
 
-        public void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex) {
-            GetState(buffer, mapIndex, actorIndex);
+        public void AddObsToBuffer(Buffer buffer, int bufferIndex) {
+            GetState(buffer, bufferIndex);
         }
 
-        public void GetState(Buffer buffer, int mapIndex, int actorIndex) {
+        public void GetState(Buffer buffer, int bufferIndex) {
             int count = 0;
-            int startingIndex = mapIndex * actorIndex * GetSize();
+            int startingIndex = bufferIndex * GetSize();
             Vector3 relativePosition;
             Vector3 relativeVelocity = Vector3.zero;
             Quaternion rotation;
