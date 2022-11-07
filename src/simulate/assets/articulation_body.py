@@ -16,48 +16,50 @@
 """ A simulate ArticulationBodyComponent."""
 import itertools
 import math
+import pdb
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
 import numpy as np
 
 from .gltf_extension import GltfExtensionMixin
+from .utils import rotation_from_euler_radians
 
 
 ALLOWED_JOINT_TYPES = ["fixed", "prismatic", "revolute"]
 
 
-def euler_to_quat(euler):
-    """
-    Return the quaternion given the Euler angles. For more information, see these resources
-    http://mathworld.wolfram.com/EulerParameters.html
-    http://en.wikipedia.org/wiki/Quaternions#Hamilton_product
-
-    Args:
-        yaw (`float`):Rotation angle in radians around z-axis (performed first)
-        pitch  (`float`): Rotation angle in radians around y-axis
-        roll  (`float`): Rotation angle in radians around x-axis (performed last)
-
-    Returns:
-        quat (`np.array`) : array shape (4,), Quaternion in w, x, y z (real, then vector) format
-    """
-    yaw = euler[0]
-    pitch = euler[1]
-    roll = euler[2]
-    cz = math.cos(yaw / 2.0)
-    sz = math.sin(yaw / 2.0)
-    cy = math.cos(pitch / 2.0)
-    sy = math.sin(pitch / 2.0)
-    cx = math.cos(roll / 2.0)
-    sx = math.sin(roll / 2.0)
-    return np.array(
-        [
-            cx * cy * cz - sx * sy * sz,
-            cx * sy * sz + cy * cz * sx,
-            cx * cz * sy - sx * cy * sz,
-            cx * cy * sz + sx * cz * sy,
-        ]
-    ).tolist()
+# def euler_to_quat(euler):
+#     """
+#     Return the quaternion given the Euler angles. For more information, see these resources
+#     http://mathworld.wolfram.com/EulerParameters.html
+#     http://en.wikipedia.org/wiki/Quaternions#Hamilton_product
+#
+#     Args:
+#         yaw (`float`):Rotation angle in radians around z-axis (performed first)
+#         pitch  (`float`): Rotation angle in radians around y-axis
+#         roll  (`float`): Rotation angle in radians around x-axis (performed last)
+#
+#     Returns:
+#         quat (`np.array`) : array shape (4,), Quaternion in w, x, y z (real, then vector) format
+#     """
+#     yaw = euler[0]
+#     pitch = euler[1]
+#     roll = euler[2]
+#     cz = math.cos(yaw / 2.0)
+#     sz = math.sin(yaw / 2.0)
+#     cy = math.cos(pitch / 2.0)
+#     sy = math.sin(pitch / 2.0)
+#     cx = math.cos(roll / 2.0)
+#     sx = math.sin(roll / 2.0)
+#     return np.array(
+#         [
+#             cx * cy * cz - sx * sy * sz,
+#             cx * sy * sz + cy * cz * sx,
+#             cx * cz * sy - sx * cy * sz,
+#             cx * cy * sz + sx * cz * sy,
+#         ]
+#     ).tolist()
 
 
 @dataclass()
@@ -128,6 +130,7 @@ class ArticulationBodyComponent(
     drive_target_velocity: float = 0.0
     upper_limit: Optional[float] = None
     lower_limit: Optional[float] = None
+    is_limited: Optional[bool] = False
 
     mass: Optional[float] = None
     center_of_mass: Optional[List[float]] = None
@@ -143,8 +146,12 @@ class ArticulationBodyComponent(
 
         if self.anchor_rotation is None:
             self.anchor_rotation = [0.0, 0.0, 0.0, 1.0]
-        if len(self.anchor_rotation) == 3:
-            self.anchor_rotation = euler_to_quat(self.anchor_rotation)
+        elif len(self.anchor_rotation) == 3:
+            self.anchor_rotation = rotation_from_euler_radians(
+                np.deg2rad(self.anchor_rotation[0]),
+                np.deg2rad(self.anchor_rotation[1]),
+                np.deg2rad(self.anchor_rotation[2]),
+            )
         elif len(self.anchor_rotation) not in [4]:
             raise ValueError("anchor_rotation must be a list of 4 floats (Quaternion) or 3 floats (Euler Angles)")
 
@@ -182,6 +189,3 @@ class ArticulationBodyComponent(
 
         if self.upper_limit or self.lower_limit:
             self.is_limited = True
-        else:
-            self.is_limited = False
-

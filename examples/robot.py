@@ -22,6 +22,7 @@ import numpy as np
 
 import simulate as sm
 
+USE_GRAVITY = False
 
 def make_scene(build_exe):
     scene = sm.Scene(engine="unity", engine_exe=None)
@@ -31,18 +32,17 @@ def make_scene(build_exe):
 
     base = sm.Box(position=[0, 0, 0], bounds=3.0, material=sm.Material.GRAY, with_collider=True)
     base.physics_component = sm.ArticulationBodyComponent(
-        "fixed",    # fixed is for the joint type, immovable and gravity are still needed
+        "fixed",  # fixed is for the joint type, immovable and gravity are still needed
         immovable=True,
         use_gravity=False,
-        anchor_rotation=[0, 0, 0],
         mass=0,
     )  # note for the base the joint type is ignored
 
-    USE_GRAVITY = False
 
     arm_length = 5
     arm_radius = 0.5
-    angle_limit = 30
+    angle_limit = 45
+    base_torque = 20.0
     link_base = sm.Cylinder(
         name="base_joint",
         is_actor=True,
@@ -52,35 +52,26 @@ def make_scene(build_exe):
         rotation=[0, 0, 0],
     )
 
-    # box for more visual debugging (shows z axis rotation)
-    # link_base = sm.Box(
-    #     name="base_joint",
-    #     is_actor=True,
-    #     position=[0, arm_length / 2.0, 0],
-    #     bounds=[2 * arm_radius, arm_length, 2 * arm_radius],
-    #     rotation=[0, 0, 0],
-    # )
-
-    axis_base = [0.0, 0.0, 1.0]
+    axis_base = [0.0, 0.0, 0.0]
     link_base.physics_component = sm.ArticulationBodyComponent(
         "revolute",
         anchor_position=[0, -arm_length / 2.0, 0],
         anchor_rotation=axis_base,
         use_gravity=USE_GRAVITY,
-        # upper_limit=angle_limit,
-        # lower_limit=-angle_limit,
+        upper_limit=angle_limit,
+        lower_limit=-angle_limit,
         mass=0,
     )
     mapping = [
-        sm.ActionMapping("add_torque", axis=axis_base, amplitude=10.0),
+        sm.ActionMapping("add_torque", axis=axis_base, amplitude=base_torque),
     ]
-    link_base.actuator = sm.Actuator(shape=(1,), low=-1.0, high=1.0, mapping=mapping, actuator_tag="base_joint")
+    link_base.actuator = sm.Actuator(shape=[1], low=-1.0, high=1.0, mapping=mapping, actuator_tag="base_joint")
 
     num_links = 3
 
     prev_link = link_base
 
-    for n in range(num_links):
+    for k, n in enumerate(range(num_links)):
         link = sm.Cylinder(
             name=f"joint{n}",
             position=[0, arm_length, 0],  # x position adjusts for rotation
@@ -89,7 +80,8 @@ def make_scene(build_exe):
             rotation=[0, 0, 0.0],
             radius=arm_radius,
         )
-        axis = np.random.rand(3).tolist()
+        axis = (90*np.random.rand(3)).tolist()
+
         link.physics_component = sm.ArticulationBodyComponent(
             "revolute",
             anchor_position=[0, -arm_length / 2.0, 0],
@@ -100,9 +92,9 @@ def make_scene(build_exe):
             mass=0,
         )
         mapping = [
-            sm.ActionMapping("add_torque", axis=axis, amplitude=1.0),
+            sm.ActionMapping("add_torque", axis=axis, amplitude=base_torque * (10 ** (-k - 1))),
         ]
-        link.actuator = sm.Actuator(shape=(1,), low=-1.0, high=1.0, mapping=mapping, actuator_tag=f"joint{n}")
+        link.actuator = sm.Actuator(shape=[1], low=-1.0, high=1.0, mapping=mapping, actuator_tag=f"joint{n}")
 
         prev_link = link
 
@@ -111,7 +103,6 @@ def make_scene(build_exe):
 
     base += link_base
     scene += base
-    # import ipdb; pdb.set_trace()
     return scene
 
 
@@ -129,7 +120,6 @@ if __name__ == "__main__":
 
     # we must wrap our scene with an RLEnv if we want to take actions
     env = sm.RLEnv(scene)
-    import ipdb; pdb.set_trace()
 
     # reset prepares the environment for stepping
     env.reset()
@@ -137,9 +127,7 @@ if __name__ == "__main__":
     plt.ion()
 
     for i in range(1000):
-        # action = [env.action_space.sample()]
         action = env.sample_action()
-        print(action)
         obs, reward, done, info = env.step(action=action)
         plt.pause(0.1)
 

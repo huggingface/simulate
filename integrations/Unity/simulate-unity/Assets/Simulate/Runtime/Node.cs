@@ -204,7 +204,6 @@ namespace Simulate {
                     break;
             }
 
-            // TODO(thom,nathan) add is_limited logic
             ab.anchorPosition = articulationBodyData.anchor_position;
             ab.anchorRotation = articulationBodyData.anchor_rotation;
 
@@ -227,7 +226,7 @@ namespace Simulate {
                 ab.inertiaTensor = articulationBodyData.inertia_tensor.Value;
             }
             if (articulationBodyData.is_limited){
-                ab.linearLockX = ArticulationDofLock.LimitedMotion;
+                ab.twistLock = ArticulationDofLock.LimitedMotion;
             }
             ArticulationDrive xDrive = new ArticulationDrive() {
                 stiffness = articulationBodyData.drive_stiffness,
