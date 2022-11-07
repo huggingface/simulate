@@ -55,7 +55,9 @@ class Config(GltfExtensionMixin, gltf_extension_name="HF_config", object_type="s
     def __post_init__(self):
         self.time_step = self.time_step or 0.02
         self.frame_skip = self.frame_skip or 1
-        self.return_nodes = self.return_nodes or True
-        self.return_frames = self.return_frames or True
+        if self.return_nodes is None:
+            self.return_nodes = True
+        if self.return_frames is None:
+            self.return_frames = True
         self.ambient_color = self.ambient_color or [0.329412, 0.329412, 0.329412]
         self.gravity = self.gravity or [0, -9.81, 0]

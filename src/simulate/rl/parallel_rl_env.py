@@ -56,7 +56,7 @@ class ParallelRLEnv(VecEnv):
     https://stable-baselines3.readthedocs.io/en/master/guide/vec_envs.html
 
     Args:
-        env_fn (`Callable`):
+        map_fn (`Callable`):
             a generator function that returns a RLEnv for generating instances of the desired environment.
         n_parallel (`int`):
             the number of executable instances to create.
@@ -66,7 +66,7 @@ class ParallelRLEnv(VecEnv):
 
     def __init__(
         self,
-        scene_or_map_fn: Union[Callable, Scene],
+        map_fn: Union[Callable, Scene],
         n_maps: Optional[int] = 1,
         n_show: Optional[int] = 1,
         time_step: Optional[float] = 1 / 30.0,
@@ -74,23 +74,22 @@ class ParallelRLEnv(VecEnv):
         **engine_kwargs,
     ):
 
-        if hasattr(scene_or_map_fn, "__call__"):
-            scene_config = sm.Config(
-                time_step=time_step,
-                frame_skip=frame_skip,
-                return_frames=False,
-                return_nodes=False,
-            )
-            self.scene = Scene(engine="unity", config=scene_config, **engine_kwargs)
-            self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
-            self.map_roots = []
-            for i in range(n_maps):
-                map_root = scene_or_map_fn(i)
-                self.scene += map_root
-                self.map_roots.append(map_root)
-        else:
-            self.scene = scene_or_map_fn
-            self.map_roots = [self.scene]
+        if not hasattr(map_fn, "__call__"):
+            raise ValueError("map_fn must be callable for multi-map RL Env")
+
+        scene_config = sm.Config(
+            time_step=time_step,
+            frame_skip=frame_skip,
+            return_frames=False,
+            return_nodes=False,
+        )
+        self.scene = Scene(engine="unity", config=scene_config, **engine_kwargs)
+        self.scene += sm.LightSun(name="sun", position=[0, 20, 0], intensity=0.9)
+        self.map_roots = []
+        for i in range(n_maps):
+            map_root = map_fn(i)
+            self.scene += map_root
+            self.map_roots.append(map_root)
 
         self.actors = {actor.name: actor for actor in self.scene.actors}
         self.n_actors = len(self.actors)
@@ -301,18 +300,22 @@ class ParallelRLEnv(VecEnv):
         """Close the environment."""
         self.scene.close()
 
-    def sample_action(self) -> np.ndarray:
+    def sample_action(self) -> List[List[List[Union[float, int]]]]:
         """
         Samples an action from the actors in the environment. This function loads the configuration of maps and actors to return the correct shape across multiple configurations.
 
         Returns:
-            action: TODO
+            action (`list[list[list[float]]]`): Lists of the actions, dimensions are n-maps, n-actors, action-dim.
         """
         if self.n_actors_per_map > 1:
-            raise NotImplementedError("TODO: add sampling mechanism for multi-agent spaces.")
+            sub_actions = []
+            for _ in range(self.n_show):
+                sub_actions.append([self.action_space.sample() for _ in range(self.n_actors_per_map)])
+                action = np.stack(sub_actions)
         else:
-            action = [self.action_space.sample() for _ in range(self.n_show)]
-        return np.array(action)
+            action = np.stack([self.action_space.sample() for _ in range(self.n_show)])
+
+        return action.reshape((self.n_show, self.n_actors_per_map, -1)).tolist()
 
     def env_is_wrapped(self, wrapper_class: Type[gym.Wrapper], indices: Optional[VecEnvIndices] = None) -> List[bool]:
         """Check if the environment is wrapped."""

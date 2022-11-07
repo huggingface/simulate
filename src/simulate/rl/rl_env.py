@@ -49,7 +49,6 @@ class RLEnv:
 
         # map roots needed for engine, which is designed for parallel computation
         self.map_roots = [self.scene]
-
         self.actors = {actor.name: actor for actor in self.scene.actors}
         self.n_actors = len(self.actors)
         if self.n_actors == 0:
@@ -60,6 +59,7 @@ class RLEnv:
         self.actor = next(iter(self.actors.values()))
 
         # copy action, observation space, and action tags
+        # currently only works for agents with the same actions space, which is not general
         self.action_space = self.scene.actors[0].action_space
         self.observation_space = self.scene.actors[0].observation_space
         self.action_tags = self.scene.actors[0].action_tags
@@ -155,6 +155,7 @@ class RLEnv:
                 value = value.reshape((1, self.n_actors, -1))
                 action[key] = value.tolist()
 
+        # import ipdb;pdb.set_trace()
         self.scene.engine.step_send_async(action=action)
 
     def step_recv_async(self) -> Tuple[Dict, np.ndarray, np.ndarray, Dict]:
@@ -256,16 +257,20 @@ class RLEnv:
         """Close the scene."""
         self.scene.close()
 
-    def sample_action(self) -> list:
+    def sample_action(self) -> List[List[List[Union[float, int]]]]:
         """
         Samples an action from the actors in the environment. This function loads the configuration of maps and actors
         to return the correct shape across multiple configurations.
 
         Returns:
-            action (`ndarray`): action sampled from the environment's action space.
+            action (`list[list[list[float]]]`): Lists of the actions, dimensions are n-maps, n-actors, action-dim.
         """
-        action = [self.action_space.sample() for _ in range(self.n_actors)]
-        return action
+
+        # sample actions per actor
+        actions = [self.action_space.sample() for _ in range(self.n_actors)]
+
+        # outer most list element is 1 for base rl_env because maps = 1, inner element is action dimension
+        return np.stack(actions).reshape((1, self.n_actors, -1)).tolist()
 
     # required abstract methods
 

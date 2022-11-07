@@ -23,7 +23,7 @@ if __name__ == "__main__":
     # creates a basic scene and saves as gltf
     scene = sm.Scene(engine="pyvista")
 
-    # add light source (especially for Unity visualization)
+    # add light source
     scene += sm.LightSun()
 
     # add objects to scene
@@ -45,4 +45,3 @@ if __name__ == "__main__":
     scene.show()
 
     input("Press enter to end this example.")
-    scene.close()

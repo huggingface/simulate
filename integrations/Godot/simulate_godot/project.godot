@@ -30,6 +30,56 @@ _global_script_classes=[{
 "path": "res://Simulate/Bridge/command.gd"
 }, {
 "base": "Node",
+"class": &"GLTFEnums",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/gltf_enums.gd"
+}, {
+"base": "Node3D",
+"class": &"HFActuator",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/hf_actuator.gd"
+}, {
+"base": "Generic6DOFJoint3D",
+"class": &"HFArticulationBody",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/hf_articulation_body.gd"
+}, {
+"base": "StaticBody3D",
+"class": &"HFCollider",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/hf_collider.gd"
+}, {
+"base": "GLTFDocumentExtension",
+"class": &"HFExtensions",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/hf_extensions.gd"
+}, {
+"base": "PhysicsMaterial",
+"class": &"HFPhysicMaterial",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/hf_physic_material.gd"
+}, {
+"base": "Node3D",
+"class": &"HFRaycastSensor",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/hf_raycast_sensor.gd"
+}, {
+"base": "Node3D",
+"class": &"HFRewardFunction",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/hf_reward_function.gd"
+}, {
+"base": "RigidBody3D",
+"class": &"HFRigidBody",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/hf_rigid_body.gd"
+}, {
+"base": "Node3D",
+"class": &"HFStateSensor",
+"language": &"GDScript",
+"path": "res://Simulate/GLTF/hf_state_sensor.gd"
+}, {
+"base": "Node",
 "class": &"RLAction",
 "language": &"GDScript",
 "path": "res://Simulate/RLAgents/rl_action.gd"
@@ -54,6 +104,16 @@ _global_script_class_icons={
 "AgentManager": "",
 "Client": "",
 "Command": "",
+"GLTFEnums": "",
+"HFActuator": "",
+"HFArticulationBody": "",
+"HFCollider": "",
+"HFExtensions": "",
+"HFPhysicMaterial": "",
+"HFRaycastSensor": "",
+"HFRewardFunction": "",
+"HFRigidBody": "",
+"HFStateSensor": "",
 "RLAction": "",
 "RenderCamera": "",
 "RewardFunction": "",
@@ -64,7 +124,7 @@ _global_script_class_icons={
 
 config/name="Simulate"
 run/main_scene="res://Scenes/scene.tscn"
-config/features=PackedStringArray("4.0", "Vulkan Clustered")
+config/features=PackedStringArray("4.0")
 config/icon="res://icon.png"
 
 [autoload]

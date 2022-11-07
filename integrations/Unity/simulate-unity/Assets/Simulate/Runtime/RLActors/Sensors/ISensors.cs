@@ -42,6 +42,6 @@ namespace Simulate {
         int[] GetShape();
         void Enable();
         void Disable();
-        void AddObsToBuffer(Buffer buffer, int mapIndex, int actorIndex);
+        void AddObsToBuffer(Buffer buffer, int bufferIndex);
     }
 }

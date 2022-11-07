@@ -10,34 +10,32 @@ an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express o
 specific language governing permissions and limitations under the License.
 -->
 
-# Simulate
+# 💻 Installation
 
-Simulate is a library for easily creating and sharing simulation environments for intelligent agents (e.g. reinforcement learning) or synthetic data generation.
+🤗 Simulate can be installed in python using pip:
+```
+pip install simulate
+```
 
-## Install
-
-Install Simulate (preferentially in a virtual environment) with a simple `pip install simulate`
-
-## Options for Reinforcement Learning Support
-
-Simulate comes with additional support for the gym API, stable baselines 3 and sample-factory (experimental)
-
-### Gym Installation
-
+🤗 Simulate comes with additional support for reinforcement learning libraries, including gym:
 ```
 pip install simulate[gym]
 ```
 
-### Stable Baselines 3 Installation
-
+stable baselines 3:
 ```
 pip install simulate[sb3]
 ```
 
-### Sample Factory Installation (experimental)
-
+and sample-factory (experimental):
 ```
 pip install simulate[sf]
 ```
 
-**Note** due to version incompatibilities Stable Baselines 3 and Sample Factory cannot both be installed at the same time.
+Verify that 🤗 Simulate is working correctly by showing a simple scene:
+```
+import simulate as sm
+scene = sm.Scene(engine="Unity")
+scene += sm.LightSun() + sm.Box()
+scene.show()
+```
