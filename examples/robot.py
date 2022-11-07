@@ -15,7 +15,6 @@
 # Lint as: python3
 
 import argparse
-import pdb
 
 import matplotlib.pyplot as plt
 import numpy as np

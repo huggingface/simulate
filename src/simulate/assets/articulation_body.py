@@ -29,38 +29,6 @@ from .utils import rotation_from_euler_radians
 ALLOWED_JOINT_TYPES = ["fixed", "prismatic", "revolute"]
 
 
-# def euler_to_quat(euler):
-#     """
-#     Return the quaternion given the Euler angles. For more information, see these resources
-#     http://mathworld.wolfram.com/EulerParameters.html
-#     http://en.wikipedia.org/wiki/Quaternions#Hamilton_product
-#
-#     Args:
-#         yaw (`float`):Rotation angle in radians around z-axis (performed first)
-#         pitch  (`float`): Rotation angle in radians around y-axis
-#         roll  (`float`): Rotation angle in radians around x-axis (performed last)
-#
-#     Returns:
-#         quat (`np.array`) : array shape (4,), Quaternion in w, x, y z (real, then vector) format
-#     """
-#     yaw = euler[0]
-#     pitch = euler[1]
-#     roll = euler[2]
-#     cz = math.cos(yaw / 2.0)
-#     sz = math.sin(yaw / 2.0)
-#     cy = math.cos(pitch / 2.0)
-#     sy = math.sin(pitch / 2.0)
-#     cx = math.cos(roll / 2.0)
-#     sx = math.sin(roll / 2.0)
-#     return np.array(
-#         [
-#             cx * cy * cz - sx * sy * sz,
-#             cx * sy * sz + cy * cz * sx,
-#             cx * cz * sy - sx * cy * sz,
-#             cx * cy * sz + sx * cz * sy,
-#         ]
-#     ).tolist()
-
 
 @dataclass()
 class ArticulationBodyComponent(
