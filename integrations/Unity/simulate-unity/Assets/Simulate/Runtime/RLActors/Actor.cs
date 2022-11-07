@@ -116,9 +116,9 @@ namespace Simulate.RlAgents {
             }
         }
 
-        public void ReadSensorObservations(Dictionary<string, Buffer> sensorBuffers, int mapIndex, int actorIndex) {
+        public void ReadSensorObservations(Dictionary<string, Buffer> sensorBuffers, int bufferIndex) {
             foreach (var sensor in sensors) {
-                sensor.AddObsToBuffer(sensorBuffers[sensor.GetName()], mapIndex, actorIndex);
+                sensor.AddObsToBuffer(sensorBuffers[sensor.GetName()], bufferIndex);
             }
         }
 

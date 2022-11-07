@@ -73,6 +73,8 @@ scene = Scene.create_from('simulate-tests/Box/glTF/Box.gltf', is_local=False)  #
 
 scene.save('local_dir/file.gltf')  # Save to a local file
 scene.push_to_hub('simulate-tests/Debug/glTF/Box.gltf')  # Save to the Hub - use a token if necessary
+
+scene.show()
 ```
 <p align="center">
     <br>
@@ -204,3 +206,15 @@ You can find bridges to other rendering/simulation engines in the `integrations`
 ## Tips
 
 If you are running on GCP, remember not to install `pyvistaqt`, and if you did so, uninstall it in your environment, since QT doesn't work well on GCP.
+
+## Citation
+```bibtex
+@misc{simulate,
+  author = {Thomas Wolf, Edward Beeching, Carl Cochet, Dylan Ebert, Alicia Machado, Nathan Lambert, Clément Romac},
+  title = {Simulate},
+  year = {2022},
+  publisher = {GitHub},
+  journal = {GitHub repository},
+  howpublished = {\url{https://github.com/huggingface/simulate}}
+}
+```

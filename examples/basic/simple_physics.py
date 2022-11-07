@@ -60,7 +60,7 @@ def create_scene(build_exe=""):
     return scene
 
 
-def simulate(scene, n_frames=30):
+def simulate(scene, n_frames=60):
     plt.ion()
     _, (ax1, ax2) = plt.subplots(1, 2)
     heights = []
@@ -91,10 +91,11 @@ if __name__ == "__main__":
     parser.add_argument(
         "--build_exe", help="path to unity engine build executable", required=False, type=str, default=""
     )
-    parser.add_argument("-n", "--n_frames", help="number of frames to simulate", required=False, type=int, default=30)
+    parser.add_argument("-n", "--n_frames", help="number of frames to simulate", required=False, type=int, default=60)
     args = parser.parse_args()
 
-    scene = create_scene(args.build_exe)
+    build_exe = args.build_exe if args.build_exe != "None" else None
+    scene = create_scene(build_exe)
     simulate(scene, args.n_frames)
 
     input("Press enter to continue...")

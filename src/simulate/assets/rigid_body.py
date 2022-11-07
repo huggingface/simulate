@@ -40,17 +40,17 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
 
     Args:
         name (`string`, *optional*, defaults to `None`):
-            The user-defined name of this material
+            The user-defined name of this material.
         mass (`float`, *optional*, defaults to `1.0`):
-            Mass of the rigidbody
+            Mass of the rigidbody.
         center_of_mass (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
-            Center of mass of the rigidbody
+            Center of mass of the rigidbody.
         inertia_tensor (`List[float]`, *optional*, defaults to `None`):
-            Inertia tensor of the rigidbody
+            Inertia tensor of the rigidbody.
         linear_drag (`float`, *optional*, defaults to `0.0`):
-            Linear drag of the rigidbody
+            Linear drag of the rigidbody.
         angular_drag (`float`, *optional*, defaults to `0.0`):
-            Angular drag of the rigidbody
+            Angular drag of the rigidbody.
         constraints (List[str], *optional*, defaults to `[]`):
             List of constraints to apply to the rigidbody, selected in:
                 [    "freeze_position_x",
@@ -61,10 +61,10 @@ class RigidBodyComponent(GltfExtensionMixin, gltf_extension_name="HF_rigid_bodie
                     "freeze_rotation_z",
                 ]
         use_gravity (`bool`, *optional*, defaults to `True`):
-            Whether the rigidbody should ignore gravity
+            Whether the rigidbody should ignore gravity.
         collision_detection (`str`, *optional*, defaults to `"discrete"`):
             Whether to use discrete or continuous collision detection, for slower but more precise collision detection
-            (recommended for small but fast-moving objects)
+            (recommended for small but fast-moving objects).
         kinematic (`bool`, *optional*, defaults to `False`):
             Set to True to ignore force collisions and treat the rigidbody as a fix/static object.
             Equivalent to isKinematic in Unity, custom_integrator in Godot and a mass = 0 in Bullet.
