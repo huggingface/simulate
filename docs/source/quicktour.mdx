@@ -14,13 +14,11 @@ specific language governing permissions and limitations under the License.
 
 # Quicktour
 
-Simulate's API is inspired by the great [Kubric's API](https://github.com/google-research/kubric).
-The user create a scene and add assets in it (objects, cameras, lights if needed).
-Once the scene is created you can save/share it and also render or do simulations using one of the backend rendering/simulation engines (at the moment Unity, Blender and Godot). The saving/sharing format is engine agnostic and using the industry standard glTF format for saving scenes.
+Simulate's API is inspired by the great [Kubric API](https://github.com/google-research/kubric).
+The user can create a scene and add assets to it (objects, cameras, lights if needed).
+Once the scene is created you can save/share it and also render or do simulations using one of the backend rendering/simulation engines (at the moment Unity, Blender and Godot). The saving/sharing format is engine-agnostic and uses the standard glTF format for saving scenes.
 
 Let's do a quick exploration together.
-
-We'll use the default backend which is a simple
 
 To install and contribute (from [CONTRIBUTING.md](CONTRIBUTING.md))
 
@@ -37,9 +35,9 @@ make style
 
 The Python API is located in src/simulate. It allows creation and loading of scenes, and sending commands to the backend.
 
-The backend, currently just Unity, is located in [integrations/Unity](integrations/Unity).
-This is currently a Unity editor project, which must be opened in Unity 2021.3.2f1.
-In the future, this will be built as an executable, and spawned by the Python API.
+The backend options (Unity, Godot, Blender) can be found in the integrations folder.
+The most fully-featured backend is Unity, located in [integrations/Unity](integrations/Unity).
+The Unity editor isn't required to run 🤗 Simulate, unless making changes to the backend, which requires Unity 2021.3.2f1.
 
 ## Loading a scene from the hub or a local file
 
@@ -147,7 +145,7 @@ scene += [scene.plane_01.sphere_02.copy(), scene.plane_01.sphere_02.copy()]
 Here are a couple of examples:
 
 ```
-# Let's translate our floor (with the first sphere, it's child)
+# Let's translate our floor (with the first sphere, its child)
 scene.plane_01.translate_x(1)
 
 # Let's scale the second sphere uniformly
@@ -159,7 +157,7 @@ print(scene.plane_01.position)
 print(scene.sphere_03.scaling)
 >>> array([0.1, 0.1, 0.1])
 
-# We can also translate from a vector and rotate from a quaternion or along the various axis
+# We can also translate from a vector and rotate from a quaternion or along the various axes
 ```
 
 ### Visualization engine
@@ -173,14 +171,14 @@ scene.show()
 
 You can find bridges to other rendering/simulation engines in the `integrations` directory.
 
-# Reinforcement Learning (RL) with Simulate
+# Reinforcement Learning (RL) with 🤗 Simulate
 
-Simulate is designed to provide easy and scalable integration with reinforcement learning algorithms.
+🤗 Simulate is designed to provide easy and scalable integration with reinforcement learning algorithms.
 The core abstraction is through the [`RLEnv`] class that wraps a [`Scene`].
 The [`RLEnv`] allows an [`Actuator`] to be manipulated by an external agent or policy.
 
-It is core to the design of Simulate that we are *not creating* Agents, but rather providing an interface for applications of machine learning and embodied AI.
-The core API for RL applications can be seen below, where Simulate constrains the information that flows from the Scene to the external agent through an Actuator abstraction.
+It is core to the design of 🤗 Simulate that we are *not creating* Agents, but rather providing an interface for applications of machine learning and embodied AI.
+The core API for RL applications can be seen below, where 🤗 Simulate constrains the information that flows from the Scene to the external agent through an Actuator abstraction.
 
 <p align="center">
     <br>
@@ -188,7 +186,7 @@ The core API for RL applications can be seen below, where Simulate constrains th
     <br>
 </p>
 
-At release, we include a set of pre-designed `Actor`'s that can act or navigate a scene. An `Actor` inherits from an `Object3D` and has sensors, actuators, and action mappings.
+At release, we include a set of pre-designed `Actor`s that can act or navigate a scene. An `Actor` inherits from an `Object3D` and has sensors, actuators, and action mappings.
 
 
 ### Tips
