@@ -25,6 +25,7 @@ import simulate as sm
 USE_GRAVITY = False
 RANDOM_JOINT_AXES = True
 
+
 def make_scene(build_exe):
     scene = sm.Scene(engine="unity", engine_exe=None)
 
