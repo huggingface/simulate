@@ -21,7 +21,6 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 import pyvista as pv
 
-
 from simulate._vhacd import compute_vhacd
 
 from ..utils import logging
