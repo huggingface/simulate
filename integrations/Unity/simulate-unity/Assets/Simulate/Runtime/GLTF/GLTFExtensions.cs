@@ -3,7 +3,7 @@ namespace Simulate.GLTF {
         public KHRLightsPunctual KHR_lights_punctual;
         public HFColliders HF_colliders;
         public HFPhysicMaterials HF_physic_materials;
-        public HFarticulationBodies HF_articulation_bodies;
+        public HFArticulationBodies HF_articulation_bodies;
         public HFRigidBodies HF_rigid_bodies;
         public HFActuators HF_actuators;
         public HFStateSensors HF_state_sensors;

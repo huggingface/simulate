@@ -155,7 +155,6 @@ class RLEnv:
                 value = value.reshape((1, self.n_actors, -1))
                 action[key] = value.tolist()
 
-        # import ipdb;pdb.set_trace()
         self.scene.engine.step_send_async(action=action)
 
     def step_recv_async(self) -> Tuple[Dict, np.ndarray, np.ndarray, Dict]:
@@ -270,7 +269,11 @@ class RLEnv:
         actions = [self.action_space.sample() for _ in range(self.n_actors)]
 
         # outer most list element is 1 for base rl_env because maps = 1, inner element is action dimension
-        return np.stack(actions).reshape((1, self.n_actors, -1)).tolist()
+        if len(self.action_tags) == 1:
+            return np.stack(actions).reshape((1, self.n_actors, -1)).tolist()
+        else:
+            # action is an OrderedDict of action tag and ndarrays if multi-tag
+            return actions[0]
 
     # required abstract methods
 

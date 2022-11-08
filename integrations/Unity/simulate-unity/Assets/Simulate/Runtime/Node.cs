@@ -9,7 +9,7 @@ namespace Simulate {
         public KHRLightsPunctual.GLTFLight lightData;
         public HFColliders.GLTFCollider.ImportResult colliderData;
         public HFRigidBodies.GLTFRigidBody rigidBodyData;
-        public HFarticulationBodies.GLTFArticulationBody articulationBodyData;
+        public HFArticulationBodies.GLTFArticulationBody articulationBodyData;
         public HFActuators.HFActuator actuatorData;
         public HFStateSensors.HFStateSensor stateSensorData;
         public HFRaycastSensors.HFRaycastSensor raycastSensorData;
@@ -203,13 +203,18 @@ namespace Simulate {
                     Debug.LogWarning(string.Format("Joint type {0} not implemented", articulationBodyData.joint_type));
                     break;
             }
+
             ab.anchorPosition = articulationBodyData.anchor_position;
             ab.anchorRotation = articulationBodyData.anchor_rotation;
-            if (articulationBodyData.immovable) {
-                // we should only try and set this property if we are the root in a chain of articulated bodies
+
+            // we should only try and set this property if we are the root in a chain of articulated bodies
+            if (articulationBodyData.immovable){
                 ab.immovable = articulationBodyData.immovable;
             }
-            // setting match anchors to false ensures we can deactivate and activate the articulation body 
+            // this property should likely be consistent across all bodies in the chain, or just locked to a base node
+            ab.useGravity = articulationBodyData.use_gravity;
+
+            // setting match anchors to false ensures we can deactivate and activate the articulation body
             // see http://anja-haumann.de/unity-preserve-articulation-body-state/
             ab.matchAnchors = false;
             ab.linearDamping = articulationBodyData.linear_damping;
@@ -220,7 +225,9 @@ namespace Simulate {
             if (articulationBodyData.inertia_tensor != null) {
                 ab.inertiaTensor = articulationBodyData.inertia_tensor.Value;
             }
-
+            if (articulationBodyData.is_limited){
+                ab.twistLock = ArticulationDofLock.LimitedMotion;
+            }
             ArticulationDrive xDrive = new ArticulationDrive() {
                 stiffness = articulationBodyData.drive_stiffness,
                 forceLimit = articulationBodyData.drive_force_limit,

@@ -13,12 +13,15 @@
 # limitations under the License.
 
 # Lint as: python3
-""" A simulate JointComponent."""
+""" A simulate ArticulationBodyComponent."""
 import itertools
 from dataclasses import dataclass
 from typing import ClassVar, List, Optional
 
+import numpy as np
+
 from .gltf_extension import GltfExtensionMixin
+from .utils import rotation_from_euler_radians
 
 
 ALLOWED_JOINT_TYPES = ["fixed", "prismatic", "revolute"]
@@ -36,8 +39,8 @@ class ArticulationBodyComponent(
         joint_type (`str`):
             The type of articulation (aka joint) to use.
             - "fixed": no movement allowed
-            - "slider": only translation along 1 axis allowed
-            - "hinge": only rotation along 1 axis allowed
+            - "prismatic": only translation along 1 axis allowed
+            - "revolute": only rotation along 1 axis allowed
         anchor_rotation (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0, 1.0]`):
             The rotation axis along which the asset is allowed to move relative to its parent (translation or rotation).
         anchor_position (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
@@ -60,11 +63,10 @@ class ArticulationBodyComponent(
             The target of the joint drive.
         drive_target_velocity (`float`, *optional*, defaults to `0.0`):
             The target velocity of the joint drive.
-        upper_limit (`float`, *optional*, defaults to `0.0`):
+        upper_limit (`float`, *optional*, defaults to None):
             The upper limit of the joint.
-        lower_limit (`float`, *optional*, defaults to `0.0`):
+        lower_limit (`float`, *optional*, defaults to None):
             The lower limit of the joint.
-
         mass (`float`, *optional*, defaults to `1.0`):
             The mass of the body.
         center_of_mass (`List[float]`, *optional*, defaults to `[0.0, 0.0, 0.0]`):
@@ -93,6 +95,7 @@ class ArticulationBodyComponent(
     drive_target_velocity: float = 0.0
     upper_limit: Optional[float] = None
     lower_limit: Optional[float] = None
+    is_limited: Optional[bool] = False
 
     mass: Optional[float] = None
     center_of_mass: Optional[List[float]] = None
@@ -108,8 +111,14 @@ class ArticulationBodyComponent(
 
         if self.anchor_rotation is None:
             self.anchor_rotation = [0.0, 0.0, 0.0, 1.0]
-        if len(self.anchor_rotation) != 4:
-            raise ValueError("anchor_rotation must be a list of 4 floats (Quaternion)")
+        elif len(self.anchor_rotation) == 3:
+            self.anchor_rotation = rotation_from_euler_radians(
+                np.deg2rad(self.anchor_rotation[0]),
+                np.deg2rad(self.anchor_rotation[1]),
+                np.deg2rad(self.anchor_rotation[2]),
+            )
+        elif len(self.anchor_rotation) not in [4]:
+            raise ValueError("anchor_rotation must be a list of 4 floats (Quaternion) or 3 floats (Euler Angles)")
 
         if self.anchor_position is None:
             self.anchor_position = [0.0, 0.0, 0.0]
@@ -118,6 +127,9 @@ class ArticulationBodyComponent(
 
         if self.immovable is None:
             self.immovable = False
+
+        if self.use_gravity is None:
+            self.use_gravity = True
 
         if self.linear_damping is None:
             self.linear_damping = 0.0
@@ -139,3 +151,6 @@ class ArticulationBodyComponent(
         if self.inertia_tensor is not None:
             if len(self.inertia_tensor) != 3:
                 raise ValueError("inertia_tensor must be a list of 3 floats")
+
+        if self.upper_limit or self.lower_limit:
+            self.is_limited = True
