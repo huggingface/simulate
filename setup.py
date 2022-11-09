@@ -52,15 +52,15 @@ To create the package for pypi.
 8. Change the version in __init__.py and setup.py to X.X.X+1.dev0 (e.g. VERSION=1.18.3 -> 1.18.4.dev0).
     Then push the change with a message 'set dev version'
 """
-from distutils.extension import Extension
+from skbuild import setup
 
 import numpy as np
-from Cython.Build import cythonize
+from glob import glob
 
 # Available at setup time due to pyproject.toml
-from pybind11.setup_helpers import Pybind11Extension, build_ext
+# from pybind11.setup_helpers import Pybind11Extension, build_ext
 
-from setuptools import find_packages, setup
+from setuptools import find_packages
 import sys
 
 __version__ = "0.0.3.dev0"  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
@@ -71,7 +71,8 @@ REQUIRED_PKGS = [
     "vtk>=9.0",  # Pyvista doesn't always install vtk, so we do it here
     "pyvista>=0.35",  # For mesh creation and edition and simple vizualization
     "huggingface_hub>=0.10",  # For sharing objects, environments & trained RL policies
-    'pybind11>=2.2',  # For compiling extensions pybind11
+    'pybind11>=2.10.0',  # For compiling extensions pybind11
+    'scikit-build>=0.5',  # For compiling extensions
 ]
 
 RL_REQUIRE = [
@@ -122,27 +123,6 @@ else:
     extra_compile_args = []
     extra_link_args = []
 
-ext_modules = [
-    Pybind11Extension("pyVHACD",
-                      ["src/pyVHACD/main.cpp"],
-                      # Example: passing in the version to the compiled code
-                      define_macros=[('VERSION_INFO', __version__)],
-                      ),
-    ]
-
-ext_modules += cythonize([Extension(name="wfc_binding",
-                      sources=["src/simulate/assets/procgen/wfc/core/wfc_binding.pyx",
-                       "src/simulate/assets/procgen/wfc/core/cpp/src/propagator.cpp",
-                       "src/simulate/assets/procgen/wfc/core/cpp/src/wave.cpp",
-                       "src/simulate/assets/procgen/wfc/core/cpp/src/wfc.cpp"],
-                      language="c++",
-                      include_dirs=[
-                          "src/simulate/assets/procgen/wfc/core/cpp/include",
-                      ],
-                      extra_compile_args=extra_compile_args,
-                      extra_link_args=extra_link_args,
-                      )], force=True)
-
 
 setup(
     name="simulate",
@@ -174,10 +154,14 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    cmdclass={'build_ext': build_ext},
     keywords="simulation environments synthetic data datasets machine learning",
     zip_safe=False,  # Required for mypy to find the py.typed file
-    ext_modules=ext_modules,
     python_requires=">=3.8",
     include_dirs=[np.get_include()],
+    cmake_install_dir='src/simulate',
 )
+
+# When building extension modules `cmake_install_dir` should always be set to the
+# location of the package you are building extension modules for.
+# Specifying the installation directory in the CMakeLists subtley breaks the relative
+# paths in the helloTargets.cmake file to all of the library components.

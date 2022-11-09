@@ -21,11 +21,7 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 import pyvista as pv
 
-
-try:
-    from pyVHACD import compute_vhacd
-except ImportError:
-    compute_vhacd = None
+from simulate._vhacd import compute_vhacd
 
 from ..utils import logging
 from .articulation_body import ArticulationBodyComponent
@@ -200,8 +196,6 @@ class Object3D(Asset):
         find_best_plane : bool, optional
             Find best plane, by default False
         """
-        if compute_vhacd is None:
-            raise ImportError("Please compile/install pyVHACD to use this feature")
         if self.mesh is None:
             raise ValueError("Cannot build collider from empty mesh")
 
