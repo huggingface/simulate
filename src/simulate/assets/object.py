@@ -21,11 +21,7 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 import pyvista as pv
 
-
-try:
-    from pyVHACD import compute_vhacd
-except ImportError:
-    compute_vhacd = None
+from simulate._vhacd import compute_vhacd
 
 from ..utils import logging
 from .articulation_body import ArticulationBodyComponent
@@ -33,6 +29,7 @@ from .asset import Asset
 from .collider import Collider
 from .material import Material
 from .procgen.prims import generate_prims_maze
+from .procgen.wfc import generate_2d_map, generate_map
 from .rigid_body import RigidBodyComponent
 
 
@@ -199,8 +196,6 @@ class Object3D(Asset):
         find_best_plane : bool, optional
             Find best plane, by default False
         """
-        if compute_vhacd is None:
-            raise ImportError("Please compile/install pyVHACD to use this feature")
         if self.mesh is None:
             raise ValueError("Cannot build collider from empty mesh")
 
@@ -1576,23 +1571,176 @@ class StructuredGrid(Object3D):
         )
 
 
+class ProcgenGrid(Object3D):
+    """Create a procedural generated 3D grid (structured plane) from
+        tiles / previous map.
+    Parameters
+    ----------
+    sample_map : np.ndarray or python list of lists of floats
+        Map to procedurally generate from.
+    specific_map: np.ndarray or python list of lists of floats
+        Map to show as it is.
+    tiles : list of tiles
+        Tiles for procedural generation when using generation from tiles and neighbors definitions.
+        Tiles must be NxN np.ndarray that define height maps. In the future, we plan to support
+        more generic tiles.
+    neighbors: list of available neighbors for each tile
+        Expects pair of tiles.
+    symmetries: list of char
+        Expects a list of symmetry definitions. If passed, you must define a symmetry for each tile.
+        Possible symmetries are "X", "I" / "/", "T" / "L", another character, and each character defines
+        the tile with the same level of symmetry as the character:
+        - X: has symmetry in all ways. So it has 1 different format.
+        - I / `/`: when rotated, it's different from the original tile. Has 2 different formats.
+        - T / L: Has 4 different formats.
+        - other characters: the algorithm supposes it has 8 different formats.
+    weights: list of floats
+        sampling weights for each of the tiles
+    width: int
+        width of the generated map
+    height: int
+        height of the generated map
+    shallow: bool
+        Indicates whether procedural generation mesh should be generated in simenv or not.
+        When it's true, we just return the map returned by the algorithm without
+        actually creating the mesh in simenv.
+        Created for the purpose of optimizing certain environments such as XLand.
+    seed: int
+        Random seed used for procedural generation.
+    algorithm_args: dict
+        Extra arguments to be passed to the procedural generation.
+    Returns
+    -------
+    Examples
+    --------
+    """
+
+    __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
+
+    def __init__(
+        self,
+        sample_map: Union[np.ndarray, List[List[List[int]]]] = None,
+        specific_map: Union[np.ndarray, List[List[List[int]]]] = None,
+        tiles: Optional[List] = None,
+        neighbors: Optional[List] = None,
+        symmetries: Optional[List] = None,
+        weights: Optional[List] = None,
+        width: int = 9,
+        height: int = 9,
+        shallow: bool = False,
+        algorithm_args: Optional[dict] = None,
+        seed: int = None,
+        name: Optional[str] = None,
+        is_actor: bool = False,
+        position: Optional[List[float]] = None,
+        set_mesh_direction: Optional[List[float]] = None,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        verbose: bool = False,
+        **kwargs: Any,
+    ):
+
+        if seed is None:
+            seed = np.random.randint(0, 100000)
+            if verbose:
+                logger.info("Seed:", seed)
+
+        # Seeding
+        np.random.seed(seed)
+
+        if sample_map is not None and not isinstance(sample_map, np.ndarray):
+            sample_map = np.array(sample_map)
+
+        if specific_map is not None and not isinstance(specific_map, np.ndarray):
+            specific_map = np.array(specific_map)
+
+        if algorithm_args is None:
+            algorithm_args = {}
+
+        # Handle when user doesn't pass arguments properly
+        if (tiles is None or neighbors is None) and sample_map is None and specific_map is None:
+            raise ValueError("Insert tiles / neighbors or a map to sample from.")
+
+        # Get coordinates and image from procedural generation
+        all_args = {
+            "width": width,
+            "height": height,
+            "sample_map": sample_map,
+            "tiles": tiles,
+            "neighbors": neighbors,
+            "weights": weights,
+            "symmetries": symmetries,
+            **algorithm_args,
+        }
+
+        if shallow:
+            if specific_map is None:
+                map_2ds = generate_2d_map(**all_args)
+                # We take the first map (if nb_samples > 1), since this object has
+                # support for a single map for now
+                self.map_2d = map_2ds[0]
+
+            else:
+                self.map_2d = specific_map
+
+        else:
+            # Saves these for other functions that might use them
+            # We take index 0 since generate_map is now vectorized, but we don't have
+            # support for multiple maps on this object yet.
+            coordinates, map_2ds = generate_map(specific_map=specific_map, **all_args)
+            self.coordinates, self.map_2d = coordinates[0], map_2ds[0]
+
+            # If it is a structured grid, extract the surface mesh (PolyData)
+            mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
+            original_mesh_direction = [0, 1, 0]
+
+            super().__init__(
+                mesh=mesh,
+                name=name,
+                position=position,
+                is_actor=is_actor,
+                set_mesh_direction=set_mesh_direction,
+                original_mesh_direction=original_mesh_direction,
+                with_rigid_body=with_rigid_body,
+                with_articulation_body=with_articulation_body,
+                parent=parent,
+                children=children,
+                **kwargs,
+            )
+
+    def generate_3D(
+        self,
+        name: Optional[str] = None,
+        is_actor: bool = False,
+        with_rigid_body: bool = False,
+        with_articulation_body: bool = False,
+        parent: Optional["Asset"] = None,
+        children: Optional[Union["Asset", List["Asset"]]] = None,
+        **kwargs: Any,
+    ):
+        """
+        Function for creating the mesh in case the creation of map was shallow.
+        """
+        coordinates, _ = generate_map(specific_map=self.map_2d)
+        self.coordinates = coordinates[0]
+
+        # If it is a structured grid, extract the surface mesh (PolyData)
+        mesh = pv.StructuredGrid(*self.coordinates).extract_surface()
+        super().__init__(
+            mesh=mesh,
+            name=name,
+            is_actor=is_actor,
+            with_rigid_body=with_rigid_body,
+            with_articulation_body=with_articulation_body,
+            parent=parent,
+            children=children,
+            **kwargs,
+        )
+
+
 class ProcGenPrimsMaze3D(Asset):
-    """
-    Create a procedurally generated maze.
-
-    Args:
-        width (`int`):
-            Width of the maze.
-        depth (`int`):
-            Depth of the maze.
-        name (`str`, *optional*, defaults to `None`):
-            Name of the maze.
-        wall_keep_prob (`float`, *optional*, defaults to `0.5`):
-            Probability of keeping a wall.
-        wall_material (`Material`, *optional*, defaults to `None`):
-            Material of the walls.
-    """
-
     __NEW_ID = itertools.count()  # Singleton to count instances of the classes for automatic naming
 
     def __init__(

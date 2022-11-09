@@ -4,7 +4,7 @@
 #include <pybind11/stl.h>
 #define ENABLE_VHACD_IMPLEMENTATION 1
 #define VHACD_DISABLE_THREADING 0
-#include "VHACD.h"
+#include "include/vhacd/VHACD.h"
 
 #define STRINGIFY(x) #x
 #define MACRO_STRINGIFY(x) STRINGIFY(x)
@@ -147,7 +147,7 @@ std::vector<std::pair<py::array_t<double>, py::array_t<uint32_t>>> compute_vhacd
 
 
 /* Wrapping routines with PyBind */
-PYBIND11_MODULE(pyVHACD, m) {
+PYBIND11_MODULE(_vhacd, m) {
 	    m.doc() = "Python bindings for the V-HACD algorithm"; // optional module docstring
 	    m.def("compute_vhacd", &compute_vhacd, "Compute convex hulls",
       		py::arg("points"),

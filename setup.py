@@ -52,23 +52,27 @@ To create the package for pypi.
 8. Change the version in __init__.py and setup.py to X.X.X+1.dev0 (e.g. VERSION=1.18.3 -> 1.18.4.dev0).
     Then push the change with a message 'set dev version'
 """
+from skbuild import setup
 
+import numpy as np
+from glob import glob
 
 # Available at setup time due to pyproject.toml
-from pybind11.setup_helpers import Pybind11Extension, build_ext
+# from pybind11.setup_helpers import Pybind11Extension, build_ext
 
-from setuptools import find_packages, setup
+from setuptools import find_packages
+import sys
 
 __version__ = "0.0.3.dev0"  # expected format is one of x.y.z.dev0, or x.y.z.rc1 or x.y.z (no to dashes, yes to dots)
 
-
 REQUIRED_PKGS = [
     "dataclasses_json",  # For GLTF export/imports
-    "numpy>=1.18", # We use numpy>=1.17 to have np.random.Generator
+    "numpy>=1.18",  # We use numpy>=1.17 to have np.random.Generator
     "vtk>=9.0",  # Pyvista doesn't always install vtk, so we do it here
     "pyvista>=0.35",  # For mesh creation and edition and simple vizualization
-    "huggingface_hub>=0.10", # For sharing objects, environments & trained RL policies
-    'pybind11>=2.2',  # For compiling extensions pybind11
+    "huggingface_hub>=0.10",  # For sharing objects, environments & trained RL policies
+    'pybind11>=2.10.0',  # For compiling extensions pybind11
+    'scikit-build>=0.5',  # For compiling extensions
 ]
 
 RL_REQUIRE = [
@@ -103,22 +107,21 @@ DOCS_REQUIRE = [
 QUALITY_REQUIRE = ["black[jupyter]~=22.0", "flake8>=3.8.3", "isort>=5.0.0", "pyyaml>=5.3.1"]
 
 EXTRAS_REQUIRE = {
-    "rl" : RL_REQUIRE,
-    "sb3" : SB3_REQUIRE,
-     "dev": DEV_REQUIRE + TESTS_REQUIRE + QUALITY_REQUIRE,
-     "test": TESTS_REQUIRE,
-     "quality": QUALITY_REQUIRE,
-     "docs": DOCS_REQUIRE,
+    "rl": RL_REQUIRE,
+    "sb3": SB3_REQUIRE,
+    "dev": DEV_REQUIRE + TESTS_REQUIRE + QUALITY_REQUIRE,
+    "test": TESTS_REQUIRE,
+    "quality": QUALITY_REQUIRE,
+    "docs": DOCS_REQUIRE,
 }
 
+if sys.platform == 'darwin':
+    extra_compile_args = ["-std=c++11"]
+    extra_link_args = ["-std=c++11"]
 
-ext_modules = [
-    Pybind11Extension("pyVHACD",
-        ["src/pyVHACD/main.cpp"],
-        # Example: passing in the version to the compiled code
-        define_macros = [('VERSION_INFO', __version__)],
-        ),
-]
+else:
+    extra_compile_args = []
+    extra_link_args = []
 
 
 setup(
@@ -151,9 +154,14 @@ setup(
         "Programming Language :: Python :: 3.10",
         "Topic :: Scientific/Engineering :: Artificial Intelligence",
     ],
-    cmdclass={'build_ext': build_ext},
     keywords="simulation environments synthetic data datasets machine learning",
     zip_safe=False,  # Required for mypy to find the py.typed file
-    ext_modules=ext_modules,
     python_requires=">=3.8",
+    include_dirs=[np.get_include()],
+    cmake_install_dir='src/simulate',
 )
+
+# When building extension modules `cmake_install_dir` should always be set to the
+# location of the package you are building extension modules for.
+# Specifying the installation directory in the CMakeLists subtley breaks the relative
+# paths in the helloTargets.cmake file to all of the library components.
