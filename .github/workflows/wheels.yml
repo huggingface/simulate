@@ -46,7 +46,7 @@ jobs:
     - uses: pypa/cibuildwheel@v2.10.1
       env:
         CIBW_ARCHS_MACOS: auto universal2
-        CIBW_SKIP: cp311-* *-win32 pp38-* pp39-*
+        CIBW_SKIP: cp311-* *-win32 pp38-* pp39-* cp38-manylinux_i686
         MACOSX_DEPLOYMENT_TARGET: "10.13"
 
     - name: Verify clean directory
