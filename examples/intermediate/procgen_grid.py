@@ -36,7 +36,7 @@ if __name__ == "__main__":
         * 0.6
     )
 
-    scene += sm.ProcgenGrid(specific_map=specific_map)
+    scene += sm.ProcGenGrid(specific_map=specific_map)
     scene += sm.LightSun()
     scene.show()
 
@@ -45,7 +45,7 @@ if __name__ == "__main__":
     scene.clear()
 
     # Second scene: generating from this map
-    scene += sm.ProcgenGrid(width=3, height=3, sample_map=specific_map)
+    scene += sm.ProcGenGrid(width=3, height=3, sample_map=specific_map)
     scene += sm.LightSun()
     scene.show()
 
@@ -63,7 +63,7 @@ if __name__ == "__main__":
 
     # Create constraints that define which tiles can be neighbors
     neighbors = [(tiles[1], tiles[0]), (tiles[0], tiles[0]), (tiles[1], tiles[1])]
-    scene += sm.ProcgenGrid(
+    scene += sm.ProcGenGrid(
         width=3, height=3, tiles=tiles, neighbors=neighbors, weights=weights, symmetries=symmetries
     )
     scene += sm.LightSun()
