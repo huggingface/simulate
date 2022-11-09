@@ -156,7 +156,7 @@ setup(
     ],
     keywords="simulation environments synthetic data datasets machine learning",
     zip_safe=False,  # Required for mypy to find the py.typed file
-    python_requires=">=3.8, <3.11",
+    python_requires=">=3.8",
     include_dirs=[np.get_include()],
     cmake_install_dir='src/simulate',
 )
