@@ -226,7 +226,8 @@ namespace Simulate {
                 ab.inertiaTensor = articulationBodyData.inertia_tensor.Value;
             }
             if (articulationBodyData.is_limited){
-                ab.twistLock = ArticulationDofLock.LimitedMotion;
+                ab.twistLock = ArticulationDofLock.LimitedMotion;   // for revolute joints
+                ab.linearLockX = ArticulationDofLock.LimitedMotion; // for prismatic joints
             }
             ArticulationDrive xDrive = new ArticulationDrive() {
                 stiffness = articulationBodyData.drive_stiffness,

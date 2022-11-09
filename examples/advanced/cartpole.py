@@ -30,7 +30,8 @@ def generate_map(index):
 
     root = sm.Asset(name=f"root_{index}")
 
-    base = sm.Cylinder(radius=0.05, height=6, rotation=[0, 0, 90], material=sm.Material.GRAY50)
+    base_length = 6
+    base = sm.Cylinder(radius=0.05, height=base_length, rotation=[0, 0, 90], material=sm.Material.GRAY50)
     base.physics_component = sm.ArticulationBodyComponent(
         "fixed", immovable=True, use_gravity=False
     )  # note for the base the joint type is ignored
@@ -42,7 +43,11 @@ def generate_map(index):
         is_actor=True,
     )
 
-    cart.physics_component = sm.ArticulationBodyComponent("prismatic")
+    cart.physics_component = sm.ArticulationBodyComponent(
+        "prismatic",
+        upper_limit=base_length / 2,  # cart cannot travel forever
+        lower_limit=-base_length / 2,
+    )
     mapping = [
         sm.ActionMapping("add_force", axis=[1, 0, 0], amplitude=10.0),
         sm.ActionMapping("add_force", axis=[-1, 0, 0], amplitude=10.0),
