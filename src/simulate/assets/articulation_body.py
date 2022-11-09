@@ -33,7 +33,7 @@ class ArticulationBodyComponent(
 ):
     """
     An articulation body will model the physics of an articulation body connecting together an asset
-    with its parent in the hierarchy.
+    with its parent in the hierarchy. For prismatic joints, the direction of travel in the backend is X, so we use anchor_rotation to set the position in space.
 
     Args:
         joint_type (`str`):
