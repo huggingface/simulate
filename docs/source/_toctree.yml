@@ -59,8 +59,6 @@
       title: Actuators
     - local: api/sensors
       title: Sensors
-    - local: api/joints
-      title: Joints
     - local: api/reward_functions
       title: Reward Functions
     title: RL
