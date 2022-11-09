@@ -4,14 +4,24 @@ from typing import Any, List, Optional, Tuple
 
 import numpy as np
 
-from wfc_binding import build_neighbor, build_tile, run_wfc, transform_to_id_pair
+from simulate._fastwfc import IdPair, Neighbor, PyTile, run_wfc
 
 
 def build_wfc_neighbor(left: str, right: str, left_or: int = 0, right_or: int = 0) -> Any:
     """
     Builds neighbors.
     """
-    return build_neighbor(left=bytes(left, "UTF_8"), left_or=left_or, right=bytes(right, "UTF_8"), right_or=right_or)
+    return Neighbor(left=left, left_or=left_or, right=right, right_or=right_or)
+
+
+def build_tile(tile: List, name: str, symmetry: str = "L", weight: int = 1, size: int = 0):
+    if size == 0:
+        size = np.sqrt(len(tile))
+
+    for i in range(len(tile)):
+        tile[i] = IdPair(uid=tile[i], rotation=0, reflected=0)
+
+    return PyTile(size=size, tile=tile, name=name, symmetry=symmetry, weight=weight)
 
 
 def build_wfc_tile(tile: List[int], name: str, symmetry: str = "L", weight: int = 1, size: int = 0) -> np.ndarray:
@@ -21,6 +31,10 @@ def build_wfc_tile(tile: List[int], name: str, symmetry: str = "L", weight: int 
     return build_tile(
         size=size, tile=tile, name=bytes(name, "UTF_8"), symmetry=bytes(symmetry, "UTF_8"), weight=weight
     )
+
+
+def transform_to_id_pair(uid, rotation=0, reflected=0):
+    return IdPair(uid, rotation, reflected)
 
 
 def preprocess_tiles(
@@ -161,7 +175,15 @@ def apply_wfc(
             )
             sample_type = 0
 
+        if tiles is None:
+            tiles = []
+        if neighbors is None:
+            neighbors = []
+        if input_img is None:
+            input_img = []
+
         gen_map = run_wfc(
+            seed=seed,
             width=width,
             height=height,
             sample_type=sample_type,
@@ -174,7 +196,6 @@ def apply_wfc(
             ground=ground,
             nb_samples=nb_samples,
             symmetry=symmetry,
-            seed=seed,
             verbose=verbose,
             nb_tries=nb_tries,
             tiles=tiles,

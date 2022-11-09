@@ -3,6 +3,11 @@
 #include <iostream>
 #include <random>
 #include <string>
+#include <optional>
+#include <unordered_map>
+#include <unordered_set>
+#include <vector>
+#include <tuple>
 #include <limits>
 #include "time.h"
 
@@ -11,10 +16,9 @@
 #include "tiling_wfc.hpp"
 #include "utils/array3D.hpp"
 #include "wfc.hpp"
-#include "id_pair.hpp"
 #include <unordered_set>
 
-using namespace std;
+namespace fastwfc {
 
 /**
  * Get a random seed.
@@ -24,7 +28,7 @@ using namespace std;
  */
 int get_random_seed() {
   #ifdef __linux__
-    return random_device()();
+    return std::random_device()();
   #else
     return rand();
   #endif
@@ -36,7 +40,7 @@ int get_random_seed() {
  * Otherwise, it resets the seed to 0.
  */
 unsigned increment_seed(unsigned seed) {
-  if (seed < numeric_limits<unsigned>::max() - 1) {
+  if (seed < std::numeric_limits<unsigned>::max() - 1) {
     return seed + 1;
   } else {
     return 0;
@@ -44,7 +48,7 @@ unsigned increment_seed(unsigned seed) {
 }
 
 /*
-* Function to create Array2D from vector of vectors.
+* Function to create Array2D from std::vector of std::vectors.
 */
 Array2D<IdPair> array2d_from_vector(std::vector<IdPair> input, 
                                                       unsigned width, unsigned height) {
@@ -64,7 +68,7 @@ std::vector<IdPair> read_overlapping_instance(unsigned seed, unsigned width,
                               bool verbose, unsigned nb_tries) {
                                 
   if (verbose) {
-    cout << "Started!" << endl;
+    std::cout << "Started!" << std::endl;
   }
 
   // Stop hardcoding samples
@@ -74,8 +78,8 @@ std::vector<IdPair> read_overlapping_instance(unsigned seed, unsigned width,
     throw "Error while loading the map to sample from.";
   }
 
-  Array2D<IdPair> result = Array2D<IdPair>(0, 0);
-  vector<IdPair> results_vec = vector<IdPair>();
+  std::optional<Array2D<IdPair>> result = Array2D<IdPair>(0, 0);
+  std::vector<IdPair> results_vec = std::vector<IdPair>();
 
   OverlappingWFCOptions options = {
       periodic_input, periodic_output, height, width, symmetry, ground, N};
@@ -90,28 +94,28 @@ std::vector<IdPair> read_overlapping_instance(unsigned seed, unsigned width,
       OverlappingWFC<IdPair> wfc(m, options, seed);
       result = wfc.run();
 
-      if (result.width > 0 || result.height > 0) {
+      if (result.has_value() && (result.value().width > 0 || result.value().height > 0)) {
         if (verbose) {
-          cout << "Finished!" << endl;
+          std::cout << "Finished!" << std::endl;
         }
 
-        results_vec.insert(results_vec.end(), result.data.begin(), result.data.end());
+        results_vec.insert(results_vec.end(), result.value().data.begin(), result.value().data.end());
         finished = true;
 
       } else {
         if (verbose) {
-          cout << "Failed to generate!" << endl;
+          std::cout << "Failed to generate!" << std::endl;
         }
       }
     }
 
-    if (result.width > 0 || result.height > 0) {
+    if (result.has_value() && (result.value().width > 0 || result.value().height > 0)) {
       if (verbose) {
-        cout << "Finished one sample!" << endl;
+        std::cout << "Finished one sample!" << std::endl;
       }
 
     } else {
-      cout << "WARNING: Failed to generate one of the samples!" << endl;
+      std::cout << "WARNING: Failed to generate one of the samples!" << std::endl;
     }
   }
 
@@ -121,7 +125,7 @@ std::vector<IdPair> read_overlapping_instance(unsigned seed, unsigned width,
 /**
  * Transform a symmetry name into its Symmetry enum
  */
-Symmetry to_symmetry(const string &symmetry_name) {
+Symmetry to_symmetry(const std::string &symmetry_name) {
   if (symmetry_name == "X") {
     return Symmetry::X;
   }
@@ -159,15 +163,15 @@ std::vector<IdPair> read_simpletiled_instance(unsigned seed, unsigned width, uns
                                 std::vector<Neighbor> neighbors) noexcept {
 
   if (verbose) {
-    cout << "Started!" << endl;
+    std::cout << "Started!" << std::endl;
   }
 
-  unordered_map<string, unsigned> tiles_id;
-  vector<Tile<IdPair>> tiles;
+  std::unordered_map<std::string, unsigned> tiles_id;
+  std::vector<Tile<IdPair>> tiles;
   // Result variable
-  Array2D<IdPair> result = Array2D<IdPair>(0, 0);
+  std::optional<Array2D<IdPair>> result = Array2D<IdPair>(0, 0);
   // All results
-  vector<IdPair> results_vec = vector<IdPair>();
+  std::vector<IdPair> results_vec = std::vector<IdPair>();
   unsigned id = 0;
 
   for (unsigned i = 0; i < pytiles.size(); i++) {
@@ -176,11 +180,11 @@ std::vector<IdPair> read_simpletiled_instance(unsigned seed, unsigned width, uns
     id++;
   }
 
-  vector<tuple<unsigned, unsigned, unsigned, unsigned>> neighbors_ids;
+  std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned>> neighbors_ids;
   for (auto neighbor : neighbors) {
-    const string &neighbor1 = neighbor.left;
+    const std::string &neighbor1 = neighbor.left;
     const int &orientation1 = neighbor.left_or;
-    const string &neighbor2 = neighbor.right;
+    const std::string &neighbor2 = neighbor.right;
     const int &orientation2 = neighbor.right_or;
     if (tiles_id.find(neighbor1) == tiles_id.end()) {
       continue;
@@ -188,7 +192,7 @@ std::vector<IdPair> read_simpletiled_instance(unsigned seed, unsigned width, uns
     if (tiles_id.find(neighbor2) == tiles_id.end()) {
       continue;
     }
-    neighbors_ids.push_back(make_tuple(tiles_id[neighbor1], orientation1,
+    neighbors_ids.push_back(std::make_tuple(tiles_id[neighbor1], orientation1,
                                        tiles_id[neighbor2], orientation2));
   }
 
@@ -204,27 +208,27 @@ std::vector<IdPair> read_simpletiled_instance(unsigned seed, unsigned width, uns
                           seed);
 
       result = wfc.run();
-      if (result.width > 0 || result.height > 0) {
+      if (result.has_value() && (result.value().width > 0 || result.value().height > 0)) {
         if (verbose) {
-          cout << "Finished!" << endl;
+          std::cout << "Finished!" << std::endl;
         }
-        results_vec.insert(results_vec.end(), result.data.begin(), result.data.end());
+        results_vec.insert(results_vec.end(), result.value().data.begin(), result.value().data.end());
         finished = true;
         
       } else {
         if (verbose) {
-          cout << "Failed!" << endl;
+          std::cout << "Failed!" << std::endl;
         }
       }
     }
 
-    if (result.width > 0 || result.height > 0) {
+    if (result.has_value() && (result.value().width > 0 || result.value().height > 0)) {
       if (verbose) {
-        cout << "Finished one sample!" << endl;
+        std::cout << "Finished one sample!" << std::endl;
       }
 
     } else {
-      cout << "WARNING: Failed to generate one of the samples!" << endl;
+      std::cout << "WARNING: Failed to generate one of the samples!" << std::endl;
     }
   }
 
@@ -234,7 +238,7 @@ std::vector<IdPair> read_simpletiled_instance(unsigned seed, unsigned width, uns
 // TODO: try adding &
 /**
  * Valid tiles corresponds to array with the tiles, size of tiles, names, symmetries, and weights.
- * For neighbors: vector of tuples (left, orientation, right, orientation).
+ * For neighbors: std::vector of tuples (left, orientation, right, orientation).
  */
 std::vector<IdPair> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, int sample_type, 
         bool periodic_output, unsigned N, bool periodic_input, bool ground, 
@@ -276,3 +280,5 @@ std::vector<IdPair> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, 
 
   return result;
 }
+
+} // namespace fastwfc

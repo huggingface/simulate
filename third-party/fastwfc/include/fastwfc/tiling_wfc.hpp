@@ -17,8 +17,7 @@ enum class Symmetry { X, T, I, L, backslash, P };
  * Return the number of possible distinct orientations for a tile.
  * An orientation is a combination of rotations and reflections.
  */
-// Removed constexpr since in C++11 it's not possible to have more than a return statement
-unsigned nb_of_possible_orientations(const Symmetry &symmetry) {
+constexpr unsigned nb_of_possible_orientations(const Symmetry &symmetry) {
   switch (symmetry) {
   case Symmetry::X:
     return 1;
@@ -390,12 +389,12 @@ public:
   /**
    * Run the tiling wfc and return the result if the algorithm succeeded
    */
-  Array2D<T> run() {
+  std::optional<Array2D<T>> run() {
     auto a = wfc.run();
-    if (a.width == 0 && a.height == 0) {
-      return Array2D<T>(0, 0);
+    if (a == std::nullopt) {
+      return std::nullopt;
     }
-    return id_to_tiling(a);
+    return id_to_tiling(*a);
   }
 };
 

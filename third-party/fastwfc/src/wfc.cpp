@@ -43,7 +43,7 @@ WFC::WFC(bool periodic_output, int seed,
     nb_patterns(propagator.size()),
     propagator(wave.height, wave.width, periodic_output, propagator) {}
 
-Array2D<unsigned> WFC::run() noexcept {
+std::optional<Array2D<unsigned>> WFC::run() noexcept {
   while (true) {
 
     // Define the value of an undefined cell.
@@ -51,7 +51,7 @@ Array2D<unsigned> WFC::run() noexcept {
 
     // Check if the algorithm has terminated.
     if (result == failure) {
-      return Array2D<unsigned>(0, 0);
+      return std::nullopt;
     } else if (result == success) {
       return wave_to_output();
     }

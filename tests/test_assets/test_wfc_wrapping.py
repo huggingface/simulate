@@ -3,7 +3,13 @@
 import unittest
 
 import numpy as np
-from wfc_wrapping import apply_wfc, preprocess_input_img, preprocess_tiles, preprocess_tiles_and_neighbors
+
+from simulate.assets.procgen.wfc.wfc_wrapping import (
+    apply_wfc,
+    preprocess_input_img,
+    preprocess_tiles,
+    preprocess_tiles_and_neighbors,
+)
 
 
 class TestTilesNeighbors(unittest.TestCase):
@@ -30,15 +36,15 @@ class TestTilesNeighbors(unittest.TestCase):
 
     def test_create_tiles_neighbors(self):
         tiles, neighbors, idx_to_tile, tile_shape = preprocess_tiles_and_neighbors(self.tiles, self.neighbors)
-        left_values = [b"0", b"0", b"0", b"1", b"1", b"2"]
-        right_values = [b"1", b"2", b"3", b"2", b"3", b"3"]
+        left_values = ["0", "0", "0", "1", "1", "2"]
+        right_values = ["1", "2", "3", "2", "3", "3"]
         left_or_values = [0, 1, 0, 2, 0, 0]
         right_or_values = [1, 0, 0, 2, 0, 0]
 
-        self.assertTrue(np.all([neighbors[i]["left"] == left_values[i] for i in range(len(self.neighbors))]))
-        self.assertTrue(np.all([neighbors[i]["right"] == right_values[i] for i in range(len(self.neighbors))]))
-        self.assertTrue(np.all([neighbors[i]["left_or"] == left_or_values[i] for i in range(len(self.neighbors))]))
-        self.assertTrue(np.all([neighbors[i]["right_or"] == right_or_values[i] for i in range(len(self.neighbors))]))
+        self.assertTrue(np.all([neighbors[i].left == left_values[i] for i in range(len(self.neighbors))]))
+        self.assertTrue(np.all([neighbors[i].right == right_values[i] for i in range(len(self.neighbors))]))
+        self.assertTrue(np.all([neighbors[i].left_or == left_or_values[i] for i in range(len(self.neighbors))]))
+        self.assertTrue(np.all([neighbors[i].right_or == right_or_values[i] for i in range(len(self.neighbors))]))
         self.assertTrue(tile_shape == (2, 2))
 
     def test_apply_wfc_tiles(self):
