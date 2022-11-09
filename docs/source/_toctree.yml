@@ -46,6 +46,10 @@
     title: Objects
   - local: api/lights
     title: Lights
+  - local: api/physics
+    title: Kinematics
+  - local: api/joints
+    title: Articulation
   - sections:
     - local: api/rl_env
       title: RL Environment
