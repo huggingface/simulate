@@ -13,8 +13,10 @@ jobs:
       # see discussion at https://github.com/pyvista/pyvista/issues/2867
       matrix:
         include:
-          - python-version: '3.8'
-            vtk-version: '9.0.3'
+#          - python-version: '3.8'
+#            vtk-version: '9.0.3'
+          - python-version: '3.9'
+            vtk-version: '9.1'
 
     steps:
       - uses: actions/checkout@v3
