@@ -22,6 +22,7 @@ Simulate is a library for easily creating and sharing simulation environments fo
 ## Install
 
 Install Simulate (preferentially in a virtual environment) with a simple `pip install simulate`
+**Note**: currently requires python 3.9+ as we iron out some issues with pybindings.
 
 ### Install for contribution (from [CONTRIBUTING.md](CONTRIBUTING.md))
 
