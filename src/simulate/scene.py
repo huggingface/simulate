@@ -20,7 +20,7 @@ from typing import Any, Dict, List, Optional, Tuple, Union
 from .assets import Asset, Camera, Collider, Light, Object3D, RaycastSensor, RewardFunction, StateSensor, spaces
 from .assets.anytree import RenderTree, TreeError
 from .config import Config
-from .engine import BlenderEngine, GodotEngine, NotebookEngine, PyVistaEngine, UnityEngine, in_notebook
+from .engine import BlenderEngine, FastEngine, GodotEngine, NotebookEngine, PyVistaEngine, UnityEngine, in_notebook
 
 
 class Scene(Asset):
@@ -93,12 +93,15 @@ class Scene(Asset):
             self.engine = UnityEngine(self, **kwargs)
         elif engine == "godot":
             self.engine = GodotEngine(self)
+        elif engine == "fast":
+            self.engine = FastEngine(self, **kwargs)
         elif engine == "blender":
             self.engine = BlenderEngine(self)
         elif engine == "pyvista":
             self.engine = PyVistaEngine(self, **kwargs)
         elif engine == "notebook":
             self.engine = NotebookEngine(self, **kwargs)
+
         elif engine is None:
             if in_notebook():
                 self.engine = NotebookEngine(self, **kwargs)
