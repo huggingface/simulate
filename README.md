@@ -22,6 +22,7 @@ Simulate is a library for easily creating and sharing simulation environments fo
 ## Install
 
 Install Simulate (preferentially in a virtual environment) with a simple `pip install simulate`
+*Note*: `vtk` is not built for Apple Silicon with Python 3.8. Please install with >3.9 in that case.
 
 ### Install for contribution (from [CONTRIBUTING.md](CONTRIBUTING.md))
 
