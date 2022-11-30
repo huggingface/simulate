@@ -1,5 +1,6 @@
 import numpy as np
 
+
 HEIGHT_CONSTANT = 0.75
 
 def get_tile(h, orientation=0):

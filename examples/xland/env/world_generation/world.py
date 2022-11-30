@@ -1,9 +1,11 @@
+import numpy as np
+
+import simulate as sm
+
 from .topology.tiles_generation import generate_tiles_settings
 from .topology.utils.compute_connectivity_graph_from_height_map import compute_connectivity_graph_from_height_map
 from .topology.utils.graph_search import get_connected_components
 
-import numpy as np
-import simulate as sm
 
 class World:
     def __init__(self, map_width, map_height, max_map_level, min_playable_area_size=0.9,

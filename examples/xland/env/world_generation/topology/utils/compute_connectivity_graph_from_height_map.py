@@ -1,5 +1,7 @@
 from collections import defaultdict
+
 import numpy as np
+
 
 def compute_connectivity_graph_from_height_map(height_map):
     """

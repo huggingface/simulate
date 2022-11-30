@@ -12,6 +12,7 @@ integrations/Unity/builds
 # Distribution / packaging
 .Python
 build/
+_skbuild/
 develop-eggs/
 dist/
 downloads/
