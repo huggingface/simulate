@@ -1,5 +1,7 @@
 from env import XLandEnvironment
+
 import simulate as sm
+
 
 if __name__ == "__main__":
     env = XLandEnvironment(20, 20, 4)

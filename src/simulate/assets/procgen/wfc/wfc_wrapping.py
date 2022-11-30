@@ -3,7 +3,6 @@
 from typing import Any, List, Optional, Tuple
 
 import numpy as np
-
 from wfc_binding import build_neighbor, build_tile, run_wfc, transform_to_id_pair
 
 
@@ -27,7 +26,7 @@ def preprocess_tiles(
     tiles: np.ndarray, symmetries: Optional[np.ndarray] = None, weights: Optional[np.ndarray] = None
 ) -> Tuple[list, tuple]:
     n_tiles = len(tiles)
-    tile_shape = tiles[0]['image'].shape
+    tile_shape = tiles[0]["image"].shape
 
     if symmetries is None:
         symmetries = ["L"] * n_tiles
@@ -39,7 +38,7 @@ def preprocess_tiles(
         build_wfc_tile(
             size=1,
             tile=[i],
-            name=tiles[i]['name'],
+            name=tiles[i]["name"],
             symmetry=symmetries[i],
             weight=weights[i],
         )
@@ -139,9 +138,7 @@ def apply_wfc(
     weights: Optional[np.ndarray] = None,
 ) -> Optional[np.ndarray]:
     if (tiles is not None and neighbors is not None) or input_img is not None:
-        _tiles, _neighbors, tile_shape = preprocess_tiles_and_neighbors(
-            tiles, neighbors, symmetries, weights
-        )
+        _tiles, _neighbors, tile_shape = preprocess_tiles_and_neighbors(tiles, neighbors, symmetries, weights)
         if input_img is not None:
             input_width, input_height = input_img.shape[:2]
             input_img, tile_conversion, tile_shape = preprocess_input_img(input_img)
