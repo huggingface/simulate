@@ -55,7 +55,6 @@ To create the package for pypi.
 from skbuild import setup
 
 import numpy as np
-from glob import glob
 
 # Available at setup time due to pyproject.toml
 # from pybind11.setup_helpers import Pybind11Extension, build_ext
