@@ -1,4 +1,4 @@
-from examples.xland.env.world_generation import World
+from .world_generation import World
 
 
 class XLandEnvironment:
