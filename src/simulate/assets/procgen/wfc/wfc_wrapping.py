@@ -3,12 +3,8 @@
 from typing import Any, List, Optional, Tuple
 
 import numpy as np
-<<<<<<< HEAD
 
-from simulate._fastwfc import IdPair, Neighbor, PyTile, run_wfc
-=======
 from wfc_binding import build_neighbor, build_tile, run_wfc, transform_to_id_pair
->>>>>>> 1989089 (style)
 
 
 def build_wfc_neighbor(left: str, right: str, left_or: int = 0, right_or: int = 0) -> Any:
