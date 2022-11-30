@@ -1,10 +1,10 @@
 """Python wrapper for constructors of C++ classes."""
 
-from typing import Any, List, Optional, Tuple
+from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
 
-from wfc_binding import build_neighbor, build_tile, run_wfc, transform_to_id_pair
+from simulate._fastwfc import IdPair, Neighbor, PyTile, run_wfc
 
 
 if is_fastwfc_available():
@@ -42,10 +42,37 @@ def transform_to_id_pair(uid, rotation=0, reflected=0):
 
 
 def preprocess_tiles(
-    tiles: np.ndarray, symmetries: Optional[np.ndarray] = None, weights: Optional[np.ndarray] = None
-) -> Tuple[list, tuple]:
-    n_tiles = len(tiles)
-    tile_shape = tiles[0]["image"].shape
+    tiles: Union[list, np.ndarray], symmetries: Optional[np.ndarray] = None, weights: Optional[np.ndarray] = None
+) -> Tuple[list, dict, dict, tuple]:
+    """
+    Takes in a tile map (multi-dim array) and builds PyTile objects.
+    """
+    if type(tiles) == np.ndarray:
+        n_tiles, tile_w, tile_h = tiles.shape
+        tile_shape = tile_w, tile_h
+        t_names = [str(i) for i in range(n_tiles)]
+
+        tiles = [tuple(map(tuple, tile)) for tile in tiles]
+
+        idx_to_tile = {i: tiles[i] for i in range(n_tiles)}
+        tile_to_idx = {tiles[i]: i for i in range(n_tiles)}
+
+    elif type(tiles) == list:
+        assert type(tiles[0]) == dict
+        n_tiles = len(tiles)
+        tile_shape = np.shape(tiles[0]["image"])
+        t_names = [t["name"] for t in tiles]
+
+        # cast tiles to be ndarray
+        tiles = [t["image"].tolist() for t in tiles]
+
+        tiles = [tuple(map(tuple, tile)) for tile in tiles]
+
+        idx_to_tile = {i: tiles[i] for i in range(n_tiles)}
+        tile_to_idx = None
+
+    else:
+        raise ValueError("Tiles objects either are ndarrays or list of dicts of named tiles")
 
     if symmetries is None:
         symmetries = ["L"] * n_tiles
@@ -53,28 +80,41 @@ def preprocess_tiles(
     if weights is None:
         weights = [1] * n_tiles
 
+    # rebuild tiles
     converted_tiles = [
         build_wfc_tile(
             size=1,
             tile=[i],
-            name=tiles[i]["name"],
+            name=t_names[i],
             symmetry=symmetries[i],
             weight=weights[i],
         )
         for i in range(n_tiles)
     ]
 
-    return converted_tiles, tile_shape
+    return converted_tiles, idx_to_tile, tile_to_idx, tile_shape
 
 
-def preprocess_neighbors(neighbors: np.ndarray) -> list:
+def preprocess_neighbors(neighbors: np.ndarray, tile_to_idx: dict = None) -> list:
     """
     Preprocesses tiles.
     """
     preprocessed_neighbors = []
 
     for neighbor in neighbors:
-        preprocessed_neighbors.append(build_wfc_neighbor(*neighbor))
+        # case for array only tiles
+        if tile_to_idx is not None:
+            preprocessed_neighbor = (
+                str(tile_to_idx[tuple(map(tuple, neighbor[0]))]),
+                str(tile_to_idx[tuple(map(tuple, neighbor[1]))]),
+                *neighbor[2:],
+            )
+            built_neighbor = build_wfc_neighbor(*preprocessed_neighbor)
+
+        else:
+            built_neighbor = build_wfc_neighbor(*neighbor)
+
+        preprocessed_neighbors.append(built_neighbor)
 
     return preprocessed_neighbors
 
@@ -84,14 +124,14 @@ def preprocess_tiles_and_neighbors(
     neighbors: np.ndarray,
     symmetries: Optional[np.ndarray] = None,
     weights: Optional[np.ndarray] = None,
-) -> Tuple[list, list, tuple]:
+) -> Tuple[list, list, dict, tuple]:
     """
     Preprocesses tiles.
     """
-    converted_tiles, tile_shape = preprocess_tiles(tiles, symmetries, weights)
-    converted_neighbors = preprocess_neighbors(neighbors)
+    converted_tiles, idx_to_tile, tile_to_idx, tile_shape = preprocess_tiles(tiles, symmetries, weights)
+    converted_neighbors = preprocess_neighbors(neighbors, tile_to_idx)
 
-    return converted_tiles, converted_neighbors, tile_shape
+    return converted_tiles, converted_neighbors, idx_to_tile, tile_shape
 
 
 def preprocess_input_img(input_img: np.ndarray) -> Tuple[list, dict, tuple]:
@@ -119,7 +159,7 @@ def preprocess_input_img(input_img: np.ndarray) -> Tuple[list, dict, tuple]:
 
 
 def get_tiles_back(
-    gen_map: np.ndarray, tiles: np.ndarray, nb_samples: int, width: int, height: int, tile_shape: tuple
+    gen_map: np.ndarray, tile_conversion: dict, nb_samples: int, width: int, height: int, tile_shape: tuple
 ) -> np.ndarray:
     """
     Returns tiles back.
@@ -129,8 +169,8 @@ def get_tiles_back(
 
     for i in range(nb_samples * width * height):
         # Rotate and reflect single tiles / patterns
-        selected_tile = tiles[gen_map[i][0]]
-        converted_tile = np.rot90(selected_tile["image"], gen_map[i][1])
+        # import ipdb;pdb.set_trace()
+        converted_tile = np.rot90(tile_conversion[gen_map[i][0]], gen_map[i][1])
         if gen_map[i][2] == 1:
             converted_tile = np.fliplr(converted_tile)
         converted_map.append(converted_tile)
@@ -196,8 +236,9 @@ def apply_wfc(
             neighbors=neighbors,
         )
 
-        gen_map = get_tiles_back(gen_map, tile_conversion, nb_samples, width, height, tile_shape)
-        return gen_map
+        output_map = get_tiles_back(gen_map, tile_conversion, nb_samples, width, height, tile_shape)
+
+        return output_map
 
     else:
         raise ValueError("Either input_img or tiles and neighbors must be provided.")

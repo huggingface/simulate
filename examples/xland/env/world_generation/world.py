@@ -66,7 +66,7 @@ class World:
         return self.__topology_grid
 
     def __generate_topology(self, conditioning_topology=None):
-         return sm.ProcgenGrid(
+         return sm.ProcGenGrid(
             width=self.__map_width,
             height=self.__map_height,
             sample_map=conditioning_topology,

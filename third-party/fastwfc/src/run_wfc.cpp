@@ -68,7 +68,7 @@ std::vector<IdPair> read_overlapping_instance(unsigned seed, unsigned width,
                               bool verbose, unsigned nb_tries) {
                                 
   if (verbose) {
-    std::cout << "Started!" << std::endl;
+    std::cout << "Started WFC Tiling - Overlapping!" << std::endl;
   }
 
   // Stop hardcoding samples
@@ -163,7 +163,7 @@ std::vector<IdPair> read_simpletiled_instance(unsigned seed, unsigned width, uns
                                 std::vector<Neighbor> neighbors) noexcept {
 
   if (verbose) {
-    std::cout << "Started!" << std::endl;
+    std::cout << "Started WFC Tiling - Simple!" << std::endl;
   }
 
   std::unordered_map<std::string, unsigned> tiles_id;
@@ -259,7 +259,7 @@ std::vector<IdPair> run_wfc_cpp(unsigned seed, unsigned width, unsigned height, 
   }
 
   else if (sample_type == 1) {
-    result = read_overlapping_instance(seed, width, height, periodic_output, N, periodic_input, ground, 
+    result = read_overlapping_instance(seed, width, height, periodic_output, N, periodic_input, ground,
                   nb_samples, symmetry, input_img, input_width, input_height, verbose, nb_tries);
   }
 
