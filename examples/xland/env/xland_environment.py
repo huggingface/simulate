@@ -1,4 +1,6 @@
 from examples.xland.env.world_generation import World
+
+
 class XLandEnvironment:
     def __init__(self, map_width, map_height, n_maps=1, max_map_level=4):
         self.__map_width = map_width

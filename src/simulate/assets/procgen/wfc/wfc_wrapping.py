@@ -3,8 +3,12 @@
 from typing import Any, List, Optional, Tuple
 
 import numpy as np
+<<<<<<< HEAD
 
 from simulate._fastwfc import IdPair, Neighbor, PyTile, run_wfc
+=======
+from wfc_binding import build_neighbor, build_tile, run_wfc, transform_to_id_pair
+>>>>>>> 1989089 (style)
 
 
 def build_wfc_neighbor(left: str, right: str, left_or: int = 0, right_or: int = 0) -> Any:
@@ -41,7 +45,7 @@ def preprocess_tiles(
     tiles: np.ndarray, symmetries: Optional[np.ndarray] = None, weights: Optional[np.ndarray] = None
 ) -> Tuple[list, tuple]:
     n_tiles = len(tiles)
-    tile_shape = tiles[0]['image'].shape
+    tile_shape = tiles[0]["image"].shape
 
     if symmetries is None:
         symmetries = ["L"] * n_tiles
@@ -53,7 +57,7 @@ def preprocess_tiles(
         build_wfc_tile(
             size=1,
             tile=[i],
-            name=tiles[i]['name'],
+            name=tiles[i]["name"],
             symmetry=symmetries[i],
             weight=weights[i],
         )
