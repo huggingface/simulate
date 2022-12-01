@@ -4,7 +4,10 @@ from typing import Any, List, Optional, Tuple
 
 import numpy as np
 
-from simulate._fastwfc import IdPair, Neighbor, PyTile, run_wfc
+from ....utils import is_fastwfc_available
+
+if is_fastwfc_available():
+    from simulate._fastwfc import IdPair, Neighbor, PyTile, run_wfc
 
 
 def build_wfc_neighbor(left: str, right: str, left_or: int = 0, right_or: int = 0) -> Any:
