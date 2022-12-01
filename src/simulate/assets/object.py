@@ -21,17 +21,20 @@ from typing import Any, List, Optional, Tuple, Union
 import numpy as np
 import pyvista as pv
 
-from simulate._vhacd import compute_vhacd
-
-from ..utils import logging
+from ..utils import is_fastwfc_available, is_vhacd_available, logging
 from .articulation_body import ArticulationBodyComponent
 from .asset import Asset
 from .collider import Collider
 from .material import Material
 from .procgen.prims import generate_prims_maze
-from .procgen.wfc import generate_2d_map, generate_map
 from .rigid_body import RigidBodyComponent
 
+
+if is_vhacd_available():
+    from simulate._vhacd import compute_vhacd
+
+if is_fastwfc_available():
+    from .procgen.wfc import generate_2d_map, generate_map
 
 logger = logging.get_logger(__name__)
 
