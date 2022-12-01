@@ -6,6 +6,7 @@ import numpy as np
 
 from ....utils import is_fastwfc_available
 
+
 if is_fastwfc_available():
     from simulate._fastwfc import IdPair, Neighbor, PyTile, run_wfc
 
