@@ -1,5 +1,5 @@
 """Python wrapper for constructors of C++ classes."""
-
+import pdb
 from typing import Any, List, Optional, Tuple, Union
 
 import numpy as np
@@ -70,6 +70,8 @@ def preprocess_tiles(
     else:
         raise ValueError("Tiles objects either are ndarrays or list of dicts of named tiles")
 
+    print(tiles)
+    print(weights)
     if symmetries is None:
         symmetries = ["L"] * n_tiles
 
@@ -193,16 +195,21 @@ def apply_wfc(
     weights: Optional[np.ndarray] = None,
 ) -> Optional[np.ndarray]:
     if (tiles is not None and neighbors is not None) or input_img is not None:
+
         if input_img is not None:
             input_width, input_height = input_img.shape[:2]
             input_img, tile_conversion, tile_shape = preprocess_input_img(input_img)
             sample_type = 1
+
+            tiles, _, tile_to_idx, _ = preprocess_tiles(tiles, symmetries, weights)
+            neighbors = preprocess_neighbors(neighbors, tile_to_idx)
 
         else:
             input_width, input_height = 0, 0
             tiles, neighbors, tile_conversion, tile_shape = preprocess_tiles_and_neighbors(
                 tiles, neighbors, symmetries, weights
             )
+
             sample_type = 0
 
         if tiles is None:
