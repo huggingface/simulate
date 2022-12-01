@@ -11,5 +11,18 @@
 # WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
 # See the License for the specific language governing permissions and
 # limitations under the License.
+""" Import utilities."""
 
-from .imports import is_fastwfc_available, is_vhacd_available
+import importlib.util
+
+
+_vhacd_available = importlib.util.find_spec("simulate._vhacd") is not None
+_fastwfc_available = importlib.util.find_spec("simulate._fastwfc") is not None
+
+
+def is_vhacd_available():
+    return _vhacd_available
+
+
+def is_fastwfc_available():
+    return _fastwfc_available
