@@ -8,8 +8,8 @@ from .topology.utils.graph_search import get_connected_components
 
 
 class World:
-    def __init__(self, map_width, map_height, max_map_level, min_playable_area_size=0.9,
-                require_full_lower_floor_accessible=True):
+    def __init__(self, map_width, map_height, max_map_level, min_playable_area_size=0.1,
+                 require_full_lower_floor_accessible=False):
         self.__map_width = map_width
         self.__map_height = map_height
         self.__tiles_settings = generate_tiles_settings(max_map_level, double_ramp=False)
@@ -48,7 +48,7 @@ class World:
             elif _attempt >= nb_attemps:
                 raise Exception(f"Unable to generate playable topology in {nb_attemps} attempts.")
             _attempt += 1
-            conditioning_topology = simulate_topology_grid.map_2d
+            # conditioning_topology = simulate_topology_grid.map_2d
 
         self.__topology_grid = simulate_topology_grid
         self.__topology_graph = graph

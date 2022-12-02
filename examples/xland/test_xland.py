@@ -10,5 +10,4 @@ if __name__ == "__main__":
     world = env.generate_new_world()
     scene += world.get_root_object()
     scene.show()
-    input("Press enter to end test")
     scene.close()
