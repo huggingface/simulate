@@ -31,7 +31,7 @@ py::array_t<unsigned> run_wfc(unsigned seed, unsigned width, unsigned height, in
         of possible neighbors.");
     }
 
-	// Build our output arrays from VHACD outputs
+	// Build our output arrays from WFC outputs
     py::array_t<unsigned> np_results = py::array_t<unsigned>(result.size() * 3);
 	py::buffer_info buf_np_results = np_results.request();
     unsigned *ptr_np_results = (unsigned *) buf_np_results.ptr;
