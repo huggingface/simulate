@@ -1,7 +1,7 @@
 """Tests of WFC wrapping functions."""
 
 import unittest
-
+import pytest
 import numpy as np
 
 from simulate.assets.procgen.wfc.wfc_wrapping import (
@@ -104,6 +104,7 @@ class TestSampleMap(unittest.TestCase):
         self.assertTrue(np.all([idx_to_tile[i] == single_tiles[i] for i in range(n_idxs)]))
         self.assertTrue(tile_shape == (2, 2))
 
+    @pytest.mark.skip(reason="this functionality needs reimplementation / removal")
     def test_apply_wfc_sample_map(self):
         width, height = 3, 3
         seed = np.random.randint(2**32)
