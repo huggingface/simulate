@@ -16,45 +16,53 @@ class TestTilesNeighbors(unittest.TestCase):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
-        self.tiles = np.array([[[0, 1], [1, 0]], [[2, 0], [0, 1]], [[0, 3], [0, 0]], [[0, 0], [0, 0]]])
+        tiles = np.array([[[0, 1], [1, 0]], [[2, 0], [0, 1]], [[0, 3], [0, 0]], [[0, 0], [0, 0]]])
+        tile_names = [str(i) for i in range(len(tiles))]
+
+        self.tiles = [{"name": name, "image": tile } for name, tile in zip(tile_names, tiles)]
+
         self.neighbors = [
-            (self.tiles[0], self.tiles[1], 0, 1),
-            (self.tiles[0], self.tiles[2], 1, 0),
-            (self.tiles[0], self.tiles[3]),
-            (self.tiles[1], self.tiles[2], 2, 2),
-            (self.tiles[1], self.tiles[3]),
-            (self.tiles[2], self.tiles[3]),
+            (self.tiles[0]["name"], self.tiles[1]["name"], 0, 1),
+            (self.tiles[0]["name"], self.tiles[2]["name"], 1, 0),
+            (self.tiles[0]["name"], self.tiles[3]["name"]),
+            (self.tiles[1]["name"], self.tiles[2]["name"], 2, 2),
+            (self.tiles[1]["name"], self.tiles[3]["name"]),
+            (self.tiles[2]["name"], self.tiles[3]["name"]),
         ]
 
     def test_create_tiles(self):
-        tuple_tiles = [tuple(map(tuple, tile)) for tile in self.tiles]
+        converted_tiles, tile_shape = preprocess_tiles(self.tiles)
+        
+        self.assertTrue(len(converted_tiles) == len(self.tiles))
 
-        preprocessed_tiles, idx_to_tile, tile_to_idx, tile_shape = preprocess_tiles(self.tiles)
-        self.assertTrue(np.all([idx_to_tile[i] == self.tiles[i] for i in range(len(self.tiles))]))
-        self.assertTrue(np.all([tile_to_idx[tuple_tiles[i]] == i for i in range(len(self.tiles))]))
+        self.assertTrue(np.all([converted_tiles[i].name == str(i) for i in range(len(self.tiles))]))
+        self.assertTrue(np.all([converted_tiles[i].name == str(i) for i in range(len(self.tiles))]))
+        self.assertTrue(np.all([converted_tiles[i].symmetry == "L" for i in range(len(self.tiles))]))
         self.assertTrue(tile_shape == (2, 2))
 
     def test_create_tiles_neighbors(self):
-        tiles, neighbors, idx_to_tile, tile_shape = preprocess_tiles_and_neighbors(self.tiles, self.neighbors)
+        converted_tiles, converted_neighbors, tile_shape = preprocess_tiles_and_neighbors(self.tiles, self.neighbors)
         left_values = ["0", "0", "0", "1", "1", "2"]
         right_values = ["1", "2", "3", "2", "3", "3"]
         left_or_values = [0, 1, 0, 2, 0, 0]
         right_or_values = [1, 0, 0, 2, 0, 0]
 
-        self.assertTrue(np.all([neighbors[i].left == left_values[i] for i in range(len(self.neighbors))]))
-        self.assertTrue(np.all([neighbors[i].right == right_values[i] for i in range(len(self.neighbors))]))
-        self.assertTrue(np.all([neighbors[i].left_or == left_or_values[i] for i in range(len(self.neighbors))]))
-        self.assertTrue(np.all([neighbors[i].right_or == right_or_values[i] for i in range(len(self.neighbors))]))
+        self.assertTrue(np.all([converted_neighbors[i].left == left_values[i] for i in range(len(self.neighbors))]))
+        self.assertTrue(np.all([converted_neighbors[i].right == right_values[i] for i in range(len(self.neighbors))]))
+        self.assertTrue(np.all([converted_neighbors[i].left_or == left_or_values[i] for i in range(len(self.neighbors))]))
+        self.assertTrue(np.all([converted_neighbors[i].right_or == right_or_values[i] for i in range(len(self.neighbors))]))
         self.assertTrue(tile_shape == (2, 2))
 
     def test_apply_wfc_tiles(self):
         tiles = np.array([[[0, 0], [0, 0]], [[2, 0], [0, 1]]])
-        neighbors = [
-            (tiles[0], tiles[0]),
-            (tiles[1], tiles[1]),
-            (tiles[0], tiles[1]),
-        ]
+        tile_names = [str(i) for i in range(len(tiles))]
 
+        tiles = [{"name": name, "image": tile } for name, tile in zip(tile_names, tiles)]
+        neighbors = [
+            (tiles[0]["name"], tiles[0]["name"]),
+            (tiles[1]["name"], tiles[1]["name"]),
+            (tiles[0]["name"], tiles[1]["name"]),
+        ]
         width, height = 3, 3
         seed = np.random.randint(2**32)
         nb_samples = 1
@@ -115,5 +123,5 @@ class TestSampleMap(unittest.TestCase):
         self.assertTrue(output.shape == (nb_samples, width, height, *tile_shape))
 
 
-if __name__ == "__main__":
-    unittest.main()
+# if __name__ == "__main__":
+#     unittest.main()
