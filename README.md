@@ -17,6 +17,8 @@
 
 # Simulate
 
+**Note**: The library is not actively maintained / built, if you want to contribute, please open an issue.
+
 Simulate is a library for easily creating and sharing simulation environments for intelligent agents (e.g. reinforcement learning) or synthetic data generation.
 
 ## Install
