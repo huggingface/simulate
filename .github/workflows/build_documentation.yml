@@ -14,5 +14,3 @@ jobs:
       commit_sha: ${{ github.sha }}
       package: simulate
       install_libgl1: true
-    secrets:
-      token: ${{ secrets.HUGGINGFACE_PUSH }}
