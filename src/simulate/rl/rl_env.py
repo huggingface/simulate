@@ -13,14 +13,16 @@
 # limitations under the License.
 
 # Lint as: python3
+
 from typing import Any, Dict, List, Optional, Sequence, Tuple, Union
 
+import gym
 import numpy as np
 
 from simulate.scene import Scene
 
 
-class RLEnv:
+class RLEnv(gym.Env):
     """
     The basic RL environment wrapper for Simulate scene following the Gym API.
 
@@ -41,6 +43,7 @@ class RLEnv:
         time_step: Optional[float] = 1 / 30.0,
         frame_skip: Optional[int] = 4,
     ):
+        super().__init__()
 
         self.scene = scene
 
@@ -79,6 +82,14 @@ class RLEnv:
             n_show=1,
         )
 
+    @classmethod
+    def register(cls, id: str, scene: Scene, **kwargs):
+        def create_env(**kwargs):
+            # TODO: maybe change this to scene.copy()?
+            return cls(scene=scene, **kwargs)
+
+        gym.envs.register(id=id, entry_point=create_env, kwargs=kwargs)
+
     def step(self, action: Union[Dict, List, np.ndarray]) -> Tuple[Dict, np.ndarray, np.ndarray, Dict]:
         """
         The step function for the environment, follows the API from OpenAI Gym.
@@ -99,7 +110,6 @@ class RLEnv:
                 A dictionary of additional information.
         """
         self.step_send_async(action=action)
-
         # receive and return event data from the engine
         return self.step_recv_async()
 
