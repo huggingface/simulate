@@ -201,6 +201,14 @@ class GodotEngine(Engine):
             kwargs.update({"action": action})
         return self.run_command("step", **kwargs)
 
+    def step_send_async(self, **kwargs: Any):
+        """Send the Step command asynchronously."""
+        self.run_command_async("step", **kwargs)
+
+    def step_recv_async(self) -> str:
+        """Receive the response from the Step command asynchronously."""
+        return self.get_response_async()
+
     def reset(self) -> Union[Dict, str]:
         """
         Reset the environment.

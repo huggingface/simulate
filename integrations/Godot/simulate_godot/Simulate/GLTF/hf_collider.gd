@@ -1,5 +1,5 @@
-extends StaticBody3D
 class_name HFCollider
+extends StaticBody3D
 
 
 var type: GLTFEnums.ColliderType = GLTFEnums.ColliderType.box
@@ -8,10 +8,10 @@ var offset: Vector3 = Vector3.ZERO
 var intangible: bool = false
 var convex: bool = false
 var physic_material: HFPhysicMaterial
+var actuator: HFActuator
 
 
 func import(state: GLTFState, json: Dictionary, extensions: Dictionary):
-	print("Importing a collider.")
 	var collider: Dictionary = state.json["extensions"]["HF_colliders"]["objects"][extensions["HF_colliders"]["object_id"]]
 	name = extensions["HF_colliders"]["name"]
 	
