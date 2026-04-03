@@ -28,13 +28,13 @@ jobs:
           - StandaloneLinux64 # Build a Linux 64-bit standalone.
           # - WebGL # WebGL.
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
         with:
           fetch-depth: 0
           lfs: true
 
       - name: Caching Unity Library
-        uses: actions/cache@v2
+        uses: actions/cache@8492260343ad570701412c2f464a5877dc76bace  # v2
         with:
           path: integrations/Unity/simulate-unity/Library
           key: Library-Simulate
@@ -43,7 +43,7 @@ jobs:
             Library-
 
       - name: Build Unity Simulate
-        uses: game-ci/unity-builder@v2
+        uses: game-ci/unity-builder@9f79830454d37cd9e70c4c3b73d26c06bcce2b2a  # v2
         env:
           UNITY_LICENSE: ${{ secrets.UNITY_LICENSE }}
         with:
@@ -57,7 +57,7 @@ jobs:
           cd ${{ github.workspace }}/integrations/Unity/builds/
           tar -cvzf ${{ github.workspace }}/compressed_builds/${{ matrix.targetPlatform }}.tar.gz ./${{ matrix.targetPlatform }}
 
-      - uses: actions/upload-artifact@v2
+      - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2  # v2
         with:
           name: Build-${{ matrix.targetPlatform }}
           path: ${{ github.workspace }}/compressed_builds/${{ matrix.targetPlatform }}.tar.gz
@@ -66,7 +66,7 @@ jobs:
   #   name: Simple build and push
   #   runs-on: ubuntu-latest
   #   steps:
-  #     - uses: actions/checkout@v2
+  #     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
   #       with:
   #         fetch-depth: 0
   #         lfs: true
@@ -78,7 +78,7 @@ jobs:
   #         tar -cvzf ${{ github.workspace }}/builds/Standalone.tar.gz ./simulate_godot
 
 
-  #     - uses: actions/upload-artifact@v2
+  #     - uses: actions/upload-artifact@82c141cc518b40d92cc801eee768e7aafc9c2fa2  # v2
   #       with:
   #         name: Build-Standalone
   #         path: ./builds/Standalone.tar.gz
@@ -90,11 +90,11 @@ jobs:
     # if: github.event_name == 'release' && github.event.action == 'published'
 
     steps:
-      - uses: actions/setup-python@v4
+      - uses: actions/setup-python@7f4fc3e22c37d6ff65e88745f38bd3157c663f7c  # v4
         with:
           python-version: "3.x"
 
-      - uses: actions/download-artifact@v3
+      - uses: actions/download-artifact@9bc31d5ccc31df68ecc42ccf4149144866c47d8a  # v3
         with:
           # name: artifact
           path: builds
