@@ -1,14 +1,19 @@
-extends RigidBody3D
 class_name HFRigidBody
+extends RigidBody3D
 
 
 var constraints: Array
+var actuator: HFActuator
 
 
 func import(state: GLTFState, json: Dictionary, extensions: Dictionary):
-	print("Importing a rigid body.")
 	var rigid_body: Dictionary = state.json["extensions"]["HF_rigid_bodies"]["objects"][extensions["HF_rigid_bodies"]["object_id"]]
-	name = extensions["HF_rigid_bodies"]["name"]
+	name = json["name"]
+
+	var mesh = MeshInstance3D.new()
+	mesh.mesh = state.meshes[json["mesh"]].mesh.get_mesh()
+	mesh.name = json["name"] + "_mesh"
+	add_child(mesh)
 	
 	position = Vector3(
 		json["translation"][0], 

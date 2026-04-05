@@ -139,11 +139,12 @@ if __name__ == "__main__":
     # act!
     for i in range(100):
         action = [env.action_space.sample()]
+        print(f"action: {action}")
         obs, reward, done, info = env.step(action=action)
-        axim1.set_data(obs["CameraSensor"].reshape(3, camera_height, camera_width).transpose(1, 2, 0))
-        fig1.canvas.flush_events()
-        axim2.set_data(obs["SecurityCamera"].reshape(3, 256, 256).transpose(1, 2, 0))
-        fig2.canvas.flush_events()
+        # axim1.set_data(obs["CameraSensor"].reshape(3, camera_height, camera_width).transpose(1, 2, 0))
+        # fig1.canvas.flush_events()
+        # axim2.set_data(obs["SecurityCamera"].reshape(3, 256, 256).transpose(1, 2, 0))
+        # fig2.canvas.flush_events()
 
         plt.pause(0.1)
 

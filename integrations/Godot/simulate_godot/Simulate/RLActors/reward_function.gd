@@ -2,8 +2,8 @@ class_name RewardFunction
 extends Node
 
 
-var entity_a: SimulationNode
-var entity_b: SimulationNode
+var entity_a: Node3D
+var entity_b: Node3D
 var reward_scalar: float = 1.0
 var distance_metric: DistanceMetric
 
@@ -11,26 +11,27 @@ var distance_metric: DistanceMetric
 func reset() -> void:
 	pass
 
+
 func calculate_reward() -> float:
 	return 0.0
 
 
 class DistanceMetric:
-	func Calculate(e1: SimulationNode, e2: SimulationNode) -> float:
+	func Calculate(e1: Node3D, e2: Node3D) -> float:
 		return 0.0
 
 
 class EuclideanDistance:
 	extends DistanceMetric
 	
-	func Calculate(e1: SimulationNode, e2: SimulationNode) -> float:
+	func Calculate(e1: Node3D, e2: Node3D) -> float:
 		return e1.position.distance_to(e2.position)
 
 
 class CosineDistance:
 	extends DistanceMetric
 	
-	func Calculate(e1: SimulationNode, e2: SimulationNode) -> float:
+	func Calculate(e1: Node3D, e2: Node3D) -> float:
 		return e1.position.distance_to(e2.position)
 
 

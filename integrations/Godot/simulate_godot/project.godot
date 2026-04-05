@@ -10,14 +10,14 @@ config_version=5
 
 _global_script_classes=[{
 "base": "Node",
-"class": &"Agent",
+"class": &"Actions",
 "language": &"GDScript",
-"path": "res://Simulate/RLAgents/agent.gd"
+"path": "res://Simulate/RLActors/actions.gd"
 }, {
-"base": "Node",
-"class": &"AgentManager",
+"base": "Node3D",
+"class": &"Actor",
 "language": &"GDScript",
-"path": "res://Simulate/RLAgents/agent_manager.gd"
+"path": "res://Simulate/RLActors/actor.gd"
 }, {
 "base": "Node",
 "class": &"Client",
@@ -79,10 +79,15 @@ _global_script_classes=[{
 "language": &"GDScript",
 "path": "res://Simulate/GLTF/hf_state_sensor.gd"
 }, {
-"base": "Node",
-"class": &"RLAction",
+"base": "Node3D",
+"class": &"Map",
 "language": &"GDScript",
-"path": "res://Simulate/RLAgents/rl_action.gd"
+"path": "res://Simulate/RLActors/map.gd"
+}, {
+"base": "Node",
+"class": &"RLManager",
+"language": &"GDScript",
+"path": "res://Simulate/rl_manager.gd"
 }, {
 "base": "Node",
 "class": &"RenderCamera",
@@ -92,16 +97,16 @@ _global_script_classes=[{
 "base": "Node",
 "class": &"RewardFunction",
 "language": &"GDScript",
-"path": "res://Simulate/RLAgents/reward_function.gd"
+"path": "res://Simulate/RLActors/reward_function.gd"
 }, {
 "base": "Node3D",
-"class": &"SimulationNode",
+"class": &"Sensor",
 "language": &"GDScript",
-"path": "res://Simulate/simulation_node.gd"
+"path": "res://Simulate/RLActors/Sensors/sensor.gd"
 }]
 _global_script_class_icons={
-"Agent": "",
-"AgentManager": "",
+"Actions": "",
+"Actor": "",
 "Client": "",
 "Command": "",
 "GLTFEnums": "",
@@ -114,10 +119,11 @@ _global_script_class_icons={
 "HFRewardFunction": "",
 "HFRigidBody": "",
 "HFStateSensor": "",
-"RLAction": "",
+"Map": "",
+"RLManager": "",
 "RenderCamera": "",
 "RewardFunction": "",
-"SimulationNode": ""
+"Sensor": ""
 }
 
 [application]
@@ -130,3 +136,8 @@ config/icon="res://icon.png"
 [autoload]
 
 Simulator="*res://Simulate/simulator.gd"
+Config="*res://Simulate/config.gd"
+
+[rendering]
+
+renderer/rendering_method="gl_compatibility"

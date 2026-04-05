@@ -1,5 +1,5 @@
-extends Node3D
 class_name HFStateSensor
+extends Node3D
 
 
 var reference_entity: String
@@ -9,7 +9,6 @@ var sensor_tag: String
 
 
 func import(state: GLTFState, json: Dictionary, extensions: Dictionary):
-	print("Importing a state sensor.")
 	var state_sensor: Dictionary = state.json["extensions"]["HF_state_sensors"]["objects"][extensions["HF_state_sensors"]["object_id"]]
 	name = extensions["HF_state_sensors"]["name"]
 	

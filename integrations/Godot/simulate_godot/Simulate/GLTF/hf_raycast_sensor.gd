@@ -1,5 +1,5 @@
-extends Node3D
 class_name HFRaycastSensor
+extends Node3D
 
 
 var n_horizontal_rays: int
@@ -11,7 +11,6 @@ var sensor_tag: String
 
 
 func import(state: GLTFState, json: Dictionary, extensions: Dictionary):
-	print("Importing a raycast sensor.")
 	var raycast_sensor: Dictionary = state.json["extensions"]["HF_raycast_sensors"]["objects"][extensions["HF_raycast_sensors"]["object_id"]]
 	name = extensions["HF_raycast_sensors"]["name"]
 	
