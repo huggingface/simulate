@@ -181,7 +181,7 @@ class GodotEngine(Engine):
         kwargs.update({"b64bytes": b64bytes})
         return self.run_command("initialize", **kwargs)
 
-    def update_asset(self, root_node: "Asset"):
+    def update_asset(self, node: "Asset"):
         # TODO update and make this API more consistent with all the
         # update_asset_in_scene, recreate_scene, show
         raise NotImplementedError()
