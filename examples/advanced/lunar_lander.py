@@ -17,6 +17,7 @@
 import argparse
 import time
 
+import gym
 import numpy as np
 
 import simulate as sm
@@ -238,7 +239,9 @@ if __name__ == "__main__":
     sc = make_lander(engine="unity", engine_exe=args.build_exe)
     sc += sm.LightSun()
 
-    env = sm.RLEnv(sc, frame_skip=1)
+    sm.RLEnv.register("SimulateLunarLander-v0", sc, frame_skip=1)
+    env = gym.make("SimulateLunarLander-v0")
+
     env.reset()
 
     for i in range(500):
