@@ -14,8 +14,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   buildForAllSupportedPlatforms:
+    permissions:
+      contents: read
     name: Build ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
     strategy:
@@ -84,10 +88,11 @@ jobs:
   #         path: ./builds/Standalone.tar.gz
 
   PushToHub:
+    permissions: {}
     name: Upload if release
     needs: [buildForAllSupportedPlatforms]
     runs-on: ubuntu-latest
-    # if: github.event_name == 'release' && github.event.action == 'published'
+    if: github.event_name == 'release' && github.event.action == 'published'
 
     steps:
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
@@ -100,6 +105,7 @@ jobs:
           path: builds
 
       - name: Push builds to Hub
+        if: github.event_name == 'release' && github.event.action == 'published'
         env:
           HF_TOKEN: ${{ secrets.UNITY_BUILD_PUSH }}
           HF_USERNAME: thomwolf
