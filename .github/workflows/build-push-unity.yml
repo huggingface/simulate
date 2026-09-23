@@ -14,8 +14,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   buildForAllSupportedPlatforms:
+    permissions:
+      contents: read
     name: Build ${{ matrix.targetPlatform }}
     runs-on: ubuntu-latest
     strategy:
@@ -84,6 +88,7 @@ jobs:
   #         path: ./builds/Standalone.tar.gz
 
   PushToHub:
+    permissions: {}
     name: Upload if release
     needs: [buildForAllSupportedPlatforms]
     runs-on: ubuntu-latest
