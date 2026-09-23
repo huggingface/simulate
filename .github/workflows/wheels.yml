@@ -43,7 +43,7 @@ jobs:
     steps:
     - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd  # v6.0.2
 
-    - uses: pypa/cibuildwheel@v2.10.1
+    - uses: pypa/cibuildwheel@225387a9d55a3df0ca48efc17acf4964b8ef4f10 # v2.10.1
       env:
         CIBW_ARCHS_MACOS: auto universal2
         CIBW_SKIP: cp311-* *-win32 pp38-* pp39-* *_i686 *-musllinux_* cp38-*-universal2
@@ -75,7 +75,7 @@ jobs:
         name: artifact
         path: dist
 
-    - uses: pypa/gh-action-pypi-publish@v1.5.1
+    - uses: pypa/gh-action-pypi-publish@37f50c210e3d2f9450da2cd423303d6a14a6e29f # v1.5.1
       with:
         user: thomwolf
         password: ${{ secrets.pypi_password }}
