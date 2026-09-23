@@ -14,8 +14,12 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions: {}
+
 jobs:
   build_sdist:
+    permissions:
+      contents: read
     name: Build SDist
     runs-on: ubuntu-latest
     steps:
@@ -33,6 +37,8 @@ jobs:
 
 
   build_wheels:
+    permissions:
+      contents: read
     name: Wheels on ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     strategy:
@@ -60,6 +66,7 @@ jobs:
 
 
   upload_all:
+    permissions: {}
     name: Upload if release
     needs: [build_wheels, build_sdist]
     runs-on: ubuntu-latest

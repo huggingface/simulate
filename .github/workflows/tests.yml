@@ -5,8 +5,12 @@ on: [pull_request]
 env:
   HF_HOME: ~/hf_cache
 
+permissions: {}
+
 jobs:
   run-tests:
+    permissions:
+      contents: read
     runs-on: ubuntu-latest
 
     strategy:
