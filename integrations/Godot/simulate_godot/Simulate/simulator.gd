@@ -1,4 +1,4 @@
-extends Node
+extends Node3D
 # Core of the integration and base of the scene
 # Handles data received from the client and call commands
 
@@ -10,7 +10,8 @@ const RECONNECT_TIMEOUT: float = 3.0
 var _client : Client = Client.new()
 var _command : Command = Command.new()
 
-var agent
+var rl_manager: RLManager
+var map_pool: Array
 
 
 func _ready() -> void:
@@ -19,21 +20,30 @@ func _ready() -> void:
 	_client.connect("disconnected", _handle_client_disconnected)
 	_client.connect("error", _handle_client_error)
 	_client.connect("data", _handle_client_data)
-	_command.connect("callback", _handle_callback)
-
+	
+	_client.name = "Client"
 	add_child(_client)
-	add_child(_command)
 	
 	_command.load_commands()
 	_client.connect_to_host(HOST, PORT)
+
+
+func get_all_children(node: Node, arr: Array = []):
+	arr.push_back(node)
+	for child in node.get_children():
+		arr = get_all_children(child,arr)
+	return arr
+
 
 func _connect_after_timeout(timeout: float) -> void:
 	# Retry connection after given timeout
 	await get_tree().create_timer(timeout).timeout
 	_client.connect_to_host(HOST, PORT)
 
+
 func _handle_client_connected() -> void:
 	print("Client connected to server.")
+
 
 func _handle_client_data(data: PackedByteArray) -> void:
 	# Parse data and sends content for command execution
@@ -52,17 +62,21 @@ func _handle_client_data(data: PackedByteArray) -> void:
 	else:
 		print("Error parsing data.")
 
+
 func _handle_client_disconnected() -> void:
 	# Reconnect client if it gets disconnected
 	print("Client disconnected from server.")
 	_connect_after_timeout(RECONNECT_TIMEOUT)
+
 
 func _handle_client_error() -> void:
 	# Reconnect client if there is an error
 	print("Client error.")
 	_connect_after_timeout(RECONNECT_TIMEOUT)
 
-func _handle_callback(callback_data: PackedByteArray) -> void:
-	# Send callback to python-side API
-	print("Sending callback.")
-	_client.send(callback_data)
+
+func send_callback(callback: String) -> void:
+	var callback_bytes = Marshalls.base64_to_raw(Marshalls.utf8_to_base64(callback))
+	print("Callback length: ", len(callback_bytes))
+	_client.send(callback_bytes)
+	print("Callback sent.")

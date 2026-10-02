@@ -1,5 +1,5 @@
-extends Node3D
 class_name HFActuator
+extends Node3D
 
 
 var action_mapping: ActionMapping
@@ -8,18 +8,18 @@ var n: int
 var dtype: String
 var low: Array
 var high: Array
-var shape: Array
+var shape: Array 
 var actuator_tag: String
+var is_actor: bool
 
 
 func import(state: GLTFState, json: Dictionary, extensions: Dictionary):
-	print("Importing an actuator.")
 	var actuator: Dictionary = state.json["extensions"]["HF_actuators"]["objects"][extensions["HF_actuators"]["object_id"]]
 	action_space = ActionSpace.new()
 	name = extensions["HF_actuators"]["name"]
-	var mesh = MeshInstance3D.new()
-	mesh.mesh = state.meshes[json["mesh"]].mesh.get_mesh()
-	add_child(mesh)
+	
+	if json.has("extras"):
+		is_actor = json["extras"].get("is_actor", false)
 	
 	position = Vector3(
 		json["translation"][0], 
@@ -88,12 +88,12 @@ func import(state: GLTFState, json: Dictionary, extensions: Dictionary):
 
 class ActionMapping:
 	var action: String
-	var amplitude: float
-	var offset: float
+	var amplitude: float = 1.0
+	var offset: float = 0.0
 	var axis: Vector3
 	var position: Vector3
-	var use_local_coordinates: bool
-	var is_impulse: bool
+	var use_local_coordinates: bool = true
+	var is_impulse: bool = false
 	var max_velocity_threshold: float
 
 
