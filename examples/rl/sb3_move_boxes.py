@@ -124,8 +124,8 @@ def generate_map(index):
 
     green_white_target_reward_multiple = sm.RewardFunction(
         type="sparse",
-        entity_a=red_target,
-        entity_b=yellow_target,
+        entity_a=green_target,
+        entity_b=white_target,
         distance_metric="euclidean",
         threshold=2.0,
         is_terminal=False,
