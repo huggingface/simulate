@@ -1095,6 +1095,34 @@ class Asset(NodeMixin, object):
 
             self._post_asset_modification()
 
+    def add_force(self, force: List[float] = None, force_mode: Optional[str] = None):
+        """
+        Add a force to a node.
+
+        Args:
+            force (`List[float]`):
+                The three-dimensional force vector, which is applied depending on the force mode.
+            force_mode (`str`, *optional*, defaults to `Force`):
+                The mode of applying the force, one of:
+                    - `Force`: Interprets the force value as a force, changing velocity according to mass and time.
+                    - `Acceleration`: Interprets the force value as a change in velocity over time, ignoring mass.
+                    - `Impulse`: Interprets the force value as a change in velocity according to mass, ignoring time.
+                    - `VelocityChange`: Interprets the force value as a change in velocity, ignoring mass and time.
+        """
+        if self.physics_component is None:
+            raise TypeError("Forces can only be applied to objects with a physics_component.")
+        force = force if force is not None else [0, 0, 0]
+        force_mode = force_mode if force_mode is not None else "Force"
+        if (
+            getattr(self.tree_root, "engine", None) is not None
+        ):
+            getattr(self.tree_root, "engine").run_command(
+                "AddForce",
+                name=self.name,
+                force=force,
+                force_mode=force_mode
+            )
+
     def _post_asset_modification(self):
         """Method called after an asset is modified."""
         if (
