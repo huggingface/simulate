@@ -18,14 +18,16 @@ var _warmed_up: bool = false
 func _ready() -> void:
 	_status = _stream.get_status()
 
+
 func _physics_process(_delta) -> void:
 	# this is called at a fixed rate
 	update_status()
-	print("------------physic step--------------")
+#	print("------------physic step--------------")
 
 	if _status == _stream.STATUS_CONNECTED:
 		get_tree().paused = true
 		read()
+
 
 func update_status() -> void:
 	# Get the current stream status
@@ -45,6 +47,7 @@ func update_status() -> void:
 			_stream.STATUS_ERROR:
 				print("Error with socket stream.")
 				emit_signal("error")
+
 
 func read() -> void:
 	# Get data from TCP stream, only reads 1 command at a time
@@ -77,6 +80,7 @@ func read() -> void:
 				get_tree().paused = false
 				break
 
+
 func connect_to_host(host: String, port: int) -> void:
 	# Connect to the TCP server that was setup on the python-side API
 	print("Connecting to %s:%d" % [host, port])
@@ -89,18 +93,16 @@ func connect_to_host(host: String, port: int) -> void:
 		_stream.disconnect_from_host()
 		emit_signal("error")
 
+
 func send(out_data: PackedByteArray) -> bool:
 	# Send back data to the python-side code, usually for callbacks and obs
 	if _status != _stream.STATUS_CONNECTED:
 		print("Error: Stream is not currently connected.")
 		return false
 	
-	var stream_error: int = _stream.put_data(PackedByteArray([len(out_data)]))
-	if stream_error != OK:
-		print("Error writing to stream: ", error)
-		return false
+	_stream.put_32(len(out_data))
 	
-	stream_error = _stream.put_data(out_data)
+	var stream_error = _stream.put_data(out_data)
 	if stream_error != OK:
 		print("Error writing to stream: ", error)
 		return false

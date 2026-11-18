@@ -1,15 +1,15 @@
-extends PhysicsMaterial
 class_name HFPhysicMaterial
+extends PhysicsMaterial
 
 
 var material_name: String = ""
 var dynamic_friction: float = 0.6
 var friction_combine: GLTFEnums.PhysicMaterialCombine
 var bounce_combine: GLTFEnums.PhysicMaterialCombine
+var actuator: HFActuator
 
 
 func import(state: GLTFState, extensions: Dictionary, id: int):
-	print("Importing a physic material.")
 	var physic_material: Dictionary = state.json["extensions"]["HF_physic_materials"]["objects"][id]
 	material_name = extensions["HF_physic_materials"]["name"]
 	friction = 0.6

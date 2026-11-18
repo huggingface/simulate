@@ -1,5 +1,5 @@
-extends Node3D
 class_name HFRewardFunction
+extends Node3D
 
 
 var type: String
@@ -12,10 +12,10 @@ var threshold: float
 var is_terminal: bool
 var is_collectable: bool
 var trigger_once: bool
+var actuator: HFActuator
 
 
 func import(state: GLTFState, json: Dictionary, extensions: Dictionary):
-	print("Importing a reward function.")
 	var reward_function: Dictionary = state.json["extensions"]["HF_reward_functions"]["objects"][extensions["HF_reward_functions"]["object_id"]]
 	name = extensions["HF_reward_functions"]["name"]
 	

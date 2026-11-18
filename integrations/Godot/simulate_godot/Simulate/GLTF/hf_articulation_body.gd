@@ -1,5 +1,5 @@
-extends Generic6DOFJoint3D
 class_name HFArticulationBody
+extends Generic6DOFJoint3D
 
 
 var joint_type: String = ""
@@ -20,10 +20,10 @@ var upper_limit: float = 0.0
 var lower_limit: float = 0.0
 var mass: float = 1.0
 var center_of_mass: Vector3 = Vector3.ZERO
+var actuator: HFActuator
 
 
 func import(state: GLTFState, json: Dictionary, extensions: Dictionary):
-	print("Importing an articulation body.")
 	var articulation_body: Dictionary = state.json["extensions"]["HF_articulation_bodies"]["objects"][extensions["HF_articulation_bodies"]["object_id"]]
 	name = extensions["HF_articulation_bodies"]["name"]
 	

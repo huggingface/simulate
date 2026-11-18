@@ -6,6 +6,6 @@
 
 [node name="BaseWorld" type="Node3D" parent="."]
 
-[node name="Camera" type="Camera3D" parent="BaseWorld"]
-transform = Transform3D(0.707107, -0.5, 0.5, 0, 0.707107, 0.707107, -0.707107, -0.5, 0.5, 8, 8, 8)
+[node name="Camera3D" type="Camera3D" parent="BaseWorld"]
+transform = Transform3D(0.651331, 0, -0.758794, 0, 1, 0, 0.758794, 0, 0.651331, -5.6946, 6.34299, 6.48804)
 script = ExtResource("2_cqhjv")
